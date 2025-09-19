@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 using MiniTimeline.Core;
 using MiniTimeline.Serialization;
@@ -17,6 +18,7 @@ namespace MiniTimeline.Demo
         [Header("Timeline Setup")]
         [SerializeField] private MiniTimelineDirector director;
         [SerializeField] private GameObject characterObject;
+        [SerializeField] private Camera demoCamera;
         [SerializeField] private bool autoPlay = true;
         [SerializeField] private bool loadSampleProject = true;
         
@@ -24,11 +26,16 @@ namespace MiniTimeline.Demo
         [SerializeField] private KeyCode playKey = KeyCode.Space;
         [SerializeField] private KeyCode stopKey = KeyCode.S;
         [SerializeField] private KeyCode restartKey = KeyCode.R;
+        [SerializeField] private KeyCode resetCameraKey = KeyCode.C;
         
         [Header("Debug")]
         [SerializeField] private bool showDebugGUI = true;
+        [SerializeField] private bool showTrackInfo = false;
         
         private MiniTimelineProject currentProject;
+        private Vector3 originalCameraPosition;
+        private Quaternion originalCameraRotation;
+        private float originalCameraFOV;
         
         void Start()
         {
@@ -37,6 +44,14 @@ namespace MiniTimeline.Demo
             if (loadSampleProject)
             {
                 LoadSampleProject();
+            }
+            
+            // Store original camera settings
+            if (demoCamera != null)
+            {
+                originalCameraPosition = demoCamera.transform.position;
+                originalCameraRotation = demoCamera.transform.rotation;
+                originalCameraFOV = demoCamera.fieldOfView;
             }
             
             if (autoPlay && director.Project != null)
@@ -116,6 +131,27 @@ namespace MiniTimeline.Demo
                 
                 // Loop toggle
                 director.Loop = GUILayout.Toggle(director.Loop, "Loop");
+                
+                GUILayout.Space(10);
+                
+                // Camera controls
+                if (demoCamera != null)
+                {
+                    GUILayout.Label("Camera Controls:");
+                    if (GUILayout.Button("Reset Camera"))
+                    {
+                        ResetCamera();
+                    }
+                }
+                
+                // Track info toggle
+                showTrackInfo = GUILayout.Toggle(showTrackInfo, "Show Track Info");
+                
+                if (showTrackInfo)
+                {
+                    GUILayout.Space(5);
+                    ShowTrackInfo();
+                }
             }
             else
             {
@@ -147,6 +183,7 @@ namespace MiniTimeline.Demo
             GUILayout.Label($"Play/Pause: {playKey}");
             GUILayout.Label($"Stop: {stopKey}");
             GUILayout.Label($"Restart: {restartKey}");
+            GUILayout.Label($"Reset Camera: {resetCameraKey}");
             
             GUILayout.EndVertical();
             GUILayout.EndArea();
@@ -169,6 +206,21 @@ namespace MiniTimeline.Demo
             if (characterObject != null)
             {
                 director.BindingContext.Bind("character", characterObject);
+            }
+            
+            if (demoCamera != null)
+            {
+                director.BindingContext.Bind("main_camera", demoCamera);
+            }
+            else
+            {
+                // Use main camera as fallback
+                var mainCamera = Camera.main;
+                if (mainCamera != null)
+                {
+                    director.BindingContext.Bind("main_camera", mainCamera);
+                    demoCamera = mainCamera;
+                }
             }
             
             // Subscribe to events
@@ -205,6 +257,11 @@ namespace MiniTimeline.Demo
                 director.Stop();
                 director.Play();
             }
+            
+            if (Input.GetKeyDown(resetCameraKey))
+            {
+                ResetCamera();
+            }
         }
         
         private void SaveProject()
@@ -237,6 +294,40 @@ namespace MiniTimeline.Demo
             }
         }
         
+        private void ResetCamera()
+        {
+            if (demoCamera != null)
+            {
+                demoCamera.transform.position = originalCameraPosition;
+                demoCamera.transform.rotation = originalCameraRotation;
+                demoCamera.fieldOfView = originalCameraFOV;
+                Debug.Log("[MiniTimelineDemo] Camera reset to original position");
+            }
+        }
+        
+        private void ShowTrackInfo()
+        {
+            if (director.Project == null) return;
+            
+            foreach (var track in director.Tracks)
+            {
+                GUILayout.BeginHorizontal();
+                
+                // Track type and status
+                string trackType = track.GetType().Name;
+                string status = track.Enabled ? "✓" : "✗";
+                GUILayout.Label($"{status} {trackType}", GUILayout.Width(100));
+                
+                // Clip count
+                var clips = track.GetClips();
+                int totalClips = clips.Count();
+                int activeClips = clips.Count(clip => clip.Contains(director.Time));
+                GUILayout.Label($"({activeClips}/{totalClips})", GUILayout.Width(60));
+                
+                GUILayout.EndHorizontal();
+            }
+        }
+        
         #region Event Handlers
         
         private void OnStateChanged(PlaybackState state)
@@ -258,6 +349,14 @@ namespace MiniTimeline.Demo
             if (eventTrack != null)
             {
                 eventTrack.OnTimelineEvent += OnTimelineEvent;
+            }
+            
+            // Log track information
+            foreach (var track in director.Tracks)
+            {
+                string trackType = track.GetType().Name;
+                int clipCount = track.GetClips().Count();
+                Debug.Log($"[MiniTimelineDemo] Loaded {trackType} with {clipCount} clips (BindKey: {track.BindKey})");
             }
         }
         

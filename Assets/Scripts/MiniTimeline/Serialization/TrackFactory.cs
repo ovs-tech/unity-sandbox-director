@@ -27,6 +27,7 @@ namespace MiniTimeline.Serialization
         {
             RegisterTrackType(MiniTimelineConstants.TRACK_ANIM, CreateAnimTrack);
             RegisterTrackType(MiniTimelineConstants.TRACK_MORPH, CreateMorphTrack);
+            RegisterTrackType(MiniTimelineConstants.TRACK_CAMERA, CreateCameraTrack);
             RegisterTrackType(MiniTimelineConstants.TRACK_EVENT, CreateEventTrack);
             // Add more track types as they are implemented
         }
@@ -106,6 +107,30 @@ namespace MiniTimeline.Serialization
             foreach (var clipData in data.clips)
             {
                 var clip = DeserializeMorphClip(clipData);
+                if (clip != null)
+                {
+                    clips.Add(clip);
+                }
+            }
+            
+            track.SetClips(clips);
+            return track;
+        }
+        
+        private static IMiniTrack CreateCameraTrack(TrackData data)
+        {
+            var track = new CameraTrack
+            {
+                Id = data.id,
+                BindKey = data.bindKey,
+                Enabled = data.enabled
+            };
+            
+            // Convert clip data to CameraClips
+            var clips = new List<CameraClip>();
+            foreach (var clipData in data.clips)
+            {
+                var clip = DeserializeCameraClip(clipData);
                 if (clip != null)
                 {
                     clips.Add(clip);
@@ -384,6 +409,102 @@ namespace MiniTimeline.Serialization
             
             // Fallback - linear curve
             return AnimationCurve.Linear(0f, 0f, 1f, 1f);
+        }
+        
+        private static CameraClip DeserializeCameraClip(ClipData data)
+        {
+            try
+            {
+                var clip = new CameraClip
+                {
+                    Id = data.id,
+                    Start = data.start,
+                    Duration = data.duration
+                };
+                
+                // Deserialize position data
+                if (data.payload.TryGetValue("hasPosition", out var hasPos))
+                    clip.hasPosition = Convert.ToBoolean(hasPos);
+                
+                if (data.payload.TryGetValue("startPosition", out var startPos))
+                    clip.startPosition = DeserializeVector3(startPos);
+                
+                if (data.payload.TryGetValue("endPosition", out var endPos))
+                    clip.endPosition = DeserializeVector3(endPos);
+                
+                // Deserialize rotation data
+                if (data.payload.TryGetValue("hasRotation", out var hasRot))
+                    clip.hasRotation = Convert.ToBoolean(hasRot);
+                
+                if (data.payload.TryGetValue("startRotation", out var startRot))
+                    clip.startRotation = DeserializeQuaternion(startRot);
+                
+                if (data.payload.TryGetValue("endRotation", out var endRot))
+                    clip.endRotation = DeserializeQuaternion(endRot);
+                
+                // Deserialize field of view data
+                if (data.payload.TryGetValue("hasFieldOfView", out var hasFOV))
+                    clip.hasFieldOfView = Convert.ToBoolean(hasFOV);
+                
+                if (data.payload.TryGetValue("startFieldOfView", out var startFOV))
+                    clip.startFieldOfView = Convert.ToSingle(startFOV);
+                
+                if (data.payload.TryGetValue("endFieldOfView", out var endFOV))
+                    clip.endFieldOfView = Convert.ToSingle(endFOV);
+                
+                // Deserialize animation curve
+                if (data.payload.TryGetValue("animationCurve", out var animCurve))
+                    Enum.TryParse<CameraAnimationCurve>(animCurve.ToString(), out clip.animationCurve);
+                
+                // Deserialize fade values
+                if (data.payload.TryGetValue("fadeIn", out var fadeIn))
+                    clip.fadeIn = Convert.ToSingle(fadeIn);
+                
+                if (data.payload.TryGetValue("fadeOut", out var fadeOut))
+                    clip.fadeOut = Convert.ToSingle(fadeOut);
+                
+                return clip;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[TrackFactory] Error deserializing CameraClip: {e.Message}");
+                return null;
+            }
+        }
+        
+        private static Vector3 DeserializeVector3(object value)
+        {
+            // Simple Vector3 deserialization - assumes format "x,y,z"
+            string str = value.ToString();
+            string[] parts = str.Split(',');
+            if (parts.Length == 3)
+            {
+                if (float.TryParse(parts[0], out float x) &&
+                    float.TryParse(parts[1], out float y) &&
+                    float.TryParse(parts[2], out float z))
+                {
+                    return new Vector3(x, y, z);
+                }
+            }
+            return Vector3.zero;
+        }
+        
+        private static Quaternion DeserializeQuaternion(object value)
+        {
+            // Simple Quaternion deserialization - assumes format "x,y,z,w"
+            string str = value.ToString();
+            string[] parts = str.Split(',');
+            if (parts.Length == 4)
+            {
+                if (float.TryParse(parts[0], out float x) &&
+                    float.TryParse(parts[1], out float y) &&
+                    float.TryParse(parts[2], out float z) &&
+                    float.TryParse(parts[3], out float w))
+                {
+                    return new Quaternion(x, y, z, w);
+                }
+            }
+            return Quaternion.identity;
         }
         
         #endregion

@@ -337,8 +337,8 @@ namespace MiniTimeline.Serialization
         {
             var project = new MiniTimelineProject
             {
-                name = "Sample Project",
-                length = 10f,
+                name = "Sample Project with Camera Animation",
+                length = 12f, // Extended to accommodate camera clips
                 frameRate = 30f
             };
             
@@ -360,7 +360,7 @@ namespace MiniTimeline.Serialization
                 duration = 3f,
                 payload = new Dictionary<string, object>
                 {
-                    { "animationAsset", "addr:Animations/Walk" },
+                    { "animationAsset", "addr:Animations/Run" },
                     { "speed", 1f },
                     { "wrapMode", "Loop" },
                     { "fadeIn", 0.2f },
@@ -369,6 +369,74 @@ namespace MiniTimeline.Serialization
             };
             animTrack.clips.Add(animClip);
             project.tracks.Add(animTrack);
+            
+            // Add camera track
+            var cameraTrack = new TrackData
+            {
+                id = "camera_track_1",
+                type = MiniTimelineConstants.TRACK_CAMERA,
+                bindKey = "main_camera",
+                enabled = true,
+                order = 20
+            };
+            
+            // Add camera position movement
+            var cameraPosClip = new ClipData
+            {
+                id = "camera_pos_clip_1",
+                start = 0f,
+                duration = 4f,
+                payload = new Dictionary<string, object>
+                {
+                    { "hasPosition", true },
+                    { "startPosition", "0,2,-5" },
+                    { "endPosition", "5,3,-3" },
+                    { "hasRotation", false },
+                    { "hasFieldOfView", false },
+                    { "animationCurve", "EaseInOut" },
+                    { "fadeIn", 0.5f },
+                    { "fadeOut", 0.5f }
+                }
+            };
+            cameraTrack.clips.Add(cameraPosClip);
+            
+            // Add camera rotation
+            var cameraRotClip = new ClipData
+            {
+                id = "camera_rot_clip_1",
+                start = 2f,
+                duration = 3f,
+                payload = new Dictionary<string, object>
+                {
+                    { "hasPosition", false },
+                    { "hasRotation", true },
+                    { "startRotation", "0,0,0,1" }, // Quaternion.identity
+                    { "endRotation", "0.1305262,0.1305262,0,0.9829730" }, // Quaternion.Euler(15, 15, 0)
+                    { "hasFieldOfView", false },
+                    { "animationCurve", "Linear" }
+                }
+            };
+            cameraTrack.clips.Add(cameraRotClip);
+            
+            // Add field of view change (zoom effect)
+            var cameraFOVClip = new ClipData
+            {
+                id = "camera_fov_clip_1",
+                start = 5f,
+                duration = 2f,
+                payload = new Dictionary<string, object>
+                {
+                    { "hasPosition", false },
+                    { "hasRotation", false },
+                    { "hasFieldOfView", true },
+                    { "startFieldOfView", 60f },
+                    { "endFieldOfView", 30f }, // Zoom in effect
+                    { "animationCurve", "EaseInOut" }
+                }
+            };
+            cameraTrack.clips.Add(cameraFOVClip);
+            
+            project.tracks.Add(cameraTrack);
             
             // Add morph track
             var morphTrack = new TrackData
