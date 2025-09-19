@@ -1,0 +1,452 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Playables;
+using UnityEngine.Animations;
+using UnityEngine.Audio;
+
+namespace MiniTimeline.Core
+{
+    /// <summary>
+    /// Wrapper for Unity Playables system to manage animation and audio mixing
+    /// Provides high-level API for crossfading, mixing, and playback control
+    /// </summary>
+    public class MiniPlayableGraph : IDisposable
+    {
+        private PlayableGraph graph;
+        private bool isValid;
+        private string graphName;
+        
+        // Animation components
+        private AnimationPlayableOutput animOutput;
+        private AnimationMixerPlayable animMixer;
+        private readonly Dictionary<string, AnimationClipPlayable> clipPlayables = new Dictionary<string, AnimationClipPlayable>();
+        private readonly List<AnimationClipPlayable> activeClipPlayables = new List<AnimationClipPlayable>();
+        
+        // Audio components  
+        private AudioPlayableOutput audioOutput;
+        private AudioMixerPlayable audioMixer;
+        private readonly Dictionary<string, AudioClipPlayable> audioClipPlayables = new Dictionary<string, AudioClipPlayable>();
+        
+        // Crossfade state
+        private float crossfadeTime;
+        private float crossfadeDuration;
+        private AnimationClipPlayable fadeOutClip;
+        private AnimationClipPlayable fadeInClip;
+        private bool isCrossfading;
+        
+        #region Properties
+        
+        /// <summary>
+        /// Whether the graph is valid and ready to use
+        /// </summary>
+        public bool IsValid => isValid && graph.IsValid();
+        
+        /// <summary>
+        /// Current playback time of the graph
+        /// </summary>
+        public double Time => IsValid ? graph.GetRootPlayable(0).GetTime() : 0.0;
+        
+        /// <summary>
+        /// Whether graph is currently playing
+        /// </summary>
+        public bool IsPlaying => IsValid && graph.IsPlaying();
+        
+        #endregion
+        
+        #region Initialization
+        
+        /// <summary>
+        /// Create a new playable graph
+        /// </summary>
+        /// <param name="name">Graph name for debugging</param>
+        /// <param name="frameData">Frame rate for evaluation</param>
+        public MiniPlayableGraph(string name = "MiniTimelineGraph", FrameData frameData = default)
+        {
+            graphName = name;
+            CreateGraph(frameData);
+        }
+        
+        /// <summary>
+        /// Initialize the playable graph with animation and audio outputs
+        /// </summary>
+        /// <param name="animator">Target animator for animation output</param>
+        /// <param name="audioSource">Target audio source for audio output (optional)</param>
+        public void Initialize(Animator animator, AudioSource audioSource = null)
+        {
+            if (!IsValid)
+            {
+                Debug.LogError("[MiniPlayableGraph] Cannot initialize invalid graph");
+                return;
+            }
+            
+            // Setup animation output
+            if (animator != null)
+            {
+                SetupAnimationOutput(animator);
+            }
+            
+            // Setup audio output
+            if (audioSource != null)
+            {
+                SetupAudioOutput(audioSource);
+            }
+        }
+        
+        private void CreateGraph(FrameData frameData)
+        {
+            try
+            {
+                graph = PlayableGraph.Create(graphName);
+                isValid = true;
+                
+                if (frameData.frameId > 0)
+                {
+                    graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
+                }
+                
+                Debug.Log($"[MiniPlayableGraph] Created graph: {graphName}");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[MiniPlayableGraph] Failed to create graph: {e.Message}");
+                isValid = false;
+            }
+        }
+        
+        private void SetupAnimationOutput(Animator animator)
+        {
+            if (!IsValid) return;
+            
+            try
+            {
+                // Create animation mixer with 4 inputs for crossfading
+                animMixer = AnimationMixerPlayable.Create(graph, 4);
+                
+                // Create animation output
+                animOutput = AnimationPlayableOutput.Create(graph, "AnimationOutput", animator);
+                animOutput.SetSourcePlayable(animMixer);
+                
+                Debug.Log($"[MiniPlayableGraph] Setup animation output for {animator.name}");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[MiniPlayableGraph] Failed to setup animation output: {e.Message}");
+            }
+        }
+        
+        private void SetupAudioOutput(AudioSource audioSource)
+        {
+            if (!IsValid) return;
+            
+            try
+            {
+                // Create audio mixer with 4 inputs
+                audioMixer = AudioMixerPlayable.Create(graph, 4);
+                
+                // Create audio output
+                audioOutput = AudioPlayableOutput.Create(graph, "AudioOutput", audioSource);
+                audioOutput.SetSourcePlayable(audioMixer);
+                
+                Debug.Log($"[MiniPlayableGraph] Setup audio output for {audioSource.name}");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[MiniPlayableGraph] Failed to setup audio output: {e.Message}");
+            }
+        }
+        
+        #endregion
+        
+        #region Playback Control
+        
+        /// <summary>
+        /// Play the graph
+        /// </summary>
+        public void Play()
+        {
+            if (IsValid)
+            {
+                graph.Play();
+            }
+        }
+        
+        /// <summary>
+        /// Stop the graph
+        /// </summary>
+        public void Stop()
+        {
+            if (IsValid)
+            {
+                graph.Stop();
+            }
+        }
+        
+        /// <summary>
+        /// Evaluate the graph manually
+        /// </summary>
+        /// <param name="deltaTime">Time delta to advance</param>
+        public void Evaluate(float deltaTime = 0f)
+        {
+            if (IsValid)
+            {
+                if (deltaTime > 0f)
+                {
+                    graph.Evaluate(deltaTime);
+                }
+                else
+                {
+                    graph.Evaluate();
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Set the graph time directly
+        /// </summary>
+        /// <param name="time">Target time</param>
+        public void SetTime(double time)
+        {
+            if (IsValid && graph.GetRootPlayableCount() > 0)
+            {
+                for (int i = 0; i < graph.GetRootPlayableCount(); i++)
+                {
+                    var rootPlayable = graph.GetRootPlayable(i);
+                    if (rootPlayable.IsValid())
+                    {
+                        rootPlayable.SetTime(time);
+                    }
+                }
+            }
+        }
+        
+        #endregion
+        
+        #region Animation Clip Management
+        
+        /// <summary>
+        /// Play an animation clip with optional fade in
+        /// </summary>
+        /// <param name="clip">Animation clip to play</param>
+        /// <param name="fadeTime">Fade in duration</param>
+        /// <param name="clipId">Unique ID for the clip</param>
+        /// <returns>Created clip playable</returns>
+        public AnimationClipPlayable PlayAnimationClip(AnimationClip clip, float fadeTime = 0f, string clipId = null)
+        {
+            if (!IsValid || clip == null) return default;
+            
+            clipId = clipId ?? clip.name;
+            
+            // Get or create clip playable
+            if (!clipPlayables.TryGetValue(clipId, out var clipPlayable))
+            {
+                clipPlayable = AnimationClipPlayable.Create(graph, clip);
+                clipPlayables[clipId] = clipPlayable;
+            }
+            
+            // Start crossfade if needed
+            if (fadeTime > 0f && activeClipPlayables.Count > 0)
+            {
+                StartCrossfade(activeClipPlayables[0], clipPlayable, fadeTime);
+            }
+            else
+            {
+                // Direct play
+                SetActiveClipPlayable(clipPlayable, 1f);
+            }
+            
+            return clipPlayable;
+        }
+        
+        /// <summary>
+        /// Crossfade to a new animation clip
+        /// </summary>
+        /// <param name="clip">Target animation clip</param>
+        /// <param name="duration">Crossfade duration</param>
+        /// <param name="clipId">Unique ID for the clip</param>
+        public void CrossfadeToClip(AnimationClip clip, float duration, string clipId = null)
+        {
+            PlayAnimationClip(clip, duration, clipId);
+        }
+        
+        /// <summary>
+        /// Set normalized time for an animation clip
+        /// </summary>
+        /// <param name="clipId">Clip ID</param>
+        /// <param name="normalizedTime">Normalized time (0-1)</param>
+        public void SetClipNormalizedTime(string clipId, float normalizedTime)
+        {
+            if (clipPlayables.TryGetValue(clipId, out var clipPlayable))
+            {
+                var clip = clipPlayable.GetAnimationClip();
+                if (clip != null)
+                {
+                    double time = normalizedTime * clip.length;
+                    clipPlayable.SetTime(time);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Set the active clip playable with weight
+        /// </summary>
+        private void SetActiveClipPlayable(AnimationClipPlayable clipPlayable, float weight)
+        {
+            if (!animMixer.IsValid()) return;
+            
+            // Clear previous connections
+            for (int i = 0; i < animMixer.GetInputCount(); i++)
+            {
+                animMixer.SetInputWeight(i, 0f);
+            }
+            
+            // Set new active clip
+            activeClipPlayables.Clear();
+            activeClipPlayables.Add(clipPlayable);
+            
+            // Connect to mixer
+            if (!graph.GetOutput(0).GetSourcePlayable().Equals(clipPlayable))
+            {
+                animMixer.ConnectInput(0, clipPlayable, 0);
+            }
+            animMixer.SetInputWeight(0, weight);
+        }
+        
+        /// <summary>
+        /// Start crossfade between two clips
+        /// </summary>
+        private void StartCrossfade(AnimationClipPlayable fromClip, AnimationClipPlayable toClip, float duration)
+        {
+            fadeOutClip = fromClip;
+            fadeInClip = toClip;
+            crossfadeDuration = duration;
+            crossfadeTime = 0f;
+            isCrossfading = true;
+            
+            // Connect both clips to mixer
+            animMixer.ConnectInput(0, fromClip, 0);
+            animMixer.ConnectInput(1, toClip, 0);
+            
+            // Start with fade out clip at full weight
+            animMixer.SetInputWeight(0, 1f);
+            animMixer.SetInputWeight(1, 0f);
+        }
+        
+        /// <summary>
+        /// Update crossfade progress
+        /// </summary>
+        /// <param name="deltaTime">Time delta</param>
+        public void UpdateCrossfade(float deltaTime)
+        {
+            if (!isCrossfading) return;
+            
+            crossfadeTime += deltaTime;
+            float progress = Mathf.Clamp01(crossfadeTime / crossfadeDuration);
+            
+            // Update weights
+            animMixer.SetInputWeight(0, 1f - progress);
+            animMixer.SetInputWeight(1, progress);
+            
+            // Finish crossfade
+            if (progress >= 1f)
+            {
+                isCrossfading = false;
+                SetActiveClipPlayable(fadeInClip, 1f);
+            }
+        }
+        
+        #endregion
+        
+        #region Audio Clip Management
+        
+        /// <summary>
+        /// Play an audio clip
+        /// </summary>
+        /// <param name="clip">Audio clip to play</param>
+        /// <param name="clipId">Unique ID for the clip</param>
+        /// <returns>Created audio clip playable</returns>
+        public AudioClipPlayable PlayAudioClip(AudioClip clip, string clipId = null)
+        {
+            if (!IsValid || clip == null || !audioMixer.IsValid()) return default;
+            
+            clipId = clipId ?? clip.name;
+            
+            // Get or create audio clip playable
+            if (!audioClipPlayables.TryGetValue(clipId, out var clipPlayable))
+            {
+                clipPlayable = AudioClipPlayable.Create(graph, clip, false);
+                audioClipPlayables[clipId] = clipPlayable;
+            }
+            
+            // Connect to audio mixer
+            audioMixer.ConnectInput(0, clipPlayable, 0);
+            audioMixer.SetInputWeight(0, 1f);
+            
+            return clipPlayable;
+        }
+        
+        /// <summary>
+        /// Set audio clip time
+        /// </summary>
+        /// <param name="clipId">Clip ID</param>
+        /// <param name="time">Time in seconds</param>
+        public void SetAudioClipTime(string clipId, double time)
+        {
+            if (audioClipPlayables.TryGetValue(clipId, out var clipPlayable))
+            {
+                clipPlayable.SetTime(time);
+            }
+        }
+        
+        #endregion
+        
+        #region Cleanup
+        
+        /// <summary>
+        /// Clear all cached playables
+        /// </summary>
+        public void ClearCache()
+        {
+            foreach (var clipPlayable in clipPlayables.Values)
+            {
+                if (clipPlayable.IsValid())
+                {
+                    clipPlayable.Destroy();
+                }
+            }
+            clipPlayables.Clear();
+            
+            foreach (var audioClipPlayable in audioClipPlayables.Values)
+            {
+                if (audioClipPlayable.IsValid())
+                {
+                    audioClipPlayable.Destroy();
+                }
+            }
+            audioClipPlayables.Clear();
+            
+            activeClipPlayables.Clear();
+        }
+        
+        /// <summary>
+        /// Dispose the graph and cleanup resources
+        /// </summary>
+        public void Dispose()
+        {
+            if (isValid)
+            {
+                ClearCache();
+                
+                if (graph.IsValid())
+                {
+                    graph.Destroy();
+                }
+                
+                isValid = false;
+                Debug.Log($"[MiniPlayableGraph] Disposed graph: {graphName}");
+            }
+        }
+        
+        #endregion
+    }
+}

@@ -1,0 +1,391 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using MiniTimeline.Core;
+using MiniTimeline.Tracks;
+
+namespace MiniTimeline.Serialization
+{
+    /// <summary>
+    /// Factory for creating track instances from serialized data
+    /// Handles the mapping between track type names and actual track classes
+    /// </summary>
+    public static class TrackFactory
+    {
+        private static readonly Dictionary<string, Func<TrackData, IMiniTrack>> trackCreators 
+            = new Dictionary<string, Func<TrackData, IMiniTrack>>();
+        
+        static TrackFactory()
+        {
+            RegisterDefaultTrackTypes();
+        }
+        
+        /// <summary>
+        /// Register default track types
+        /// </summary>
+        private static void RegisterDefaultTrackTypes()
+        {
+            RegisterTrackType(MiniTimelineConstants.TRACK_ANIM, CreateAnimTrack);
+            RegisterTrackType(MiniTimelineConstants.TRACK_MORPH, CreateMorphTrack);
+            RegisterTrackType(MiniTimelineConstants.TRACK_EVENT, CreateEventTrack);
+            // Add more track types as they are implemented
+        }
+        
+        /// <summary>
+        /// Register a track type creator
+        /// </summary>
+        /// <param name="typeName">Track type name</param>
+        /// <param name="creator">Creator function</param>
+        public static void RegisterTrackType(string typeName, Func<TrackData, IMiniTrack> creator)
+        {
+            trackCreators[typeName] = creator;
+        }
+        
+        /// <summary>
+        /// Create a track instance from track data
+        /// </summary>
+        /// <param name="data">Serialized track data</param>
+        /// <returns>Track instance or null if type not supported</returns>
+        public static IMiniTrack CreateTrack(TrackData data)
+        {
+            if (trackCreators.TryGetValue(data.type, out var creator))
+            {
+                return creator(data);
+            }
+            
+            Debug.LogWarning($"[TrackFactory] Unsupported track type: {data.type}");
+            return null;
+        }
+        
+        /// <summary>
+        /// Get all registered track type names
+        /// </summary>
+        /// <returns>Collection of track type names</returns>
+        public static IEnumerable<string> GetRegisteredTrackTypes()
+        {
+            return trackCreators.Keys;
+        }
+        
+        #region Track Creators
+        
+        private static IMiniTrack CreateAnimTrack(TrackData data)
+        {
+            var track = new AnimTrack
+            {
+                Id = data.id,
+                BindKey = data.bindKey,
+                Enabled = data.enabled
+            };
+            
+            // Convert clip data to AnimClips
+            var clips = new List<AnimClip>();
+            foreach (var clipData in data.clips)
+            {
+                var clip = DeserializeAnimClip(clipData);
+                if (clip != null)
+                {
+                    clips.Add(clip);
+                }
+            }
+            
+            track.SetClips(clips);
+            return track;
+        }
+        
+        private static IMiniTrack CreateMorphTrack(TrackData data)
+        {
+            var track = new MorphTrack
+            {
+                Id = data.id,
+                BindKey = data.bindKey,
+                Enabled = data.enabled
+            };
+            
+            // Convert clip data to morph clips (mixed types)
+            var clips = new List<IMorphClip>();
+            foreach (var clipData in data.clips)
+            {
+                var clip = DeserializeMorphClip(clipData);
+                if (clip != null)
+                {
+                    clips.Add(clip);
+                }
+            }
+            
+            track.SetClips(clips);
+            return track;
+        }
+        
+        private static IMiniTrack CreateEventTrack(TrackData data)
+        {
+            var track = new EventTrack
+            {
+                Id = data.id,
+                BindKey = data.bindKey,
+                Enabled = data.enabled
+            };
+            
+            // Convert clip data to SignalClips
+            var clips = new List<SignalClip>();
+            foreach (var clipData in data.clips)
+            {
+                var clip = DeserializeSignalClip(clipData);
+                if (clip != null)
+                {
+                    clips.Add(clip);
+                }
+            }
+            
+            track.SetClips(clips);
+            return track;
+        }
+        
+        #endregion
+        
+        #region Clip Deserializers
+        
+        private static AnimClip DeserializeAnimClip(ClipData data)
+        {
+            try
+            {
+                var clip = new AnimClip
+                {
+                    Id = data.id,
+                    Start = data.start,
+                    Duration = data.duration
+                };
+                
+                // Deserialize payload
+                if (data.payload.TryGetValue("animationAsset", out var animAsset))
+                    clip.animationAsset = animAsset.ToString();
+                
+                if (data.payload.TryGetValue("speed", out var speed))
+                    clip.speed = Convert.ToSingle(speed);
+                
+                if (data.payload.TryGetValue("wrapMode", out var wrapMode))
+                    Enum.TryParse<AnimWrapMode>(wrapMode.ToString(), out clip.wrapMode);
+                
+                if (data.payload.TryGetValue("layer", out var layer))
+                    clip.layer = Convert.ToInt32(layer);
+                
+                if (data.payload.TryGetValue("fadeIn", out var fadeIn))
+                    clip.fadeIn = Convert.ToSingle(fadeIn);
+                
+                if (data.payload.TryGetValue("fadeOut", out var fadeOut))
+                    clip.fadeOut = Convert.ToSingle(fadeOut);
+                
+                if (data.payload.TryGetValue("weight", out var weight))
+                    clip.weight = Convert.ToSingle(weight);
+                
+                if (data.payload.TryGetValue("clipOffset", out var offset))
+                    clip.clipOffset = Convert.ToSingle(offset);
+                
+                return clip;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[TrackFactory] Error deserializing AnimClip: {e.Message}");
+                return null;
+            }
+        }
+        
+        private static IMorphClip DeserializeMorphClip(ClipData data)
+        {
+            try
+            {
+                // Determine clip type from payload
+                bool isKeyClip = data.payload.ContainsKey("keys");
+                bool isCurveClip = data.payload.ContainsKey("channels");
+                
+                if (isKeyClip)
+                {
+                    return DeserializeMorphKeyClip(data);
+                }
+                else if (isCurveClip)
+                {
+                    return DeserializeMorphCurveClip(data);
+                }
+                else
+                {
+                    Debug.LogWarning($"[TrackFactory] Unknown morph clip type for clip {data.id}");
+                    return null;
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[TrackFactory] Error deserializing MorphClip: {e.Message}");
+                return null;
+            }
+        }
+        
+        private static MorphKeyClip DeserializeMorphKeyClip(ClipData data)
+        {
+            var clip = new MorphKeyClip
+            {
+                Id = data.id,
+                Start = data.start,
+                Duration = data.duration
+            };
+            
+            // Deserialize basic properties
+            if (data.payload.TryGetValue("blendMode", out var blendMode))
+                Enum.TryParse<MorphBlendMode>(blendMode.ToString(), out clip.blendMode);
+            
+            if (data.payload.TryGetValue("priority", out var priority))
+                clip.priority = Convert.ToInt32(priority);
+            
+            if (data.payload.TryGetValue("weight", out var weight))
+                clip.weight = Convert.ToSingle(weight);
+            
+            // Deserialize keys
+            if (data.payload.TryGetValue("keys", out var keysObj) && keysObj is List<object> keysList)
+            {
+                clip.keys = new List<MorphKey>();
+                foreach (var keyObj in keysList)
+                {
+                    if (keyObj is Dictionary<string, object> keyDict)
+                    {
+                        var key = DeserializeMorphKey(keyDict);
+                        clip.keys.Add(key);
+                    }
+                }
+            }
+            
+            return clip;
+        }
+        
+        private static MorphCurveClip DeserializeMorphCurveClip(ClipData data)
+        {
+            var clip = new MorphCurveClip
+            {
+                Id = data.id,
+                Start = data.start,
+                Duration = data.duration
+            };
+            
+            // Deserialize basic properties
+            if (data.payload.TryGetValue("blendMode", out var blendMode))
+                Enum.TryParse<MorphBlendMode>(blendMode.ToString(), out clip.blendMode);
+            
+            if (data.payload.TryGetValue("priority", out var priority))
+                clip.priority = Convert.ToInt32(priority);
+            
+            if (data.payload.TryGetValue("weight", out var weight))
+                clip.weight = Convert.ToSingle(weight);
+            
+            // Deserialize channels
+            if (data.payload.TryGetValue("channels", out var channelsObj) && channelsObj is List<object> channelsList)
+            {
+                clip.channels = new List<MorphCurveClip.CurveChannel>();
+                foreach (var channelObj in channelsList)
+                {
+                    if (channelObj is Dictionary<string, object> channelDict)
+                    {
+                        var channel = DeserializeCurveChannel(channelDict);
+                        clip.channels.Add(channel);
+                    }
+                }
+            }
+            
+            return clip;
+        }
+        
+        private static SignalClip DeserializeSignalClip(ClipData data)
+        {
+            var clip = new SignalClip
+            {
+                Id = data.id,
+                Start = data.start,
+                Duration = 0f // Signals always have zero duration
+            };
+            
+            if (data.payload.TryGetValue("eventId", out var eventId))
+                clip.eventId = eventId.ToString();
+            
+            if (data.payload.TryGetValue("payload", out var payload))
+                clip.payload = payload.ToString();
+            
+            if (data.payload.TryGetValue("edge", out var edge))
+                Enum.TryParse<EventTriggerEdge>(edge.ToString(), out clip.edge);
+            
+            if (data.payload.TryGetValue("fireOnScrub", out var fireOnScrub))
+                clip.fireOnScrub = Convert.ToBoolean(fireOnScrub);
+            
+            if (data.payload.TryGetValue("color", out var colorObj))
+            {
+                if (ColorUtility.TryParseHtmlString(colorObj.ToString(), out Color color))
+                    clip.color = color;
+            }
+            
+            return clip;
+        }
+        
+        private static MorphKey DeserializeMorphKey(Dictionary<string, object> keyDict)
+        {
+            var key = new MorphKey();
+            
+            if (keyDict.TryGetValue("id", out var id))
+                key.id = id.ToString();
+            
+            if (keyDict.TryGetValue("startValue", out var startValue))
+                key.startValue = Convert.ToSingle(startValue);
+            
+            if (keyDict.TryGetValue("endValue", out var endValue))
+                key.endValue = Convert.ToSingle(endValue);
+            
+            if (keyDict.TryGetValue("curve", out var curveObj))
+                key.curve = DeserializeAnimationCurve(curveObj);
+            
+            return key;
+        }
+        
+        private static MorphCurveClip.CurveChannel DeserializeCurveChannel(Dictionary<string, object> channelDict)
+        {
+            var channel = new MorphCurveClip.CurveChannel();
+            
+            if (channelDict.TryGetValue("id", out var id))
+                channel.id = id.ToString();
+            
+            if (channelDict.TryGetValue("multiplier", out var multiplier))
+                channel.multiplier = Convert.ToSingle(multiplier);
+            
+            if (channelDict.TryGetValue("curve", out var curveObj))
+                channel.curve = DeserializeAnimationCurve(curveObj);
+            
+            return channel;
+        }
+        
+        private static AnimationCurve DeserializeAnimationCurve(object curveObj)
+        {
+            // Simple curve deserialization - in practice you might want a more robust system
+            if (curveObj is Dictionary<string, object> curveDict)
+            {
+                var curve = new AnimationCurve();
+                
+                if (curveDict.TryGetValue("keys", out var keysObj) && keysObj is List<object> keysList)
+                {
+                    foreach (var keyObj in keysList)
+                    {
+                        if (keyObj is Dictionary<string, object> keyDict)
+                        {
+                            float time = keyDict.TryGetValue("time", out var t) ? Convert.ToSingle(t) : 0f;
+                            float value = keyDict.TryGetValue("value", out var v) ? Convert.ToSingle(v) : 0f;
+                            float inTangent = keyDict.TryGetValue("inTangent", out var inT) ? Convert.ToSingle(inT) : 0f;
+                            float outTangent = keyDict.TryGetValue("outTangent", out var outT) ? Convert.ToSingle(outT) : 0f;
+                            
+                            var keyframe = new Keyframe(time, value, inTangent, outTangent);
+                            curve.AddKey(keyframe);
+                        }
+                    }
+                }
+                
+                return curve;
+            }
+            
+            // Fallback - linear curve
+            return AnimationCurve.Linear(0f, 0f, 1f, 1f);
+        }
+        
+        #endregion
+    }
+}
