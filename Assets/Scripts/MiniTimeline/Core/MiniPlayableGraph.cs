@@ -237,8 +237,6 @@ namespace MiniTimeline.Core
             // Clear tracking variables
             activeClipPlayables.Clear();
             isCrossfading = false;
-            
-            Debug.Log($"[MiniPlayableGraph] Cleared all active clips");
         }
         
         /// <summary>
@@ -283,47 +281,36 @@ namespace MiniTimeline.Core
         {
             if (!IsValid || clip == null) 
             {
-                Debug.LogWarning($"[MiniPlayableGraph] Cannot play clip - Graph valid: {IsValid}, Clip null: {clip == null}");
                 return default;
             }
             
             clipId = clipId ?? clip.name;
-            Debug.Log($"[MiniPlayableGraph] PlayAnimationClip called - Clip: {clip.name}, FadeTime: {fadeTime}, ID: {clipId}");
             
             // Get or create clip playable
             if (!clipPlayables.TryGetValue(clipId, out var clipPlayable))
             {
                 clipPlayable = AnimationClipPlayable.Create(graph, clip);
                 clipPlayables[clipId] = clipPlayable;
-                Debug.Log($"[MiniPlayableGraph] Created new clip playable for {clip.name}");
-            }
-            else
-            {
-                Debug.Log($"[MiniPlayableGraph] Using existing clip playable for {clip.name}");
             }
             
             // Check if we're already playing this clip or crossfading to it
             if (activeClipPlayables.Count > 0 && activeClipPlayables[0].Equals(clipPlayable))
             {
-                Debug.Log($"[MiniPlayableGraph] Already playing this clip, returning early");
                 return clipPlayable;
             }
             
             if (isCrossfading && fadeInClip.Equals(clipPlayable))
             {
-                Debug.Log($"[MiniPlayableGraph] Already crossfading to this clip, returning early");
                 return clipPlayable;
             }
             
             // Start crossfade if needed
             if (fadeTime > 0f && activeClipPlayables.Count > 0)
             {
-                Debug.Log($"[MiniPlayableGraph] Starting crossfade with duration {fadeTime}");
                 StartCrossfade(activeClipPlayables[0], clipPlayable, fadeTime);
             }
             else
             {
-                Debug.Log($"[MiniPlayableGraph] Direct play - no crossfade");
                 SetActiveClipPlayable(clipPlayable, 1f);
             }
             
@@ -355,16 +342,7 @@ namespace MiniTimeline.Core
                 {
                     double time = normalizedTime * clip.length;
                     clipPlayable.SetTime(time);
-                    Debug.Log($"[MiniPlayableGraph] Set clip '{clip.name}' time to {time:F2}s (normalized: {normalizedTime:F2})");
                 }
-                else
-                {
-                    Debug.LogWarning($"[MiniPlayableGraph] Playable for clip ID '{clipId}' has no animation clip");
-                }
-            }
-            else
-            {
-                Debug.LogWarning($"[MiniPlayableGraph] No playable found for clip ID '{clipId}'");
             }
         }
         
@@ -405,8 +383,6 @@ namespace MiniTimeline.Core
         /// </summary>
         private void StartCrossfade(AnimationClipPlayable fromClip, AnimationClipPlayable toClip, float duration)
         {
-            Debug.Log($"[MiniPlayableGraph] Starting crossfade - From: {(fromClip.IsValid() ? "Valid" : "Invalid")}, To: {(toClip.IsValid() ? "Valid" : "Invalid")}, Duration: {duration}");
-            
             fadeOutClip = fromClip;
             fadeInClip = toClip;
             crossfadeDuration = duration;
@@ -444,8 +420,6 @@ namespace MiniTimeline.Core
             // Start with fade out clip at full weight
             animMixer.SetInputWeight(0, 1f);
             animMixer.SetInputWeight(1, 0f);
-            
-            Debug.Log($"[MiniPlayableGraph] Crossfade started successfully");
         }
         
         /// <summary>

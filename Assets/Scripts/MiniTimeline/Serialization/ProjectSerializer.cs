@@ -32,7 +32,7 @@ namespace MiniTimeline.Serialization
                 return null;
             }
         }
-        
+
         /// <summary>
         /// Save a timeline project to file
         /// </summary>
@@ -55,10 +55,10 @@ namespace MiniTimeline.Serialization
             {
                 Debug.LogError($"[ProjectSerializer] Error saving project to file '{filePath}': {e.Message}");
             }
-            
+
             return false;
         }
-        
+
         /// <summary>
         /// Load a timeline project from JSON string
         /// </summary>
@@ -74,7 +74,7 @@ namespace MiniTimeline.Serialization
                     Debug.LogError("[ProjectSerializer] Failed to parse JSON");
                     return null;
                 }
-                
+
                 return ConvertFromJsonProject(jsonProject);
             }
             catch (Exception e)
@@ -83,7 +83,7 @@ namespace MiniTimeline.Serialization
                 return null;
             }
         }
-        
+
         /// <summary>
         /// Load a timeline project from file
         /// </summary>
@@ -98,15 +98,15 @@ namespace MiniTimeline.Serialization
                     Debug.LogError($"[ProjectSerializer] File not found: {filePath}");
                     return null;
                 }
-                
+
                 string json = File.ReadAllText(filePath);
                 var project = LoadFromJson(json);
-                
+
                 if (project != null)
                 {
                     Debug.Log($"[ProjectSerializer] Loaded project from: {filePath}");
                 }
-                
+
                 return project;
             }
             catch (Exception e)
@@ -115,9 +115,9 @@ namespace MiniTimeline.Serialization
                 return null;
             }
         }
-        
+
         #region Conversion Methods
-        
+
         /// <summary>
         /// Convert MiniTimelineProject to JSON-serializable format
         /// </summary>
@@ -132,7 +132,7 @@ namespace MiniTimeline.Serialization
                 tracks = new List<JsonTrackData>(),
                 metadata = ConvertToJsonMetadata(project.metadata)
             };
-            
+
             // Convert tracks
             foreach (var track in project.tracks)
             {
@@ -142,10 +142,10 @@ namespace MiniTimeline.Serialization
                     jsonProject.tracks.Add(jsonTrack);
                 }
             }
-            
+
             return jsonProject;
         }
-        
+
         /// <summary>
         /// Convert JSON project back to MiniTimelineProject
         /// </summary>
@@ -156,7 +156,7 @@ namespace MiniTimeline.Serialization
             {
                 Debug.LogWarning($"[ProjectSerializer] Loading project with version {jsonProject.version}, current version is 1. Some features may not work correctly.");
             }
-            
+
             var project = new MiniTimelineProject
             {
                 version = jsonProject.version,
@@ -166,7 +166,7 @@ namespace MiniTimeline.Serialization
                 tracks = new List<TrackData>(),
                 metadata = ConvertFromJsonMetadata(jsonProject.metadata)
             };
-            
+
             // Convert tracks
             foreach (var jsonTrack in jsonProject.tracks)
             {
@@ -176,10 +176,10 @@ namespace MiniTimeline.Serialization
                     project.tracks.Add(track);
                 }
             }
-            
+
             return project;
         }
-        
+
         private static JsonTrackData ConvertToJsonTrack(TrackData track)
         {
             var jsonTrack = new JsonTrackData
@@ -192,7 +192,7 @@ namespace MiniTimeline.Serialization
                 clips = new List<JsonClipData>(),
                 properties = track.properties
             };
-            
+
             // Convert clips
             foreach (var clip in track.clips)
             {
@@ -202,10 +202,10 @@ namespace MiniTimeline.Serialization
                     jsonTrack.clips.Add(jsonClip);
                 }
             }
-            
+
             return jsonTrack;
         }
-        
+
         private static TrackData ConvertFromJsonTrack(JsonTrackData jsonTrack)
         {
             return new TrackData
@@ -219,7 +219,7 @@ namespace MiniTimeline.Serialization
                 properties = jsonTrack.properties ?? new Dictionary<string, object>()
             };
         }
-        
+
         private static JsonClipData ConvertToJsonClip(ClipData clip)
         {
             return new JsonClipData
@@ -230,11 +230,11 @@ namespace MiniTimeline.Serialization
                 payload = clip.payload
             };
         }
-        
+
         private static List<ClipData> ConvertFromJsonClips(List<JsonClipData> jsonClips)
         {
             var clips = new List<ClipData>();
-            
+
             foreach (var jsonClip in jsonClips)
             {
                 clips.Add(new ClipData
@@ -245,10 +245,10 @@ namespace MiniTimeline.Serialization
                     payload = jsonClip.payload ?? new Dictionary<string, object>()
                 });
             }
-            
+
             return clips;
         }
-        
+
         private static JsonProjectMetadata ConvertToJsonMetadata(ProjectMetadata metadata)
         {
             return new JsonProjectMetadata
@@ -259,14 +259,14 @@ namespace MiniTimeline.Serialization
                 editorData = metadata.editorData
             };
         }
-        
+
         private static ProjectMetadata ConvertFromJsonMetadata(JsonProjectMetadata jsonMetadata)
         {
             if (jsonMetadata == null)
             {
                 return new ProjectMetadata();
             }
-            
+
             return new ProjectMetadata
             {
                 zoom = jsonMetadata.zoom,
@@ -275,11 +275,11 @@ namespace MiniTimeline.Serialization
                 editorData = jsonMetadata.editorData ?? new Dictionary<string, object>()
             };
         }
-        
+
         #endregion
-        
+
         #region JSON Data Classes
-        
+
         [Serializable]
         private class JsonTimelineProject
         {
@@ -290,7 +290,7 @@ namespace MiniTimeline.Serialization
             public List<JsonTrackData> tracks;
             public JsonProjectMetadata metadata;
         }
-        
+
         [Serializable]
         private class JsonTrackData
         {
@@ -302,7 +302,7 @@ namespace MiniTimeline.Serialization
             public List<JsonClipData> clips;
             public Dictionary<string, object> properties;
         }
-        
+
         [Serializable]
         private class JsonClipData
         {
@@ -311,7 +311,7 @@ namespace MiniTimeline.Serialization
             public float duration;
             public Dictionary<string, object> payload;
         }
-        
+
         [Serializable]
         private class JsonProjectMetadata
         {
@@ -320,10 +320,10 @@ namespace MiniTimeline.Serialization
             public List<string> selection;
             public Dictionary<string, object> editorData;
         }
-        
+
         #endregion
     }
-    
+
     /// <summary>
     /// Helper class for creating sample projects
     /// </summary>
@@ -341,7 +341,7 @@ namespace MiniTimeline.Serialization
                 length = 12f, // Extended to accommodate camera clips
                 frameRate = 30f
             };
-            
+
             // Add animation track
             var animTrack = new TrackData
             {
@@ -351,7 +351,7 @@ namespace MiniTimeline.Serialization
                 enabled = true,
                 order = 10
             };
-            
+
             // Add sample animation clip
             var animClip = new ClipData
             {
@@ -369,17 +369,17 @@ namespace MiniTimeline.Serialization
             };
             animTrack.clips.Add(animClip);
             project.tracks.Add(animTrack);
-            
+
             // Add camera track
-            var cameraTrack = new TrackData
+            var movementTrack = new TrackData
             {
-                id = "camera_track_1",
-                type = MiniTimelineConstants.TRACK_CAMERA,
+                id = "movement_track_1",
+                type = MiniTimelineConstants.TRACK_MOVEMENT,
                 bindKey = "main_camera",
                 enabled = true,
                 order = 20
             };
-            
+
             // Add camera position movement
             var cameraPosClip = new ClipData
             {
@@ -398,8 +398,8 @@ namespace MiniTimeline.Serialization
                     { "fadeOut", 0.5f }
                 }
             };
-            cameraTrack.clips.Add(cameraPosClip);
-            
+            movementTrack.clips.Add(cameraPosClip);
+
             // Add camera rotation
             var cameraRotClip = new ClipData
             {
@@ -416,8 +416,8 @@ namespace MiniTimeline.Serialization
                     { "animationCurve", "Linear" }
                 }
             };
-            cameraTrack.clips.Add(cameraRotClip);
-            
+            movementTrack.clips.Add(cameraRotClip);
+
             // Add field of view change (zoom effect)
             var cameraFOVClip = new ClipData
             {
@@ -434,10 +434,10 @@ namespace MiniTimeline.Serialization
                     { "animationCurve", "EaseInOut" }
                 }
             };
-            cameraTrack.clips.Add(cameraFOVClip);
-            
-            project.tracks.Add(cameraTrack);
-            
+            movementTrack.clips.Add(cameraFOVClip);
+
+            project.tracks.Add(movementTrack);
+
             // Add morph track
             var morphTrack = new TrackData
             {
@@ -447,7 +447,7 @@ namespace MiniTimeline.Serialization
                 enabled = true,
                 order = 30
             };
-            
+
             // Add sample morph clip
             var morphClip = new ClipData
             {
@@ -473,7 +473,7 @@ namespace MiniTimeline.Serialization
             };
             morphTrack.clips.Add(morphClip);
             project.tracks.Add(morphTrack);
-            
+
             // Add event track
             var eventTrack = new TrackData
             {
@@ -483,7 +483,7 @@ namespace MiniTimeline.Serialization
                 enabled = true,
                 order = 0
             };
-            
+
             // Add sample event
             var eventClip = new ClipData
             {
@@ -500,10 +500,52 @@ namespace MiniTimeline.Serialization
             };
             eventTrack.clips.Add(eventClip);
             project.tracks.Add(eventTrack);
-            
+
+            // Add animator track
+            var animatorTrack = new TrackData
+            {
+                id = "animator_track_1",
+                type = MiniTimelineConstants.TRACK_ANIMATOR,
+                bindKey = "character", // Target GameObject with Animator
+                enabled = true,
+                order = 40
+            };
+
+            // Add sample animator parameter clips
+            var animatorSpeedClip = new ClipData
+            {
+                id = "animator_speed_clip_1",
+                start = 0f,
+                duration = 3f,
+                payload = new Dictionary<string, object>
+                {
+                    { "blendMode", "Override" },
+                    { "fadeIn", 0.2f },
+                    { "fadeOut", 0.2f },
+                    { "parameterKeys", "Speed:Float:0:2:Linear" } // paramName:type:startValue:endValue:curveType
+                }
+            };
+            animatorTrack.clips.Add(animatorSpeedClip);
+
+            // Add sample boolean parameter clip
+            var animatorDirectionClip = new ClipData
+            {
+                id = "animator_direction_clip_1",
+                start = 0f,
+                duration = 4f,
+                payload = new Dictionary<string, object>
+                {
+                    { "blendMode", "Override" },
+                    { "parameterKeys", "Direction:Float:0:1:Linear" }
+                }
+            };
+            animatorTrack.clips.Add(animatorDirectionClip);
+
+            project.tracks.Add(animatorTrack);
+
             return project;
         }
-        
+
         private static Dictionary<string, object> CreateLinearCurveData()
         {
             return new Dictionary<string, object>

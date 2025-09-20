@@ -144,9 +144,10 @@ namespace MiniTimeline.Core
     {
         // Track type names
         public const string TRACK_ANIM = "AnimTrack";
+        public const string TRACK_ANIMATOR = "AnimatorTrack";
         public const string TRACK_MORPH = "MorphTrack";
         public const string TRACK_EXPRESSION = "ExpressionTrack";
-        public const string TRACK_CAMERA = "CameraTrack";
+        public const string TRACK_MOVEMENT = "MovementTrack";
         public const string TRACK_IK = "PoseIKTrack";
         public const string TRACK_AUDIO = "AudioTrack";
         public const string TRACK_LIGHT_FX = "FxLightTrack";

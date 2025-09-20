@@ -40,7 +40,7 @@ namespace MiniTimeline.Core
         private PlaybackState state = PlaybackState.Stopped;
         private float currentTime = 0f;
         private float previousTime = 0f;
-        private bool isDirty = true;
+        private bool isDirty = false;
         
         // Project data
         private MiniTimelineProject project;

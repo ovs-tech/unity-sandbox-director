@@ -4,7 +4,7 @@ A lightweight, mobile-optimized timeline system for creating in-game cinematic s
 
 ## Features
 
-- **Track-based Timeline**: Support for Animation, Morph, Camera, Audio, and Event tracks
+- **Track-based Timeline**: Support for Animation, Morph, Camera, Animator, and Event tracks
 - **Mobile Optimized**: Designed for 45-60 FPS performance on mid-range Android devices
 - **Playables Integration**: Uses Unity's Playables API for smooth animation blending
 - **JSON Serialization**: Lightweight, versioned project format for easy save/load
@@ -131,6 +131,49 @@ ProjectSerializer.SaveToFile(project, "my_timeline.json");
     ]
 }
 ```
+
+### Camera Track
+- Controls camera position, rotation, and field of view
+- Supports smooth transitions with configurable easing curves
+- Multiple clips can animate different camera properties simultaneously
+
+```csharp
+// Camera clip payload
+{
+    "hasPosition": true,
+    "startPosition": "0,2,-5",
+    "endPosition": "5,3,-3",
+    "hasRotation": true,
+    "startRotation": "0,0,0,1",
+    "endRotation": "0.1305262,0.1305262,0,0.9829730",
+    "hasFieldOfView": true,
+    "startFieldOfView": 60.0,
+    "endFieldOfView": 30.0,
+    "animationCurve": "EaseInOut",
+    "fadeIn": 0.5,
+    "fadeOut": 0.5
+}
+```
+
+### Animator Track
+- Controls Animator parameter values over time
+- Supports float, int, bool, and trigger parameters
+- Configurable blending modes and easing curves
+
+```csharp
+// Animator clip payload
+{
+    "fadeIn": 0.2,
+    "fadeOut": 0.2,
+    "blendMode": "Override",
+    "parameterKeys": "Speed:Float:0:2:Linear;IsRunning:Bool:false:true;Jump:Trigger:true:true"
+}
+```
+
+Parameter Keys format: `parameterName:type:startValue:endValue:curveType`
+- **Types**: Float, Int, Bool, Trigger
+- **Curve Types**: Linear, EaseIn, EaseOut, EaseInOut, Custom
+- **Blend Modes**: Override, Additive, Multiply
 
 ### Event Track
 - Triggers events when playhead crosses markers

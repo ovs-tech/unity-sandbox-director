@@ -76,15 +76,12 @@ namespace MiniTimeline.Tracks
         {
             if (playableGraph == null || !playableGraph.IsValid) 
             {
-                Debug.LogWarning($"[AnimTrack] Playable graph is invalid during evaluation");
                 return;
             }
             
             // Get active clips at current time
             tempActiveClips.Clear();
             tempActiveClips.AddRange(GetActiveClips(time));
-            
-            Debug.Log($"[AnimTrack] Evaluating at time {time:F2}, found {tempActiveClips.Count} active clips");
             
             if (tempActiveClips.Count == 0)
             {
@@ -144,27 +141,19 @@ namespace MiniTimeline.Tracks
         /// Play a single animation clip
         /// </summary>
         private void PlaySingleClip(AnimClip clip, float time, bool scrub)
-        {
-            Debug.Log($"[AnimTrack] PlaySingleClip called - Clip ID: {clip.Id}, Asset: {clip.animationAsset}, Time: {time:F2}");
-            
+        {   
             if (clip.cachedClip == null) 
             {
-                Debug.LogWarning($"[AnimTrack] Clip {clip.Id} has no cached animation clip - still loading?");
                 return;
             }
             
-            Debug.Log($"[AnimTrack] Clip has cached animation: {clip.cachedClip.name}, Length: {clip.cachedClip.length:F2}s");
-            
             // Check if we need to start a new clip or continue current one
             bool isNewClip = currentPrimaryClip != clip;
-            
-            Debug.Log($"[AnimTrack] Is new clip: {isNewClip}, Current primary: {(currentPrimaryClip?.Id ?? "null")}, Started in graph: {currentClipStartedInGraph}");
             
             if (isNewClip || !currentClipStartedInGraph)
             {
                 // Start crossfade to new clip
                 float fadeTime = scrub ? 0f : clip.fadeIn;
-                Debug.Log($"[AnimTrack] Playing clip '{clip.cachedClip.name}' with fade time {fadeTime} (new: {isNewClip}, started: {currentClipStartedInGraph})");
                 playableGraph.CrossfadeToClip(clip.cachedClip, fadeTime, clip.Id);
                 currentPrimaryClip = clip;
                 isBlending = fadeTime > 0f;
@@ -172,10 +161,8 @@ namespace MiniTimeline.Tracks
             }
             else
             {
-                Debug.Log($"[AnimTrack] Continuing current clip '{clip.cachedClip.name}' (should be playing)");
                 // Double-check: if the clip should be playing but might not be, restart it
                 // This is a safety measure for cases where the graph state got corrupted
-                Debug.Log($"[AnimTrack] Safety check: restarting clip to ensure playback");
                 playableGraph.CrossfadeToClip(clip.cachedClip, 0f, clip.Id);
             }
             
@@ -183,12 +170,10 @@ namespace MiniTimeline.Tracks
             float animTime = clip.GetLocalAnimationTime(time);
             float normalizedTime = clip.GetNormalizedAnimationTime(time);
             
-            Debug.Log($"[AnimTrack] Setting clip time - Local: {animTime:F2}, Normalized: {normalizedTime:F2}");
             playableGraph.SetClipNormalizedTime(clip.Id, normalizedTime);
             
             // Update fade weight
             float fadeWeight = clip.GetFadeWeight(time);
-            Debug.Log($"[AnimTrack] Fade weight: {fadeWeight:F2}");
             // Note: Weight is handled by the playable graph during crossfade
         }
         
@@ -211,7 +196,6 @@ namespace MiniTimeline.Tracks
         /// </summary>
         private void StopAnimation()
         {
-            Debug.Log($"[AnimTrack] Stopping animation");
             if (currentPrimaryClip != null)
             {
                 currentPrimaryClip = null;

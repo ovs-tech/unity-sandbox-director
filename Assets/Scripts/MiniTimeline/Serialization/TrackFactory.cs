@@ -27,7 +27,8 @@ namespace MiniTimeline.Serialization
         {
             RegisterTrackType(MiniTimelineConstants.TRACK_ANIM, CreateAnimTrack);
             RegisterTrackType(MiniTimelineConstants.TRACK_MORPH, CreateMorphTrack);
-            RegisterTrackType(MiniTimelineConstants.TRACK_CAMERA, CreateCameraTrack);
+            RegisterTrackType(MiniTimelineConstants.TRACK_MOVEMENT, CreateMovementTrack);
+            RegisterTrackType(MiniTimelineConstants.TRACK_ANIMATOR, CreateAnimatorTrack);
             RegisterTrackType(MiniTimelineConstants.TRACK_EVENT, CreateEventTrack);
             // Add more track types as they are implemented
         }
@@ -117,9 +118,9 @@ namespace MiniTimeline.Serialization
             return track;
         }
         
-        private static IMiniTrack CreateCameraTrack(TrackData data)
+        private static IMiniTrack CreateMovementTrack(TrackData data)
         {
-            var track = new CameraTrack
+            var track = new MovementTrack
             {
                 Id = data.id,
                 BindKey = data.bindKey,
@@ -127,7 +128,7 @@ namespace MiniTimeline.Serialization
             };
             
             // Convert clip data to CameraClips
-            var clips = new List<CameraClip>();
+            var clips = new List<MovementClip>();
             foreach (var clipData in data.clips)
             {
                 var clip = DeserializeCameraClip(clipData);
@@ -155,6 +156,30 @@ namespace MiniTimeline.Serialization
             foreach (var clipData in data.clips)
             {
                 var clip = DeserializeSignalClip(clipData);
+                if (clip != null)
+                {
+                    clips.Add(clip);
+                }
+            }
+            
+            track.SetClips(clips);
+            return track;
+        }
+        
+        private static IMiniTrack CreateAnimatorTrack(TrackData data)
+        {
+            var track = new AnimatorTrack
+            {
+                Id = data.id,
+                BindKey = data.bindKey,
+                Enabled = data.enabled
+            };
+            
+            // Convert clip data to AnimatorClips
+            var clips = new List<AnimatorClip>();
+            foreach (var clipData in data.clips)
+            {
+                var clip = DeserializeAnimatorClip(clipData);
                 if (clip != null)
                 {
                     clips.Add(clip);
@@ -411,11 +436,11 @@ namespace MiniTimeline.Serialization
             return AnimationCurve.Linear(0f, 0f, 1f, 1f);
         }
         
-        private static CameraClip DeserializeCameraClip(ClipData data)
+        private static MovementClip DeserializeCameraClip(ClipData data)
         {
             try
             {
-                var clip = new CameraClip
+                var clip = new MovementClip
                 {
                     Id = data.id,
                     Start = data.start,
@@ -469,6 +494,120 @@ namespace MiniTimeline.Serialization
             {
                 Debug.LogError($"[TrackFactory] Error deserializing CameraClip: {e.Message}");
                 return null;
+            }
+        }
+        
+        private static AnimatorClip DeserializeAnimatorClip(ClipData data)
+        {
+            try
+            {
+                var clip = new AnimatorClip
+                {
+                    Id = data.id,
+                    Start = data.start,
+                    Duration = data.duration
+                };
+                
+                // Deserialize fade values
+                if (data.payload.TryGetValue("fadeIn", out var fadeIn))
+                    clip.fadeIn = Convert.ToSingle(fadeIn);
+                
+                if (data.payload.TryGetValue("fadeOut", out var fadeOut))
+                    clip.fadeOut = Convert.ToSingle(fadeOut);
+                
+                // Deserialize blend mode
+                if (data.payload.TryGetValue("blendMode", out var blendMode))
+                    Enum.TryParse<AnimatorBlendMode>(blendMode.ToString(), out clip.blendMode);
+                
+                // Deserialize parameter keys
+                if (data.payload.TryGetValue("parameterKeys", out var paramKeysData))
+                {
+                    DeserializeParameterKeys(clip, paramKeysData);
+                }
+                
+                return clip;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[TrackFactory] Error deserializing AnimatorClip: {e.Message}");
+                return null;
+            }
+        }
+        
+        private static void DeserializeParameterKeys(AnimatorClip clip, object paramKeysData)
+        {
+            // For now, we'll implement a simple parameter key deserialization
+            // In a real implementation, this would parse a more complex structure
+            // Example format: "paramName:type:startValue:endValue"
+            
+            string paramKeysStr = paramKeysData.ToString();
+            if (string.IsNullOrEmpty(paramKeysStr)) return;
+            
+            string[] keyEntries = paramKeysStr.Split(';');
+            foreach (string keyEntry in keyEntries)
+            {
+                if (string.IsNullOrEmpty(keyEntry)) continue;
+                
+                string[] parts = keyEntry.Split(':');
+                if (parts.Length >= 4)
+                {
+                    string paramName = parts[0];
+                    if (Enum.TryParse<AnimatorControllerParameterType>(parts[1], out var paramType))
+                    {
+                        var paramKey = new AnimatorParameterKey
+                        {
+                            parameterName = paramName,
+                            parameterType = paramType
+                        };
+                        
+                        // Set values based on parameter type
+                        switch (paramType)
+                        {
+                            case AnimatorControllerParameterType.Float:
+                                if (float.TryParse(parts[2], out float startFloat) &&
+                                    float.TryParse(parts[3], out float endFloat))
+                                {
+                                    paramKey.startFloatValue = startFloat;
+                                    paramKey.endFloatValue = endFloat;
+                                }
+                                break;
+                                
+                            case AnimatorControllerParameterType.Int:
+                                if (int.TryParse(parts[2], out int startInt) &&
+                                    int.TryParse(parts[3], out int endInt))
+                                {
+                                    paramKey.startIntValue = startInt;
+                                    paramKey.endIntValue = endInt;
+                                }
+                                break;
+                                
+                            case AnimatorControllerParameterType.Bool:
+                                if (bool.TryParse(parts[2], out bool startBool) &&
+                                    bool.TryParse(parts[3], out bool endBool))
+                                {
+                                    paramKey.startBoolValue = startBool;
+                                    paramKey.endBoolValue = endBool;
+                                }
+                                break;
+                                
+                            case AnimatorControllerParameterType.Trigger:
+                                if (bool.TryParse(parts[2], out bool triggerValue))
+                                {
+                                    paramKey.triggerValue = triggerValue;
+                                }
+                                break;
+                        }
+                        
+                        // Set curve type if provided
+                        if (parts.Length > 4 && 
+                            Enum.TryParse<AnimatorParameterCurve>(parts[4], out var curveType))
+                        {
+                            paramKey.curveType = curveType;
+                        }
+                        
+                        clip.AddParameterKey(paramKey);
+                    }
+                }
             }
         }
         
