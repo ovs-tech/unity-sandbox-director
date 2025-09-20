@@ -74,6 +74,8 @@ namespace MiniTimeline.Core
         /// <param name="audioSource">Target audio source for audio output (optional)</param>
         public void Initialize(Animator animator, AudioSource audioSource = null)
         {
+            Debug.Log($"[MiniPlayableGraph] Initialize called - IsValid: {IsValid}");
+            
             if (!IsValid)
             {
                 Debug.LogError("[MiniPlayableGraph] Cannot initialize invalid graph");
@@ -83,14 +85,22 @@ namespace MiniTimeline.Core
             // Setup animation output
             if (animator != null)
             {
+                Debug.Log($"[MiniPlayableGraph] Setting up animation output for animator: {animator.name}");
                 SetupAnimationOutput(animator);
+            }
+            else
+            {
+                Debug.LogWarning("[MiniPlayableGraph] No animator provided for initialization");
             }
             
             // Setup audio output
             if (audioSource != null)
             {
+                Debug.Log($"[MiniPlayableGraph] Setting up audio output for audio source: {audioSource.name}");
                 SetupAudioOutput(audioSource);
             }
+            
+            Debug.Log("[MiniPlayableGraph] Initialize completed");
         }
         
         private void CreateGraph(FrameData frameData)
@@ -116,22 +126,55 @@ namespace MiniTimeline.Core
         
         private void SetupAnimationOutput(Animator animator)
         {
-            if (!IsValid) return;
+            if (!IsValid) 
+            {
+                Debug.LogError("[MiniPlayableGraph] Cannot setup animation output - graph is invalid");
+                return;
+            }
             
             try
             {
+                Debug.Log($"[MiniPlayableGraph] Starting animation output setup for {animator.name}");
+                
+                // CRITICAL: Check if the animator has a controller
+                if (animator.runtimeAnimatorController != null)
+                {
+                    Debug.LogWarning($"[MiniPlayableGraph] Animator {animator.name} still has RuntimeAnimatorController '{animator.runtimeAnimatorController.name}' - this will conflict!");
+                }
+                else
+                {
+                    Debug.Log($"[MiniPlayableGraph] Animator {animator.name} has no RuntimeAnimatorController - good for PlayableGraph control");
+                }
+                
                 // Create animation mixer with 4 inputs for crossfading
+                Debug.Log("[MiniPlayableGraph] Creating AnimationMixerPlayable...");
                 animMixer = AnimationMixerPlayable.Create(graph, 4);
+                Debug.Log($"[MiniPlayableGraph] AnimationMixerPlayable created. Valid: {animMixer.IsValid()}");
                 
                 // Create animation output
+                Debug.Log("[MiniPlayableGraph] Creating AnimationPlayableOutput...");
                 animOutput = AnimationPlayableOutput.Create(graph, "AnimationOutput", animator);
+                Debug.Log($"[MiniPlayableGraph] AnimationPlayableOutput created. Valid: {animOutput.IsOutputValid()}");
+                
+                Debug.Log("[MiniPlayableGraph] Connecting mixer to output...");
                 animOutput.SetSourcePlayable(animMixer);
+                Debug.Log("[MiniPlayableGraph] Mixer connected to output successfully");
+                
+                // Ensure the animator is enabled and ready
+                if (!animator.enabled)
+                {
+                    animator.enabled = true;
+                    Debug.Log($"[MiniPlayableGraph] Enabled animator {animator.name}");
+                }
                 
                 Debug.Log($"[MiniPlayableGraph] Setup animation output for {animator.name}");
+                Debug.Log($"[MiniPlayableGraph] Final state - Mixer valid: {animMixer.IsValid()}, Output valid: {animOutput.IsOutputValid()}");
+                Debug.Log($"[MiniPlayableGraph] Animator culling mode: {animator.cullingMode}");
             }
             catch (Exception e)
             {
                 Debug.LogError($"[MiniPlayableGraph] Failed to setup animation output: {e.Message}");
+                Debug.LogError($"[MiniPlayableGraph] Stack trace: {e.StackTrace}");
             }
         }
         
@@ -168,6 +211,11 @@ namespace MiniTimeline.Core
             if (IsValid)
             {
                 graph.Play();
+                Debug.Log($"[MiniPlayableGraph] Graph started playing. IsPlaying: {graph.IsPlaying()}");
+            }
+            else
+            {
+                Debug.LogError("[MiniPlayableGraph] Cannot play invalid graph");
             }
         }
         
@@ -193,11 +241,17 @@ namespace MiniTimeline.Core
                 if (deltaTime > 0f)
                 {
                     graph.Evaluate(deltaTime);
+                    Debug.Log($"[MiniPlayableGraph] Evaluated graph with deltaTime: {deltaTime:F4}");
                 }
                 else
                 {
                     graph.Evaluate();
+                    Debug.Log("[MiniPlayableGraph] Evaluated graph (no time advance)");
                 }
+            }
+            else
+            {
+                Debug.LogWarning("[MiniPlayableGraph] Cannot evaluate invalid graph");
             }
         }
         
@@ -281,36 +335,63 @@ namespace MiniTimeline.Core
         {
             if (!IsValid || clip == null) 
             {
+                Debug.LogWarning($"[MiniPlayableGraph] Cannot play clip - graph valid: {IsValid}, clip null: {clip == null}");
                 return default;
             }
             
             clipId = clipId ?? clip.name;
+            Debug.Log($"[MiniPlayableGraph] PlayAnimationClip: '{clipId}' (fadeTime: {fadeTime:F3})");
             
             // Get or create clip playable
             if (!clipPlayables.TryGetValue(clipId, out var clipPlayable))
             {
                 clipPlayable = AnimationClipPlayable.Create(graph, clip);
                 clipPlayables[clipId] = clipPlayable;
+                Debug.Log($"[MiniPlayableGraph] Created new AnimationClipPlayable for '{clipId}', valid: {clipPlayable.IsValid()}");
+                Debug.Log($"[MiniPlayableGraph] Clip '{clipId}' length: {clip.length:F3}s, looped: {clip.isLooping}");
+                
+                // Verify the clip playable was created correctly
+                if (!clipPlayable.IsValid())
+                {
+                    Debug.LogError($"[MiniPlayableGraph] Failed to create valid AnimationClipPlayable for '{clipId}'!");
+                    return default;
+                }
+            }
+            else
+            {
+                Debug.Log($"[MiniPlayableGraph] Reusing existing AnimationClipPlayable for '{clipId}', valid: {clipPlayable.IsValid()}");
+                
+                // Verify existing playable is still valid
+                if (!clipPlayable.IsValid())
+                {
+                    Debug.LogWarning($"[MiniPlayableGraph] Existing AnimationClipPlayable for '{clipId}' is invalid, recreating...");
+                    clipPlayable = AnimationClipPlayable.Create(graph, clip);
+                    clipPlayables[clipId] = clipPlayable;
+                }
             }
             
             // Check if we're already playing this clip or crossfading to it
             if (activeClipPlayables.Count > 0 && activeClipPlayables[0].Equals(clipPlayable))
             {
+                Debug.Log($"[MiniPlayableGraph] Clip '{clipId}' is already active");
                 return clipPlayable;
             }
             
             if (isCrossfading && fadeInClip.Equals(clipPlayable))
             {
+                Debug.Log($"[MiniPlayableGraph] Clip '{clipId}' is already being faded in");
                 return clipPlayable;
             }
             
             // Start crossfade if needed
             if (fadeTime > 0f && activeClipPlayables.Count > 0)
             {
+                Debug.Log($"[MiniPlayableGraph] Starting crossfade to '{clipId}' over {fadeTime:F3}s");
                 StartCrossfade(activeClipPlayables[0], clipPlayable, fadeTime);
             }
             else
             {
+                Debug.Log($"[MiniPlayableGraph] Setting '{clipId}' as active clip with weight 1.0");
                 SetActiveClipPlayable(clipPlayable, 1f);
             }
             
@@ -325,7 +406,9 @@ namespace MiniTimeline.Core
         /// <param name="clipId">Unique ID for the clip</param>
         public void CrossfadeToClip(AnimationClip clip, float duration, string clipId = null)
         {
-            PlayAnimationClip(clip, duration, clipId);
+            Debug.Log($"[MiniPlayableGraph] CrossfadeToClip: '{clipId ?? clip.name}' with duration {duration:F3}s");
+            var result = PlayAnimationClip(clip, duration, clipId);
+            Debug.Log($"[MiniPlayableGraph] PlayAnimationClip result valid: {result.IsValid()}");
         }
         
         /// <summary>
@@ -342,7 +425,16 @@ namespace MiniTimeline.Core
                 {
                     double time = normalizedTime * clip.length;
                     clipPlayable.SetTime(time);
+                    Debug.Log($"[MiniPlayableGraph] Set clip '{clipId}' time to {time:F3}s (normalized: {normalizedTime:F3})");
                 }
+                else
+                {
+                    Debug.LogWarning($"[MiniPlayableGraph] Clip playable for '{clipId}' has no AnimationClip");
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"[MiniPlayableGraph] No clip playable found for '{clipId}'");
             }
         }
         
@@ -351,7 +443,11 @@ namespace MiniTimeline.Core
         /// </summary>
         private void SetActiveClipPlayable(AnimationClipPlayable clipPlayable, float weight)
         {
-            if (!animMixer.IsValid()) return;
+            if (!animMixer.IsValid()) 
+            {
+                Debug.LogError("[MiniPlayableGraph] Cannot set active clip - animation mixer is invalid");
+                return;
+            }
             
             // Clear weights first
             for (int i = 0; i < animMixer.GetInputCount(); i++)
@@ -368,14 +464,17 @@ namespace MiniTimeline.Core
             if (currentInput.IsValid() && !currentInput.Equals(clipPlayable))
             {
                 animMixer.DisconnectInput(0);
+                Debug.Log("[MiniPlayableGraph] Disconnected previous clip from input 0");
             }
             
             // Connect to mixer if not already connected
             if (!animMixer.GetInput(0).IsValid() || !animMixer.GetInput(0).Equals(clipPlayable))
             {
                 animMixer.ConnectInput(0, clipPlayable, 0);
+                Debug.Log("[MiniPlayableGraph] Connected new clip to input 0");
             }
             animMixer.SetInputWeight(0, weight);
+            Debug.Log($"[MiniPlayableGraph] Set active clip with weight {weight:F3}");
         }
         
         /// <summary>
