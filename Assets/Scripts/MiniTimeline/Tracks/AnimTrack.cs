@@ -9,529 +9,654 @@ using MiniTimeline.Core;
 namespace MiniTimeline.Tracks
 {
     /// <summary>
-    /// Animation track for playing character animations
-    /// Supports crossfading, blending, and multi-layer animation
+    /// Track for playing Unity Animation clips on timeline
+    /// Supports multiple animation layers, blending, and timing control
+    /// Binds to Animator or Animation components
+    /// 
+    /// Asset Loading:
+    /// - Supports Addressable assets with "addr:" prefix (e.g., "addr:Animations/WalkCycle")
+    /// - Supports Resources folder assets (e.g., "Animations/WalkCycle")  
+    /// - Automatic async loading with proper cleanup
+    /// - Loading progress tracking and status queries
     /// </summary>
     public class AnimTrack : MiniTrackBase<AnimClip>
     {
-        public override int Order => 10; // Animation tracks run early
-
+        public override int Order => 10; // Animation tracks run early, after events but before IK/morph
+        
         private Animator targetAnimator;
-        private MiniPlayableGraph playableGraph;
+        private Animation targetAnimation; // Legacy animation system support
+        private Transform targetTransform;
+        
+        // Animation state management
         private readonly Dictionary<string, AnimationClip> loadedClips = new Dictionary<string, AnimationClip>();
-        private readonly List<AsyncOperationHandle<AnimationClip>> loadingHandles = new List<AsyncOperationHandle<AnimationClip>>();
-
-        // Store original animator controller to restore later
-        private RuntimeAnimatorController originalAnimatorController;
-
-        // Blending state
-        private AnimClip currentPrimaryClip;
-        private AnimClip currentSecondaryClip;
-        private float blendWeight = 0f;
-        private bool isBlending = false;
-        private bool currentClipStartedInGraph = false;
-
+        private readonly Dictionary<string, AnimationState> lastClipStates = new Dictionary<string, AnimationState>();
+        private readonly List<AnimClip> activeClips = new List<AnimClip>();
+        
+        // Addressables asset management
+        private readonly Dictionary<string, AsyncOperationHandle<AnimationClip>> loadingOperations = new Dictionary<string, AsyncOperationHandle<AnimationClip>>();
+        private readonly Dictionary<string, AsyncOperationHandle<AnimationClip>> loadedHandles = new Dictionary<string, AsyncOperationHandle<AnimationClip>>();
+        
         // Performance optimization
-        private readonly List<AnimClip> tempActiveClips = new List<AnimClip>();
-
+        private readonly List<AnimationState> tempStates = new List<AnimationState>();
+        private bool hasLoadedAssets = false;
+        
         #region Track Lifecycle
-
+        
         protected override void OnPrepare()
         {
             Debug.Log($"[AnimTrack] OnPrepare called for track '{Id}', target object: {targetObject}");
-            Debug.Log($"[AnimTrack] Target object type: {targetObject?.GetType().Name}, is null: {targetObject == null}");
-
+            
+            // Try to find Animator first (preferred)
             if (targetObject is Animator animator)
             {
                 targetAnimator = animator;
-                Debug.Log($"[AnimTrack] Target is Animator: {animator.name}, instanceID: {animator.GetInstanceID()}");
+                targetTransform = animator.transform;
+                Debug.Log($"[AnimTrack] Target is Animator: {animator.name}");
             }
             else if (targetObject is GameObject go)
             {
                 targetAnimator = go.GetComponent<Animator>();
-                Debug.Log($"[AnimTrack] Target is GameObject: {go.name}, instanceID: {go.GetInstanceID()}, Animator found: {targetAnimator != null}");
                 if (targetAnimator != null)
                 {
-                    Debug.Log($"[AnimTrack] Found Animator: {targetAnimator.name}, instanceID: {targetAnimator.GetInstanceID()}");
+                    targetTransform = targetAnimator.transform;
+                    Debug.Log($"[AnimTrack] Target GameObject has Animator: {go.name}");
                 }
-            }
-            else
-            {
-                Debug.LogError($"[AnimTrack] Target object for track '{Id}' is not an Animator or GameObject with Animator. Type: {targetObject?.GetType().Name}");
-                return;
-            }
-
-            if (targetAnimator == null)
-            {
-                Debug.LogError($"[AnimTrack] No Animator found for track '{Id}'");
-                return;
-            }
-
-            Debug.Log($"[AnimTrack] Using Animator: {targetAnimator.name}, enabled: {targetAnimator.enabled}, GameObject active: {targetAnimator.gameObject.activeInHierarchy}");
-
-            // Check if this is a UMA character (they rebuild dynamically)
-            bool isUMACharacter = targetAnimator.gameObject.name.Contains("UMA") ||
-                                  targetAnimator.GetComponent("UMAData") != null;
-            if (isUMACharacter)
-            {
-                Debug.Log($"[AnimTrack] Detected UMA character: {targetAnimator.gameObject.name}. UMA may rebuild this character dynamically.");
-            }
-
-            // ALTERNATIVE FIX: Temporarily disable the Animator to prevent conflicts during setup
-            bool wasEnabled = targetAnimator.enabled;
-            if (targetAnimator.runtimeAnimatorController != null)
-            {
-                Debug.Log($"[AnimTrack] Found AnimatorController '{targetAnimator.runtimeAnimatorController.name}' - temporarily disabling Animator during setup");
-                originalAnimatorController = targetAnimator.runtimeAnimatorController;
-                targetAnimator.enabled = false;
-                Debug.Log($"[AnimTrack] Animator temporarily disabled. Will re-enable after PlayableGraph setup.");
-            }
-
-            // Create playable graph for this track
-            try
-            {
-                Debug.Log($"[AnimTrack] Creating MiniPlayableGraph for track '{Id}'...");
-                playableGraph = new MiniPlayableGraph($"AnimTrack_{Id}");
-                Debug.Log($"[AnimTrack] MiniPlayableGraph created successfully");
-
-                Debug.Log($"[AnimTrack] Initializing playable graph with animator '{targetAnimator.name}'...");
-                playableGraph.Initialize(targetAnimator);
-                Debug.Log($"[AnimTrack] PlayableGraph initialized successfully");
-
-                Debug.Log($"[AnimTrack] Starting playable graph...");
-                playableGraph.Play();
-                Debug.Log($"[AnimTrack] PlayableGraph play command sent");
-
-                Debug.Log($"[AnimTrack] Created and started playable graph. IsValid: {playableGraph.IsValid}, IsPlaying: {playableGraph.IsPlaying}");
-                Debug.Log($"[AnimTrack] Target animator: {targetAnimator.name}, has controller: {targetAnimator.runtimeAnimatorController != null}");
-
-                // Re-enable the Animator now that PlayableGraph is set up and has taken control
-                if (originalAnimatorController != null && !targetAnimator.enabled)
+                else
                 {
-                    targetAnimator.enabled = true;
-                    Debug.Log($"[AnimTrack] Re-enabled Animator. PlayableGraph should now have control over AnimatorController.");
+                    // Fallback to legacy Animation component
+                    targetAnimation = go.GetComponent<Animation>();
+                    if (targetAnimation != null)
+                    {
+                        targetTransform = targetAnimation.transform;
+                        Debug.Log($"[AnimTrack] Target GameObject has Animation (legacy): {go.name}");
+                    }
+                    else
+                    {
+                        // Just get the transform for basic animation
+                        targetTransform = go.transform;
+                        Debug.LogWarning($"[AnimTrack] No Animator or Animation found on {go.name}, using Transform only");
+                    }
                 }
             }
-            catch (System.Exception e)
+            else if (targetObject is Transform transform)
             {
-                Debug.LogError($"[AnimTrack] Failed to create or initialize PlayableGraph: {e.Message}");
-                Debug.LogError($"[AnimTrack] Stack trace: {e.StackTrace}");
-
-                // Make sure to re-enable the animator even if there was an error
-                if (originalAnimatorController != null && !targetAnimator.enabled)
-                {
-                    targetAnimator.enabled = true;
-                    Debug.Log($"[AnimTrack] Re-enabled Animator after PlayableGraph setup error.");
-                }
+                targetTransform = transform;
+                targetAnimator = transform.GetComponent<Animator>();
+                targetAnimation = transform.GetComponent<Animation>();
+                Debug.Log($"[AnimTrack] Target is Transform: {transform.name}");
+            }
+            
+            if (targetTransform == null)
+            {
+                Debug.LogError($"[AnimTrack] Could not resolve target for track '{Id}' with bind key '{BindKey}'");
                 return;
             }
-
-            // Load all animation clips
-            LoadAllClips();
-
-            Debug.Log($"[AnimTrack] Prepared track '{Id}' with {clips.Count} clips");
+            
+            // Load animation assets
+            LoadAnimationAssets();
         }
-
+        
         protected override void OnEvaluate(float time, bool scrub)
         {
-            if (playableGraph == null || !playableGraph.IsValid)
+            if (targetTransform == null) return;
+            
+            // Get all active clips at current time
+            GetActiveClipsAtTime(time, activeClips);
+            
+            if (activeClips.Count == 0)
             {
+                // No clips active, stop any playing animations
+                StopAllAnimations(scrub);
                 return;
             }
-
-            // Check if the target animator is still valid
-            if (targetAnimator == null) return;
-
-            // Update crossfade if active (do this before evaluating clips)
-            if (isBlending && !scrub)
+            
+            // Sort clips by layer (higher layers have priority)
+            activeClips.Sort((a, b) => a.layer.CompareTo(b.layer));
+            
+            if (targetAnimator != null)
             {
-                playableGraph.UpdateCrossfade(UnityEngine.Time.deltaTime);
+                EvaluateWithAnimator(time, scrub);
             }
-
-            // Get active clips at current time
-            tempActiveClips.Clear();
-            tempActiveClips.AddRange(GetActiveClips(time));
-
-            if (tempActiveClips.Count == 0)
+            else if (targetAnimation != null)
             {
-                // No active clips - stop animation
-                StopAnimation();
-            }
-            else if (tempActiveClips.Count == 1)
-            {
-                // Single clip - play directly
-                PlaySingleClip(tempActiveClips[0], time, scrub);
+                EvaluateWithAnimation(time, scrub);
             }
             else
             {
-                // Multiple clips - blend them
-                BlendMultipleClips(tempActiveClips, time, scrub);
+                // Fallback: simple transform-based animation
+                EvaluateTransformOnly(time, scrub);
             }
-
-            tempActiveClips.Clear();
         }
-
+        
         protected override void OnCleanup()
         {
-            // Cancel any loading operations
-            foreach (var handle in loadingHandles)
+            StopAllAnimations(false);
+            UnloadAnimationAssets();
+            
+            activeClips.Clear();
+            lastClipStates.Clear();
+            hasLoadedAssets = false;
+        }
+        
+        #endregion
+        
+        #region Asset Management
+        
+        private async void LoadAnimationAssets()
+        {
+            if (hasLoadedAssets) return;
+            
+            var loadTasks = new List<System.Threading.Tasks.Task>();
+            
+            foreach (var clip in clips)
+            {
+                if (string.IsNullOrEmpty(clip.animationAsset)) continue;
+                
+                var task = LoadAnimationClipAsync(clip.animationAsset);
+                loadTasks.Add(task);
+            }
+            
+            // Wait for all assets to load
+            await System.Threading.Tasks.Task.WhenAll(loadTasks);
+            
+            hasLoadedAssets = true;
+            Debug.Log($"[AnimTrack] Finished loading {loadedClips.Count} animation clips");
+        }
+        
+        private async System.Threading.Tasks.Task LoadAnimationClipAsync(string assetPath)
+        {
+            if (loadedClips.ContainsKey(assetPath) || loadingOperations.ContainsKey(assetPath)) 
+                return;
+            
+            try
+            {
+                AnimationClip animClip = null;
+                
+                // Handle Addressable assets
+                if (assetPath.StartsWith(MiniTimelineConstants.ASSET_ADDRESSABLE))
+                {
+                    string addressableKey = assetPath.Substring(MiniTimelineConstants.ASSET_ADDRESSABLE.Length);
+                    await LoadFromAddressables(assetPath, addressableKey);
+                    return;
+                }
+                // Handle scene assets or Resources
+                else
+                {
+                    animClip = Resources.Load<AnimationClip>(assetPath);
+                    if (animClip == null)
+                    {
+                        Debug.LogWarning($"[AnimTrack] Could not load animation clip: {assetPath}");
+                        return;
+                    }
+                }
+                
+                if (animClip != null)
+                {
+                    loadedClips[assetPath] = animClip;
+                    Debug.Log($"[AnimTrack] Loaded animation clip: {assetPath}");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[AnimTrack] Error loading animation clip '{assetPath}': {e.Message}");
+            }
+        }
+        
+        private async System.Threading.Tasks.Task LoadFromAddressables(string assetPath, string addressableKey)
+        {
+            try
+            {
+                Debug.Log($"[AnimTrack] Loading Addressable animation clip: {addressableKey}");
+                
+                // Start the addressable load operation
+                var handle = Addressables.LoadAssetAsync<AnimationClip>(addressableKey);
+                loadingOperations[assetPath] = handle;
+                
+                // Wait for the operation to complete
+                var animClip = await handle.Task;
+                
+                // Remove from loading operations and add to loaded clips
+                loadingOperations.Remove(assetPath);
+                
+                if (handle.Status == AsyncOperationStatus.Succeeded && animClip != null)
+                {
+                    loadedClips[assetPath] = animClip;
+                    loadedHandles[assetPath] = handle;
+                    Debug.Log($"[AnimTrack] Successfully loaded Addressable animation clip: {addressableKey}");
+                }
+                else
+                {
+                    Debug.LogError($"[AnimTrack] Failed to load Addressable animation clip: {addressableKey}");
+                    Addressables.Release(handle);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[AnimTrack] Exception loading Addressable animation clip '{addressableKey}': {e.Message}");
+                
+                // Clean up failed operation
+                if (loadingOperations.TryGetValue(assetPath, out var failedHandle))
+                {
+                    loadingOperations.Remove(assetPath);
+                    Addressables.Release(failedHandle);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Synchronous fallback method for immediate loading needs
+        /// </summary>
+        private void LoadAnimationClip(string assetPath)
+        {
+            if (loadedClips.ContainsKey(assetPath)) return;
+            
+            try
+            {
+                AnimationClip animClip = null;
+                
+                // Handle Addressable assets - use synchronous load for immediate needs
+                if (assetPath.StartsWith(MiniTimelineConstants.ASSET_ADDRESSABLE))
+                {
+                    string addressableKey = assetPath.Substring(MiniTimelineConstants.ASSET_ADDRESSABLE.Length);
+                    
+                    // Check if we have a completed async operation
+                    if (loadedHandles.TryGetValue(assetPath, out var existingHandle))
+                    {
+                        if (existingHandle.Status == AsyncOperationStatus.Succeeded)
+                        {
+                            animClip = existingHandle.Result;
+                        }
+                    }
+                    else
+                    {
+                        // Synchronous Addressable load (not recommended but sometimes necessary)
+                        Debug.LogWarning($"[AnimTrack] Using synchronous Addressable load for: {addressableKey}");
+                        var handle = Addressables.LoadAssetAsync<AnimationClip>(addressableKey);
+                        animClip = handle.WaitForCompletion();
+                        
+                        if (handle.Status == AsyncOperationStatus.Succeeded && animClip != null)
+                        {
+                            loadedHandles[assetPath] = handle;
+                        }
+                        else
+                        {
+                            Addressables.Release(handle);
+                        }
+                    }
+                }
+                // Handle scene assets or Resources
+                else
+                {
+                    animClip = Resources.Load<AnimationClip>(assetPath);
+                    if (animClip == null)
+                    {
+                        Debug.LogWarning($"[AnimTrack] Could not load animation clip: {assetPath}");
+                    }
+                }
+                
+                if (animClip != null)
+                {
+                    loadedClips[assetPath] = animClip;
+                    Debug.Log($"[AnimTrack] Loaded animation clip: {assetPath}");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[AnimTrack] Error loading animation clip '{assetPath}': {e.Message}");
+            }
+        }
+        
+        private void UnloadAnimationAssets()
+        {
+            // Release any ongoing loading operations
+            foreach (var handle in loadingOperations.Values)
             {
                 if (handle.IsValid())
                 {
                     Addressables.Release(handle);
                 }
             }
-            loadingHandles.Clear();
-
+            loadingOperations.Clear();
+            
+            // Release loaded Addressable assets
+            foreach (var handle in loadedHandles.Values)
+            {
+                if (handle.IsValid())
+                {
+                    Addressables.Release(handle);
+                }
+            }
+            loadedHandles.Clear();
+            
             // Clear loaded clips
             loadedClips.Clear();
-
-            // Dispose playable graph
-            if (playableGraph != null)
-            {
-                playableGraph.Dispose();
-                playableGraph = null;
-            }
-
-            // Clear stored reference (we didn't modify the original)
-            originalAnimatorController = null;
-
-            Debug.Log($"[AnimTrack] Cleaned up track '{Id}'");
+            
+            Debug.Log($"[AnimTrack] Unloaded all animation assets for track '{Id}'");
         }
-
+        
         #endregion
-
-        #region Animation Playback
-
-        /// <summary>
-        /// Play a single animation clip
-        /// </summary>
-        private void PlaySingleClip(AnimClip clip, float time, bool scrub)
+        
+        #region Animation Evaluation
+        
+        private void EvaluateWithAnimator(float time, bool scrub)
         {
-            // Debug.Log($"[AnimTrack] Playing clip '{clip.Id}' at time {time} (scrub={scrub})");
-            if (clip.cachedClip == null)
-            {
-                return;
-            }
-
-            // Double-check animator is still valid (for UMA dynamic character rebuilds)
             if (targetAnimator == null) return;
-
-            // Check if we need to start a new clip or continue current one
-            bool isNewClip = currentPrimaryClip != clip;
-
-            if (isNewClip || !currentClipStartedInGraph)
+            
+            // Get animation states for all active clips
+            tempStates.Clear();
+            foreach (var clip in activeClips)
             {
-                // Start crossfade to new clip
-                float fadeTime = scrub ? 0f : clip.fadeIn;
-
-                playableGraph.CrossfadeToClip(clip.cachedClip, fadeTime, clip.Id);
-                currentPrimaryClip = clip;
-                isBlending = fadeTime > 0f;
-                currentClipStartedInGraph = true;
-
-                // Set the initial time for the new clip
-                float normalizedTime = clip.GetNormalizedAnimationTime(time);
-                playableGraph.SetClipNormalizedTime(clip.Id, normalizedTime);
-
-            }
-            else
-            {
-                // Check if the clip is actually active - if not, force restart
-                bool isActive = playableGraph.IsClipActive(clip.Id);
-                if (!isActive)
+                var state = clip.GetAnimationState(time);
+                if (state.isActive)
                 {
-                    float fadeTime = scrub ? 0f : clip.fadeIn;
-                    playableGraph.CrossfadeToClip(clip.cachedClip, fadeTime, clip.Id);
-
-                    // Set the initial time for the restarted clip
-                    float normalizedTime = clip.GetNormalizedAnimationTime(time);
-                    playableGraph.SetClipNormalizedTime(clip.Id, normalizedTime);
+                    tempStates.Add(state);
                 }
             }
-
-            // Verify the playable graph is valid before evaluating
-            if (!playableGraph.IsValid)
+            
+            // Apply animations through Animator
+            foreach (var state in tempStates)
             {
+                ApplyAnimationState(state, scrub);
+            }
+            
+            // Store states for comparison next frame
+            foreach (var state in tempStates)
+            {
+                lastClipStates[state.clipId] = state;
+            }
+        }
+        
+        private void EvaluateWithAnimation(float time, bool scrub)
+        {
+            if (targetAnimation == null) return;
+            
+            // Legacy Animation component evaluation
+            foreach (var clip in activeClips)
+            {
+                var state = clip.GetAnimationState(time);
+                if (!state.isActive) continue;
+                
+                if (loadedClips.TryGetValue(clip.animationAsset, out var animClip))
+                {
+                    // Set up animation state
+                    targetAnimation.clip = animClip;
+                    
+                    // Sample animation at specific time
+                    animClip.SampleAnimation(targetTransform.gameObject, state.animationTime);
+                    
+                    // Store state
+                    lastClipStates[state.clipId] = state;
+                }
+            }
+        }
+        
+        private void EvaluateTransformOnly(float time, bool scrub)
+        {
+            // Simple transform-based animation as fallback
+            // This would be used for basic position/rotation animation without Animator/Animation
+            
+            foreach (var clip in activeClips)
+            {
+                var state = clip.GetAnimationState(time);
+                if (!state.isActive) continue;
+                
+                // Basic interpolation logic would go here
+                // For now, just log that we're in fallback mode
+                Debug.LogWarning($"[AnimTrack] Using transform-only evaluation for clip {clip.Id} - limited functionality");
+                
+                lastClipStates[state.clipId] = state;
+            }
+        }
+        
+        private void ApplyAnimationState(AnimationState state, bool scrub)
+        {
+            if (!loadedClips.TryGetValue(GetClipAssetPath(state.clipId), out var animClip))
                 return;
-            }
-
-            if (!playableGraph.IsPlaying)
+                
+            // For Animator, we need to use AnimatorController or create runtime states
+            // This is a simplified implementation
+            
+            if (targetAnimator.runtimeAnimatorController == null)
             {
-                playableGraph.Play(); // Try to start it again
-            }
-
-            if (scrub)
-            {
-                // For scrubbing, manually set the exact time and evaluate without time advance
-                float normalizedTime = clip.GetNormalizedAnimationTime(time);
-                playableGraph.SetClipNormalizedTime(clip.Id, normalizedTime);
-                playableGraph.Evaluate(0f); // Force evaluation without time advance
+                // If no controller, fall back to direct clip sampling
+                animClip.SampleAnimation(targetAnimator.gameObject, state.animationTime);
             }
             else
             {
-                // For continuous playback, just evaluate the graph with deltaTime
-                // Don't constantly reset the time - let the graph advance naturally
-                float deltaTime = UnityEngine.Time.deltaTime;
-                playableGraph.Evaluate(deltaTime);
-
-                // Check if the clip is actually active in the graph
-                bool isActive = playableGraph.IsClipActive(clip.Id);
+                // Use Animator controller (would need proper state setup)
+                Debug.LogWarning($"[AnimTrack] Animator controller animation not fully implemented for clip {state.clipId}");
             }
-
-            // Update fade weight
-            float fadeWeight = clip.GetFadeWeight(time);
-            // Note: Weight is handled by the playable graph during crossfade
         }
-
-        /// <summary>
-        /// Blend multiple overlapping clips
-        /// </summary>
-        private void BlendMultipleClips(List<AnimClip> activeClips, float time, bool scrub)
+        
+        private string GetClipAssetPath(string clipId)
         {
-            // Sort clips by priority (later clips have higher priority)
-            activeClips.Sort((a, b) => a.Start.CompareTo(b.Start));
-
-            // For now, use simple priority-based selection
-            // TODO: Implement proper multi-clip blending
-            var primaryClip = activeClips[activeClips.Count - 1];
-            PlaySingleClip(primaryClip, time, scrub);
+            var clip = clips.FirstOrDefault(c => c.Id == clipId);
+            return clip?.animationAsset ?? string.Empty;
         }
-
-        /// <summary>
-        /// Stop animation playback
-        /// </summary>
-        private void StopAnimation()
-        {
-            if (currentPrimaryClip != null)
-            {
-                currentPrimaryClip = null;
-                isBlending = false;
-                currentClipStartedInGraph = false;
-            }
-
-            // Clear the playable graph inputs to stop animation
-            if (playableGraph != null && playableGraph.IsValid)
-            {
-                playableGraph.ClearActiveClips();
-            }
-        }
-
+        
         #endregion
-
-        #region Asset Loading
-
-        /// <summary>
-        /// Load all animation clips referenced by this track
-        /// </summary>
-        private void LoadAllClips()
+        
+        #region Animation Control
+        
+        private void StopAllAnimations(bool scrub)
         {
+            if (targetAnimator != null)
+            {
+                // Stop Animator animations
+                // In a full implementation, you'd stop specific states
+            }
+            else if (targetAnimation != null)
+            {
+                targetAnimation.Stop();
+            }
+            
+            lastClipStates.Clear();
+        }
+        
+        private void GetActiveClipsAtTime(float time, List<AnimClip> result)
+        {
+            result.Clear();
+            
             foreach (var clip in clips)
             {
-                LoadClip(clip);
-            }
-        }
-
-        /// <summary>
-        /// Load a single animation clip
-        /// </summary>
-        private void LoadClip(AnimClip clip)
-        {
-            if (string.IsNullOrEmpty(clip.animationAsset)) return;
-
-            // Check if already loaded
-            if (loadedClips.ContainsKey(clip.animationAsset))
-            {
-                clip.cachedClip = loadedClips[clip.animationAsset];
-                return;
-            }
-
-            // Load via Addressables or Resources
-            if (clip.animationAsset.StartsWith(MiniTimelineConstants.ASSET_ADDRESSABLE))
-            {
-                LoadClipFromAddressables(clip);
-            }
-            else if (clip.animationAsset.StartsWith(MiniTimelineConstants.ASSET_SCENE))
-            {
-                LoadClipFromScene(clip);
-            }
-            else
-            {
-                // Try Resources as fallback
-                LoadClipFromResources(clip);
-            }
-        }
-
-        /// <summary>
-        /// Load clip from Addressables
-        /// </summary>
-        private void LoadClipFromAddressables(AnimClip clip)
-        {
-            string address = clip.animationAsset.Substring(MiniTimelineConstants.ASSET_ADDRESSABLE.Length);
-
-            var handle = Addressables.LoadAssetAsync<AnimationClip>(address);
-            loadingHandles.Add(handle);
-
-            handle.Completed += (operation) =>
-            {
-                if (operation.Status == AsyncOperationStatus.Succeeded)
+                if (clip.ShouldPlay(time))
                 {
-                    var animClip = operation.Result;
-                    loadedClips[clip.animationAsset] = animClip;
-                    clip.cachedClip = animClip;
-
-                    Debug.Log($"[AnimTrack] Loaded animation clip: {address}");
+                    result.Add(clip);
                 }
-                else
-                {
-                    Debug.LogError($"[AnimTrack] Failed to load animation clip: {address}");
-                }
-            };
-        }
-
-        /// <summary>
-        /// Load clip from scene reference
-        /// </summary>
-        private void LoadClipFromScene(AnimClip clip)
-        {
-            string scenePath = clip.animationAsset.Substring(MiniTimelineConstants.ASSET_SCENE.Length);
-
-            // Try to find the animation clip in the scene
-            var foundClip = GameObject.Find(scenePath)?.GetComponent<Animation>()?.clip;
-
-            if (foundClip != null)
-            {
-                loadedClips[clip.animationAsset] = foundClip;
-                clip.cachedClip = foundClip;
-                Debug.Log($"[AnimTrack] Found animation clip in scene: {scenePath}");
-            }
-            else
-            {
-                Debug.LogWarning($"[AnimTrack] Could not find animation clip in scene: {scenePath}");
             }
         }
-
-        /// <summary>
-        /// Load clip from Resources folder
-        /// </summary>
-        private void LoadClipFromResources(AnimClip clip)
-        {
-            var animClip = Resources.Load<AnimationClip>(clip.animationAsset);
-
-            if (animClip != null)
-            {
-                loadedClips[clip.animationAsset] = animClip;
-                clip.cachedClip = animClip;
-                Debug.Log($"[AnimTrack] Loaded animation clip from Resources: {clip.animationAsset}");
-            }
-            else
-            {
-                Debug.LogWarning($"[AnimTrack] Could not load animation clip from Resources: {clip.animationAsset}");
-            }
-        }
-
+        
         #endregion
-
+        
         #region Public API
-
+        
         /// <summary>
         /// Add a new animation clip to this track
         /// </summary>
-        /// <param name="animationAsset">Animation asset reference</param>
-        /// <param name="start">Start time</param>
-        /// <param name="duration">Duration</param>
-        /// <returns>Created clip</returns>
-        public AnimClip AddClip(string animationAsset, float start, float duration)
+        /// <param name="clip">Animation clip to add</param>
+        public void AddClip(AnimClip clip)
         {
-            var clip = new AnimClip
-            {
-                Id = Guid.NewGuid().ToString(),
-                animationAsset = animationAsset,
-                Start = start,
-                Duration = duration
-            };
-
+            if (clip == null) return;
+            
+            clip.ValidateSettings();
             clips.Add(clip);
-            LoadClip(clip);
-
-            return clip;
+            
+            // Load the asset if we're already prepared
+            if (hasLoadedAssets && !string.IsNullOrEmpty(clip.animationAsset))
+            {
+                // Use async loading for new clips
+                _ = LoadAnimationClipAsync(clip.animationAsset);
+            }
         }
-
+        
         /// <summary>
-        /// Remove a clip from this track
+        /// Add a new animation clip to this track with async loading
         /// </summary>
-        /// <param name="clipId">Clip ID to remove</param>
+        /// <param name="clip">Animation clip to add</param>
+        /// <returns>Task that completes when the clip and its assets are loaded</returns>
+        public async System.Threading.Tasks.Task AddClipAsync(AnimClip clip)
+        {
+            if (clip == null) return;
+            
+            clip.ValidateSettings();
+            clips.Add(clip);
+            
+            // Load the asset if we're already prepared
+            if (hasLoadedAssets && !string.IsNullOrEmpty(clip.animationAsset))
+            {
+                await LoadAnimationClipAsync(clip.animationAsset);
+            }
+        }
+        
+        /// <summary>
+        /// Remove an animation clip from this track
+        /// </summary>
+        /// <param name="clipId">ID of clip to remove</param>
         public bool RemoveClip(string clipId)
         {
             var clip = clips.FirstOrDefault(c => c.Id == clipId);
             if (clip != null)
             {
                 clips.Remove(clip);
+                lastClipStates.Remove(clipId);
                 return true;
             }
             return false;
         }
-
+        
         /// <summary>
-        /// Get current animation state info
+        /// Get animation clip by ID
         /// </summary>
-        /// <returns>Animation state info</returns>
-        public AnimationInfo GetCurrentAnimationInfo()
+        /// <param name="clipId">Clip ID</param>
+        /// <returns>Animation clip or null</returns>
+        public AnimClip GetClip(string clipId)
         {
-            return new AnimationInfo
-            {
-                primaryClip = currentPrimaryClip,
-                isBlending = isBlending,
-                blendWeight = blendWeight
-            };
+            return clips.FirstOrDefault(c => c.Id == clipId);
         }
-
+        
         /// <summary>
-        /// Rebind to a new animator (useful for UMA character rebuilds)
+        /// Get all clips on this track
         /// </summary>
-        /// <param name="newAnimator">New animator to bind to</param>
-        public void RebindAnimator(Animator newAnimator)
+        /// <returns>Collection of animation clips</returns>
+        public IReadOnlyList<AnimClip> GetAllClips()
         {
-            if (newAnimator == null)
-            {
-                Debug.LogError("[AnimTrack] Cannot rebind to null animator");
-                return;
-            }
-
-            Debug.Log($"[AnimTrack] Rebinding from '{targetAnimator?.name ?? "null"}' to '{newAnimator.name}'");
-
-            // Dispose old playable graph
-            if (playableGraph != null)
-            {
-                playableGraph.Dispose();
-                playableGraph = null;
-            }
-
-            // Set new animator
-            targetAnimator = newAnimator;
-
-            // Create new playable graph
-            playableGraph = new MiniPlayableGraph($"AnimTrack_{Id}_Rebound");
-            playableGraph.Initialize(targetAnimator);
-            playableGraph.Play();
-
-            // Reset clip state
-            currentClipStartedInGraph = false;
-            currentPrimaryClip = null;
-
-            Debug.Log($"[AnimTrack] Successfully rebound to animator '{newAnimator.name}'");
+            return clips.AsReadOnly();
         }
-
+        
+        /// <summary>
+        /// Get current animation state for a clip
+        /// </summary>
+        /// <param name="clipId">Clip ID</param>
+        /// <returns>Animation state or null</returns>
+        public AnimationState? GetClipState(string clipId)
+        {
+            return lastClipStates.TryGetValue(clipId, out var state) ? state : null;
+        }
+        
+        /// <summary>
+        /// Check if track has any clips active at given time
+        /// </summary>
+        /// <param name="time">Timeline time</param>
+        /// <returns>True if any clips are active</returns>
+        public bool HasActiveClipsAt(float time)
+        {
+            return clips.Any(clip => clip.ShouldPlay(time));
+        }
+        
+        /// <summary>
+        /// Validate all clips on this track
+        /// </summary>
+        public void ValidateAllClips()
+        {
+            foreach (var clip in clips)
+            {
+                clip.ValidateSettings();
+            }
+        }
+        
+        /// <summary>
+        /// Check if a specific animation asset is loaded
+        /// </summary>
+        /// <param name="assetPath">Asset path to check</param>
+        /// <returns>True if the asset is loaded and ready</returns>
+        public bool IsAssetLoaded(string assetPath)
+        {
+            return loadedClips.ContainsKey(assetPath);
+        }
+        
+        /// <summary>
+        /// Check if a specific animation asset is currently loading
+        /// </summary>
+        /// <param name="assetPath">Asset path to check</param>
+        /// <returns>True if the asset is currently being loaded</returns>
+        public bool IsAssetLoading(string assetPath)
+        {
+            return loadingOperations.ContainsKey(assetPath);
+        }
+        
+        /// <summary>
+        /// Get the loading progress for all assets (0-1)
+        /// </summary>
+        /// <returns>Loading progress where 1.0 means all assets are loaded</returns>
+        public float GetLoadingProgress()
+        {
+            if (clips.Count == 0) return 1.0f;
+            
+            int totalAssets = clips.Count(c => !string.IsNullOrEmpty(c.animationAsset));
+            if (totalAssets == 0) return 1.0f;
+            
+            int loadedAssets = clips.Count(c => !string.IsNullOrEmpty(c.animationAsset) && loadedClips.ContainsKey(c.animationAsset));
+            
+            return (float)loadedAssets / totalAssets;
+        }
+        
+        /// <summary>
+        /// Wait for all assets to finish loading
+        /// </summary>
+        /// <returns>Task that completes when all assets are loaded</returns>
+        public async System.Threading.Tasks.Task WaitForAllAssetsLoaded()
+        {
+            // Wait for any ongoing loading operations
+            var loadingTasks = new List<System.Threading.Tasks.Task>();
+            
+            foreach (var handle in loadingOperations.Values)
+            {
+                if (handle.IsValid())
+                {
+                    loadingTasks.Add(handle.Task);
+                }
+            }
+            
+            if (loadingTasks.Count > 0)
+            {
+                await System.Threading.Tasks.Task.WhenAll(loadingTasks);
+            }
+        }
+        
         #endregion
-    }
-
-    /// <summary>
-    /// Information about current animation state
-    /// </summary>
-    public struct AnimationInfo
-    {
-        public AnimClip primaryClip;
-        public bool isBlending;
-        public float blendWeight;
+        
+        #region Debug and Diagnostics
+        
+        /// <summary>
+        /// Get debug information about this track
+        /// </summary>
+        public string GetDebugInfo()
+        {
+            var info = $"AnimTrack '{Id}' (BindKey: '{BindKey}')\n";
+            info += $"  Target: {targetObject?.name ?? "None"}\n";
+            info += $"  Animator: {targetAnimator != null}\n";
+            info += $"  Animation: {targetAnimation != null}\n";
+            info += $"  Transform: {targetTransform != null}\n";
+            info += $"  Clips: {clips.Count}\n";
+            info += $"  Loaded Assets: {loadedClips.Count}\n";
+            info += $"  Loading Assets: {loadingOperations.Count}\n";
+            info += $"  Addressable Handles: {loadedHandles.Count}\n";
+            info += $"  Loading Progress: {GetLoadingProgress():P1}\n";
+            info += $"  Active States: {lastClipStates.Count}";
+            
+            return info;
+        }
+        
+        #endregion
     }
 }

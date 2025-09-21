@@ -450,7 +450,7 @@ MonoBehaviour:
   normalColor: {r: 0.4, g: 0.6, b: 0.8, a: 0.8}
   selectedColor: {r: 0.8, g: 0.6, b: 0.2, a: 0.9}
   hoverColor: {r: 0.5, g: 0.7, b: 0.9, a: 0.9}
-  borderColor: {r: 1, g: 1, b: 1, a: 0.8}
+  borderColor: {r: 0, g: 0.24201891, b: 0.9811321, a: 0.8}
   selectedBorderColor: {r: 1, g: 0.8, b: 0.2, a: 1}
 --- !u!225 &5001628259137597209
 CanvasGroup:

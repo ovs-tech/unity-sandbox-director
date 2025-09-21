@@ -1,0 +1,74 @@
+using MiniTimeline.Core;
+using UnityEngine;
+
+namespace MiniTimeline.UI.Commands
+{
+    /// <summary>
+    /// Command for resizing a clip (changing duration and/or start time)
+    /// </summary>
+    public class ResizeClipCommand : TimelineCommandBase
+    {
+        private readonly IMiniClip clip;
+        private readonly float oldStartTime;
+        private readonly float oldDuration;
+        private readonly float newStartTime;
+        private readonly float newDuration;
+        private readonly TrackUI trackUI;
+
+        public ResizeClipCommand(IMiniClip clipToResize, float oldStart, float oldDur,
+                               float newStart, float newDur, TrackUI track)
+            : base($"Resize {clipToResize.Id}")
+        {
+            clip = clipToResize;
+            oldStartTime = oldStart;
+            oldDuration = oldDur;
+            newStartTime = newStart;
+            newDuration = newDur;
+            trackUI = track;
+        }
+
+        protected override void ExecuteInternal()
+        {
+            SetClipTiming(newStartTime, newDuration);
+
+            // Update UI
+            var clipUI = trackUI?.GetClipUI(clip.Id);
+            clipUI?.UpdateLayout();
+        }
+
+        protected override void UndoInternal()
+        {
+            SetClipTiming(oldStartTime, oldDuration);
+
+            // Update UI
+            var clipUI = trackUI?.GetClipUI(clip.Id);
+            clipUI?.UpdateLayout();
+        }
+
+        public override bool CanMergeWith(ITimelineCommand other)
+        {
+            if (other is ResizeClipCommand resizeCommand)
+            {
+                return resizeCommand.clip == clip;
+            }
+            return false;
+        }
+
+        public override void MergeWith(ITimelineCommand other)
+        {
+            if (other is ResizeClipCommand resizeCommand && resizeCommand.clip == clip)
+            {
+                // Update our new timing to the other command's timing
+                // The old timing stays the same (original before resize)
+                // This would be done through proper API
+            }
+        }
+
+        private void SetClipTiming(float start, float duration)
+        {
+            // TODO: Implement proper clip data modification
+            Debug.Log($"Setting clip {clip.Id} timing: start={start}, duration={duration}");
+        }
+    }
+
+}
