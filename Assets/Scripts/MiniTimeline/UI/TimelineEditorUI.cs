@@ -1016,16 +1016,19 @@ namespace MiniTimeline.UI
             else if (activeResizeHandle == ClipUI.ResizeHandle.Right)
             {
                 // Resize from right - changes duration only
-                float newDuration = Mathf.Max(0.1f, currentTime - clipUI.Clip.Start);
+                // Get current visual start time in case clip was moved during this resize session
+                var clipRect = clipUI.GetComponent<RectTransform>();
+                float currentStartTime = PositionToTime(clipRect.anchoredPosition.x);
+                float newDuration = Mathf.Max(0.1f, currentTime - currentStartTime);
 
                 if (enableFrameSnap)
                 {
                     float endTime = SnapTime(currentTime);
-                    newDuration = endTime - clipUI.Clip.Start;
+                    newDuration = endTime - currentStartTime;
                 }
 
                 // Update clip visual timing
-                clipUI.UpdateClipVisualTiming(clipUI.Clip.Start, newDuration);
+                clipUI.UpdateClipVisualTiming(currentStartTime, newDuration);
             }
         }
 
@@ -1041,9 +1044,37 @@ namespace MiniTimeline.UI
             // Reset visual state
             clipBeingResized.SetResizeVisualState(false, ClipUI.ResizeHandle.None);
 
-            // TODO: Create resize command for undo/redo system
-            // For now, just update the layout to finalize the resize
-            clipBeingResized.UpdateLayout();
+            // Get current clip state for command creation
+            var clip = clipBeingResized.Clip;
+            var trackUI = clipBeingResized.GetComponentInParent<TrackUI>();
+            
+            if (clip != null && trackUI != null)
+            {
+                // Get current clip timing from the visual state (what the user sees)
+                var clipRect = clipBeingResized.GetComponent<RectTransform>();
+                float currentStartTime = PositionToTime(clipRect.anchoredPosition.x);
+                float currentDuration = PositionToTime(clipRect.sizeDelta.x);
+                
+                // Only create command if there was a significant change
+                bool hasStartChanged = Mathf.Abs(currentStartTime - resizeDragStartTime) > 0.001f;
+                bool hasDurationChanged = Mathf.Abs(currentDuration - resizeDragStartDuration) > 0.001f;
+                
+                if (hasStartChanged || hasDurationChanged)
+                {
+                    Debug.Log($"EndResize - Creating ResizeClipCommand: Start {resizeDragStartTime}->{currentStartTime}, Duration {resizeDragStartDuration}->{currentDuration}");
+                    
+                    // Create and execute resize command
+                    var command = new ResizeClipCommand(clip, resizeDragStartTime, resizeDragStartDuration, 
+                                                      currentStartTime, currentDuration, trackUI);
+                    commandManager?.ExecuteCommand(command, false);
+                }
+                else
+                {
+                    Debug.Log("EndResize - No significant change detected, restoring original timing");
+                    // If no significant change, restore original timing
+                    clipBeingResized.UpdateClipVisualTiming(resizeDragStartTime, resizeDragStartDuration);
+                }
+            }
 
             clipBeingResized = null;
             activeResizeHandle = ClipUI.ResizeHandle.None;

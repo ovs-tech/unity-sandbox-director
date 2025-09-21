@@ -382,36 +382,56 @@ namespace MiniTimeline.UI
         /// </summary>
         public ResizeHandle GetResizeHandleAtPosition(Vector2 localPosition)
         {
-            if (!isSelected) return ResizeHandle.None;
+            if (!isSelected) 
+            {
+                Debug.Log($"GetResizeHandleAtPosition - Clip {clip?.Id} not selected, returning None");
+                return ResizeHandle.None;
+            }
+            
+            // Get the clip's local rect for bounds checking
+            Rect clipRect = rectTransform.rect;
+            
+            Debug.Log($"GetResizeHandleAtPosition - Clip {clip?.Id}, localPos: {localPosition}, clipRect: {clipRect}");
             
             // Check left resize handle (positioned at left edge)
             if (resizeHandleLeft != null && resizeHandleLeft.gameObject.activeInHierarchy)
             {
-                Rect leftHandleRect = new Rect(resizeHandleLeft.anchoredPosition.x - resizeHandleLeft.sizeDelta.x/2, 
-                                               resizeHandleLeft.anchoredPosition.y - rectTransform.sizeDelta.y/2,
-                                               resizeHandleLeft.sizeDelta.x, 
-                                               rectTransform.sizeDelta.y);
+                // Create hit area for left handle - use a slightly larger area for easier touch
+                float handleWidth = Mathf.Max(resizeHandleLeft.sizeDelta.x, 16f); // Minimum 16 pixels wide for touch
+                Rect leftHandleRect = new Rect(clipRect.xMin - handleWidth/2, 
+                                               clipRect.yMin,
+                                               handleWidth, 
+                                               clipRect.height);
+                
+                Debug.Log($"GetResizeHandleAtPosition - Left handle rect: {leftHandleRect}, contains: {leftHandleRect.Contains(localPosition)}");
                 
                 if (leftHandleRect.Contains(localPosition))
                 {
+                    Debug.Log($"GetResizeHandleAtPosition - Hit left handle for clip {clip?.Id}");
                     return ResizeHandle.Left;
                 }
             }
             
-            // Check right resize handle (positioned at right edge)
+            // Check right resize handle (positioned at right edge)  
             if (resizeHandleRight != null && resizeHandleRight.gameObject.activeInHierarchy)
             {
-                Rect rightHandleRect = new Rect(rectTransform.sizeDelta.x - resizeHandleRight.sizeDelta.x/2, 
-                                                resizeHandleRight.anchoredPosition.y - rectTransform.sizeDelta.y/2,
-                                                resizeHandleRight.sizeDelta.x, 
-                                                rectTransform.sizeDelta.y);
+                // Create hit area for right handle - use a slightly larger area for easier touch
+                float handleWidth = Mathf.Max(resizeHandleRight.sizeDelta.x, 16f); // Minimum 16 pixels wide for touch
+                Rect rightHandleRect = new Rect(clipRect.xMax - handleWidth/2, 
+                                                clipRect.yMin,
+                                                handleWidth, 
+                                                clipRect.height);
+                
+                Debug.Log($"GetResizeHandleAtPosition - Right handle rect: {rightHandleRect}, contains: {rightHandleRect.Contains(localPosition)}");
                 
                 if (rightHandleRect.Contains(localPosition))
                 {
+                    Debug.Log($"GetResizeHandleAtPosition - Hit right handle for clip {clip?.Id}");
                     return ResizeHandle.Right;
                 }
             }
             
+            Debug.Log($"GetResizeHandleAtPosition - No handle hit for clip {clip?.Id}");
             return ResizeHandle.None;
         }
         
