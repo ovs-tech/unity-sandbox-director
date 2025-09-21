@@ -85,6 +85,9 @@ namespace MiniTimeline.UI
             rectTransform = GetComponent<RectTransform>();
             canvasGroup = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
             
+            // Set the pivot to center for more predictable behavior during resize
+            rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            
             // Create UI structure if not set up
             if (clipBackground == null)
             {
@@ -170,33 +173,35 @@ namespace MiniTimeline.UI
         
         private void CreateResizeHandles()
         {
-            // Left resize handle - simple visual indicator, no event handling
+            // Left resize handle - positioned inside the clip for better hit detection
             var leftHandleGO = new GameObject("ResizeLeft", typeof(RectTransform), typeof(Image));
             leftHandleGO.transform.SetParent(transform, false);
             
             resizeHandleLeft = leftHandleGO.GetComponent<RectTransform>();
             var leftImage = leftHandleGO.GetComponent<Image>();
             
+            // Position handle at the left edge but with some width inside the clip
             resizeHandleLeft.anchorMin = new Vector2(0f, 0f);
             resizeHandleLeft.anchorMax = new Vector2(0f, 1f);
-            resizeHandleLeft.sizeDelta = new Vector2(8f, 0f);
-            resizeHandleLeft.anchoredPosition = Vector2.zero;
+            resizeHandleLeft.sizeDelta = new Vector2(12f, 0f); // Wider for easier touch
+            resizeHandleLeft.anchoredPosition = new Vector2(6f, 0f); // Half width inside clip
             
-            leftImage.color = new Color(1f, 1f, 1f, 0.5f);
+            leftImage.color = new Color(0.8f, 0.8f, 1f, 0.7f); // More visible color
             
-            // Right resize handle - simple visual indicator, no event handling
+            // Right resize handle - positioned inside the clip for better hit detection
             var rightHandleGO = new GameObject("ResizeRight", typeof(RectTransform), typeof(Image));
             rightHandleGO.transform.SetParent(transform, false);
             
             resizeHandleRight = rightHandleGO.GetComponent<RectTransform>();
             var rightImage = rightHandleGO.GetComponent<Image>();
             
+            // Position handle at the right edge but with some width inside the clip
             resizeHandleRight.anchorMin = new Vector2(1f, 0f);
             resizeHandleRight.anchorMax = new Vector2(1f, 1f);
-            resizeHandleRight.sizeDelta = new Vector2(8f, 0f);
-            resizeHandleRight.anchoredPosition = Vector2.zero;
+            resizeHandleRight.sizeDelta = new Vector2(12f, 0f); // Wider for easier touch
+            resizeHandleRight.anchoredPosition = new Vector2(-6f, 0f); // Half width inside clip
             
-            rightImage.color = new Color(1f, 1f, 1f, 0.5f);
+            rightImage.color = new Color(0.8f, 0.8f, 1f, 0.7f); // More visible color
             
             // Initially hide resize handles
             SetResizeHandlesVisible(false);
@@ -298,11 +303,13 @@ namespace MiniTimeline.UI
                 width = 20f;
             }
             
-            // Update rect transform
+            // Update rect transform - use center pivot for predictable resize behavior
             rectTransform.anchorMin = new Vector2(0f, 0.1f);
             rectTransform.anchorMax = new Vector2(0f, 0.9f);
+            rectTransform.pivot = new Vector2(0.5f, 0.5f); // Center pivot for predictable behavior
             rectTransform.sizeDelta = new Vector2(width, 0f);
-            rectTransform.anchoredPosition = new Vector2(xPos, 0f);
+            // With center pivot, position needs to be at the center of the clip
+            rectTransform.anchoredPosition = new Vector2(xPos + width / 2f, 0f);
         }
         
         #endregion
@@ -393,12 +400,13 @@ namespace MiniTimeline.UI
             
             Debug.Log($"GetResizeHandleAtPosition - Clip {clip?.Id}, localPos: {localPosition}, clipRect: {clipRect}");
             
-            // Check left resize handle (positioned at left edge)
+            // Check left resize handle - positioned with center at left edge + 6 pixels inside
             if (resizeHandleLeft != null && resizeHandleLeft.gameObject.activeInHierarchy)
             {
-                // Create hit area for left handle - use a slightly larger area for easier touch
-                float handleWidth = Mathf.Max(resizeHandleLeft.sizeDelta.x, 16f); // Minimum 16 pixels wide for touch
-                Rect leftHandleRect = new Rect(clipRect.xMin - handleWidth/2, 
+                // Create hit area for left handle - positioned inside the clip
+                float handleWidth = 20f; // Generous hit area for touch
+                float handleCenterX = clipRect.xMin + 6f; // Center of handle is 6 pixels inside clip
+                Rect leftHandleRect = new Rect(handleCenterX - handleWidth/2, 
                                                clipRect.yMin,
                                                handleWidth, 
                                                clipRect.height);
@@ -412,12 +420,13 @@ namespace MiniTimeline.UI
                 }
             }
             
-            // Check right resize handle (positioned at right edge)  
+            // Check right resize handle - positioned with center at right edge - 6 pixels inside
             if (resizeHandleRight != null && resizeHandleRight.gameObject.activeInHierarchy)
             {
-                // Create hit area for right handle - use a slightly larger area for easier touch
-                float handleWidth = Mathf.Max(resizeHandleRight.sizeDelta.x, 16f); // Minimum 16 pixels wide for touch
-                Rect rightHandleRect = new Rect(clipRect.xMax - handleWidth/2, 
+                // Create hit area for right handle - positioned inside the clip
+                float handleWidth = 20f; // Generous hit area for touch
+                float handleCenterX = clipRect.xMax - 6f; // Center of handle is 6 pixels inside clip
+                Rect rightHandleRect = new Rect(handleCenterX - handleWidth/2, 
                                                 clipRect.yMin,
                                                 handleWidth, 
                                                 clipRect.height);
@@ -454,11 +463,62 @@ namespace MiniTimeline.UI
             if (parentTrack?.TimelineEditor != null)
             {
                 float pixelsPerSecond = parentTrack.TimelineEditor.PixelsPerSecond;
-                float xPos = newStart * pixelsPerSecond;
+                float leftEdgePos = newStart * pixelsPerSecond;
                 float width = Mathf.Max(newDuration * pixelsPerSecond, minClipWidth);
                 
-                rectTransform.anchoredPosition = new Vector2(xPos, rectTransform.anchoredPosition.y);
+                // With center pivot (0.5, 0.5), position needs to be at the center of the clip
+                float centerPos = leftEdgePos + width / 2f;
+                Vector2 currentPos = rectTransform.anchoredPosition;
+                
+                // Update both position and size
+                rectTransform.anchoredPosition = new Vector2(centerPos, currentPos.y);
                 rectTransform.sizeDelta = new Vector2(width, rectTransform.sizeDelta.y);
+                
+                Debug.Log($"UpdateClipVisualTiming: clip {clip?.Id}, start={newStart}, duration={newDuration}, leftEdge={leftEdgePos}, center={centerPos}, width={width}");
+            }
+        }
+        
+        /// <summary>
+        /// Update only the left edge (start time) - used during left handle resize
+        /// </summary>
+        public void UpdateClipVisualStart(float newStart, float duration)
+        {
+            if (parentTrack?.TimelineEditor != null)
+            {
+                float pixelsPerSecond = parentTrack.TimelineEditor.PixelsPerSecond;
+                float leftEdgePos = newStart * pixelsPerSecond;
+                float width = Mathf.Max(duration * pixelsPerSecond, minClipWidth);
+                
+                // With center pivot, position is at center of clip
+                float centerPos = leftEdgePos + width / 2f;
+                Vector2 currentPos = rectTransform.anchoredPosition;
+                
+                rectTransform.anchoredPosition = new Vector2(centerPos, currentPos.y);
+                rectTransform.sizeDelta = new Vector2(width, rectTransform.sizeDelta.y);
+                
+                Debug.Log($"UpdateClipVisualStart: clip {clip?.Id}, newStart={newStart}, duration={duration}, leftEdge={leftEdgePos}, center={centerPos}, width={width}");
+            }
+        }
+        
+        /// <summary>
+        /// Update only the right edge (duration) - used during right handle resize
+        /// </summary>
+        public void UpdateClipVisualDuration(float startTime, float newDuration)
+        {
+            if (parentTrack?.TimelineEditor != null)
+            {
+                float pixelsPerSecond = parentTrack.TimelineEditor.PixelsPerSecond;
+                float leftEdgePos = startTime * pixelsPerSecond;
+                float width = Mathf.Max(newDuration * pixelsPerSecond, minClipWidth);
+                
+                // With center pivot, position is at center of clip
+                float centerPos = leftEdgePos + width / 2f;
+                Vector2 currentPos = rectTransform.anchoredPosition;
+                
+                rectTransform.anchoredPosition = new Vector2(centerPos, currentPos.y);
+                rectTransform.sizeDelta = new Vector2(width, rectTransform.sizeDelta.y);
+                
+                Debug.Log($"UpdateClipVisualDuration: clip {clip?.Id}, startTime={startTime}, newDuration={newDuration}, leftEdge={leftEdgePos}, center={centerPos}, width={width}");
             }
         }
         

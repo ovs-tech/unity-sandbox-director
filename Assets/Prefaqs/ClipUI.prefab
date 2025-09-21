@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7383689008844920696
 RectTransform:
   m_ObjectHideFlags: 0
@@ -92,7 +92,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4894208930105383538
 RectTransform:
   m_ObjectHideFlags: 0
@@ -450,8 +450,8 @@ MonoBehaviour:
   normalColor: {r: 0.4, g: 0.6, b: 0.8, a: 0.8}
   selectedColor: {r: 0.8, g: 0.6, b: 0.2, a: 0.9}
   hoverColor: {r: 0.5, g: 0.7, b: 0.9, a: 0.9}
-  borderColor: {r: 0, g: 0.24201891, b: 0.9811321, a: 0.8}
-  selectedBorderColor: {r: 1, g: 0.8, b: 0.2, a: 1}
+  borderColor: {r: 0.24116908, g: 0.5170569, b: 0.84276724, a: 0.4627451}
+  selectedBorderColor: {r: 0.23921569, g: 0.5176471, b: 0.84313726, a: 1}
 --- !u!225 &5001628259137597209
 CanvasGroup:
   m_ObjectHideFlags: 0

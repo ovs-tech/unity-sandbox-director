@@ -67,7 +67,28 @@ namespace UMA.Examples
 
 		void Awake()
 		{
-			Init();
+			// Init();
+			_avatar = GetComponent<DynamicCharacterAvatar>();
+			if (_avatar == null) return;
+
+			// Ensure we run after builds and rebuilds
+			_avatar.CharacterCreated.AddListener(OnAvatarBuilt);
+			_avatar.CharacterUpdated.AddListener(OnAvatarBuilt);
+		}
+
+		
+		void OnDestroy()
+		{
+			if (_avatar != null)
+			{
+				_avatar.CharacterCreated.RemoveListener(OnAvatarBuilt);
+				_avatar.CharacterUpdated.RemoveListener(OnAvatarBuilt);
+			}
+		}
+
+		private void OnAvatarBuilt(UMAData _)
+		{
+			Init();   // safe to (re)initialize now
 		}
 
 		//Subscribe to mailing lists
@@ -88,7 +109,6 @@ namespace UMA.Examples
 
 		void Init()
 		{
-			_avatar = GetComponent<DynamicCharacterAvatar>();
 			if (_avatar == null)
             {
                 return;
