@@ -543,6 +543,46 @@ namespace MiniTimeline.Serialization
 
             project.tracks.Add(animatorTrack);
 
+            var animator2Track = new TrackData
+            {
+                id = "animator_track_2",
+                type = MiniTimelineConstants.TRACK_ANIMATOR,
+                bindKey = "character_2", // Target GameObject with Animator
+                enabled = true,
+                order = 40
+            };
+
+            // Add sample animator parameter clips
+            var animator2SpeedClip = new ClipData
+            {
+                id = "animator_speed_clip_2",
+                start = 0f,
+                duration = 3f,
+                payload = new Dictionary<string, object>
+                {
+                    { "blendMode", "Override" },
+                    { "fadeIn", 0.2f },
+                    { "fadeOut", 0.2f },
+                    { "parameterKeys", "Speed:Float:0:2:Linear" } // paramName:type:startValue:endValue:curveType
+                }
+            };
+            animator2Track.clips.Add(animator2SpeedClip);
+            // Add sample boolean parameter clip
+            var animator2DirectionClip = new ClipData
+            {
+                id = "animator_direction_clip_2",
+                start = 0f,
+                duration = 4f,
+                payload = new Dictionary<string, object>
+                {
+                    { "blendMode", "Override" },
+                    { "parameterKeys", "Direction:Float:0:1:Linear" }
+                }
+            };
+            animator2Track.clips.Add(animator2DirectionClip);
+
+            project.tracks.Add(animator2Track);
+
             return project;
         }
 

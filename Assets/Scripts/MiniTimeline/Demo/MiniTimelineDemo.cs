@@ -17,8 +17,11 @@ namespace MiniTimeline.Demo
     {
         [Header("Timeline Setup")]
         [SerializeField] private MiniTimelineDirector director;
-        [SerializeField] private GameObject characterObject;
-        [SerializeField] private Camera demoCamera;
+        
+        [Header("Binding Context")]
+        [SerializeField] private StringObjectDictionary bindingMap = new StringObjectDictionary();
+        
+        [Header("Settings")]
         [SerializeField] private bool autoPlay = true;
         [SerializeField] private bool loadSampleProject = true;
         
@@ -47,11 +50,12 @@ namespace MiniTimeline.Demo
             }
             
             // Store original camera settings
-            if (demoCamera != null)
+            var mainCamera = GetBoundObject<Camera>("main_camera");
+            if (mainCamera != null)
             {
-                originalCameraPosition = demoCamera.transform.position;
-                originalCameraRotation = demoCamera.transform.rotation;
-                originalCameraFOV = demoCamera.fieldOfView;
+                originalCameraPosition = mainCamera.transform.position;
+                originalCameraRotation = mainCamera.transform.rotation;
+                originalCameraFOV = mainCamera.fieldOfView;
             }
             
             if (autoPlay && director.Project != null)
@@ -134,8 +138,9 @@ namespace MiniTimeline.Demo
                 
                 GUILayout.Space(10);
                 
-                // Camera controls
-                if (demoCamera != null)
+                // Camera controls  
+                var mainCamera = GetBoundObject<Camera>("main_camera");
+                if (mainCamera != null)
                 {
                     GUILayout.Label("Camera Controls:");
                     if (GUILayout.Button("Reset Camera"))
@@ -202,26 +207,11 @@ namespace MiniTimeline.Demo
                 }
             }
             
-            // Setup binding context
-            if (characterObject != null)
-            {
-                director.BindingContext.Bind("character", characterObject);
-            }
+            // Setup default bindings if needed
+            SetupDefaultBindings();
             
-            if (demoCamera != null)
-            {
-                director.BindingContext.Bind("main_camera", demoCamera);
-            }
-            else
-            {
-                // Use main camera as fallback
-                var mainCamera = Camera.main;
-                if (mainCamera != null)
-                {
-                    director.BindingContext.Bind("main_camera", mainCamera);
-                    demoCamera = mainCamera;
-                }
-            }
+            // Setup binding context from the dictionary
+            SetupBindingContext();
             
             // Subscribe to events
             director.OnStateChanged += OnStateChanged;
@@ -294,13 +284,47 @@ namespace MiniTimeline.Demo
             }
         }
         
+        private void SetupBindingContext()
+        {
+            foreach (var kvp in bindingMap.Dictionary)
+            {
+                if (kvp.Value != null)
+                {
+                    director.BindingContext.Bind(kvp.Key, kvp.Value);
+                }
+            }
+        }
+        
+        private void SetupDefaultBindings()
+        {
+            // Auto-setup main camera if not already bound
+            if (!bindingMap.ContainsKey("main_camera"))
+            {
+                var mainCamera = Camera.main;
+                if (mainCamera != null)
+                {
+                    bindingMap.Add("main_camera", mainCamera);
+                }
+            }
+        }
+        
+        private T GetBoundObject<T>(string key) where T : UnityEngine.Object
+        {
+            if (bindingMap.TryGetValue(key, out var obj))
+            {
+                return obj as T;
+            }
+            return null;
+        }
+        
         private void ResetCamera()
         {
-            if (demoCamera != null)
+            var camera = GetBoundObject<Camera>("main_camera");
+            if (camera != null)
             {
-                demoCamera.transform.position = originalCameraPosition;
-                demoCamera.transform.rotation = originalCameraRotation;
-                demoCamera.fieldOfView = originalCameraFOV;
+                camera.transform.position = originalCameraPosition;
+                camera.transform.rotation = originalCameraRotation;
+                camera.fieldOfView = originalCameraFOV;
                 Debug.Log("[MiniTimelineDemo] Camera reset to original position");
             }
         }
