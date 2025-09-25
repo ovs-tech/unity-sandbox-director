@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
@@ -42,12 +43,13 @@ namespace MiniTimeline.UI
 
         // Input System References
         [Header("Input Actions")]
-        [SerializeField] private InputActionReference primaryTouchAction;
-        [SerializeField] private InputActionReference secondaryTouchAction;
-        [SerializeField] private InputActionReference touchPositionAction;
-        [SerializeField] private InputActionReference secondaryTouchPositionAction;
-        [SerializeField] private InputActionReference undoAction;
-        [SerializeField] private InputActionReference redoAction;
+        [SerializeField] InputActionAsset uiActions;
+        
+        private InputAction _point;
+        private InputAction _click;
+        private InputAction _scroll;
+        private InputAction _submit;
+        private InputAction _cancel;
 
         // Core references
         private MiniTimelineDirector director;
@@ -87,10 +89,10 @@ namespace MiniTimeline.UI
         private float longPressTime = 0.5f;
         private float longPressTimer = 0f;
         private bool isLongPressing = false;
-
-        // Pinch zoom
-        private bool isPinching = false;
-        private float lastPinchDistance = 0f;
+        
+        // Click state tracking
+        private bool wasClickPressed = false;
+        private float clickPressStartTime = 0f;
 
         // Performance optimization
         private readonly List<TrackUI> trackUIs = new List<TrackUI>();
@@ -125,6 +127,9 @@ namespace MiniTimeline.UI
             // Subscribe to command manager events
             SetupCommandManagerEvents();
 
+            // Initialize input actions
+            SetupInputActions();
+
             // Setup input callbacks
             SetupInputCallbacks();
 
@@ -132,24 +137,45 @@ namespace MiniTimeline.UI
             InitializeUI();
         }
 
+        private void SetupInputActions()
+        {
+            if (uiActions == null)
+            {
+                Debug.LogError("TimelineEditorUI: uiActions is null! Make sure to assign the InputActionAsset in the inspector.");
+                return;
+            }
+
+            _point  = uiActions.FindAction("UI/Point");   
+            _click  = uiActions.FindAction("UI/Click");   
+            _scroll = uiActions.FindAction("UI/ScrollWheel");  
+            _submit = uiActions.FindAction("UI/Submit");  
+            _cancel = uiActions.FindAction("UI/Cancel");
+
+            if (_point != null) _point.Enable();
+            if (_click != null) _click.Enable();
+            if (_scroll != null) _scroll.Enable();
+            if (_submit != null) _submit.Enable();
+            if (_cancel != null) _cancel.Enable();
+
+            Debug.Log($"TimelineEditorUI: Input actions setup - Point: {(_point != null ? "OK" : "NULL")}, Click: {(_click != null ? "OK" : "NULL")}, Scroll: {(_scroll != null ? "OK" : "NULL")}, Submit: {(_submit != null ? "OK" : "NULL")}, Cancel: {(_cancel != null ? "OK" : "NULL")}");
+        }
+
         private void OnEnable()
         {
-            primaryTouchAction?.action?.Enable();
-            secondaryTouchAction?.action?.Enable();
-            touchPositionAction?.action?.Enable();
-            secondaryTouchPositionAction?.action?.Enable();
-            undoAction?.action?.Enable();
-            redoAction?.action?.Enable();
+            _point?.Enable();
+            _click?.Enable();
+            _scroll?.Enable();
+            _submit?.Enable();
+            _cancel?.Enable();
         }
 
         private void OnDisable()
         {
-            primaryTouchAction?.action?.Disable();
-            secondaryTouchAction?.action?.Disable();
-            touchPositionAction?.action?.Disable();
-            secondaryTouchPositionAction?.action?.Disable();
-            undoAction?.action?.Disable();
-            redoAction?.action?.Disable();
+            _point?.Disable();
+            _click?.Disable();
+            _scroll?.Disable();
+            _submit?.Disable();
+            _cancel?.Disable();
         }
 
         private void OnDestroy()
@@ -181,8 +207,13 @@ namespace MiniTimeline.UI
         private void Update()
         {
             UpdateUI();
-            HandleLongPress();
+            // Note: Long press handling and button release detection now handled 
+            // by the new click detection system using OnClickPerformed
         }
+
+        // Note: HandleButtonReleaseDetection and HandleLongPress methods removed
+        // Button release detection now handled in OnClickPerformed using float value changes
+        // Long press handling now uses coroutine-based timer instead of Update loop
 
         #endregion
 
@@ -191,47 +222,281 @@ namespace MiniTimeline.UI
         private void SetupInputCallbacks()
         {
             // Primary touch for tap, drag, and scrub
-            if (primaryTouchAction?.action != null)
+            if (_click != null)
             {
-                primaryTouchAction.action.started += OnPrimaryTouchStarted;
-                primaryTouchAction.action.performed += OnPrimaryTouchPerformed;
-                primaryTouchAction.action.canceled += OnPrimaryTouchCanceled;
+                _click.performed += OnClickPerformed;
             }
 
-            // Secondary touch for pinch zoom
-            if (secondaryTouchAction?.action != null)
+            // Scroll wheel for zoom
+            if (_scroll != null)
             {
-                secondaryTouchAction.action.started += OnSecondaryTouchStarted;
-                secondaryTouchAction.action.canceled += OnSecondaryTouchCanceled;
+                _scroll.performed += OnScrollWheelPerformed;
             }
 
             // Touch position tracking
-            if (touchPositionAction?.action != null)
+            if (_point != null)
             {
-                touchPositionAction.action.performed += OnTouchPositionChanged;
-            }
-
-            if (secondaryTouchPositionAction?.action != null)
-            {
-                secondaryTouchPositionAction.action.performed += OnSecondaryTouchPositionChanged;
+                _point.performed += OnTouchPositionChanged;
             }
 
             // Undo/Redo actions
-            if (undoAction?.action != null)
+            if (_submit != null)
             {
-                undoAction.action.performed += OnUndoPerformed;
+                _submit.performed += OnUndoPerformed;
             }
 
-            if (redoAction?.action != null)
+            if (_cancel != null)
             {
-                redoAction.action.performed += OnRedoPerformed;
+                _cancel.performed += OnRedoPerformed;
             }
+        }
+
+        private void OnClickPerformed(InputAction.CallbackContext context)
+        {
+            float clickValue = context.ReadValue<float>();
+            bool isCurrentlyPressed = clickValue > 0.5f;
+            
+            Debug.Log($"*** OnClickPerformed - clickValue: {clickValue}, isCurrentlyPressed: {isCurrentlyPressed}, wasClickPressed: {wasClickPressed} ***");
+            
+            // Detect press (transition from not pressed to pressed)
+            if (isCurrentlyPressed && !wasClickPressed)
+            {
+                Debug.Log("*** Click PRESS detected ***");
+                OnClickPress();
+                wasClickPressed = true;
+                clickPressStartTime = Time.unscaledTime;
+            }
+            // Detect release (transition from pressed to not pressed)
+            else if (!isCurrentlyPressed && wasClickPressed)
+            {
+                Debug.Log("*** Click RELEASE detected ***");
+                OnClickRelease();
+                wasClickPressed = false;
+            }
+        }
+
+        private void OnClickPress()
+        {
+            Debug.Log("OnClickPress: Processing click press interaction");
+            
+            // Get screen position from the Point action
+            Vector2 screenPos = Vector2.zero;
+            if (_point != null)
+            {
+                screenPos = _point.ReadValue<Vector2>();
+                Debug.Log($"OnClickPress: Got screen position from Point action: {screenPos}");
+            }
+            else
+            {
+                Debug.LogWarning("OnClickPress: Point action is null, cannot get screen position");
+                return;
+            }
+            
+            // Fallback: try to get position from mouse if touch isn't available
+            if (screenPos == Vector2.zero)
+            {
+                screenPos = Mouse.current?.position.ReadValue() ?? Vector2.zero;
+                Debug.Log($"OnClickPress: Fallback to mouse position: {screenPos}");
+            }
+            
+            // If still zero, something is wrong with the input setup
+            if (screenPos == Vector2.zero)
+            {
+                Debug.LogError("OnClickPress: Could not get valid screen position from input system");
+                return;
+            }
+            
+            Vector2 localPos = ScreenToTimelineLocal(screenPos);
+
+            Debug.Log($"OnClickPress: Touch at screen position {screenPos}, local position {localPos}");
+            Debug.Log($"OnClickPress: Director state - hasDirector: {director != null}, hasProject: {director?.Project != null}, trackCount: {(director != null ? director.Tracks.Count : 0)}");
+
+            // Debug timeline UI state
+            Debug.Log($"OnClickPress: UI state - trackUIs: {trackUIs.Count}, timelineContainer: {timelineContainer != null}");
+
+            longPressTimer = 0f;
+            isLongPressing = false;
+            lastTouchPosition = screenPos;
+            
+            // Reset flags
+            justStartedResize = false;
+
+            // Check what was touched
+            var hitResult = GetUIElementAtPosition(localPos);
+
+            Debug.Log($"OnClickPress: Touch started - Screen: {screenPos}, Local: {localPos}, Hit clip: {(hitResult.clipUI != null ? hitResult.clipUI.Clip.Id : "none")}, isRuler: {hitResult.isRuler}, hit resize handle: {hitResult.isResizeHandle}");
+
+            if (hitResult.clipUI != null)
+            {
+                if (hitResult.isResizeHandle)
+                {
+                    Debug.Log($"OnClickPress: Hit resize handle {hitResult.resizeHandle} on clip {hitResult.clipUI.Clip.Id} - STARTING RESIZE ONLY");
+                    OnResizeHandleTouched(hitResult.clipUI, hitResult.resizeHandle, localPos);
+                    return;
+                }
+                else
+                {
+                    Debug.Log($"OnClickPress: Hit clip body on clip {hitResult.clipUI.Clip.Id} - STARTING DRAG ONLY");
+                    OnClipTouched(hitResult.clipUI, localPos);
+                }
+            }
+            else if (hitResult.isRuler)
+            {
+                OnRulerTouched(localPos);
+            }
+            else
+            {
+                ClearSelection();
+            }
+            
+            // Start long press timer using coroutine instead of Update
+            StartCoroutine(HandleLongPressTimer());
+        }
+
+        private void OnClickRelease()
+        {
+            Debug.Log("*** OnClickRelease - ending interactions ***");
+            
+            float pressDuration = Time.unscaledTime - clickPressStartTime;
+            Debug.Log($"OnClickRelease: Press duration: {pressDuration}s");
+            
+            // Handle long press if it was detected during press
+            if (isLongPressing)
+            {
+                Debug.Log("OnClickRelease: Was long pressing, handling long press end");
+                HandleLongPressEnd();
+            }
+            // Handle regular click if it was a short press and no operations were active
+            else if (pressDuration < longPressTime && !isDragging && !isResizing && !isPlayheadDragging)
+            {
+                Debug.Log("OnClickRelease: Short press without drag/resize - treating as simple click");
+                // This was just a simple click, not a drag or resize
+            }
+            
+            // End any active operations
+            if (clipBeingDragged != null && isDragging)
+            {
+                Debug.Log($"OnClickRelease - Ending drag for clip {clipBeingDragged.Clip.Id}");
+                EndClipDrag();
+            }
+
+            if (clipBeingResized != null && isResizing)
+            {
+                Debug.Log($"OnClickRelease - Ending resize for clip {clipBeingResized.Clip.Id}");
+                EndResize();
+            }
+
+            if (isPlayheadDragging)
+            {
+                Debug.Log("OnClickRelease - Ending playhead drag");
+                isPlayheadDragging = false;
+            }
+
+            // Clear all operation states
+            isDragging = false;
+            isPlayheadDragging = false;
+            isResizing = false;
+            isLongPressing = false;
+            longPressTimer = 0f;
+            justStartedResize = false;
+            activeDragCommand = null;
+            clipBeingDragged = null;
+            clipBeingResized = null;
+            activeResizeHandle = ClipUI.ResizeHandle.None;
+            resizeStartMouseX = 0f;
+        }
+
+        private System.Collections.IEnumerator HandleLongPressTimer()
+        {
+            longPressTimer = 0f;
+            
+            while (wasClickPressed && longPressTimer < longPressTime)
+            {
+                longPressTimer += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            
+            // If we reached the long press threshold and button is still pressed
+            if (wasClickPressed && longPressTimer >= longPressTime && !isLongPressing)
+            {
+                isLongPressing = true;
+                OnLongPress();
+            }
+        }
+
+        private void HandleLongPressEnd()
+        {
+            // Handle the end of a long press
+            Debug.Log("HandleLongPressEnd called");
+            isLongPressing = false;
+            longPressTimer = 0f;
         }
 
         private void OnPrimaryTouchStarted(InputAction.CallbackContext context)
         {
-            Vector2 screenPos = touchPositionAction?.action?.ReadValue<Vector2>() ?? Vector2.zero;
+            Debug.Log("*** OnPrimaryTouchStarted called - this should appear for regular clicks ***");
+            Debug.Log("TimelineEditorUI: OnPrimaryTouchStarted called");
+            
+            // Debug input action status
+            Debug.Log($"TimelineEditorUI: Input action status - Point: {(_point != null ? "exists" : "null")}, enabled: {(_point?.enabled ?? false)}, phase: {(_point?.phase ?? InputActionPhase.Disabled)}");
+            
+            // Get screen position from the Point action, not from the context
+            Vector2 screenPos = Vector2.zero;
+            if (_point != null)
+            {
+                screenPos = _point.ReadValue<Vector2>();
+                Debug.Log($"TimelineEditorUI: Got screen position from Point action: {screenPos}");
+            }
+            else
+            {
+                Debug.LogWarning("TimelineEditorUI: Point action is null, cannot get screen position");
+                return;
+            }
+            
+            // Fallback: try to get position from mouse if touch isn't available
+            if (screenPos == Vector2.zero)
+            {
+                screenPos = Mouse.current?.position.ReadValue() ?? Vector2.zero;
+                Debug.Log($"TimelineEditorUI: Fallback to mouse position: {screenPos}");
+            }
+            
+            // If still zero, something is wrong with the input setup
+            if (screenPos == Vector2.zero)
+            {
+                Debug.LogError("TimelineEditorUI: Could not get valid screen position from input system");
+                
+                // Final fallback: use Unity's legacy Input system
+                screenPos = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+                Debug.Log($"TimelineEditorUI: Final fallback to Unity Input.mousePosition: {screenPos}");
+            }
+            
             Vector2 localPos = ScreenToTimelineLocal(screenPos);
+
+            Debug.Log($"TimelineEditorUI: Touch at screen position {screenPos}, local position {localPos}");
+            Debug.Log($"TimelineEditorUI: Director state - hasDirector: {director != null}, hasProject: {director?.Project != null}, trackCount: {(director != null ? director.Tracks.Count : 0)}");
+
+            // Debug timeline UI state
+            Debug.Log($"TimelineEditorUI: UI state - trackUIs: {trackUIs.Count}, timelineContainer: {timelineContainer != null}");
+            if (trackUIs.Count > 0)
+            {
+                for (int i = 0; i < trackUIs.Count; i++)
+                {
+                    var trackUI = trackUIs[i];
+                    if (trackUI != null)
+                    {
+                        var clipUIs = trackUI.GetComponentsInChildren<ClipUI>();
+                        Debug.Log($"TimelineEditorUI: Track {i} has {clipUIs.Length} clip UIs");
+                        foreach (var clipUI in clipUIs)
+                        {
+                            if (clipUI != null && clipUI.Clip != null)
+                            {
+                                var rect = clipUI.GetComponent<RectTransform>();
+                                Debug.Log($"TimelineEditorUI: Clip {clipUI.Clip.Id} - position: {rect.anchoredPosition}, size: {rect.sizeDelta}, active: {clipUI.gameObject.activeInHierarchy}");
+                            }
+                        }
+                    }
+                }
+            }
 
             longPressTimer = 0f;
             isLongPressing = false;
@@ -272,58 +537,139 @@ namespace MiniTimeline.UI
 
         private void OnPrimaryTouchPerformed(InputAction.CallbackContext context)
         {
-            // This event is typically fired once per press/tap, not continuously during drag
-            // Continuous drag handling is now done in OnTouchPositionChanged
+            Debug.Log("*** OnPrimaryTouchPerformed called - handling as click ***");
             Debug.Log($"OnPrimaryTouchPerformed - isDragging: {isDragging}, isPlayheadDragging: {isPlayheadDragging}, isResizing: {isResizing}");
+            
+            // Handle this as a click since OnPrimaryTouchStarted is not being called for PassThrough actions
+            HandlePrimaryTouchLogic();
+        }
+
+        private void HandlePrimaryTouchLogic()
+        {
+            Debug.Log("HandlePrimaryTouchLogic: Processing click interaction");
+            
+            // Debug input action status
+            Debug.Log($"HandlePrimaryTouchLogic: Input action status - Point: {(_point != null ? "exists" : "null")}, enabled: {(_point?.enabled ?? false)}, phase: {(_point?.phase ?? InputActionPhase.Disabled)}");
+            
+            // Get screen position from the Point action, not from the context
+            Vector2 screenPos = Vector2.zero;
+            if (_point != null)
+            {
+                screenPos = _point.ReadValue<Vector2>();
+                Debug.Log($"HandlePrimaryTouchLogic: Got screen position from Point action: {screenPos}");
+            }
+            else
+            {
+                Debug.LogWarning("HandlePrimaryTouchLogic: Point action is null, cannot get screen position");
+                return;
+            }
+            
+            // Fallback: try to get position from mouse if touch isn't available
+            if (screenPos == Vector2.zero)
+            {
+                screenPos = Mouse.current?.position.ReadValue() ?? Vector2.zero;
+                Debug.Log($"HandlePrimaryTouchLogic: Fallback to mouse position: {screenPos}");
+            }
+            
+            // If still zero, something is wrong with the input setup
+            if (screenPos == Vector2.zero)
+            {
+                Debug.LogError("HandlePrimaryTouchLogic: Could not get valid screen position from input system");
+                return;
+            }
+            
+            Vector2 localPos = ScreenToTimelineLocal(screenPos);
+
+            Debug.Log($"HandlePrimaryTouchLogic: Touch at screen position {screenPos}, local position {localPos}");
+            Debug.Log($"HandlePrimaryTouchLogic: Director state - hasDirector: {director != null}, hasProject: {director?.Project != null}, trackCount: {(director != null ? director.Tracks.Count : 0)}");
+
+            // Debug timeline UI state
+            Debug.Log($"HandlePrimaryTouchLogic: UI state - trackUIs: {trackUIs.Count}, timelineContainer: {timelineContainer != null}");
+            if (trackUIs.Count > 0)
+            {
+                for (int i = 0; i < trackUIs.Count; i++)
+                {
+                    var trackUI = trackUIs[i];
+                    if (trackUI != null)
+                    {
+                        var clipUIs = trackUI.GetComponentsInChildren<ClipUI>();
+                        Debug.Log($"HandlePrimaryTouchLogic: Track {i} has {clipUIs.Length} clip UIs");
+                        foreach (var clipUI in clipUIs)
+                        {
+                            if (clipUI != null && clipUI.Clip != null)
+                            {
+                                var rect = clipUI.GetComponent<RectTransform>();
+                                Debug.Log($"HandlePrimaryTouchLogic: Clip {clipUI.Clip.Id} - position: {rect.anchoredPosition}, size: {rect.sizeDelta}, active: {clipUI.gameObject.activeInHierarchy}");
+                            }
+                        }
+                    }
+                }
+            }
+
+            longPressTimer = 0f;
+            isLongPressing = false;
+            lastTouchPosition = screenPos;
+            
+            // Reset flags
+            justStartedResize = false;
+
+            // Check what was touched
+            var hitResult = GetUIElementAtPosition(localPos);
+
+            Debug.Log($"HandlePrimaryTouchLogic: Touch started - Screen: {screenPos}, Local: {localPos}, Hit clip: {(hitResult.clipUI != null ? hitResult.clipUI.Clip.Id : "none")}, isRuler: {hitResult.isRuler}, hit resize handle: {hitResult.isResizeHandle}");
+
+            if (hitResult.clipUI != null)
+            {
+                if (hitResult.isResizeHandle)
+                {
+                    Debug.Log($"HandlePrimaryTouchLogic: Hit resize handle {hitResult.resizeHandle} on clip {hitResult.clipUI.Clip.Id} - STARTING RESIZE ONLY");
+                    OnResizeHandleTouched(hitResult.clipUI, hitResult.resizeHandle, localPos);
+                    // Do NOT call OnClipTouched when we hit a resize handle
+                    return;
+                }
+                else
+                {
+                    Debug.Log($"HandlePrimaryTouchLogic: Hit clip body on clip {hitResult.clipUI.Clip.Id} - STARTING DRAG ONLY");
+                    OnClipTouched(hitResult.clipUI, localPos);
+                }
+            }
+            else if (hitResult.isRuler)
+            {
+                OnRulerTouched(localPos);
+            }
+            else
+            {
+                ClearSelection();
+            }
         }
 
         private void OnPrimaryTouchCanceled(InputAction.CallbackContext context)
         {
-            Debug.Log($"OnPrimaryTouchCanceled - isDragging: {isDragging}, isResizing: {isResizing}");
+            // NOTE: OnPrimaryTouchCanceled does NOT trigger reliably with PassThrough actions in Unity's Input System
+            // This is expected behavior - PassThrough actions have different callback patterns than Button actions
+            // Button release detection is handled in OnTouchPositionChanged using _click.IsPressed() instead
+            
+            Debug.Log($"*** OnPrimaryTouchCanceled called (unexpected for PassThrough actions) ***");
+            Debug.Log($"OnPrimaryTouchCanceled - isDragging: {isDragging}, isResizing: {isResizing}, longPressTimer: {longPressTimer}");
 
-            if (clipBeingDragged != null)
-            {
-                EndClipDrag();
-            }
-
-            if (clipBeingResized != null)
-            {
-                EndResize();
-            }
-
-            // Clear all operation states
-            isDragging = false;
-            isPlayheadDragging = false;
-            isResizing = false;
-            isLongPressing = false;
-            justStartedResize = false;
-            activeDragCommand = null;
-            clipBeingDragged = null;
-            clipBeingResized = null;
-            activeResizeHandle = ClipUI.ResizeHandle.None;
-            resizeStartMouseX = 0f;
+            // This method is kept for completeness but should not be relied upon for PassThrough actions
+            // The actual button release detection happens in OnTouchPositionChanged using _click.IsPressed()
         }
 
-        private void OnSecondaryTouchStarted(InputAction.CallbackContext context)
+        private void OnScrollWheelPerformed(InputAction.CallbackContext context)
         {
-            if (primaryTouchAction?.action?.IsPressed() == true)
-            {
-                // Start pinch zoom
-                Vector2 pos1 = touchPositionAction?.action?.ReadValue<Vector2>() ?? Vector2.zero;
-                Vector2 pos2 = secondaryTouchPositionAction?.action?.ReadValue<Vector2>() ?? Vector2.zero;
-
-                isPinching = true;
-                lastPinchDistance = Vector2.Distance(pos1, pos2);
-            }
-        }
-
-        private void OnSecondaryTouchCanceled(InputAction.CallbackContext context)
-        {
-            isPinching = false;
+            Vector2 scrollDelta = context.ReadValue<Vector2>();
+            
+            // Use scroll wheel for zooming
+            float zoomDelta = scrollDelta.y * 0.1f;
+            SetZoom(currentZoom + zoomDelta);
         }
 
         private void OnTouchPositionChanged(InputAction.CallbackContext context)
         {
+            // Handle continuous position updates during drag/resize operations
+            // Button release is now handled in OnClickRelease via float value detection
+            
             // Clear the just started resize flag once we start moving
             if (justStartedResize)
             {
@@ -331,40 +677,28 @@ namespace MiniTimeline.UI
                 Debug.Log("OnTouchPositionChanged - Cleared justStartedResize flag");
             }
             
-            if (isPinching)
-            {
-                HandlePinchZoom();
-            }
-            else if (isResizing && clipBeingResized != null && primaryTouchAction?.action?.IsPressed() == true)
+            if (isResizing && clipBeingResized != null && wasClickPressed)
             {
                 // Handle continuous resize updates - prioritize resize over drag
                 Vector2 screenPos = context.ReadValue<Vector2>();
                 Vector2 localPos = ScreenToTimelineLocal(screenPos);
                 UpdateResize(clipBeingResized, localPos);
             }
-            else if (isDragging && clipBeingDragged != null && primaryTouchAction?.action?.IsPressed() == true)
+            else if (isDragging && clipBeingDragged != null && wasClickPressed)
             {
                 // Handle continuous drag updates through position changes
                 Vector2 screenPos = context.ReadValue<Vector2>();
                 Vector2 localPos = ScreenToTimelineLocal(screenPos);
 
-                Debug.Log($"OnTouchPositionChanged - Continuous drag for {clipBeingDragged.Clip.Id}");
+                Debug.Log($"OnTouchPositionChanged - Continuous drag for {clipBeingDragged.Clip.Id}, screenPos: {screenPos}, localPos: {localPos}");
                 DragClip(clipBeingDragged, localPos);
             }
-            else if (isPlayheadDragging && primaryTouchAction?.action?.IsPressed() == true)
+            else if (isPlayheadDragging && wasClickPressed)
             {
                 // Handle continuous playhead dragging
                 Vector2 screenPos = context.ReadValue<Vector2>();
                 Vector2 localPos = ScreenToTimelineLocal(screenPos);
                 ScrubToPosition(localPos.x);
-            }
-        }
-
-        private void OnSecondaryTouchPositionChanged(InputAction.CallbackContext context)
-        {
-            if (isPinching)
-            {
-                HandlePinchZoom();
             }
         }
 
@@ -553,7 +887,13 @@ namespace MiniTimeline.UI
         {
             ClearTimelineUI();
 
-            if (director?.Project == null) return;
+            if (director?.Project == null) 
+            {
+                Debug.LogWarning("TimelineEditorUI: BuildTimelineUI called but director or project is null");
+                return;
+            }
+
+            Debug.Log($"TimelineEditorUI: Building timeline UI - Project: {director.Project.name}, Length: {director.Length}, Tracks: {director.Tracks.Count}");
 
             // Update timeline dimensions
             timelineWidth = director.Length * PixelsPerSecond;
@@ -562,24 +902,47 @@ namespace MiniTimeline.UI
             // Build track UIs
             foreach (var track in director.Tracks)
             {
+                var clips = track.GetClips().ToList();
+                Debug.Log($"TimelineEditorUI: Creating track UI for track {track.Id} with {clips.Count} clips");
                 CreateTrackUI(track);
             }
 
             // Update ruler
             ruler?.Rebuild(director.Length, director.Project.frameRate);
+            
+            Debug.Log($"TimelineEditorUI: Built {trackUIs.Count} track UIs total");
         }
 
         private void CreateTrackUI(IMiniTrack track)
         {
-            if (trackUIPrefab == null) return;
+            if (trackUIPrefab == null) 
+            {
+                Debug.LogWarning("TimelineEditorUI: trackUIPrefab is null, cannot create track UI");
+                return;
+            }
+
+            if (tracksContainer == null)
+            {
+                Debug.LogWarning("TimelineEditorUI: tracksContainer is null, cannot create track UI");
+                return;
+            }
 
             var trackGO = Instantiate(trackUIPrefab, tracksContainer);
             var trackUI = trackGO.GetComponent<TrackUI>();
 
             if (trackUI != null)
             {
+                Debug.Log($"TimelineEditorUI: Created TrackUI for track {track.Id}, initializing...");
                 trackUI.Initialize(this, track);
                 trackUIs.Add(trackUI);
+                
+                // Check if clips were created
+                var clipUIs = trackUI.GetComponentsInChildren<ClipUI>();
+                Debug.Log($"TimelineEditorUI: TrackUI for {track.Id} now has {clipUIs.Length} clip UIs");
+            }
+            else
+            {
+                Debug.LogError("TimelineEditorUI: Instantiated trackUIPrefab does not have TrackUI component");
             }
         }
 
@@ -600,47 +963,52 @@ namespace MiniTimeline.UI
 
         #region Gesture Handling
 
-        private void HandleLongPress()
-        {
-            if (primaryTouchAction?.action?.IsPressed() == true && !isDragging && !isPlayheadDragging)
-            {
-                longPressTimer += Time.unscaledDeltaTime;
-
-                if (longPressTimer >= longPressTime && !isLongPressing)
-                {
-                    isLongPressing = true;
-                    OnLongPress();
-                }
-            }
-        }
+        // Note: HandleLongPress() method removed - now using coroutine-based timer in HandleLongPressTimer()
 
         private void OnLongPress()
         {
-            Vector2 screenPos = lastTouchPosition;
+            Debug.Log("OnLongPress triggered");
+            
+            // Get current screen position from the Point action
+            Vector2 screenPos = Vector2.zero;
+            if (_point != null)
+            {
+                screenPos = _point.ReadValue<Vector2>();
+                Debug.Log($"OnLongPress: Got screen position from Point action: {screenPos}");
+            }
+            else
+            {
+                // Fallback to last known touch position
+                screenPos = lastTouchPosition;
+                Debug.Log($"OnLongPress: Using lastTouchPosition: {screenPos}");
+            }
+            
+            // If still zero, try mouse position as fallback
+            if (screenPos == Vector2.zero)
+            {
+                screenPos = Mouse.current?.position.ReadValue() ?? Vector2.zero;
+                Debug.Log($"OnLongPress: Fallback to mouse position: {screenPos}");
+            }
+            
             Vector2 localPos = ScreenToTimelineLocal(screenPos);
-
+            
+            // Check for clip at position
             var hitResult = GetUIElementAtPosition(localPos);
-
+            
             if (hitResult.clipUI != null)
             {
-                ShowClipContextMenu(hitResult.clipUI, screenPos);
+                // If it's a quick release (not a true long press), treat it as a regular click
+                if (longPressTimer < longPressTime * 0.8f) // 80% of long press threshold
+                {
+                    Debug.Log($"OnLongPress: Quick release detected (timer: {longPressTimer}), treating as regular click");
+                    OnClipTouched(hitResult.clipUI, localPos);
+                }
+                else
+                {
+                    Debug.Log($"OnLongPress: True long press detected (timer: {longPressTimer}), showing context menu");
+                    ShowClipContextMenu(hitResult.clipUI, screenPos);
+                }
             }
-        }
-
-        private void HandlePinchZoom()
-        {
-            Vector2 pos1 = touchPositionAction?.action?.ReadValue<Vector2>() ?? Vector2.zero;
-            Vector2 pos2 = secondaryTouchPositionAction?.action?.ReadValue<Vector2>() ?? Vector2.zero;
-
-            float currentDistance = Vector2.Distance(pos1, pos2);
-
-            if (lastPinchDistance > 0)
-            {
-                float zoomDelta = (currentDistance - lastPinchDistance) / Screen.dpi * 2f;
-                SetZoom(currentZoom + zoomDelta);
-            }
-
-            lastPinchDistance = currentDistance;
         }
 
         #endregion
@@ -681,11 +1049,17 @@ namespace MiniTimeline.UI
 
         private Vector2 ScreenToTimelineLocal(Vector2 screenPos)
         {
-            // Always convert directly to timeline container's local space
-            // This works correctly with ScrollRect because Unity handles the coordinate transformation
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                timelineContainer, screenPos, editorCanvas.worldCamera, out Vector2 localPos);
-            return localPos;
+            // Convert screen position to timeline container's local space
+            Vector2 localPos;
+            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                timelineContainer, screenPos, editorCanvas.worldCamera, out localPos))
+            {
+                Debug.Log($"ScreenToTimelineLocal: screenPos={screenPos} -> localPos={localPos}");
+                return localPos;
+            }
+            
+            Debug.LogWarning($"ScreenToTimelineLocal: Failed to convert screen position {screenPos}");
+            return Vector2.zero;
         }
 
         private float PositionToTime(float xPosition)
@@ -750,7 +1124,7 @@ namespace MiniTimeline.UI
 
         #endregion
 
-        #region Placeholder Methods (to be implemented)
+        #region Clip Interaction Methods
 
         private struct UIHitResult
         {
@@ -763,58 +1137,61 @@ namespace MiniTimeline.UI
         private UIHitResult GetUIElementAtPosition(Vector2 localPos)
         {
             var result = new UIHitResult();
+            
+            Debug.Log($"GetUIElementAtPosition - Input localPos: {localPos}, trackUIs count: {trackUIs.Count}");
 
             // Check if position is within the ruler area first
             if (ruler != null && rulerContainer != null)
             {
                 RectTransform rulerRect = rulerContainer;
-
-                // Convert to ruler's local space for hit testing
                 Vector2 rulerLocalPos;
                 if (RectTransformUtility.ScreenPointToLocalPointInRectangle(rulerRect,
                     RectTransformUtility.WorldToScreenPoint(editorCanvas.worldCamera, timelineContainer.TransformPoint(localPos)),
                     editorCanvas.worldCamera, out rulerLocalPos))
                 {
-                    // Check if point is within ruler bounds
                     Rect rulerBounds = rulerRect.rect;
                     if (rulerBounds.Contains(rulerLocalPos))
                     {
+                        Debug.Log($"Hit ruler at {rulerLocalPos}");
                         result.isRuler = true;
                         return result;
                     }
                 }
             }
 
-            // Check clips in all tracks - work in timeline container's local space
+            // Check clips in all tracks - use simple rect containment test
             foreach (var trackUI in trackUIs)
             {
                 if (trackUI == null) continue;
+                
+                Debug.Log($"Checking track (index {trackUIs.IndexOf(trackUI)})");
 
                 // Get all clip UIs in this track
                 var clipUIs = trackUI.GetComponentsInChildren<ClipUI>();
+                Debug.Log($"Found {clipUIs.Length} clip UIs in track");
 
                 foreach (var clipUI in clipUIs)
                 {
-                    if (clipUI == null) continue;
+                    if (clipUI == null || clipUI.Clip == null) continue;
 
                     RectTransform clipRect = clipUI.transform as RectTransform;
                     if (clipRect == null) continue;
 
-                    // Convert timeline local position to clip's local space
-                    // Since clips are children of the timeline container, we can transform directly
+                    // Simple approach: convert the timeline local position to clip's local space
                     Vector2 clipLocalPos;
+                    Vector3 timelineWorldPoint = timelineContainer.TransformPoint(localPos);
+                    
                     if (RectTransformUtility.ScreenPointToLocalPointInRectangle(clipRect,
-                        RectTransformUtility.WorldToScreenPoint(editorCanvas.worldCamera, 
-                        timelineContainer.TransformPoint(localPos)),
+                        RectTransformUtility.WorldToScreenPoint(editorCanvas.worldCamera, timelineWorldPoint),
                         editorCanvas.worldCamera, out clipLocalPos))
                     {
-                        Debug.Log($"Hit test - Clip {clipUI.Clip?.Id}: localPos={localPos}, clipLocalPos={clipLocalPos}, clipBounds={clipRect.rect}");
+                        Rect clipBounds = clipRect.rect;
+                        Debug.Log($"Hit test - Clip {clipUI.Clip.Id}: localPos={localPos}, clipLocalPos={clipLocalPos}, clipBounds={clipBounds}");
                         
                         // Check if point is within clip bounds
-                        Rect clipBounds = clipRect.rect;
                         if (clipBounds.Contains(clipLocalPos))
                         {
-                            Debug.Log($"Clip {clipUI.Clip?.Id} contains position - checking resize handles");
+                            Debug.Log($"Clip {clipUI.Clip.Id} contains position - checking resize handles");
                             
                             // Check if we hit a resize handle first (only if clip is selected)
                             if (clipUI.IsSelected)
@@ -822,7 +1199,7 @@ namespace MiniTimeline.UI
                                 var resizeHandle = clipUI.GetResizeHandleAtPosition(clipLocalPos);
                                 if (resizeHandle != ClipUI.ResizeHandle.None)
                                 {
-                                    Debug.Log($"Hit resize handle {resizeHandle} on clip {clipUI.Clip?.Id}");
+                                    Debug.Log($"Hit resize handle {resizeHandle} on clip {clipUI.Clip.Id}");
                                     result.clipUI = clipUI;
                                     result.resizeHandle = resizeHandle;
                                     result.isResizeHandle = true;
@@ -831,14 +1208,23 @@ namespace MiniTimeline.UI
                             }
 
                             // Otherwise, it's a regular clip hit
-                            Debug.Log($"Regular clip hit on {clipUI.Clip?.Id}");
+                            Debug.Log($"Regular clip hit on {clipUI.Clip.Id}");
                             result.clipUI = clipUI;
                             return result;
                         }
+                        else
+                        {
+                            Debug.Log($"Clip {clipUI.Clip.Id} does NOT contain position {clipLocalPos} (bounds: {clipBounds})");
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"Failed to convert timeline position to clip local space for {clipUI.Clip.Id}");
                     }
                 }
             }
 
+            Debug.Log("No UI element hit at position");
             return result;
         }
 
@@ -855,12 +1241,19 @@ namespace MiniTimeline.UI
             }
 
             // Select the clip first
+            Debug.Log($"OnClipTouched - Current selection contains clip: {selectedClips.Contains(clipUI)}, selectedClips.Count: {selectedClips.Count}");
             if (!selectedClips.Contains(clipUI))
             {
+                Debug.Log($"OnClipTouched - Clearing selection and adding clip {clipUI.Clip.Id}");
                 ClearSelection();
                 selectedClips.Add(clipUI);
                 clipUI.SetSelected(true); // Ensure the clip knows it's selected
+                Debug.Log($"OnClipTouched - After selection: selectedClips.Count: {selectedClips.Count}, clipUI.IsSelected: {clipUI.IsSelected}");
                 OnSelectionChanged?.Invoke(selectedClips);
+            }
+            else
+            {
+                Debug.Log($"OnClipTouched - Clip {clipUI.Clip.Id} is already selected, clipUI.IsSelected: {clipUI.IsSelected}");
             }
 
             // Double-check: if we somehow became resizing after selection, don't start drag
@@ -872,6 +1265,7 @@ namespace MiniTimeline.UI
             }
 
             // Start dragging
+            Debug.Log($"OnClipTouched - Starting drag for clip {clipUI.Clip.Id}");
             clipBeingDragged = clipUI;
             clipDragStartTime = clipUI.Clip.Start;
             clipDragCurrentTime = clipUI.Clip.Start; // Initialize current drag position
@@ -885,13 +1279,14 @@ namespace MiniTimeline.UI
             activeDragCommand = null; // Reset any active drag command
             isDragging = true;
 
-            Debug.Log($"Starting drag - Clip start: {clipUI.Clip.Start}, Left edge X: {clipLeftEdgeX}, Click X: {localPos.x}, Offset: {clipDragOffset}");
+            Debug.Log($"OnClipTouched - Drag setup: startTime={clipDragStartTime}, localPos={localPos}, clipLeftEdgeX={clipLeftEdgeX}, dragOffset={clipDragOffset}, clipBeingDragged: {(clipBeingDragged != null ? clipBeingDragged.Clip.Id : "null")}, isDragging: {isDragging}");
 
             // Disable scroll rect during drag to prevent conflicts
             SetScrollRectEnabled(false);
 
             // Update visual state
             clipUI.SetDragVisualState(true);
+            Debug.Log($"OnClipTouched - Completed touch handling for clip {clipUI.Clip.Id}");
         }
 
         private void OnRulerTouched(Vector2 localPos)

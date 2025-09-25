@@ -101,12 +101,16 @@ namespace MiniTimeline.UI
         
         public void Initialize(TrackUI track, IMiniClip clipData)
         {
+            Debug.Log($"ClipUI: Initialize called for clip {clipData.Id} (Start: {clipData.Start}, Duration: {clipData.Duration})");
+            
             parentTrack = track;
             clip = clipData;
             
             // Update visual appearance
             UpdateClipAppearance();
             UpdateLayout();
+            
+            Debug.Log($"ClipUI: Initialized clip {clipData.Id}, final position: {rectTransform.anchoredPosition}, size: {rectTransform.sizeDelta}");
         }
         
         private void SetupClipStructure()

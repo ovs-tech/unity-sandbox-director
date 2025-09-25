@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using MiniTimeline.Core;
 using MiniTimeline.UI.Commands;
+using Debug = UnityEngine.Debug;
 
 namespace MiniTimeline.UI
 {
@@ -345,36 +347,64 @@ namespace MiniTimeline.UI
         {
             ClearClipUIs();
             
-            if (track == null) return;
-            
-            foreach (var clip in track.GetClips())
+            if (track == null) 
             {
+                Debug.LogWarning("TrackUI: BuildClipUIs called but track is null");
+                return;
+            }
+            
+            var clips = track.GetClips().ToList();
+            Debug.Log($"TrackUI: Building clip UIs for track {track.Id}, found {clips.Count} clips");
+
+            foreach (var clip in clips)
+            {
+                Debug.Log($"TrackUI: Creating UI for clip {clip.Id} (Start: {clip.Start}, Duration: {clip.Duration})");
                 CreateClipUI(clip);
             }
+            
+            Debug.Log($"TrackUI: Finished building clip UIs, total created: {clipUIs.Count}");
         }
         
         private void CreateClipUI(IMiniClip clip)
         {
+            if (clipContainer == null)
+            {
+                Debug.LogError("TrackUI: Cannot create clip UI - clipContainer is null");
+                return;
+            }
+
             if (timelineEditor?.ClipUIPrefab == null)
             {
+                Debug.Log($"TrackUI: No ClipUIPrefab provided, creating simple clip UI for {clip.Id}");
                 // Create a simple clip UI if no prefab is provided
                 CreateSimpleClipUI(clip);
                 return;
             }
             
+            Debug.Log($"TrackUI: Creating clip UI from prefab for {clip.Id}");
             var clipGO = Instantiate(timelineEditor.ClipUIPrefab, clipContainer);
             var clipUI = clipGO.GetComponent<ClipUI>();
             
             if (clipUI != null)
             {
+                Debug.Log($"TrackUI: Initializing clip UI for {clip.Id}");
                 clipUI.Initialize(this, clip);
                 clipUIs.Add(clipUI);
                 clipUILookup[clip.Id] = clipUI;
+                
+                // Verify clip was positioned
+                var rect = clipUI.GetComponent<RectTransform>();
+                Debug.Log($"TrackUI: Clip {clip.Id} positioned at {rect.anchoredPosition} with size {rect.sizeDelta}");
+            }
+            else
+            {
+                Debug.LogError($"TrackUI: ClipUIPrefab does not have ClipUI component for clip {clip.Id}");
             }
         }
         
         private void CreateSimpleClipUI(IMiniClip clip)
         {
+            Debug.Log($"TrackUI: Creating simple clip UI for {clip.Id}");
             var clipGO = new GameObject($"Clip_{clip.Id}", typeof(RectTransform), typeof(ClipUI));
             clipGO.transform.SetParent(clipContainer, false);
             
@@ -383,6 +413,10 @@ namespace MiniTimeline.UI
             
             clipUIs.Add(clipUI);
             clipUILookup[clip.Id] = clipUI;
+            
+            // Verify clip was positioned
+            var rect = clipUI.GetComponent<RectTransform>();
+            Debug.Log($"TrackUI: Simple clip {clip.Id} positioned at {rect.anchoredPosition} with size {rect.sizeDelta}");
         }
         
         private void ClearClipUIs()
