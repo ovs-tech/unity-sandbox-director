@@ -1,16 +1,53 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace MiniTimeline.UI
 {
     /// <summary>
-    /// Mobile-friendly context menu system for timeline editor
+    /// Mobile-friendly dynamic context menu system for timeline editor
+    /// Singleton pattern with self-registration support for UI components
     /// Supports touch-friendly button layout and gesture handling
     /// </summary>
     public class TimelineContextMenu : MonoBehaviour
     {
+        #region Singleton
+        
+        private static TimelineContextMenu instance;
+        public static TimelineContextMenu Instance
+        {
+            get
+            {
+                if (instance == null)
+                {
+                    // Try to find existing instance
+                    instance = FindFirstObjectByType<TimelineContextMenu>();
+                    
+                    if (instance == null)
+                    {
+                        Debug.LogWarning("TimelineContextMenu: No instance found. Creating new one.");
+                        CreateInstance();
+                    }
+                }
+                return instance;
+            }
+        }
+
+        private static void CreateInstance()
+        {
+            var go = new GameObject("TimelineContextMenu");
+            instance = go.AddComponent<TimelineContextMenu>();
+            DontDestroyOnLoad(go);
+        }
+
+        public static bool HasInstance => instance != null;
+
+        #endregion
+
         [Header("UI References")]
         [SerializeField] private RectTransform menuContainer;
         [SerializeField] private RectTransform buttonContainer;
@@ -28,14 +65,19 @@ namespace MiniTimeline.UI
     // Menu state
     private bool isMenuOpen = false;
     private bool canCloseMenu = false; // Prevent immediate close on open
+    private bool fromLongPress = false; // Track if shown from long press
     private Vector2 menuPosition;
     private CanvasGroup canvasGroup;
     private List<ContextMenuItem> currentMenuItems = new List<ContextMenuItem>();
     private List<GameObject> instantiatedButtons = new List<GameObject>();
+    private MenuContext currentContext;
         
         // References
         private TimelineEditorUI timelineEditor;
         private Canvas parentCanvas;
+        
+        // Dynamic menu system
+        private readonly ContextMenuRegistry registry = ContextMenuRegistry.Instance;
         
         #region Events
         
@@ -53,6 +95,19 @@ namespace MiniTimeline.UI
         
         private void Awake()
         {
+            // Ensure singleton pattern
+            if (instance == null)
+            {
+                instance = this;
+                DontDestroyOnLoad(gameObject);
+            }
+            else if (instance != this)
+            {
+                Debug.LogWarning("Multiple TimelineContextMenu instances detected. Destroying duplicate.");
+                Destroy(gameObject);
+                return;
+            }
+            
             SetupContextMenu();
         }
         
@@ -61,7 +116,62 @@ namespace MiniTimeline.UI
             // Start hidden
             gameObject.SetActive(false);
         }
+
+        private void OnDestroy()
+        {
+            // Clear singleton reference if this is the instance being destroyed
+            if (instance == this)
+            {
+                registry.Clear(); // Clean up all registrations
+                instance = null;
+            }
+        }
         
+        #endregion
+        
+        #region Dynamic Registration
+        
+        /// <summary>
+        /// Register a component that can provide context menu items
+        /// </summary>
+        /// <param name="provider">Component to register</param>
+        public static void RegisterMenuProvider(IContextMenuRegisterable provider)
+        {
+            if (HasInstance)
+            {
+                Instance.registry.Register(provider);
+            }
+            else
+            {
+                // Queue for registration when instance is available
+                Debug.LogWarning($"TimelineContextMenu: Attempted to register {provider.ComponentId} before instance is available");
+            }
+        }
+        
+        /// <summary>
+        /// Unregister a context menu provider
+        /// </summary>
+        /// <param name="provider">Component to unregister</param>
+        public static void UnregisterMenuProvider(IContextMenuRegisterable provider)
+        {
+            if (HasInstance && Instance.registry != null)
+            {
+                Instance.registry.Unregister(provider);
+            }
+        }
+        
+        /// <summary>
+        /// Unregister a provider by component ID
+        /// </summary>
+        /// <param name="componentId">ID of component to unregister</param>
+        public static void UnregisterMenuProvider(string componentId)
+        {
+            if (HasInstance && Instance.registry != null)
+            {
+                Instance.registry.Unregister(componentId);
+            }
+        }
+
         #endregion
         
         #region Initialization
@@ -80,16 +190,29 @@ namespace MiniTimeline.UI
             {
                 canvasGroup = gameObject.AddComponent<CanvasGroup>();
             }
+            
             // Create menu structure if not set up
             if (menuContainer == null)
             {
                 CreateMenuStructure();
             }
-            // // Setup backdrop for closing menu
-            // if (menuBackdrop != null)
-            // {
-            //     menuBackdrop.onClick.AddListener(OnBackdropClicked);
-            // }
+            
+            // Create default button prefab if none provided
+            if (menuButtonPrefab == null)
+            {
+                Debug.Log("No menu button prefab assigned, creating default");
+                CreateDefaultButtonPrefab();
+            }
+            
+            // Verify prefab was created successfully
+            if (menuButtonPrefab == null)
+            {
+                Debug.LogError("Failed to create default button prefab!");
+            }
+            else
+            {
+                Debug.Log("Menu button prefab ready");
+            }
         }
         
         private void CreateMenuStructure()
@@ -144,41 +267,63 @@ namespace MiniTimeline.UI
         
         private void CreateDefaultButtonPrefab()
         {
+            // Create button GameObject with all necessary components
             var buttonGO = new GameObject("MenuButton", typeof(RectTransform), typeof(Image), typeof(Button));
             
             var buttonRect = buttonGO.GetComponent<RectTransform>();
             var buttonImage = buttonGO.GetComponent<Image>();
             var button = buttonGO.GetComponent<Button>();
             
-            // Setup button appearance
-            buttonRect.sizeDelta = new Vector2(0f, buttonHeight);
-            buttonImage.color = buttonNormalColor;
+            // Setup button appearance and layout
+            buttonRect.sizeDelta = new Vector2(200f, buttonHeight); // Set proper width
+            buttonRect.anchorMin = new Vector2(0f, 1f);
+            buttonRect.anchorMax = new Vector2(1f, 1f);
+            buttonRect.pivot = new Vector2(0.5f, 1f);
             
-            // Setup button colors
+            // Configure button image
+            buttonImage.color = buttonNormalColor;
+            buttonImage.type = Image.Type.Simple;
+            
+            // Setup button colors with proper transitions
             var colors = button.colors;
             colors.normalColor = buttonNormalColor;
             colors.highlightedColor = buttonHighlightColor;
             colors.pressedColor = new Color(0.2f, 0.2f, 0.2f, 1f);
+            colors.disabledColor = new Color(0.15f, 0.15f, 0.15f, 0.5f);
+            colors.colorMultiplier = 1f;
+            colors.fadeDuration = 0.1f;
             button.colors = colors;
             
-            // Add text component
-            var textGO = new GameObject("Text", typeof(RectTransform), typeof(Text));
+            // Set button transition to ColorTint
+            button.transition = Selectable.Transition.ColorTint;
+            
+            // Add TextMeshPro text component as child
+            var textGO = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
             textGO.transform.SetParent(buttonGO.transform, false);
             
             var textRect = textGO.GetComponent<RectTransform>();
-            var text = textGO.GetComponent<Text>();
+            var text = textGO.GetComponent<TextMeshProUGUI>();
             
+            // Setup text positioning to fill button with padding
             textRect.anchorMin = Vector2.zero;
             textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = new Vector2(10f, 0f);
-            textRect.offsetMax = new Vector2(-10f, 0f);
+            textRect.offsetMin = new Vector2(15f, 5f);
+            textRect.offsetMax = new Vector2(-15f, -5f);
             
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            text.fontSize = 16;
+            // Configure text appearance
+            text.font = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
+            text.fontSize = 14;
             text.color = Color.white;
-            text.alignment = TextAnchor.MiddleLeft;
+            text.alignment = TextAlignmentOptions.Left;
+            text.overflowMode = TextOverflowModes.Truncate;
             
+            // Make sure the button is initially inactive to avoid issues
+            buttonGO.SetActive(false);
+            
+            // Store as prefab
             menuButtonPrefab = buttonGO;
+            
+            Debug.Log("Created default button prefab successfully");
         }
         
         #endregion
@@ -186,16 +331,50 @@ namespace MiniTimeline.UI
         #region Menu Operations
         
         /// <summary>
+        /// Show context menu at specified screen position using dynamic registration
+        /// </summary>
+        /// <param name="screenPosition">Screen position for menu</param>
+        /// <param name="target">Target object for the menu</param>
+        /// <param name="menuType">Type of menu</param>
+        public void ShowDynamicMenu(Vector2 screenPosition, object target = null, string menuType = "default")
+        {
+            var context = new MenuContext(screenPosition, target, menuType);
+            var dynamicMenuItems = registry.BuildContextMenu(context);
+            
+            ShowMenu(screenPosition, dynamicMenuItems, context);
+        }
+        
+        /// <summary>
         /// Show context menu at specified screen position
         /// </summary>
         /// <param name="screenPosition">Screen position for menu</param>
         /// <param name="menuItems">Menu items to display</param>
-        public void ShowMenu(Vector2 screenPosition, List<ContextMenuItem> menuItems)
+        /// <param name="context">Optional menu context</param>
+        public void ShowMenu(Vector2 screenPosition, List<ContextMenuItem> menuItems, MenuContext context = null)
         {
-            // if (isMenuOpen) CloseMenu();
+            // Don't close and immediately reopen - this causes the immediate close issue
+            // Instead, update the content if menu is already open
+            if (isMenuOpen)
+            {
+                Debug.Log("Menu already open - updating content instead of closing/reopening");
+                // Update the menu content and position without closing
+                currentMenuItems = menuItems ?? new List<ContextMenuItem>();
+                menuPosition = screenPosition;
+                currentContext = context;
+                
+                // Rebuild menu buttons with new content
+                BuildMenuButtons();
+                
+                // Reposition menu
+                PositionMenu();
+                
+                return;
+            }
             
+            Debug.Log("Showing new menu");
             currentMenuItems = menuItems ?? new List<ContextMenuItem>();
             menuPosition = screenPosition;
+            currentContext = context;
             
             // Build menu buttons
             BuildMenuButtons();
@@ -207,24 +386,8 @@ namespace MiniTimeline.UI
             ShowMenuAnimated();
         }
         
-        /// <summary>
-        /// Show clip context menu
-        /// </summary>
-        /// <param name="clip">Target clip</param>
-        /// <param name="screenPosition">Screen position</param>
-        public void ShowClipMenu(ClipUI clip, Vector2 screenPosition)
-        {
-            var menuItems = new List<ContextMenuItem>
-            {
-                new ContextMenuItem("Copy", () => CopyClip(clip), "📋"),
-                new ContextMenuItem("Cut", () => CutClip(clip), "✂️"),
-                new ContextMenuItem("Delete", () => DeleteClip(clip), "🗑️"),
-                new ContextMenuItem("Duplicate", () => DuplicateClip(clip), "📄"),
-                new ContextMenuItem("Properties", () => ShowClipProperties(clip), "⚙️")
-            };
-            
-            ShowMenu(screenPosition, menuItems);
-        }
+
+
         
         /// <summary>
         /// Show track context menu
@@ -233,16 +396,27 @@ namespace MiniTimeline.UI
         /// <param name="screenPosition">Screen position</param>
         public void ShowTrackMenu(TrackUI track, Vector2 screenPosition)
         {
-            var menuItems = new List<ContextMenuItem>
-            {
-                new ContextMenuItem("Add Clip", () => AddClipToTrack(track), "➕"),
-                new ContextMenuItem("Mute Track", () => MuteTrack(track), "🔇"),
-                new ContextMenuItem("Solo Track", () => SoloTrack(track), "🔊"),
-                new ContextMenuItem("Delete Track", () => DeleteTrack(track), "🗑️"),
-                new ContextMenuItem("Track Settings", () => ShowTrackSettings(track), "⚙️")
-            };
+            // Try dynamic registration first
+            var context = new MenuContext(screenPosition, track, "track");
+            var dynamicMenuItems = registry.BuildContextMenu(context);
             
-            ShowMenu(screenPosition, menuItems);
+            // Fall back to static items if no dynamic items found
+            if (dynamicMenuItems.Count == 0)
+            {
+                var menuItems = new List<ContextMenuItem>
+                {
+                    new ContextMenuItem("Add Clip", () => AddClipToTrack(track), MenuCategory.Create, MenuPriority.Normal, "➕"),
+                    new ContextMenuItem("Mute Track", () => MuteTrack(track), MenuCategory.Action, MenuPriority.Normal, "🔇"),
+                    new ContextMenuItem("Solo Track", () => SoloTrack(track), MenuCategory.Action, MenuPriority.Normal, "🔊"),
+                    new ContextMenuItem("Delete Track", () => DeleteTrack(track), MenuCategory.Edit, MenuPriority.Delete, "🗑️"),
+                    new ContextMenuItem("Track Settings", () => ShowTrackSettings(track), MenuCategory.Properties, MenuPriority.Properties, "⚙️")
+                };
+                ShowMenu(screenPosition, menuItems, context);
+            }
+            else
+            {
+                ShowMenu(screenPosition, dynamicMenuItems, context);
+            }
         }
         
         /// <summary>
@@ -252,16 +426,29 @@ namespace MiniTimeline.UI
         /// <param name="timePosition">Time position on timeline</param>
         public void ShowTimelineMenu(Vector2 screenPosition, float timePosition)
         {
-            var menuItems = new List<ContextMenuItem>
-            {
-                new ContextMenuItem("Add Track", () => ShowAddTrackMenu(screenPosition), "➕"),
-                new ContextMenuItem("Paste", () => PasteAtTime(timePosition), "📋"),
-                new ContextMenuItem("Add Marker", () => AddMarker(timePosition), "📍"),
-                new ContextMenuItem("Zoom to Fit", () => ZoomToFit(), "🔍"),
-                new ContextMenuItem("Reset Zoom", () => ResetZoom(), "🔍")
-            };
+            // Try dynamic registration first
+            var context = new MenuContext(screenPosition, null, "timeline");
+            context.SetProperty("timePosition", timePosition);
             
-            ShowMenu(screenPosition, menuItems);
+            var dynamicMenuItems = registry.BuildContextMenu(context);
+            
+            // Fall back to static items if no dynamic items found
+            if (dynamicMenuItems.Count == 0)
+            {
+                var menuItems = new List<ContextMenuItem>
+                {
+                    new ContextMenuItem("Add Track", () => ShowAddTrackMenu(screenPosition), MenuCategory.Create, MenuPriority.Normal, "➕"),
+                    new ContextMenuItem("Paste", () => PasteAtTime(timePosition), MenuCategory.Edit, MenuPriority.Paste, "📋"),
+                    new ContextMenuItem("Add Marker", () => AddMarker(timePosition), MenuCategory.Create, MenuPriority.Low, "📍"),
+                    new ContextMenuItem("Zoom to Fit", () => ZoomToFit(), MenuCategory.View, MenuPriority.Normal, "🔍"),
+                    new ContextMenuItem("Reset Zoom", () => ResetZoom(), MenuCategory.View, MenuPriority.Low, "🔍")
+                };
+                ShowMenu(screenPosition, menuItems, context);
+            }
+            else
+            {
+                ShowMenu(screenPosition, dynamicMenuItems, context);
+            }
         }
         
         /// <summary>
@@ -269,6 +456,7 @@ namespace MiniTimeline.UI
         /// </summary>
         public void CloseMenu()
         {
+            Debug.Log("CloseMenu called");
             if (!isMenuOpen) return;
             isMenuOpen = false;
             canCloseMenu = false;
@@ -280,9 +468,10 @@ namespace MiniTimeline.UI
         // Backdrop click handler with delay logic
         private void OnBackdropClicked()
         {
+            Debug.Log($"Backdrop clicked. canCloseMenu: {canCloseMenu}, fromLongPress: {fromLongPress}");
             if (canCloseMenu)
             {
-                // CloseMenu();
+                CloseMenu();
             }
         }
         
@@ -304,12 +493,25 @@ namespace MiniTimeline.UI
         
         private void CreateMenuButton(ContextMenuItem item)
         {
-            if (menuButtonPrefab == null || buttonContainer == null) return;
+            if (menuButtonPrefab == null || buttonContainer == null) 
+            {
+                Debug.LogError("Cannot create menu button: missing prefab or container");
+                return;
+            }
             
+            // Handle separators
+            if (item.isSeparator)
+            {
+                CreateSeparator();
+                return;
+            }
+            
+            // Instantiate the button prefab
             var buttonGO = Instantiate(menuButtonPrefab, buttonContainer);
+            buttonGO.SetActive(true); // Make sure the instantiated button is active
             
             // Setup button text
-            var text = buttonGO.GetComponentInChildren<Text>();
+            var text = buttonGO.GetComponentInChildren<TextMeshProUGUI>();
             if (text != null)
             {
                 string buttonText = item.text;
@@ -318,6 +520,16 @@ namespace MiniTimeline.UI
                     buttonText = $"{item.icon} {buttonText}";
                 }
                 text.text = buttonText;
+                
+                // Apply custom text color if specified
+                if (item.textColor.HasValue)
+                {
+                    text.color = item.textColor.Value;
+                }
+            }
+            else
+            {
+                Debug.LogWarning("No TextMeshProUGUI component found in menu button prefab");
             }
             
             // Setup button action
@@ -327,12 +539,39 @@ namespace MiniTimeline.UI
                 button.onClick.RemoveAllListeners();
                 button.onClick.AddListener(() =>
                 {
+                    Debug.Log($"Menu button clicked: {item.text}");
                     item.action?.Invoke();
                     CloseMenu();
                 });
+                
+                // Set button interactable state
+                button.interactable = item.enabled;
+            }
+            else
+            {
+                Debug.LogWarning("No Button component found in menu button prefab");
             }
             
             instantiatedButtons.Add(buttonGO);
+            Debug.Log($"Created menu button: {item.text}");
+        }
+        
+        private void CreateSeparator()
+        {
+            if (buttonContainer == null) return;
+            
+            // Create a simple separator line
+            var separatorGO = new GameObject("Separator", typeof(RectTransform), typeof(Image));
+            separatorGO.transform.SetParent(buttonContainer, false);
+            
+            var rectTransform = separatorGO.GetComponent<RectTransform>();
+            var image = separatorGO.GetComponent<Image>();
+            
+            // Set up separator appearance
+            rectTransform.sizeDelta = new Vector2(0f, 1f);
+            image.color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+            
+            instantiatedButtons.Add(separatorGO);
         }
         
         private void ClearMenuButtons()
@@ -395,6 +634,7 @@ namespace MiniTimeline.UI
         
         private void ShowMenuAnimated()
         {
+            Debug.Log($"ShowMenuAnimated called. fromLongPress: {fromLongPress}");
             gameObject.SetActive(true);
             isMenuOpen = true;
             canCloseMenu = false;
@@ -414,10 +654,12 @@ namespace MiniTimeline.UI
             // Simple fade in animation
             canvasGroup.alpha = 0f;
             canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
             LeanTween.alphaCanvas(canvasGroup, 1f, 0.2f)
                 .setEaseOutQuart()
                 .setOnComplete(() => {
                     canvasGroup.interactable = true;
+                    canvasGroup.blocksRaycasts = true;
                 });
             // Scale animation for menu container
             if (menuContainer != null)
@@ -432,13 +674,26 @@ namespace MiniTimeline.UI
 
         private System.Collections.IEnumerator EnableMenuCloseNextFrame()
         {
-            yield return null;
+            // Use longer delay if menu was shown from long press
+            if (fromLongPress)
+            {
+                Debug.Log("Enabling backdrop close with long press delay (0.3s)");
+                yield return new WaitForSeconds(0.3f); // Longer delay for long press
+                fromLongPress = false; // Reset flag
+            }
+            else
+            {
+                Debug.Log("Enabling backdrop close with normal delay (1 frame)");
+                yield return null; // Single frame delay for normal cases
+            }
             canCloseMenu = true;
+            Debug.Log("Backdrop close enabled");
         }
         
         private void HideMenuAnimated()
         {
             canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
             
             LeanTween.alphaCanvas(canvasGroup, 0f, 0.15f)
                 .setEaseInQuart()
@@ -457,36 +712,6 @@ namespace MiniTimeline.UI
         #endregion
         
         #region Menu Actions (Placeholder implementations)
-        
-        private void CopyClip(ClipUI clip)
-        {
-            Debug.Log($"Copy clip: {clip.Clip.Id}");
-            // TODO: Implement copy functionality
-        }
-        
-        private void CutClip(ClipUI clip)
-        {
-            Debug.Log($"Cut clip: {clip.Clip.Id}");
-            // TODO: Implement cut functionality
-        }
-        
-        private void DeleteClip(ClipUI clip)
-        {
-            Debug.Log($"Delete clip: {clip.Clip.Id}");
-            // TODO: Create delete command
-        }
-        
-        private void DuplicateClip(ClipUI clip)
-        {
-            Debug.Log($"Duplicate clip: {clip.Clip.Id}");
-            // TODO: Implement duplicate functionality
-        }
-        
-        private void ShowClipProperties(ClipUI clip)
-        {
-            Debug.Log($"Show properties for clip: {clip.Clip.Id}");
-            // TODO: Show clip properties panel
-        }
         
         private void AddClipToTrack(TrackUI track)
         {
@@ -549,25 +774,5 @@ namespace MiniTimeline.UI
         }
         
         #endregion
-    }
-    
-    /// <summary>
-    /// Data structure for context menu items
-    /// </summary>
-    [System.Serializable]
-    public class ContextMenuItem
-    {
-        public string text;
-        public Action action;
-        public string icon;
-        public bool enabled;
-        
-        public ContextMenuItem(string itemText, Action itemAction, string itemIcon = "", bool itemEnabled = true)
-        {
-            text = itemText;
-            action = itemAction;
-            icon = itemIcon;
-            enabled = itemEnabled;
-        }
     }
 }

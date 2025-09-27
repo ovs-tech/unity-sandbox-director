@@ -1,8 +1,10 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using MiniTimeline.Core;
 using MiniTimeline.UI.Commands;
 using Debug = UnityEngine.Debug;
@@ -12,8 +14,9 @@ namespace MiniTimeline.UI
     /// <summary>
     /// UI representation of a timeline track
     /// Displays track header and contains clip UI elements
+    /// Implements dynamic context menu registration
     /// </summary>
-    public class TrackUI : MonoBehaviour
+    public class TrackUI : MonoBehaviour, IContextMenuRegisterable, IPointerDownHandler, IPointerUpHandler, IPointerClickHandler
     {
         [Header("UI References")]
         [SerializeField] private RectTransform headerContainer;
@@ -34,6 +37,16 @@ namespace MiniTimeline.UI
             new Color(0.7f, 0.5f, 0.3f, 0.8f),  // Orange
         };
         
+        [Header("Long Press Settings")]
+        [SerializeField] private float longPressDuration = 0.8f; // Time to trigger long press in seconds
+        
+        // Long press detection
+        private bool isLongPressing = false;
+        private bool longPressTriggered = false;
+        private Coroutine longPressCoroutine = null;
+        private Vector2 longPressStartPosition;
+        private float longPressMoveThreshold = 20f; // Pixels
+        
         // References
         private TimelineEditorUI timelineEditor;
         private IMiniTrack track;
@@ -51,6 +64,13 @@ namespace MiniTimeline.UI
         public IReadOnlyList<ClipUI> ClipUIs => clipUIs;
         public RectTransform ClipContainer => clipContainer;
         public TimelineEditorUI TimelineEditor => timelineEditor;
+        public bool IsLongPressing => isLongPressing;
+        
+        #endregion
+        
+        #region Events
+        
+        public event Action<TrackUI, Vector2> OnTrackLongPressed; // Screen position where long press occurred
         
         #endregion
         
@@ -70,6 +90,15 @@ namespace MiniTimeline.UI
             SetupEventHandlers();
         }
         
+        private void OnDestroy()
+        {
+            // Clean up long press coroutine
+            StopLongPressDetection();
+            
+            // Unregister from context menu
+            UnregisterContextMenuItems();
+        }
+        
         #endregion
         
         #region Initialization
@@ -87,12 +116,23 @@ namespace MiniTimeline.UI
             
             // Build clip UIs
             BuildClipUIs();
+            
+            // Register for context menu
+            RegisterContextMenuItems();
         }
         
         private void SetupTrackStructure()
         {
             // Set track size
             rectTransform.sizeDelta = new Vector2(0f, trackHeight);
+            
+            // Ensure track has an Image component for raycast target (long press detection)
+            if (GetComponent<Image>() == null)
+            {
+                var trackImage = gameObject.AddComponent<Image>();
+                trackImage.color = new Color(0f, 0f, 0f, 0.01f); // Nearly transparent but still raycast-able
+                trackImage.raycastTarget = true;
+            }
             
             // Create header container if not exists
             if (headerContainer == null)
@@ -496,8 +536,70 @@ namespace MiniTimeline.UI
         
         private void OnOptionsClicked()
         {
-            // TODO: Show track options menu
-            Debug.Log($"Track options clicked for {track?.GetType().Name}");
+            // Don't handle click if long press was triggered
+            if (!longPressTriggered)
+            {
+                // Show context menu directly
+                if (trackOptionsButton != null)
+                {
+                    Vector2 screenPosition = trackOptionsButton.transform.position;
+                    ShowTrackContextMenu(screenPosition, false);
+                }
+            }
+            
+            // Reset long press triggered flag
+            longPressTriggered = false;
+        }
+        
+        /// <summary>
+        /// Show context menu for this track at the specified screen position
+        /// </summary>
+        /// <param name="screenPosition">Screen position for the menu</param>
+        /// <param name="fromLongPress">Whether this was triggered by a long press</param>
+        private void ShowTrackContextMenu(Vector2 screenPosition, bool fromLongPress = false)
+        {
+            Debug.Log($"Showing context menu for track: {track?.GetType().Name} (long press: {fromLongPress})");
+            
+            // Use the dynamic context menu system
+            if (TimelineContextMenu.HasInstance)
+            {
+                // Disable timeline interaction through timeline editor if possible
+                DisableTimelineInteraction();
+                
+                // Show dynamic menu with this track as the target
+                TimelineContextMenu.Instance.ShowDynamicMenu(screenPosition, this, "track");
+                
+                // Subscribe to menu closed event to re-enable interaction
+                TimelineContextMenu.Instance.OnMenuClosed -= EnableTimelineInteraction;
+                TimelineContextMenu.Instance.OnMenuClosed += EnableTimelineInteraction;
+            }
+            else
+            {
+                Debug.LogWarning("TimelineContextMenu instance not available");
+            }
+        }
+        
+        /// <summary>
+        /// Disable timeline interaction while context menu is open
+        /// </summary>
+        private void DisableTimelineInteraction()
+        {
+            // Try to disable through timeline editor if available
+            // The timeline editor should handle this through event subscription
+        }
+        
+        /// <summary>
+        /// Re-enable timeline interaction when context menu closes
+        /// </summary>
+        private void EnableTimelineInteraction()
+        {
+            // Unsubscribe from the event to avoid memory leaks
+            if (TimelineContextMenu.HasInstance)
+            {
+                TimelineContextMenu.Instance.OnMenuClosed -= EnableTimelineInteraction;
+            }
+            
+            // The timeline editor should handle re-enabling interaction through its own event system
         }
         
         #endregion
@@ -537,6 +639,262 @@ namespace MiniTimeline.UI
             return rectTransform.rect.Contains(localPosition);
         }
         
+        #endregion
+        
+        #region Long Press Detection
+        
+        /// <summary>
+        /// Start long press detection
+        /// </summary>
+        private void StartLongPressDetection(Vector2 screenPosition)
+        {
+            if (longPressCoroutine != null)
+            {
+                StopCoroutine(longPressCoroutine);
+            }
+            
+            isLongPressing = true;
+            longPressTriggered = false;
+            longPressStartPosition = screenPosition;
+            longPressCoroutine = StartCoroutine(LongPressCoroutine(screenPosition));
+        }
+        
+        /// <summary>
+        /// Stop long press detection
+        /// </summary>
+        private void StopLongPressDetection()
+        {
+            if (longPressCoroutine != null)
+            {
+                StopCoroutine(longPressCoroutine);
+                longPressCoroutine = null;
+            }
+            
+            isLongPressing = false;
+        }
+        
+        /// <summary>
+        /// Check if current pointer position is still within long press threshold
+        /// </summary>
+        private bool IsWithinLongPressThreshold(Vector2 currentScreenPosition)
+        {
+            float distance = Vector2.Distance(longPressStartPosition, currentScreenPosition);
+            return distance <= longPressMoveThreshold;
+        }
+        
+        /// <summary>
+        /// Coroutine that handles long press timing
+        /// </summary>
+        private IEnumerator LongPressCoroutine(Vector2 screenPosition)
+        {
+            float elapsedTime = 0f;
+            
+            while (elapsedTime < longPressDuration)
+            {
+                yield return null;
+                elapsedTime += Time.deltaTime;
+                
+                // Check if we're still pressing and within threshold
+                if (!isLongPressing)
+                {
+                    yield break;
+                }
+            }
+            
+            // Long press completed
+            if (isLongPressing && !longPressTriggered)
+            {
+                longPressTriggered = true;
+                HandleLongPress(screenPosition);
+            }
+        }
+        
+        /// <summary>
+        /// Handle long press event
+        /// </summary>
+        private void HandleLongPress(Vector2 screenPosition)
+        {
+            Debug.Log($"Long press detected on track: {track?.GetType().Name}");
+            
+            // Trigger the long press event
+            OnTrackLongPressed?.Invoke(this, screenPosition);
+            
+            // Show context menu directly using dynamic registration
+            ShowTrackContextMenu(screenPosition, true);
+        }
+        
+        #endregion
+        
+        #region Pointer Event Handlers
+        
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            if (eventData.button == PointerEventData.InputButton.Left)
+            {
+                // Start long press detection
+                StartLongPressDetection(eventData.position);
+            }
+        }
+        
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            // If long press was triggered, add a delay to prevent immediate backdrop clicks
+            if (longPressTriggered)
+            {
+                // Don't allow this pointer up event to propagate immediately
+                eventData.pointerPress = null;
+                eventData.rawPointerPress = null;
+            }
+            
+            // Stop long press detection when pointer is released
+            StopLongPressDetection();
+        }
+        
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (eventData.button == PointerEventData.InputButton.Left)
+            {
+                // Don't handle click if long press was triggered
+                if (!longPressTriggered)
+                {
+                    // Handle left click - could be used for track selection in the future
+                    Debug.Log($"Track clicked: {track?.GetType().Name}");
+                }
+                
+                // Reset long press triggered flag
+                longPressTriggered = false;
+            }
+            else if (eventData.button == PointerEventData.InputButton.Right)
+            {
+                // Handle right click - context menu
+                ShowTrackContextMenu(eventData.position, false);
+            }
+        }
+        
+        #endregion
+        
+        #region Public Context Menu Interface
+        
+        /// <summary>
+        /// Public method to show context menu for this track
+        /// Can be called by external systems when needed
+        /// </summary>
+        /// <param name="screenPosition">Screen position for the menu</param>
+        /// <param name="fromLongPress">Whether this was triggered by a long press</param>
+        public void ShowContextMenu(Vector2 screenPosition, bool fromLongPress = false)
+        {
+            ShowTrackContextMenu(screenPosition, fromLongPress);
+        }
+        
+        #endregion
+        
+        #region IContextMenuRegisterable Implementation
+        
+        public string ComponentId => $"TrackUI_{track?.Id ?? GetInstanceID().ToString()}";
+        
+        public IEnumerable<ContextMenuItem> GetContextMenuItems(MenuContext menuContext)
+        {
+            // Only provide items if this is a track context menu for this specific track
+            if (menuContext.MenuType != "track" || menuContext.GetTarget<TrackUI>() != this)
+                yield break;
+
+            // Create operations
+            yield return new ContextMenuItem("Add Clip", () => AddClipToTrack(), MenuCategory.Create, MenuPriority.Normal, "➕")
+                .WithTooltip("Add a new clip to this track");
+
+            // Edit operations
+            yield return new ContextMenuItem("Duplicate Track", () => DuplicateTrack(), MenuCategory.Edit, MenuPriority.Duplicate, "📄")
+                .WithTooltip("Create a copy of this track");
+                
+            yield return new ContextMenuItem("Delete Track", () => DeleteTrack(), MenuCategory.Edit, MenuPriority.Delete, "🗑️")
+                .WithTooltip("Delete this track")
+                .WithTextColor(Color.red);
+
+            // Action operations
+            string muteText = track?.Enabled == true ? "Mute Track" : "Unmute Track";
+            string muteIcon = track?.Enabled == true ? "🔇" : "🔊";
+            yield return new ContextMenuItem(muteText, () => ToggleMute(), MenuCategory.Action, MenuPriority.Normal, muteIcon)
+                .WithTooltip($"{muteText.ToLower()}");
+                
+            yield return new ContextMenuItem("Solo Track", () => SoloTrack(), MenuCategory.Action, MenuPriority.Normal, "🎯")
+                .WithTooltip("Solo this track (mute all others)");
+
+            // Properties
+            yield return new ContextMenuItem("Track Settings", () => ShowTrackSettings(), MenuCategory.Properties, MenuPriority.Properties, "⚙️")
+                .WithTooltip("Show track properties and settings");
+
+            // Debug operations (only in development)
+            #if UNITY_EDITOR
+            yield return new ContextMenuItem("Debug Info", () => LogDebugInfo(), MenuCategory.Debug, MenuPriority.Normal, "🐛")
+                .WithTooltip("Log debug information about this track");
+            #endif
+        }
+        
+        public void RegisterContextMenuItems()
+        {
+            TimelineContextMenu.RegisterMenuProvider(this);
+        }
+        
+        public void UnregisterContextMenuItems()
+        {
+            TimelineContextMenu.UnregisterMenuProvider(this);
+        }
+        
+        public bool CanProvideMenuItems(MenuContext menuContext)
+        {
+            return menuContext.MenuType == "track" && menuContext.GetTarget<TrackUI>() == this;
+        }
+
+        #endregion
+        
+        #region Context Menu Actions
+        
+        private void AddClipToTrack()
+        {
+            Debug.Log($"Add clip to track: {track?.GetType().Name}");
+            // TODO: Implement add clip functionality
+        }
+        
+        private void DuplicateTrack()
+        {
+            Debug.Log($"Duplicate track: {track?.GetType().Name}");
+            // TODO: Implement duplicate track functionality
+        }
+        
+        private void DeleteTrack()
+        {
+            Debug.Log($"Delete track: {track?.GetType().Name}");
+            // TODO: Implement delete track functionality through command system
+        }
+        
+        private void ToggleMute()
+        {
+            Debug.Log($"Toggle mute for track: {track?.GetType().Name}");
+            if (muteToggle != null)
+            {
+                muteToggle.isOn = !muteToggle.isOn;
+            }
+        }
+        
+        private void SoloTrack()
+        {
+            Debug.Log($"Solo track: {track?.GetType().Name}");
+            // TODO: Implement solo functionality
+        }
+        
+        private void ShowTrackSettings()
+        {
+            Debug.Log($"Show track settings: {track?.GetType().Name}");
+            // TODO: Show track settings panel
+        }
+        
+        #if UNITY_EDITOR
+        private void LogDebugInfo()
+        {
+            Debug.Log($"Track Debug Info - Type: {track?.GetType().Name}, ID: {track?.Id}, Enabled: {track?.Enabled}, Clips: {track?.GetClips()?.Count() ?? 0}");
+        }
+        #endif
+
         #endregion
     }
 }

@@ -26,7 +26,7 @@ namespace MiniTimeline.UI
         [SerializeField] private Button redoButton;
         [SerializeField] private Slider timeSlider;
         [SerializeField] private Text timeText;
-        [SerializeField] private TimelineContextMenu contextMenu;
+        private TimelineContextMenu contextMenu;
 
         [Header("Editor Settings")]
         [SerializeField] private float pixelsPerSecond = 100f;
@@ -39,6 +39,7 @@ namespace MiniTimeline.UI
         [SerializeField] private GameObject trackUIPrefab;
         [SerializeField] private GameObject clipUIPrefab;
         [SerializeField] private GameObject rulerMarkerPrefab;
+        [SerializeField] private GameObject contextMenuPrefab;
 
         [Header("Debug")]
         [SerializeField] bool isDebug;
@@ -50,9 +51,7 @@ namespace MiniTimeline.UI
         // UI State
         private float currentZoom = 1f;
         private float timelineWidth;
-        private bool isDragging = false;
         private bool isPlayheadDragging = false;
-        private Vector2 lastTouchPosition;
 
         // Selection and editing
         private List<ClipUI> selectedClips = new List<ClipUI>();
@@ -78,6 +77,7 @@ namespace MiniTimeline.UI
         public IReadOnlyList<ClipUI> SelectedClips => selectedClips;
         public bool EnableFrameSnap => enableFrameSnap;
         public GameObject ClipUIPrefab => clipUIPrefab;
+        public GameObject ContextMenuPrefab => contextMenuPrefab;
 
         #endregion
 
@@ -227,6 +227,13 @@ namespace MiniTimeline.UI
 
             // Initialize button states
             UpdateUndoRedoButtonStates();
+
+            // Initialize context menu as prefab
+            if (contextMenu == null && contextMenuPrefab != null)
+            {
+                var contextMenuGO = Instantiate(contextMenuPrefab, editorCanvas.transform);
+                contextMenu = contextMenuGO.GetComponent<TimelineContextMenu>();
+            }
 
             contextMenu?.Initialize(this);
             // Listen to context menu open/close to disable/enable timeline interaction
@@ -450,7 +457,6 @@ namespace MiniTimeline.UI
         public float PositionToTimePublic(float xPosition) => PositionToTime(xPosition);
         public float TimeToPositionPublic(float time) => TimeToPosition(time);
         public float SnapTimePublic(float time) => SnapTime(time);
-        public void ShowClipContextMenuPublic(ClipUI clipUI, Vector2 screenPos) => ShowClipContextMenu(clipUI, screenPos);
         
         /// <summary>
         /// Check if a local position hits the ruler area
@@ -558,21 +564,6 @@ namespace MiniTimeline.UI
             time = Mathf.Clamp(time, 0f, director.Length);
 
             director.Seek(time);
-        }
-
-        private void ShowClipContextMenu(ClipUI clipUI, Vector2 screenPos)
-        {
-            // Notify listeners
-            OnClipContextMenu?.Invoke(clipUI);
-
-            Debug.Log($"Showing context menu for clip: {clipUI.Clip.Id}");
-
-            // Show the context menu for this clip at the given screen position
-            if (contextMenu != null && clipUI != null)
-            {
-                DisableTimelineInteraction();
-                contextMenu.ShowClipMenu(clipUI, screenPos);
-            }
         }
 
         private void DisableTimelineInteraction()

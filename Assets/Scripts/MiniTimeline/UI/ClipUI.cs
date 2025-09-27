@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -10,8 +12,9 @@ namespace MiniTimeline.UI
     /// <summary>
     /// UI representation of a timeline clip
     /// Handles visual display, selection, and drag operations
+    /// Implements dynamic context menu registration
     /// </summary>
-    public class ClipUI : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
+    public class ClipUI : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IContextMenuRegisterable
     {
         [Header("Visual Settings")]
         [SerializeField] private Image clipBackground;
@@ -55,6 +58,16 @@ namespace MiniTimeline.UI
         // Layout
         private float minClipWidth = 10f;
         
+        // Long press detection
+        [Header("Long Press Settings")]
+        [SerializeField] private float longPressDuration = 0.8f; // Time to trigger long press in seconds
+        
+        private bool isLongPressing = false;
+        private bool longPressTriggered = false;
+        private Coroutine longPressCoroutine = null;
+        private Vector2 longPressStartPosition;
+        private float longPressMoveThreshold = 20f; // Pixels
+        
         #region Enums
         
         public enum ResizeHandle
@@ -73,6 +86,7 @@ namespace MiniTimeline.UI
         public event Action<ClipUI, Vector2> OnClipDragged;
         public event Action<ClipUI, float, float> OnClipResized;
         public event Action<ClipUI> OnClipDoubleClicked;
+        public event Action<ClipUI, Vector2> OnClipLongPressed; // Screen position where long press occurred
         
         // Input blocking events
         public event Action<ClipUI> OnStartInteraction;  // When clip starts being interacted with (drag/resize)
@@ -86,6 +100,7 @@ namespace MiniTimeline.UI
         public TrackUI ParentTrack => parentTrack;
         public bool IsSelected => isSelected;
         public bool IsDragging => isDragging;
+        public bool IsLongPressing => isLongPressing;
         public RectTransform RectTransform => rectTransform;
         
         #endregion
@@ -107,6 +122,15 @@ namespace MiniTimeline.UI
             }
         }
         
+        private void OnDestroy()
+        {
+            // Clean up long press coroutine
+            StopLongPressDetection();
+            
+            // Unregister from context menu
+            UnregisterContextMenuItems();
+        }
+        
         #endregion
         
         #region Initialization
@@ -120,6 +144,9 @@ namespace MiniTimeline.UI
             // Update visual appearance
             UpdateClipAppearance();
             UpdateLayout();
+            
+            // Register for context menu
+            RegisterContextMenuItems();
             
         }
         
@@ -589,14 +616,120 @@ namespace MiniTimeline.UI
         
         #endregion
         
+        #region Long Press Detection
+        
+        /// <summary>
+        /// Start long press detection
+        /// </summary>
+        private void StartLongPressDetection(Vector2 screenPosition)
+        {
+            if (longPressCoroutine != null)
+            {
+                StopCoroutine(longPressCoroutine);
+            }
+            
+            isLongPressing = true;
+            longPressTriggered = false;
+            longPressStartPosition = screenPosition;
+            longPressCoroutine = StartCoroutine(LongPressCoroutine(screenPosition));
+        }
+        
+        /// <summary>
+        /// Stop long press detection
+        /// </summary>
+        private void StopLongPressDetection()
+        {
+            if (longPressCoroutine != null)
+            {
+                StopCoroutine(longPressCoroutine);
+                longPressCoroutine = null;
+            }
+            
+            isLongPressing = false;
+        }
+        
+        /// <summary>
+        /// Check if current pointer position is still within long press threshold
+        /// </summary>
+        private bool IsWithinLongPressThreshold(Vector2 currentScreenPosition)
+        {
+            float distance = Vector2.Distance(longPressStartPosition, currentScreenPosition);
+            return distance <= longPressMoveThreshold;
+        }
+        
+        /// <summary>
+        /// Coroutine that handles long press timing
+        /// </summary>
+        private IEnumerator LongPressCoroutine(Vector2 screenPosition)
+        {
+            float elapsedTime = 0f;
+            
+            while (elapsedTime < longPressDuration)
+            {
+                yield return null;
+                elapsedTime += Time.deltaTime;
+                
+                // Check if we're still pressing and within threshold
+                if (!isLongPressing)
+                {
+                    yield break;
+                }
+            }
+            
+            // Long press completed
+            if (isLongPressing && !longPressTriggered)
+            {
+                longPressTriggered = true;
+                HandleLongPress(screenPosition);
+            }
+        }
+        
+        /// <summary>
+        /// Handle long press event
+        /// </summary>
+        private void HandleLongPress(Vector2 screenPosition)
+        {
+            Debug.Log($"Long press detected on clip: {clip?.Id}");
+            
+            // Trigger the long press event
+            OnClipLongPressed?.Invoke(this, screenPosition);
+            
+            // Show context menu directly using dynamic registration
+            ShowClipContextMenu(screenPosition, true);
+        }
+        
+        #endregion
+        
+        #region Public Context Menu Interface
+        
+        /// <summary>
+        /// Public method to show context menu for this clip
+        /// Can be called by external systems when needed
+        /// </summary>
+        /// <param name="screenPosition">Screen position for the menu</param>
+        /// <param name="fromLongPress">Whether this was triggered by a long press</param>
+        public void ShowContextMenu(Vector2 screenPosition, bool fromLongPress = false)
+        {
+            ShowClipContextMenu(screenPosition, fromLongPress);
+        }
+        
+        #endregion
+        
         #region UI Event System Handlers
         
         public void OnPointerClick(PointerEventData eventData)
         {
             if (eventData.button == PointerEventData.InputButton.Left)
             {
-                // Handle left click - selection
-                HandleClipClick();
+                // Don't handle click if long press was triggered
+                if (!longPressTriggered)
+                {
+                    // Handle left click - selection
+                    HandleClipClick();
+                }
+                
+                // Reset long press triggered flag
+                longPressTriggered = false;
             }
             else if (eventData.button == PointerEventData.InputButton.Right)
             {
@@ -609,6 +742,9 @@ namespace MiniTimeline.UI
         {
             if (eventData.button == PointerEventData.InputButton.Left)
             {
+                // Start long press detection
+                StartLongPressDetection(eventData.position);
+                
                 // Check if we're clicking on a resize handle
                 Vector2 localPos;
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(
@@ -617,6 +753,8 @@ namespace MiniTimeline.UI
                 var resizeHandle = GetResizeHandleAtPosition(localPos);
                 if (resizeHandle != ResizeHandle.None && isSelected)
                 {
+                    // Stop long press detection for resize handles
+                    StopLongPressDetection();
                     // Don't start drag if we're on a resize handle
                     return;
                 }
@@ -625,12 +763,24 @@ namespace MiniTimeline.UI
         
         public void OnPointerUp(PointerEventData eventData)
         {
-            // Handle pointer up if needed
+            // If long press was triggered, add a delay to prevent immediate backdrop clicks
+            if (longPressTriggered)
+            {
+                // Don't allow this pointer up event to propagate immediately
+                eventData.pointerPress = null;
+                eventData.rawPointerPress = null;
+            }
+            
+            // Stop long press detection when pointer is released
+            StopLongPressDetection();
         }
         
         public void OnBeginDrag(PointerEventData eventData)
         {
             if (eventData.button != PointerEventData.InputButton.Left) return;
+            
+            // Stop long press detection when drag begins
+            StopLongPressDetection();
             
             // Check if we're on a resize handle first using local position
             Vector2 localPosClip;
@@ -659,6 +809,12 @@ namespace MiniTimeline.UI
         public void OnDrag(PointerEventData eventData)
         {
             if (eventData.button != PointerEventData.InputButton.Left) return;
+            
+            // Check if we should cancel long press due to movement
+            if (isLongPressing && !IsWithinLongPressThreshold(eventData.position))
+            {
+                StopLongPressDetection();
+            }
             
             Vector2 localPos;
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
@@ -704,14 +860,68 @@ namespace MiniTimeline.UI
             }
         }
         
+        /// <summary>
+        /// Handle right click - context menu
+        /// </summary>
         private void HandleClipRightClick(PointerEventData eventData)
         {
-            // Show context menu
-            // You can access the timeline editor through parentTrack
+            // Show context menu directly
+            ShowClipContextMenu(eventData.position, false);
+        }
+        
+        /// <summary>
+        /// Show context menu for this clip at the specified screen position
+        /// </summary>
+        /// <param name="screenPosition">Screen position for the menu</param>
+        /// <param name="fromLongPress">Whether this was triggered by a long press</param>
+        private void ShowClipContextMenu(Vector2 screenPosition, bool fromLongPress = false)
+        {
+            Debug.Log($"Showing context menu for clip: {clip?.Id} (long press: {fromLongPress})");
+            
+            // Use the dynamic context menu system
+            if (TimelineContextMenu.HasInstance)
+            {
+                // Disable timeline interaction through parent track if possible
+                DisableTimelineInteraction();
+                
+                // Show dynamic menu with this clip as the target
+                TimelineContextMenu.Instance.ShowDynamicMenu(screenPosition, this, "clip");
+                
+                // Subscribe to menu closed event to re-enable interaction
+                TimelineContextMenu.Instance.OnMenuClosed -= EnableTimelineInteraction;
+                TimelineContextMenu.Instance.OnMenuClosed += EnableTimelineInteraction;
+            }
+            else
+            {
+                Debug.LogWarning("TimelineContextMenu instance not available");
+            }
+        }
+        
+        /// <summary>
+        /// Disable timeline interaction while context menu is open
+        /// </summary>
+        private void DisableTimelineInteraction()
+        {
+            // Try to disable through parent track's timeline editor if available
             if (parentTrack?.TimelineEditor != null)
             {
-                parentTrack.TimelineEditor.ShowClipContextMenuPublic(this, eventData.position);
+                // We can't directly access private methods, so we'll rely on the context menu system
+                // The timeline editor should handle this through event subscription
             }
+        }
+        
+        /// <summary>
+        /// Re-enable timeline interaction when context menu closes
+        /// </summary>
+        private void EnableTimelineInteraction()
+        {
+            // Unsubscribe from the event to avoid memory leaks
+            if (TimelineContextMenu.HasInstance)
+            {
+                TimelineContextMenu.Instance.OnMenuClosed -= EnableTimelineInteraction;
+            }
+            
+            // The timeline editor should handle re-enabling interaction through its own event system
         }
         
         private void HandleDragStart(Vector2 localPos)
@@ -870,6 +1080,122 @@ namespace MiniTimeline.UI
             activeResizeHandle = ResizeHandle.None;
         }
         
+        #endregion
+        
+        #region IContextMenuRegisterable Implementation
+        
+        public string ComponentId => $"ClipUI_{clip?.Id ?? GetInstanceID().ToString()}";
+        
+        public IEnumerable<ContextMenuItem> GetContextMenuItems(MenuContext menuContext)
+        {
+            // Only provide items if this is a clip context menu for this specific clip
+            if (menuContext.MenuType != "clip" || menuContext.GetTarget<ClipUI>() != this)
+                yield break;
+
+            // Edit operations
+            yield return new ContextMenuItem("Cut", () => CutClip(), MenuCategory.Edit, MenuPriority.Cut, "✂️")
+                .WithTooltip("Cut this clip to clipboard");
+                
+            yield return new ContextMenuItem("Copy", () => CopyClip(), MenuCategory.Edit, MenuPriority.Copy, "📋")
+                .WithTooltip("Copy this clip to clipboard");
+                
+            yield return new ContextMenuItem("Delete", () => DeleteClip(), MenuCategory.Edit, MenuPriority.Delete, "🗑️")
+                .WithTooltip("Delete this clip")
+                .WithTextColor(Color.red);
+                
+            yield return new ContextMenuItem("Duplicate", () => DuplicateClip(), MenuCategory.Edit, MenuPriority.Duplicate, "📄")
+                .WithTooltip("Create a copy of this clip");
+
+            // Transform operations
+            yield return new ContextMenuItem("Split at Playhead", () => SplitClipAtPlayhead(), MenuCategory.Transform, MenuPriority.Normal, "🔪")
+                .WithVisibility(() => CanSplitAtPlayhead())
+                .WithTooltip("Split this clip at the current playhead position");
+
+            // Properties
+            yield return new ContextMenuItem("Properties", () => ShowProperties(), MenuCategory.Properties, MenuPriority.Properties, "⚙️")
+                .WithTooltip("Show clip properties and settings");
+
+            // Debug operations (only in development)
+            #if UNITY_EDITOR
+            yield return new ContextMenuItem("Debug Info", () => LogDebugInfo(), MenuCategory.Debug, MenuPriority.Normal, "🐛")
+                .WithTooltip("Log debug information about this clip");
+            #endif
+        }
+        
+        public void RegisterContextMenuItems()
+        {
+            TimelineContextMenu.RegisterMenuProvider(this);
+        }
+        
+        public void UnregisterContextMenuItems()
+        {
+            TimelineContextMenu.UnregisterMenuProvider(this);
+        }
+        
+        public bool CanProvideMenuItems(MenuContext menuContext)
+        {
+            return menuContext.MenuType == "clip" && menuContext.GetTarget<ClipUI>() == this;
+        }
+
+        #endregion
+        
+        #region Context Menu Actions
+        
+        private void CutClip()
+        {
+            Debug.Log($"Cut clip: {clip.Id}");
+            // TODO: Implement cut functionality
+            // Could integrate with TimelineEditorUI clipboard system
+        }
+        
+        private void CopyClip()
+        {
+            Debug.Log($"Copy clip: {clip.Id}");
+            // TODO: Implement copy functionality
+        }
+        
+        private void DeleteClip()
+        {
+            Debug.Log($"Delete clip: {clip.Id}");
+            var timelineEditor = parentTrack?.TimelineEditor;
+            if (timelineEditor != null)
+            {
+                var command = new DeleteClipCommand(parentTrack.Track, clip, parentTrack);
+                timelineEditor.ExecuteCommand(command);
+            }
+        }
+        
+        private void DuplicateClip()
+        {
+            Debug.Log($"Duplicate clip: {clip.Id}");
+            // TODO: Implement duplicate functionality
+        }
+        
+        private void SplitClipAtPlayhead()
+        {
+            Debug.Log($"Split clip at playhead: {clip.Id}");
+            // TODO: Implement split functionality
+        }
+        
+        private bool CanSplitAtPlayhead()
+        {
+            // TODO: Check if playhead is within clip bounds
+            return true;
+        }
+        
+        private void ShowProperties()
+        {
+            Debug.Log($"Show properties for clip: {clip.Id}");
+            // TODO: Show clip properties panel
+        }
+        
+        #if UNITY_EDITOR
+        private void LogDebugInfo()
+        {
+            Debug.Log($"Clip Debug Info - ID: {clip.Id}, Start: {clip.Start}, Duration: {clip.Duration}, Selected: {isSelected}");
+        }
+        #endif
+
         #endregion
     }
 }
