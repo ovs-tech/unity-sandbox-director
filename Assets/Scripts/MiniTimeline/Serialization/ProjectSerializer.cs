@@ -474,11 +474,11 @@ namespace MiniTimeline.Serialization
             morphTrack.clips.Add(morphClip);
             project.tracks.Add(morphTrack);
 
-            // Add event track
-            var eventTrack = new TrackData
+            // Add signal track
+            var signalTrack = new TrackData
             {
-                id = "event_track_1",
-                type = MiniTimelineConstants.TRACK_EVENT,
+                id = "signal_track_1",
+                type = MiniTimelineConstants.TRACK_SIGNAL,
                 bindKey = "",
                 enabled = true,
                 order = 0
@@ -498,8 +498,8 @@ namespace MiniTimeline.Serialization
                     { "fireOnScrub", false }
                 }
             };
-            eventTrack.clips.Add(eventClip);
-            project.tracks.Add(eventTrack);
+            signalTrack.clips.Add(eventClip);
+            project.tracks.Add(signalTrack);
 
             // Add animator track
             var animatorTrack = new TrackData

@@ -111,7 +111,7 @@ namespace MiniTimeline.UI.Commands
                 "PoseIKTrack" => "IK Pose",
                 "AudioTrack" => "Audio",
                 "FxLightTrack" => "FX Light",
-                "EventTrack" => "Events",
+                "SignalTrack" => "Events",
                 _ => trackType.Replace("Track", "")
             };
 

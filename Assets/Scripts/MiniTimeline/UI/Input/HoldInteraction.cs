@@ -29,7 +29,7 @@ namespace MiniTimeline.UI.Input
         
         public bool IsActive => _isActive;
         public bool IsHolding => _isHolding;
-        public int Priority => 2; // Higher priority than tap
+        public int Priority => 3; // Highest priority - hold should not be interrupted
         
         public void OnInteractionStart(Vector2 screenPosition)
         {
@@ -37,6 +37,11 @@ namespace MiniTimeline.UI.Input
             _isHolding = false;
             _startPosition = screenPosition;
             _startTime = Time.unscaledTime;
+            
+            if (InputInteractionManager.DebugMode)
+            {
+                Debug.Log($"[HoldInteraction] Started at {screenPosition}, threshold: {_holdThreshold}s, maxDistance: {_maxStartDistance}px");
+            }
         }
         
         public void OnInteractionUpdate(Vector2 screenPosition, float deltaTime)
@@ -44,19 +49,32 @@ namespace MiniTimeline.UI.Input
             if (!_isActive) return;
             
             float elapsed = Time.unscaledTime - _startTime;
+            float distance = Vector2.Distance(_startPosition, screenPosition);
+            
+            if (InputInteractionManager.DebugMode)
+            {
+                Debug.Log($"[HoldInteraction] Update - Elapsed: {elapsed:F2}s, Distance: {distance:F1}px, IsHolding: {_isHolding}");
+            }
             
             // Check if we should start holding
             if (!_isHolding && elapsed >= _holdThreshold)
             {
-                float distance = Vector2.Distance(_startPosition, screenPosition);
                 if (distance <= _maxStartDistance)
                 {
                     _isHolding = true;
+                    if (InputInteractionManager.DebugMode)
+                    {
+                        Debug.Log($"[HoldInteraction] HOLD STARTED! Elapsed: {elapsed:F2}s, Distance: {distance:F1}px");
+                    }
                     OnHoldStart?.Invoke(_startPosition);
                 }
                 else
                 {
                     // Moved too far during hold threshold, cancel
+                    if (InputInteractionManager.DebugMode)
+                    {
+                        Debug.Log($"[HoldInteraction] CANCELLED - Moved too far! Distance: {distance:F1}px > {_maxStartDistance}px");
+                    }
                     OnInteractionCancel();
                     return;
                 }
@@ -75,6 +93,11 @@ namespace MiniTimeline.UI.Input
             
             float elapsed = Time.unscaledTime - _startTime;
             
+            if (InputInteractionManager.DebugMode)
+            {
+                Debug.Log($"[HoldInteraction] Ended after {elapsed:F2}s, was holding: {_isHolding}");
+            }
+            
             if (_isHolding)
             {
                 OnHoldEnd?.Invoke(screenPosition, elapsed);
@@ -86,6 +109,11 @@ namespace MiniTimeline.UI.Input
         
         public void OnInteractionCancel()
         {
+            if (InputInteractionManager.DebugMode && _isActive)
+            {
+                Debug.Log($"[HoldInteraction] Cancelled - was active: {_isActive}, was holding: {_isHolding}");
+            }
+            
             _isActive = false;
             _isHolding = false;
         }

@@ -151,7 +151,7 @@ namespace MiniTimeline.Core
         public const string TRACK_IK = "PoseIKTrack";
         public const string TRACK_AUDIO = "AudioTrack";
         public const string TRACK_LIGHT_FX = "FxLightTrack";
-        public const string TRACK_EVENT = "EventTrack";
+    public const string TRACK_SIGNAL = "SignalTrack";
         
         // Asset reference prefixes
         public const string ASSET_ADDRESSABLE = "addr:";

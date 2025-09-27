@@ -66,7 +66,6 @@ namespace MiniTimeline.UI.Commands
 
         private void SetClipTiming(float start, float duration)
         {
-            Debug.Log($"SetClipTiming - Setting clip {clip.Id} timing: start={start}, duration={duration}");
 
             // Use reflection to set the start time and duration properties
             var clipType = clip.GetType();
@@ -75,7 +74,6 @@ namespace MiniTimeline.UI.Commands
             var startProperty = clipType.GetProperty("Start");
             if (startProperty != null && startProperty.CanWrite)
             {
-                Debug.Log($"SetClipTiming - Using Start property setter for {clip.Id}");
                 startProperty.SetValue(clip, start);
             }
             else
@@ -86,12 +84,10 @@ namespace MiniTimeline.UI.Commands
                 
                 if (startField != null)
                 {
-                    Debug.Log($"SetClipTiming - Using start field setter for {clip.Id}");
                     startField.SetValue(clip, start);
                 }
                 else
                 {
-                    Debug.LogError($"SetClipTiming - Cannot find way to set start time for clip {clip.Id} of type {clipType}");
                 }
             }
             
@@ -99,7 +95,6 @@ namespace MiniTimeline.UI.Commands
             var durationProperty = clipType.GetProperty("Duration");
             if (durationProperty != null && durationProperty.CanWrite)
             {
-                Debug.Log($"SetClipTiming - Using Duration property setter for {clip.Id}");
                 durationProperty.SetValue(clip, duration);
             }
             else
@@ -109,16 +104,13 @@ namespace MiniTimeline.UI.Commands
                 
                 if (durationField != null)
                 {
-                    Debug.Log($"SetClipTiming - Using duration field setter for {clip.Id}");
                     durationField.SetValue(clip, duration);
                 }
                 else
                 {
-                    Debug.LogError($"SetClipTiming - Cannot find way to set duration for clip {clip.Id} of type {clipType}");
                 }
             }
             
-            Debug.Log($"SetClipTiming - Completed setting clip {clip.Id} timing: start={start}, duration={duration}");
         }
     }
 

@@ -334,7 +334,7 @@ namespace MiniTimeline.UI
                 "PoseIKTrack" => "IK Pose",
                 "AudioTrack" => "Audio",
                 "FxLightTrack" => "FX Light",
-                "EventTrack" => "Events",
+                "SignalTrack" => "Events",
                 _ => typeName.Replace("Track", "")
             };
         }
@@ -392,6 +392,10 @@ namespace MiniTimeline.UI
                 clipUIs.Add(clipUI);
                 clipUILookup[clip.Id] = clipUI;
                 
+                // Subscribe to clip interaction events
+                clipUI.OnStartInteraction += OnClipStartInteraction;
+                clipUI.OnEndInteraction += OnClipEndInteraction;
+                
                 // Verify clip was positioned
                 var rect = clipUI.GetComponent<RectTransform>();
                 Debug.Log($"TrackUI: Clip {clip.Id} positioned at {rect.anchoredPosition} with size {rect.sizeDelta}");
@@ -414,6 +418,10 @@ namespace MiniTimeline.UI
             clipUIs.Add(clipUI);
             clipUILookup[clip.Id] = clipUI;
             
+            // Subscribe to clip interaction events
+            clipUI.OnStartInteraction += OnClipStartInteraction;
+            clipUI.OnEndInteraction += OnClipEndInteraction;
+            
             // Verify clip was positioned
             var rect = clipUI.GetComponent<RectTransform>();
             Debug.Log($"TrackUI: Simple clip {clip.Id} positioned at {rect.anchoredPosition} with size {rect.sizeDelta}");
@@ -423,8 +431,15 @@ namespace MiniTimeline.UI
         {
             foreach (var clipUI in clipUIs)
             {
-                if (clipUI != null && clipUI.gameObject != null)
-                    DestroyImmediate(clipUI.gameObject);
+                if (clipUI != null)
+                {
+                    // Unsubscribe from events before destroying
+                    clipUI.OnStartInteraction -= OnClipStartInteraction;
+                    clipUI.OnEndInteraction -= OnClipEndInteraction;
+                    
+                    if (clipUI.gameObject != null)
+                        DestroyImmediate(clipUI.gameObject);
+                }
             }
             
             clipUIs.Clear();
@@ -483,6 +498,22 @@ namespace MiniTimeline.UI
         {
             // TODO: Show track options menu
             Debug.Log($"Track options clicked for {track?.GetType().Name}");
+        }
+        
+        #endregion
+        
+        #region Clip Interaction Event Handlers
+        
+        private void OnClipStartInteraction(ClipUI clipUI)
+        {
+            // Forward the event to TimelineEditorUI
+            timelineEditor?.OnClipStartInteraction(clipUI);
+        }
+        
+        private void OnClipEndInteraction(ClipUI clipUI)
+        {
+            // Forward the event to TimelineEditorUI
+            timelineEditor?.OnClipEndInteraction(clipUI);
         }
         
         #endregion

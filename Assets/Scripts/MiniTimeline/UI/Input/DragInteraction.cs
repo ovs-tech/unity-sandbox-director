@@ -28,7 +28,7 @@ namespace MiniTimeline.UI.Input
         
         public bool IsActive => _isActive;
         public bool IsDragging => _isDragging;
-        public int Priority => 3; // Higher priority than tap and hold
+        public int Priority => 2; // Medium priority, can be interrupted by hold
         
         public void OnInteractionStart(Vector2 screenPosition)
         {

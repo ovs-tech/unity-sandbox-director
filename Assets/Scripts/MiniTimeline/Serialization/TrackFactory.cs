@@ -29,7 +29,7 @@ namespace MiniTimeline.Serialization
             RegisterTrackType(MiniTimelineConstants.TRACK_MORPH, CreateMorphTrack);
             RegisterTrackType(MiniTimelineConstants.TRACK_MOVEMENT, CreateMovementTrack);
             RegisterTrackType(MiniTimelineConstants.TRACK_ANIMATOR, CreateAnimatorTrack);
-            RegisterTrackType(MiniTimelineConstants.TRACK_EVENT, CreateEventTrack);
+            RegisterTrackType(MiniTimelineConstants.TRACK_SIGNAL, CreateSignalTrack);
             // Add more track types as they are implemented
         }
         
@@ -142,9 +142,9 @@ namespace MiniTimeline.Serialization
             return track;
         }
         
-        private static IMiniTrack CreateEventTrack(TrackData data)
+    private static IMiniTrack CreateSignalTrack(TrackData data)
         {
-            var track = new EventTrack
+            var track = new SignalTrack
             {
                 Id = data.id,
                 BindKey = data.bindKey,

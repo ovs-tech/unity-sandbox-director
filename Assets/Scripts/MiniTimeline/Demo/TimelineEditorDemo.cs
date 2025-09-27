@@ -421,7 +421,7 @@ namespace MiniTimeline.Demo
             var track = new TrackData
             {
                 id = "camera_track_01",
-                type = MiniTimelineConstants.TRACK_EVENT,
+                type = MiniTimelineConstants.TRACK_SIGNAL,
                 bindKey = "main_camera",
                 enabled = true,
                 order = 3

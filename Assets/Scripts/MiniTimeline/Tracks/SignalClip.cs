@@ -18,7 +18,7 @@ namespace MiniTimeline.Tracks
     /// Triggers events when playhead crosses specific time points
     /// </summary>
     [Serializable]
-    public class SignalClip : MiniTimeline.Core.MiniClipBase
+    public class SignalClip : Core.MiniClipBase
     {
         /// <summary>
         /// Event identifier

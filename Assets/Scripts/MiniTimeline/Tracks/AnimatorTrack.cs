@@ -28,27 +28,22 @@ namespace MiniTimeline.Tracks
 
         protected override void OnPrepare()
         {
-            Debug.Log($"[AnimatorTrack] OnPrepare called for track '{Id}', bind key: {BindKey}");
 
             if (targetObject is Animator animator)
             {
                 targetAnimator = animator;
-                Debug.Log($"[AnimatorTrack] Target is Animator: {animator.name}");
             }
             else if (targetObject is GameObject go)
             {
                 targetAnimator = go.GetComponent<Animator>();
-                Debug.Log($"[AnimatorTrack] Target is GameObject: {go.name}, Animator found: {targetAnimator != null}");
             }
             else
             {
-                Debug.LogError($"[AnimatorTrack] Target object for track '{Id}' is not an Animator or GameObject with Animator");
                 return;
             }
 
             if (targetAnimator == null)
             {
-                Debug.LogError($"[AnimatorTrack] No Animator found for track '{Id}'");
                 return;
             }
         }
@@ -57,11 +52,9 @@ namespace MiniTimeline.Tracks
         {
             if (targetAnimator == null)
             {
-                Debug.LogWarning($"[AnimatorTrack] targetAnimator is null for track '{Id}', attempting to re-prepare");
                 OnPrepare();
                 if (targetAnimator == null)
                 {
-                    Debug.LogError($"[AnimatorTrack] Failed to re-prepare targetAnimator for track '{Id}'");
                     return;
                 }
             }
@@ -93,7 +86,6 @@ namespace MiniTimeline.Tracks
 
         public override void OnProjectClosed()
         {
-            Debug.Log($"[AnimatorTrack] OnProjectClosed called for track '{Id}'");
             targetAnimator = null;
             lastParameterValues.Clear();
             base.OnProjectClosed();
@@ -164,7 +156,6 @@ namespace MiniTimeline.Tracks
 
                 if (!HasParameter(animator, paramName))
                 {
-                    Debug.LogWarning($"AnimatorTrack '{Id}': Parameter '{paramName}' not found in Animator");
                     continue;
                 }
 
@@ -204,9 +195,8 @@ namespace MiniTimeline.Tracks
                         break;
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Debug.LogError($"AnimatorTrack '{Id}': Error setting parameter '{paramName}': {e.Message}");
             }
         }
 
@@ -290,7 +280,6 @@ namespace MiniTimeline.Tracks
         /// </summary>
         public void ClearCache()
         {
-            Debug.Log($"[AnimatorTrack] ClearCache called for track '{Id}'");
             targetAnimator = null;
             lastParameterValues.Clear();
         }

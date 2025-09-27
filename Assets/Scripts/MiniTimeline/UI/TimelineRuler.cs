@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 namespace MiniTimeline.UI
 {
@@ -8,7 +9,7 @@ namespace MiniTimeline.UI
     /// Timeline ruler showing time markers, playhead, and frame grid
     /// Handles scrubbing and time display
     /// </summary>
-    public class TimelineRuler : MonoBehaviour
+    public class TimelineRuler : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IScrollHandler
     {
         [Header("Visual Settings")]
         [SerializeField] private float rulerHeight = 40f;
@@ -60,6 +61,15 @@ namespace MiniTimeline.UI
             if (rectTransform == null)
             {
                 rectTransform = gameObject.AddComponent<RectTransform>();
+            }
+            
+            // Add Image component for raycast target if not present
+            Image rulerImage = GetComponent<Image>();
+            if (rulerImage == null)
+            {
+                rulerImage = gameObject.AddComponent<Image>();
+                rulerImage.color = Color.clear; // Transparent but still receives raycasts
+                rulerImage.raycastTarget = true;
             }
             
             // Setup ruler canvas for proper layering
@@ -135,10 +145,6 @@ namespace MiniTimeline.UI
             playhead.anchorMax = new Vector2(0f, 1f);
             playhead.pivot = new Vector2(0.5f, 0f);
             playhead.anchoredPosition = Vector2.zero;
-            
-            // Add playhead handle for dragging
-            var handle = playheadGO.AddComponent<PlayheadHandle>();
-            handle.Initialize(this);
         }
         
         public void SetPlayheadPosition(float time)
@@ -364,6 +370,143 @@ namespace MiniTimeline.UI
         
         #endregion
         
+        #region UI Event System
+        
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (eventData.button != PointerEventData.InputButton.Left) return;
+            
+            HandleRulerClick(eventData);
+        }
+        
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            if (eventData.button != PointerEventData.InputButton.Left) return;
+            
+            // Handle pointer down if needed for scrubbing preparation
+        }
+        
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+            if (eventData.button != PointerEventData.InputButton.Left) return;
+            
+            HandleScrubStart(eventData);
+        }
+        
+        public void OnDrag(PointerEventData eventData)
+        {
+            if (eventData.button != PointerEventData.InputButton.Left) return;
+            
+            HandleScrubDrag(eventData);
+        }
+        
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            if (eventData.button != PointerEventData.InputButton.Left) return;
+            
+            HandleScrubEnd(eventData);
+        }
+        
+        public void OnScroll(PointerEventData eventData)
+        {
+            HandleRulerScroll(eventData);
+            
+            // Prevent scroll event from bubbling up to parent ScrollRect
+            eventData.Use();
+        }
+        
+        #endregion
+        
+        #region Event Handlers
+        
+        private void HandleRulerClick(PointerEventData eventData)
+        {
+            // Convert screen position to local ruler position
+            Vector2 localPos;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                rectTransform, eventData.position, eventData.pressEventCamera, out localPos);
+            
+            // Calculate time and scrub to that position
+            float time = GetTimeAtPosition(localPos.x);
+            time = Mathf.Clamp(time, 0f, timelineLength);
+            
+            // Apply frame snapping if enabled
+            time = SnapTimeToFrame(time);
+            
+            // Update playhead position
+            SetPlayheadPosition(time);
+            
+            // Notify timeline editor about scrubbing
+            NotifyTimelineScrub(time);
+        }
+        
+        private bool isScrubbing = false;
+        
+        private void HandleScrubStart(PointerEventData eventData)
+        {
+            isScrubbing = true;
+            
+            // Handle initial scrub position
+            HandleScrubDrag(eventData);
+        }
+        
+        private void HandleScrubDrag(PointerEventData eventData)
+        {
+            if (!isScrubbing) return;
+            
+            // Convert screen position to local ruler position
+            Vector2 localPos;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                rectTransform, eventData.position, eventData.pressEventCamera, out localPos);
+            
+            // Calculate time and scrub
+            float time = GetTimeAtPosition(localPos.x);
+            time = Mathf.Clamp(time, 0f, timelineLength);
+            
+            // Apply frame snapping if enabled
+            time = SnapTimeToFrame(time);
+            
+            // Update playhead position
+            SetPlayheadPosition(time);
+            
+            // Notify timeline editor about scrubbing
+            NotifyTimelineScrub(time);
+        }
+        
+        private void HandleScrubEnd(PointerEventData eventData)
+        {
+            isScrubbing = false;
+        }
+        
+        private void NotifyTimelineScrub(float time)
+        {
+            // Notify timeline editor about time change
+            if (timelineEditor?.Director != null)
+            {
+                timelineEditor.Director.Seek(time);
+            }
+        }
+        
+        private void HandleRulerScroll(PointerEventData eventData)
+        {
+            // Handle zoom with scroll wheel on ruler
+            // Scroll up = zoom in (increase zoom), Scroll down = zoom out (decrease zoom)
+            if (timelineEditor != null)
+            {
+                float scrollDelta = eventData.scrollDelta.y;
+                float zoomDelta = scrollDelta * 0.1f; // Adjust sensitivity as needed
+                
+                // Get current zoom from timeline editor and apply delta
+                float currentZoom = timelineEditor.CurrentZoom;
+                float newZoom = Mathf.Clamp(currentZoom + zoomDelta, 0.1f, 5f); // Use reasonable zoom limits
+                
+                // Apply zoom through timeline editor
+                timelineEditor.SetZoom(newZoom);
+            }
+        }
+        
+        #endregion
+        
         #region Nested Classes
         
         [System.Serializable]
@@ -377,52 +520,5 @@ namespace MiniTimeline.UI
         }
         
         #endregion
-    }
-    
-    /// <summary>
-    /// Handle component for playhead dragging
-    /// </summary>
-    public class PlayheadHandle : MonoBehaviour, UnityEngine.EventSystems.IBeginDragHandler, 
-        UnityEngine.EventSystems.IDragHandler, UnityEngine.EventSystems.IEndDragHandler
-    {
-        private TimelineRuler ruler;
-        private bool isDragging = false;
-        
-        public void Initialize(TimelineRuler timelineRuler)
-        {
-            ruler = timelineRuler;
-        }
-        
-        public void OnBeginDrag(UnityEngine.EventSystems.PointerEventData eventData)
-        {
-            isDragging = true;
-        }
-        
-        public void OnDrag(UnityEngine.EventSystems.PointerEventData eventData)
-        {
-            if (!isDragging || ruler == null) return;
-            
-            // Convert screen position to local ruler position
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                ruler.transform as RectTransform, eventData.position, eventData.pressEventCamera, out Vector2 localPos);
-            
-            // Calculate time and scrub
-            float time = ruler.GetTimeAtPosition(localPos.x);
-            time = Mathf.Clamp(time, 0f, ruler.TimelineLength);
-            
-            // Apply frame snapping if enabled
-            // (This would be controlled by the timeline editor's snap settings)
-            
-            // Update playhead position and scrub timeline
-            ruler.SetPlayheadPosition(time);
-            
-            // Notify timeline editor about scrubbing
-            // TODO: Implement scrubbing notification
-        }
-        
-        public void OnEndDrag(UnityEngine.EventSystems.PointerEventData eventData)
-        {
-            isDragging = false;
-        }
     }
 }

@@ -369,10 +369,10 @@ namespace MiniTimeline.Demo
             Debug.Log("[MiniTimelineDemo] Project loaded successfully");
             
             // Setup event handlers for the event track
-            var eventTrack = director.GetTrack<EventTrack>();
-            if (eventTrack != null)
+            var signalTrack = director.GetTrack<SignalTrack>();
+            if (signalTrack != null)
             {
-                eventTrack.OnTimelineEvent += OnTimelineEvent;
+                signalTrack.OnTimelineEvent += OnTimelineEvent;
             }
             
             // Log track information
@@ -410,10 +410,10 @@ namespace MiniTimeline.Demo
                 director.OnTimeChanged -= OnTimeChanged;
                 director.OnProjectLoaded -= OnProjectLoaded;
                 
-                var eventTrack = director.GetTrack<EventTrack>();
-                if (eventTrack != null)
+                var signalTrack = director.GetTrack<SignalTrack>();
+                if (signalTrack != null)
                 {
-                    eventTrack.OnTimelineEvent -= OnTimelineEvent;
+                    signalTrack.OnTimelineEvent -= OnTimelineEvent;
                 }
             }
         }

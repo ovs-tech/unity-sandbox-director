@@ -64,7 +64,6 @@ namespace MiniTimeline.UI.Commands
 
         private void SetClipStartTime(float time)
         {
-            Debug.Log($"SetClipStartTime - Setting clip {clip.Id} start time to {time}");
 
             // Try to cast to a mutable clip interface or use reflection to set the start time
             // Check if clip has a settable Start property
@@ -73,7 +72,6 @@ namespace MiniTimeline.UI.Commands
 
             if (startProperty != null && startProperty.CanWrite)
             {
-                Debug.Log($"SetClipStartTime - Using property setter for {clip.Id}");
                 startProperty.SetValue(clip, time);
             }
             else
@@ -82,12 +80,7 @@ namespace MiniTimeline.UI.Commands
                 var startField = clipType.GetField("startTime", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public);
                 if (startField != null)
                 {
-                    Debug.Log($"SetClipStartTime - Using field setter for {clip.Id}");
                     startField.SetValue(clip, time);
-                }
-                else
-                {
-                    Debug.LogError($"SetClipStartTime - Cannot find way to set start time for clip {clip.Id} of type {clipType}");
                 }
             }
         }

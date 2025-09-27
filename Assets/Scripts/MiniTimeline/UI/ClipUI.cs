@@ -1,7 +1,9 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using MiniTimeline.Core;
+using MiniTimeline.UI.Commands;
 
 namespace MiniTimeline.UI
 {
@@ -9,7 +11,7 @@ namespace MiniTimeline.UI
     /// UI representation of a timeline clip
     /// Handles visual display, selection, and drag operations
     /// </summary>
-    public class ClipUI : MonoBehaviour
+    public class ClipUI : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         [Header("Visual Settings")]
         [SerializeField] private Image clipBackground;
@@ -43,6 +45,12 @@ namespace MiniTimeline.UI
         private float dragStartTime;
         private float dragStartDuration;
         private Vector2 initialClipPosition;
+        private float clipDragOffset;
+        
+        // Resize data
+        private float resizeDragStartTime;
+        private float resizeDragStartDuration;
+        private float resizeStartMouseX;
         
         // Layout
         private float minClipWidth = 10f;
@@ -65,6 +73,10 @@ namespace MiniTimeline.UI
         public event Action<ClipUI, Vector2> OnClipDragged;
         public event Action<ClipUI, float, float> OnClipResized;
         public event Action<ClipUI> OnClipDoubleClicked;
+        
+        // Input blocking events
+        public event Action<ClipUI> OnStartInteraction;  // When clip starts being interacted with (drag/resize)
+        public event Action<ClipUI> OnEndInteraction;    // When clip interaction ends
         
         #endregion
         
@@ -101,7 +113,6 @@ namespace MiniTimeline.UI
         
         public void Initialize(TrackUI track, IMiniClip clipData)
         {
-            Debug.Log($"ClipUI: Initialize called for clip {clipData.Id} (Start: {clipData.Start}, Duration: {clipData.Duration})");
             
             parentTrack = track;
             clip = clipData;
@@ -110,7 +121,6 @@ namespace MiniTimeline.UI
             UpdateClipAppearance();
             UpdateLayout();
             
-            Debug.Log($"ClipUI: Initialized clip {clipData.Id}, final position: {rectTransform.anchoredPosition}, size: {rectTransform.sizeDelta}");
         }
         
         private void SetupClipStructure()
@@ -384,8 +394,22 @@ namespace MiniTimeline.UI
         /// </summary>
         public void SetResizeVisualState(bool isResizing, ResizeHandle handle)
         {
+            bool wasInteracting = this.isResizing || this.isDragging;
+            
             this.isResizing = isResizing;
             this.activeResizeHandle = handle;
+            
+            bool isInteracting = this.isResizing || this.isDragging;
+            
+            // Trigger events when interaction state changes
+            if (!wasInteracting && isInteracting)
+            {
+                OnStartInteraction?.Invoke(this);
+            }
+            else if (wasInteracting && !isInteracting)
+            {
+                OnEndInteraction?.Invoke(this);
+            }
         }
         
         /// <summary>
@@ -395,14 +419,12 @@ namespace MiniTimeline.UI
         {
             if (!isSelected) 
             {
-                Debug.Log($"GetResizeHandleAtPosition - Clip {clip?.Id} not selected, returning None");
                 return ResizeHandle.None;
             }
             
             // Get the clip's local rect for bounds checking
             Rect clipRect = rectTransform.rect;
             
-            Debug.Log($"GetResizeHandleAtPosition - Clip {clip?.Id}, localPos: {localPosition}, clipRect: {clipRect}");
             
             // Check left resize handle - positioned with center at left edge + 6 pixels inside
             if (resizeHandleLeft != null && resizeHandleLeft.gameObject.activeInHierarchy)
@@ -415,11 +437,8 @@ namespace MiniTimeline.UI
                                                handleWidth, 
                                                clipRect.height);
                 
-                Debug.Log($"GetResizeHandleAtPosition - Left handle rect: {leftHandleRect}, contains: {leftHandleRect.Contains(localPosition)}");
-                
                 if (leftHandleRect.Contains(localPosition))
                 {
-                    Debug.Log($"GetResizeHandleAtPosition - Hit left handle for clip {clip?.Id}");
                     return ResizeHandle.Left;
                 }
             }
@@ -435,16 +454,12 @@ namespace MiniTimeline.UI
                                                 handleWidth, 
                                                 clipRect.height);
                 
-                Debug.Log($"GetResizeHandleAtPosition - Right handle rect: {rightHandleRect}, contains: {rightHandleRect.Contains(localPosition)}");
-                
                 if (rightHandleRect.Contains(localPosition))
                 {
-                    Debug.Log($"GetResizeHandleAtPosition - Hit right handle for clip {clip?.Id}");
                     return ResizeHandle.Right;
                 }
             }
             
-            Debug.Log($"GetResizeHandleAtPosition - No handle hit for clip {clip?.Id}");
             return ResizeHandle.None;
         }
         
@@ -478,7 +493,6 @@ namespace MiniTimeline.UI
                 rectTransform.anchoredPosition = new Vector2(centerPos, currentPos.y);
                 rectTransform.sizeDelta = new Vector2(width, rectTransform.sizeDelta.y);
                 
-                Debug.Log($"UpdateClipVisualTiming: clip {clip?.Id}, start={newStart}, duration={newDuration}, leftEdge={leftEdgePos}, center={centerPos}, width={width}");
             }
         }
         
@@ -500,7 +514,6 @@ namespace MiniTimeline.UI
                 rectTransform.anchoredPosition = new Vector2(centerPos, currentPos.y);
                 rectTransform.sizeDelta = new Vector2(width, rectTransform.sizeDelta.y);
                 
-                Debug.Log($"UpdateClipVisualStart: clip {clip?.Id}, newStart={newStart}, duration={duration}, leftEdge={leftEdgePos}, center={centerPos}, width={width}");
             }
         }
         
@@ -522,7 +535,6 @@ namespace MiniTimeline.UI
                 rectTransform.anchoredPosition = new Vector2(centerPos, currentPos.y);
                 rectTransform.sizeDelta = new Vector2(width, rectTransform.sizeDelta.y);
                 
-                Debug.Log($"UpdateClipVisualDuration: clip {clip?.Id}, startTime={startTime}, newDuration={newDuration}, leftEdge={leftEdgePos}, center={centerPos}, width={width}");
             }
         }
         
@@ -547,7 +559,21 @@ namespace MiniTimeline.UI
         /// </summary>
         public void SetDragVisualState(bool isDragging)
         {
+            bool wasInteracting = this.isResizing || this.isDragging;
+            
             this.isDragging = isDragging;
+            
+            bool isInteracting = this.isResizing || this.isDragging;
+            
+            // Trigger events when interaction state changes
+            if (!wasInteracting && isInteracting)
+            {
+                OnStartInteraction?.Invoke(this);
+            }
+            else if (wasInteracting && !isInteracting)
+            {
+                OnEndInteraction?.Invoke(this);
+            }
             
             if (isDragging)
             {
@@ -559,6 +585,289 @@ namespace MiniTimeline.UI
             {
                 canvasGroup.alpha = 1f;
             }
+        }
+        
+        #endregion
+        
+        #region UI Event System Handlers
+        
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (eventData.button == PointerEventData.InputButton.Left)
+            {
+                // Handle left click - selection
+                HandleClipClick();
+            }
+            else if (eventData.button == PointerEventData.InputButton.Right)
+            {
+                // Handle right click - context menu
+                HandleClipRightClick(eventData);
+            }
+        }
+        
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            if (eventData.button == PointerEventData.InputButton.Left)
+            {
+                // Check if we're clicking on a resize handle
+                Vector2 localPos;
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    rectTransform, eventData.position, eventData.pressEventCamera, out localPos);
+                
+                var resizeHandle = GetResizeHandleAtPosition(localPos);
+                if (resizeHandle != ResizeHandle.None && isSelected)
+                {
+                    // Don't start drag if we're on a resize handle
+                    return;
+                }
+            }
+        }
+        
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            // Handle pointer up if needed
+        }
+        
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+            if (eventData.button != PointerEventData.InputButton.Left) return;
+            
+            // Check if we're on a resize handle first using local position
+            Vector2 localPosClip;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                rectTransform, eventData.position, eventData.pressEventCamera, out localPosClip);
+            
+            var resizeHandle = GetResizeHandleAtPosition(localPosClip);
+            if (resizeHandle != ResizeHandle.None && isSelected)
+            {
+                // Start resize - use track container position for consistency
+                Vector2 localPosTrack;
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    parentTrack.ClipContainer, eventData.position, eventData.pressEventCamera, out localPosTrack);
+                HandleResizeStart(resizeHandle, localPosTrack);
+            }
+            else
+            {
+                // Start drag - use track container position for consistency
+                Vector2 localPosTrack;
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    parentTrack.ClipContainer, eventData.position, eventData.pressEventCamera, out localPosTrack);
+                HandleDragStart(localPosTrack);
+            }
+        }
+        
+        public void OnDrag(PointerEventData eventData)
+        {
+            if (eventData.button != PointerEventData.InputButton.Left) return;
+            
+            Vector2 localPos;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                parentTrack.ClipContainer, eventData.position, eventData.pressEventCamera, out localPos);
+            
+            if (isResizing)
+            {
+                HandleResize(localPos);
+            }
+            else if (isDragging)
+            {
+                HandleDrag(localPos);
+            }
+        }
+        
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            if (eventData.button != PointerEventData.InputButton.Left) return;
+            
+            if (isResizing)
+            {
+                HandleResizeEnd();
+            }
+            else if (isDragging)
+            {
+                HandleDragEnd();
+            }
+        }
+        
+        #endregion
+        
+        #region Event Handlers
+        
+        private void HandleClipClick()
+        {
+            // Notify parent track or timeline editor about selection
+            OnClipSelected?.Invoke(this);
+            
+            // Select this clip
+            if (!isSelected)
+            {
+                SetSelected(true);
+            }
+        }
+        
+        private void HandleClipRightClick(PointerEventData eventData)
+        {
+            // Show context menu
+            // You can access the timeline editor through parentTrack
+            if (parentTrack?.TimelineEditor != null)
+            {
+                parentTrack.TimelineEditor.ShowClipContextMenuPublic(this, eventData.position);
+            }
+        }
+        
+        private void HandleDragStart(Vector2 localPos)
+        {
+            if (!isSelected) HandleClipClick();
+            
+            isDragging = true;
+            dragStartPosition = localPos;
+            dragStartTime = clip.Start;
+            
+            // Calculate drag offset based on where we clicked relative to the clip's left edge
+            // localPos is now in track container space, so we need to find the clip's left position
+            float clipLeftEdge = parentTrack.TimelineEditor.TimeToPositionPublic(clip.Start);
+            clipDragOffset = localPos.x - clipLeftEdge;
+            
+            SetDragVisualState(true);
+        }
+        
+        private void HandleDrag(Vector2 localPos)
+        {
+            if (!isDragging || parentTrack?.TimelineEditor == null) return;
+            
+            // Calculate new position
+            float targetX = localPos.x - clipDragOffset;
+            float newStartTime = parentTrack.TimelineEditor.PositionToTimePublic(targetX);
+            newStartTime = parentTrack.TimelineEditor.SnapTimePublic(newStartTime);
+            newStartTime = Mathf.Max(0f, newStartTime);
+            
+            // Update visual position
+            UpdateClipVisualTiming(newStartTime, clip.Duration);
+            
+            // Notify drag event
+            OnClipDragged?.Invoke(this, localPos);
+        }
+        
+        private void HandleDragEnd()
+        {
+            if (!isDragging) return;
+            
+            isDragging = false;
+            SetDragVisualState(false);
+            
+            // Calculate final position and create command
+            var timelineEditor = parentTrack?.TimelineEditor;
+            if (timelineEditor != null)
+            {
+                var clipRect = GetComponent<RectTransform>();
+                float centerPos = clipRect.anchoredPosition.x;
+                float width = clipRect.sizeDelta.x;
+                float leftEdge = centerPos - width / 2f;
+                float finalStartTime = timelineEditor.PositionToTimePublic(leftEdge);
+                
+                // Only create command if position actually changed
+                if (Mathf.Abs(finalStartTime - dragStartTime) > 0.001f)
+                {
+                    var command = new MoveClipCommand(clip, dragStartTime, finalStartTime, parentTrack);
+                    timelineEditor.ExecuteCommand(command);
+                }
+                else
+                {
+                    // Restore original position
+                    UpdateClipVisualTiming(dragStartTime, clip.Duration);
+                }
+            }
+        }
+        
+        private void HandleResizeStart(ResizeHandle handle, Vector2 localPos)
+        {
+            if (!isSelected) return;
+            
+            isResizing = true;
+            activeResizeHandle = handle;
+            resizeDragStartTime = clip.Start;
+            resizeDragStartDuration = clip.Duration;
+            resizeStartMouseX = localPos.x;
+            
+            SetResizeVisualState(true, handle);
+        }
+        
+        private void HandleResize(Vector2 localPos)
+        {
+            if (!isResizing || parentTrack?.TimelineEditor == null) return;
+            
+            float mouseDelta = localPos.x - resizeStartMouseX;
+            float timeDelta = parentTrack.TimelineEditor.PositionToTimePublic(mouseDelta);
+            
+            if (activeResizeHandle == ResizeHandle.Left)
+            {
+                float newStart = resizeDragStartTime + timeDelta;
+                newStart = Mathf.Max(0f, newStart);
+                float originalEnd = resizeDragStartTime + resizeDragStartDuration;
+                float newDuration = Mathf.Max(0.1f, originalEnd - newStart);
+                
+                if (parentTrack.TimelineEditor.EnableFrameSnap)
+                {
+                    newStart = parentTrack.TimelineEditor.SnapTimePublic(newStart);
+                    newDuration = Mathf.Max(0.1f, originalEnd - newStart);
+                }
+                
+                UpdateClipVisualStart(newStart, newDuration);
+            }
+            else if (activeResizeHandle == ResizeHandle.Right)
+            {
+                float newDuration = resizeDragStartDuration + timeDelta;
+                newDuration = Mathf.Max(0.1f, newDuration);
+                
+                if (parentTrack.TimelineEditor.EnableFrameSnap)
+                {
+                    float endTime = resizeDragStartTime + newDuration;
+                    endTime = parentTrack.TimelineEditor.SnapTimePublic(endTime);
+                    newDuration = Mathf.Max(0.1f, endTime - resizeDragStartTime);
+                }
+                
+                UpdateClipVisualDuration(resizeDragStartTime, newDuration);
+            }
+            
+            OnClipResized?.Invoke(this, 0, 0); // Parameters can be adjusted as needed
+        }
+        
+        private void HandleResizeEnd()
+        {
+            if (!isResizing) return;
+            
+            isResizing = false;
+            SetResizeVisualState(false, ResizeHandle.None);
+            
+            var timelineEditor = parentTrack?.TimelineEditor;
+            if (timelineEditor != null)
+            {
+                // Get current visual timing
+                var clipRect = GetComponent<RectTransform>();
+                float centerPos = clipRect.anchoredPosition.x;
+                float width = clipRect.sizeDelta.x;
+                float leftEdge = centerPos - width / 2f;
+                
+                float currentStartTime = timelineEditor.PositionToTimePublic(leftEdge);
+                float currentDuration = timelineEditor.PositionToTimePublic(width);
+                
+                // Create resize command if there was significant change
+                bool startChanged = Mathf.Abs(currentStartTime - resizeDragStartTime) > 0.001f;
+                bool durationChanged = Mathf.Abs(currentDuration - resizeDragStartDuration) > 0.001f;
+                
+                if (startChanged || durationChanged)
+                {
+                    var command = new ResizeClipCommand(clip, resizeDragStartTime, resizeDragStartDuration,
+                                                      currentStartTime, currentDuration, parentTrack);
+                    timelineEditor.ExecuteCommand(command);
+                }
+                else
+                {
+                    // Restore original timing
+                    UpdateClipVisualTiming(resizeDragStartTime, resizeDragStartDuration);
+                }
+            }
+            
+            activeResizeHandle = ResizeHandle.None;
         }
         
         #endregion

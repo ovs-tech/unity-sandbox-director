@@ -25,12 +25,13 @@ namespace MiniTimeline.UI
         [SerializeField] private Color buttonNormalColor = new Color(0.3f, 0.3f, 0.3f, 1f);
         [SerializeField] private Color buttonHighlightColor = new Color(0.4f, 0.4f, 0.4f, 1f);
         
-        // Menu state
-        private bool isMenuOpen = false;
-        private Vector2 menuPosition;
-        private CanvasGroup canvasGroup;
-        private List<ContextMenuItem> currentMenuItems = new List<ContextMenuItem>();
-        private List<GameObject> instantiatedButtons = new List<GameObject>();
+    // Menu state
+    private bool isMenuOpen = false;
+    private bool canCloseMenu = false; // Prevent immediate close on open
+    private Vector2 menuPosition;
+    private CanvasGroup canvasGroup;
+    private List<ContextMenuItem> currentMenuItems = new List<ContextMenuItem>();
+    private List<GameObject> instantiatedButtons = new List<GameObject>();
         
         // References
         private TimelineEditorUI timelineEditor;
@@ -79,18 +80,16 @@ namespace MiniTimeline.UI
             {
                 canvasGroup = gameObject.AddComponent<CanvasGroup>();
             }
-            
             // Create menu structure if not set up
             if (menuContainer == null)
             {
                 CreateMenuStructure();
             }
-            
-            // Setup backdrop for closing menu
-            if (menuBackdrop != null)
-            {
-                menuBackdrop.onClick.AddListener(CloseMenu);
-            }
+            // // Setup backdrop for closing menu
+            // if (menuBackdrop != null)
+            // {
+            //     menuBackdrop.onClick.AddListener(OnBackdropClicked);
+            // }
         }
         
         private void CreateMenuStructure()
@@ -98,50 +97,44 @@ namespace MiniTimeline.UI
             // Create backdrop
             var backdropGO = new GameObject("Backdrop", typeof(RectTransform), typeof(Image), typeof(Button));
             backdropGO.transform.SetParent(transform, false);
-            
             var backdropRect = backdropGO.GetComponent<RectTransform>();
             var backdropImage = backdropGO.GetComponent<Image>();
             menuBackdrop = backdropGO.GetComponent<Button>();
-            
             // Setup backdrop to cover entire screen
             backdropRect.anchorMin = Vector2.zero;
             backdropRect.anchorMax = Vector2.one;
             backdropRect.offsetMin = Vector2.zero;
             backdropRect.offsetMax = Vector2.zero;
-            
-            backdropImage.color = new Color(0f, 0f, 0f, 0.3f); // Semi-transparent overlay
-            
+            // Ensure backdrop blocks raycasts
+            backdropImage.color = new Color(0f, 0f, 0f, 0.3f); // Semi-transparent overlay, alpha > 0
+            backdropImage.raycastTarget = true;
+            var cg = backdropGO.GetComponent<CanvasGroup>();
+            if (cg == null) cg = backdropGO.AddComponent<CanvasGroup>();
+            cg.blocksRaycasts = true;
+            cg.interactable = true;
             // Create menu container
             var containerGO = new GameObject("MenuContainer", typeof(RectTransform), typeof(Image));
             containerGO.transform.SetParent(transform, false);
-            
             menuContainer = containerGO.GetComponent<RectTransform>();
             var containerImage = containerGO.GetComponent<Image>();
-            
             containerImage.color = menuBackgroundColor;
-            
             // Create button container
             var buttonContainerGO = new GameObject("ButtonContainer", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
             buttonContainerGO.transform.SetParent(menuContainer, false);
-            
             buttonContainer = buttonContainerGO.GetComponent<RectTransform>();
             var layoutGroup = buttonContainerGO.GetComponent<VerticalLayoutGroup>();
             var sizeFitter = buttonContainerGO.GetComponent<ContentSizeFitter>();
-            
             // Setup layout
             buttonContainer.anchorMin = Vector2.zero;
             buttonContainer.anchorMax = Vector2.one;
             buttonContainer.offsetMin = new Vector2(menuPadding, menuPadding);
             buttonContainer.offsetMax = new Vector2(-menuPadding, -menuPadding);
-            
             layoutGroup.spacing = buttonSpacing;
             layoutGroup.childControlWidth = true;
             layoutGroup.childControlHeight = true;
             layoutGroup.childForceExpandWidth = true;
             layoutGroup.childForceExpandHeight = false;
-            
             sizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            
             // Create default button prefab if none provided
             if (menuButtonPrefab == null)
             {
@@ -199,7 +192,7 @@ namespace MiniTimeline.UI
         /// <param name="menuItems">Menu items to display</param>
         public void ShowMenu(Vector2 screenPosition, List<ContextMenuItem> menuItems)
         {
-            if (isMenuOpen) CloseMenu();
+            // if (isMenuOpen) CloseMenu();
             
             currentMenuItems = menuItems ?? new List<ContextMenuItem>();
             menuPosition = screenPosition;
@@ -277,13 +270,20 @@ namespace MiniTimeline.UI
         public void CloseMenu()
         {
             if (!isMenuOpen) return;
-            
             isMenuOpen = false;
-            
+            canCloseMenu = false;
             // Hide menu with animation
             HideMenuAnimated();
-            
             OnMenuClosed?.Invoke();
+        }
+
+        // Backdrop click handler with delay logic
+        private void OnBackdropClicked()
+        {
+            if (canCloseMenu)
+            {
+                // CloseMenu();
+            }
         }
         
         #endregion
@@ -397,17 +397,28 @@ namespace MiniTimeline.UI
         {
             gameObject.SetActive(true);
             isMenuOpen = true;
-            
+            canCloseMenu = false;
+            // Always assign correct backdrop handler and remove old ones
+            if (menuBackdrop != null)
+            {
+                menuBackdrop.onClick.RemoveAllListeners();
+                menuBackdrop.onClick.AddListener(OnBackdropClicked);
+                // Force backdrop to be topmost
+                menuBackdrop.transform.SetAsLastSibling();
+            }
+            // Also ensure menuContainer is above backdrop
+            if (menuContainer != null)
+            {
+                menuContainer.transform.SetAsLastSibling();
+            }
             // Simple fade in animation
             canvasGroup.alpha = 0f;
             canvasGroup.interactable = false;
-            
             LeanTween.alphaCanvas(canvasGroup, 1f, 0.2f)
                 .setEaseOutQuart()
                 .setOnComplete(() => {
                     canvasGroup.interactable = true;
                 });
-            
             // Scale animation for menu container
             if (menuContainer != null)
             {
@@ -415,6 +426,14 @@ namespace MiniTimeline.UI
                 LeanTween.scale(menuContainer.gameObject, Vector3.one, 0.2f)
                     .setEaseOutBack();
             }
+            // Allow backdrop to close menu after one frame
+            StartCoroutine(EnableMenuCloseNextFrame());
+        }
+
+        private System.Collections.IEnumerator EnableMenuCloseNextFrame()
+        {
+            yield return null;
+            canCloseMenu = true;
         }
         
         private void HideMenuAnimated()
