@@ -363,6 +363,14 @@ namespace MiniTimeline.UI
             UpdateTrackHeader();
         }
         
+        /// <summary>
+        /// Public method to rebuild clip UIs (used by commands)
+        /// </summary>
+        public void RebuildClipUIs()
+        {
+            BuildClipUIs();
+        }
+        
         private string GetFriendlyTrackName(string typeName)
         {
             return typeName switch
