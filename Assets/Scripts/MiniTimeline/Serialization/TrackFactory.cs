@@ -68,6 +68,37 @@ namespace MiniTimeline.Serialization
             return trackCreators.Keys;
         }
         
+        /// <summary>
+        /// Create a clip instance from form data for the specified track type
+        /// </summary>
+        /// <param name="trackType">The track type</param>
+        /// <param name="formData">Form data containing clip properties</param>
+        /// <returns>Clip instance or null if type not supported</returns>
+        public static IMiniClip CreateClipFromFormData(string trackType, Dictionary<string, object> formData)
+        {
+            // Extract common fields
+            string clipId = System.Guid.NewGuid().ToString();
+            float startTime = formData.ContainsKey("start") ? Convert.ToSingle(formData["start"]) : 0f;
+            float duration = formData.ContainsKey("duration") ? Convert.ToSingle(formData["duration"]) : 1f;
+            
+            switch (trackType)
+            {
+                case MiniTimelineConstants.TRACK_ANIM:
+                    return CreateAnimClipFromForm(clipId, startTime, duration, formData);
+                case MiniTimelineConstants.TRACK_MORPH:
+                    return CreateMorphClipFromForm(clipId, startTime, duration, formData);
+                case MiniTimelineConstants.TRACK_MOVEMENT:
+                    return CreateMovementClipFromForm(clipId, startTime, duration, formData);
+                case MiniTimelineConstants.TRACK_ANIMATOR:
+                    return CreateAnimatorClipFromForm(clipId, startTime, duration, formData);
+                case MiniTimelineConstants.TRACK_SIGNAL:
+                    return CreateSignalClipFromForm(clipId, startTime, duration, formData);
+                default:
+                    Debug.LogWarning($"[TrackFactory] Clip creation from form not implemented for track type: {trackType}");
+                    return null;
+            }
+        }
+        
         #region Track Creators
         
         private static IMiniTrack CreateAnimTrack(TrackData data)
@@ -188,6 +219,216 @@ namespace MiniTimeline.Serialization
             
             track.SetClips(clips);
             return track;
+        }
+        
+        #endregion
+        
+        #region Clip Form Creators
+        
+        private static AnimClip CreateAnimClipFromForm(string clipId, float startTime, float duration, Dictionary<string, object> formData)
+        {
+            var animClip = new AnimClip
+            {
+                Id = clipId,
+                Start = startTime,
+                Duration = duration
+            };
+            
+            // Set properties from form data
+            if (formData.ContainsKey("animationAsset"))
+                animClip.animationAsset = formData["animationAsset"].ToString();
+                
+            if (formData.ContainsKey("speed") && float.TryParse(formData["speed"].ToString(), out float speed))
+                animClip.speed = speed;
+                
+            if (formData.ContainsKey("fadeIn") && float.TryParse(formData["fadeIn"].ToString(), out float fadeIn))
+                animClip.fadeIn = fadeIn;
+                
+            if (formData.ContainsKey("fadeOut") && float.TryParse(formData["fadeOut"].ToString(), out float fadeOut))
+                animClip.fadeOut = fadeOut;
+                
+            if (formData.ContainsKey("weight") && float.TryParse(formData["weight"].ToString(), out float weight))
+                animClip.weight = weight;
+                
+            if (formData.ContainsKey("layer") && int.TryParse(formData["layer"].ToString(), out int layer))
+                animClip.layer = layer;
+                
+            if (formData.ContainsKey("clipOffset") && float.TryParse(formData["clipOffset"].ToString(), out float offset))
+                animClip.clipOffset = offset;
+                
+            // Handle loop checkbox as wrapMode enum
+            if (formData.ContainsKey("loop") && formData["loop"] is bool loop)
+                animClip.wrapMode = loop ? AnimWrapMode.Loop : AnimWrapMode.Once;
+            
+            return animClip;
+        }
+        
+        private static IMorphClip CreateMorphClipFromForm(string clipId, float startTime, float duration, Dictionary<string, object> formData)
+        {
+            // Create a basic MorphKeyClip
+            var morphClip = new MorphKeyClip
+            {
+                Id = clipId,
+                Start = startTime,
+                Duration = duration,
+                keys = new List<MorphKey>()
+            };
+            
+            // Set properties from form data
+            if (formData.ContainsKey("blendMode") && Enum.TryParse<MorphBlendMode>(formData["blendMode"].ToString(), out var blendMode))
+                morphClip.blendMode = blendMode;
+                
+            if (formData.ContainsKey("priority") && int.TryParse(formData["priority"].ToString(), out int priority))
+                morphClip.priority = priority;
+                
+            if (formData.ContainsKey("weight") && float.TryParse(formData["weight"].ToString(), out float weight))
+                morphClip.weight = weight;
+            
+            if (formData.ContainsKey("blendShapeName") && formData.ContainsKey("targetWeight"))
+            {
+                string blendShapeName = formData["blendShapeName"].ToString();
+                float targetWeight = Convert.ToSingle(formData["targetWeight"]);
+                
+                morphClip.keys.Add(new MorphKey
+                {
+                    id = blendShapeName,
+                    startValue = 0f,
+                    endValue = targetWeight,
+                    curve = AnimationCurve.Linear(0f, 0f, 1f, 1f)
+                });
+            }
+            
+            return morphClip;
+        }
+        
+        private static MovementClip CreateMovementClipFromForm(string clipId, float startTime, float duration, Dictionary<string, object> formData)
+        {
+            var movementClip = new MovementClip
+            {
+                Id = clipId,
+                Start = startTime,
+                Duration = duration
+            };
+            
+            // Position data
+            if (formData.ContainsKey("hasPosition") && formData["hasPosition"] is bool hasPos)
+                movementClip.hasPosition = hasPos;
+                
+            if (formData.ContainsKey("startPosX") && formData.ContainsKey("startPosY") && formData.ContainsKey("startPosZ"))
+            {
+                float x = Convert.ToSingle(formData["startPosX"]);
+                float y = Convert.ToSingle(formData["startPosY"]);
+                float z = Convert.ToSingle(formData["startPosZ"]);
+                movementClip.startPosition = new Vector3(x, y, z);
+            }
+            
+            if (formData.ContainsKey("endPosX") && formData.ContainsKey("endPosY") && formData.ContainsKey("endPosZ"))
+            {
+                float x = Convert.ToSingle(formData["endPosX"]);
+                float y = Convert.ToSingle(formData["endPosY"]);
+                float z = Convert.ToSingle(formData["endPosZ"]);
+                movementClip.endPosition = new Vector3(x, y, z);
+            }
+            
+            // Rotation data
+            if (formData.ContainsKey("hasRotation") && formData["hasRotation"] is bool hasRot)
+                movementClip.hasRotation = hasRot;
+                
+            if (formData.ContainsKey("startRotX") && formData.ContainsKey("startRotY") && formData.ContainsKey("startRotZ"))
+            {
+                float x = Convert.ToSingle(formData["startRotX"]);
+                float y = Convert.ToSingle(formData["startRotY"]);
+                float z = Convert.ToSingle(formData["startRotZ"]);
+                movementClip.startRotation = Quaternion.Euler(x, y, z);
+            }
+            
+            if (formData.ContainsKey("endRotX") && formData.ContainsKey("endRotY") && formData.ContainsKey("endRotZ"))
+            {
+                float x = Convert.ToSingle(formData["endRotX"]);
+                float y = Convert.ToSingle(formData["endRotY"]);
+                float z = Convert.ToSingle(formData["endRotZ"]);
+                movementClip.endRotation = Quaternion.Euler(x, y, z);
+            }
+            
+            // Field of view data
+            if (formData.ContainsKey("hasFieldOfView") && formData["hasFieldOfView"] is bool hasFOV)
+                movementClip.hasFieldOfView = hasFOV;
+                
+            if (formData.ContainsKey("startFOV") && float.TryParse(formData["startFOV"].ToString(), out float startFOV))
+                movementClip.startFieldOfView = startFOV;
+                
+            if (formData.ContainsKey("endFOV") && float.TryParse(formData["endFOV"].ToString(), out float endFOV))
+                movementClip.endFieldOfView = endFOV;
+            
+            // Animation curve
+            if (formData.ContainsKey("animationCurve") && Enum.TryParse<CameraAnimationCurve>(formData["animationCurve"].ToString(), out var animCurve))
+                movementClip.animationCurve = animCurve;
+            
+            // Fade values
+            if (formData.ContainsKey("fadeIn") && float.TryParse(formData["fadeIn"].ToString(), out float fadeIn))
+                movementClip.fadeIn = fadeIn;
+                
+            if (formData.ContainsKey("fadeOut") && float.TryParse(formData["fadeOut"].ToString(), out float fadeOut))
+                movementClip.fadeOut = fadeOut;
+            
+            return movementClip;
+        }
+        
+        private static AnimatorClip CreateAnimatorClipFromForm(string clipId, float startTime, float duration, Dictionary<string, object> formData)
+        {
+            var animatorClip = new AnimatorClip
+            {
+                Id = clipId,
+                Start = startTime,
+                Duration = duration
+            };
+            
+            // Fade values
+            if (formData.ContainsKey("fadeIn") && float.TryParse(formData["fadeIn"].ToString(), out float fadeIn))
+                animatorClip.fadeIn = fadeIn;
+                
+            if (formData.ContainsKey("fadeOut") && float.TryParse(formData["fadeOut"].ToString(), out float fadeOut))
+                animatorClip.fadeOut = fadeOut;
+            
+            // Blend mode
+            if (formData.ContainsKey("blendMode") && Enum.TryParse<AnimatorBlendMode>(formData["blendMode"].ToString(), out var blendMode))
+                animatorClip.blendMode = blendMode;
+            
+            // Handle parameter keys from form data
+            // This could be extended to handle more complex parameter key creation from form
+            
+            return animatorClip;
+        }
+        
+        private static SignalClip CreateSignalClipFromForm(string clipId, float startTime, float duration, Dictionary<string, object> formData)
+        {
+            var signalClip = new SignalClip
+            {
+                Id = clipId,
+                Start = startTime,
+                Duration = 0f // Signals always have zero duration
+            };
+            
+            if (formData.ContainsKey("eventId"))
+                signalClip.eventId = formData["eventId"].ToString();
+            
+            if (formData.ContainsKey("payload"))
+                signalClip.payload = formData["payload"].ToString();
+            
+            if (formData.ContainsKey("edge") && Enum.TryParse<EventTriggerEdge>(formData["edge"].ToString(), out var edge))
+                signalClip.edge = edge;
+            
+            if (formData.ContainsKey("fireOnScrub") && formData["fireOnScrub"] is bool fireOnScrub)
+                signalClip.fireOnScrub = fireOnScrub;
+            
+            if (formData.ContainsKey("color"))
+            {
+                string colorStr = formData["color"].ToString();
+                if (ColorUtility.TryParseHtmlString(colorStr, out Color color))
+                    signalClip.color = color;
+            }
+            
+            return signalClip;
         }
         
         #endregion

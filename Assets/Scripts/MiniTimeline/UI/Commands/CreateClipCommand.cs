@@ -3,50 +3,52 @@ using UnityEngine;
 
 namespace MiniTimeline.UI.Commands
 {
-
-
     /// <summary>
     /// Command for creating a new clip on a track
     /// </summary>
     public class CreateClipCommand : TimelineCommandBase
     {
         private readonly IMiniTrack track;
-        private readonly ClipData clipData;
+        private readonly IMiniClip clipInstance;
         private readonly TrackUI trackUI;
-        private IMiniClip createdClip;
 
-        public CreateClipCommand(IMiniTrack targetTrack, ClipData data, TrackUI trackInterface)
+        public CreateClipCommand(IMiniTrack targetTrack, IMiniClip clip, TrackUI trackInterface)
             : base($"Create Clip")
         {
             track = targetTrack;
-            clipData = data;
+            clipInstance = clip;
             trackUI = trackInterface;
         }
 
         protected override void ExecuteInternal()
         {
-            // TODO: Create clip through proper track API
-            // createdClip = track.CreateClip(clipData);
+            // Add clip to track
+            track.AddClip(clipInstance);
 
-            // Update UI
-            // trackUI?.BuildClipUIs();
+            // Update UI to show the new clip
+            trackUI?.RebuildClipUIs();
 
-            Debug.Log($"Creating clip at {clipData.start} with duration {clipData.duration}");
+            Debug.Log($"Created clip '{clipInstance.Id}' at {clipInstance.Start} with duration {clipInstance.Duration}");
         }
 
         protected override void UndoInternal()
         {
-            if (createdClip != null)
+            if (clipInstance != null)
             {
-                // TODO: Remove clip through proper track API
-                // track.RemoveClip(createdClip);
+                // Remove clip from track
+                bool removed = track.RemoveClip(clipInstance);
 
-                // Update UI
-                // trackUI?.BuildClipUIs();
-
-                Debug.Log($"Removing clip {createdClip.Id}");
+                if (removed)
+                {
+                    // Update UI
+                    trackUI?.RebuildClipUIs();
+                    Debug.Log($"Removed clip '{clipInstance.Id}'");
+                }
+                else
+                {
+                    Debug.LogWarning($"Failed to remove clip '{clipInstance.Id}' - not found in track");
+                }
             }
         }
     }
-
 }

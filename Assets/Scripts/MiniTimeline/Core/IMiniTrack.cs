@@ -54,6 +54,19 @@ namespace MiniTimeline.Core
         IEnumerable<IMiniClip> GetClips();
         
         /// <summary>
+        /// Add a new clip to this track
+        /// </summary>
+        /// <param name="clip">The clip to add</param>
+        void AddClip(IMiniClip clip);
+        
+        /// <summary>
+        /// Remove a clip from this track
+        /// </summary>
+        /// <param name="clip">The clip to remove</param>
+        /// <returns>True if clip was removed, false if not found</returns>
+        bool RemoveClip(IMiniClip clip);
+        
+        /// <summary>
         /// Called when project is closed to cleanup resources
         /// </summary>
         void OnProjectClosed();
@@ -112,6 +125,29 @@ namespace MiniTimeline.Core
         {
             foreach (var clip in clips)
                 yield return clip;
+        }
+        
+        public virtual void AddClip(IMiniClip clip)
+        {
+            if (clip is TClip typedClip)
+            {
+                clips.Add(typedClip);
+                // Sort clips by start time to maintain order
+                clips.Sort((a, b) => a.Start.CompareTo(b.Start));
+            }
+            else
+            {
+                UnityEngine.Debug.LogError($"[MiniTrack] Cannot add clip of type {clip?.GetType()} to track that expects {typeof(TClip)}");
+            }
+        }
+        
+        public virtual bool RemoveClip(IMiniClip clip)
+        {
+            if (clip is TClip typedClip)
+            {
+                return clips.Remove(typedClip);
+            }
+            return false;
         }
         
         public virtual void OnProjectClosed()

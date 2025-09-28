@@ -26,7 +26,6 @@ namespace MiniTimeline.UI
         [SerializeField] private Button redoButton;
         [SerializeField] private Slider timeSlider;
         [SerializeField] private Text timeText;
-        private TimelineContextMenu contextMenu;
 
         [Header("Editor Settings")]
         [SerializeField] private float pixelsPerSecond = 100f;
@@ -40,6 +39,7 @@ namespace MiniTimeline.UI
         [SerializeField] private GameObject clipUIPrefab;
         [SerializeField] private GameObject rulerMarkerPrefab;
         [SerializeField] private GameObject contextMenuPrefab;
+        [SerializeField] private GameObject formSubmitPanelPrefab;
 
         [Header("Debug")]
         [SerializeField] bool isDebug;
@@ -47,6 +47,8 @@ namespace MiniTimeline.UI
         // Core references
         private MiniTimelineDirector director;
         private TimelineCommandManager commandManager;
+        private TimelineContextMenu contextMenu;
+        private FormSubmitPanel formSubmitPanel;
 
         // UI State
         private float currentZoom = 1f;
@@ -78,6 +80,7 @@ namespace MiniTimeline.UI
         public bool EnableFrameSnap => enableFrameSnap;
         public GameObject ClipUIPrefab => clipUIPrefab;
         public GameObject ContextMenuPrefab => contextMenuPrefab;
+        public GameObject FormSubmitPanelPrefab => formSubmitPanelPrefab;
 
         #endregion
 
@@ -240,6 +243,13 @@ namespace MiniTimeline.UI
             if (contextMenu != null)
             {
                 contextMenu.OnMenuClosed += EnableTimelineInteraction;
+            }
+
+            if (formSubmitPanelPrefab != null)
+            {
+                var formSubmitGO = Instantiate(formSubmitPanelPrefab, editorCanvas.transform);
+                formSubmitPanel = formSubmitGO.GetComponent<FormSubmitPanel>();
+                formSubmitPanel.CloseForm();
             }
         }
 

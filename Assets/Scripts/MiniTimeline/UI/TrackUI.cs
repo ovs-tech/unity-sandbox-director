@@ -7,6 +7,8 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using MiniTimeline.Core;
 using MiniTimeline.UI.Commands;
+using MiniTimeline.Tracks;
+using MiniTimeline.Serialization;
 using Debug = UnityEngine.Debug;
 
 namespace MiniTimeline.UI
@@ -859,8 +861,173 @@ namespace MiniTimeline.UI
         
         private void AddClipToTrack()
         {
-            Debug.Log($"Add clip to track: {track?.GetType().Name}");
-            // TODO: Implement add clip functionality
+            Debug.Log($"Create clip for track: {track?.GetType().Name}");
+            ShowCreateClipForm();
+        }
+        
+        private void ShowCreateClipForm()
+        {
+            if (track == null)
+            {
+                Debug.LogError("Cannot create clip: track is null");
+                return;
+            }
+            
+            // Get the track type
+            string trackType = GetTrackType();
+            
+            // Get form field definitions for this track type
+            var fieldDefinitions = ClipFormDefinitions.GetFieldsForTrackType(trackType);
+            
+            // Get display name for the form title
+            string formTitle = $"Create {ClipFormDefinitions.GetTrackTypeDisplayName(trackType)}";
+            
+            // Show the form
+            FormSubmitPanel.Instance.Show(
+                formTitle,
+                fieldDefinitions,
+                OnClipFormSubmitted,
+                OnClipFormCancelled
+            );
+        }
+        
+        private string GetTrackType()
+        {
+            // Map track instance to track type string
+            switch (track)
+            {
+                case AnimTrack _:
+                    return MiniTimelineConstants.TRACK_ANIM;
+                case AnimatorTrack _:
+                    return MiniTimelineConstants.TRACK_ANIMATOR;
+                case MorphTrack _:
+                    return MiniTimelineConstants.TRACK_MORPH;
+                case MovementTrack _:
+                    return MiniTimelineConstants.TRACK_MOVEMENT;
+                case SignalTrack _:
+                    return MiniTimelineConstants.TRACK_SIGNAL;
+                default:
+                    Debug.LogWarning($"Unknown track type: {track.GetType().Name}");
+                    return "generic";
+            }
+        }
+        
+        private void OnClipFormSubmitted(Dictionary<string, object> formData)
+        {
+            Debug.Log("Clip form submitted with data:");
+            foreach (var kvp in formData)
+            {
+                Debug.Log($"  {kvp.Key}: {kvp.Value}");
+            }
+            
+            CreateClipFromFormData(formData);
+        }
+        
+        private void OnClipFormCancelled()
+        {
+            Debug.Log("Clip creation cancelled");
+        }
+        
+        private void CreateClipFromFormData(Dictionary<string, object> formData)
+        {
+            try
+            {
+                // Get the track type and use TrackFactory to create the clip instance
+                string trackType = GetTrackType();
+                IMiniClip clipInstance = TrackFactory.CreateClipFromFormData(trackType, formData);
+                
+                if (clipInstance != null)
+                {
+                    // Create command and execute it
+                    var command = new CreateClipCommand(track, clipInstance, this);
+                    if (timelineEditor != null)
+                    {
+                        timelineEditor.ExecuteCommand(command);
+                    }
+                    else
+                    {
+                        // Fallback: add clip directly if no command system
+                        track.AddClip(clipInstance);
+                        RebuildClipUIs();
+                    }
+                    
+                    Debug.Log($"Successfully created clip '{clipInstance.Id}' on track '{track.Id}'");
+                }
+                else
+                {
+                    Debug.LogError($"Failed to create clip instance for track type: {trackType}");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to create clip: {ex.Message}\n{ex.StackTrace}");
+            }
+        }
+        
+        private void CreateClipDirectly(ClipData clipData)
+        {
+            // Convert ClipData to form data format for compatibility
+            var formData = new Dictionary<string, object>
+            {
+                ["name"] = "New Clip",
+                ["start"] = clipData.start,
+                ["duration"] = clipData.duration
+            };
+            
+            // Add payload data if available
+            if (clipData.payload != null)
+            {
+                foreach (var kvp in clipData.payload)
+                {
+                    formData[kvp.Key] = kvp.Value;
+                }
+            }
+            
+            // Create the clip instance using the form data
+            string trackType = GetTrackType();
+            IMiniClip newClip = TrackFactory.CreateClipFromFormData(trackType, formData);
+            
+            if (newClip != null)
+            {
+                // Add the clip directly to the track
+                track.AddClip(newClip);
+                
+                // Rebuild the UI to show the new clip
+                RebuildClipUIs();
+            }
+        }
+        
+
+        
+        private void AddClipToTrackUsingReflection(IMiniClip clip, ClipData clipData)
+        {
+            try
+            {
+                // Try to find an AddClip method on the track
+                var addClipMethod = track.GetType().GetMethod("AddClip");
+                if (addClipMethod != null)
+                {
+                    addClipMethod.Invoke(track, new object[] { clip });
+                }
+                else
+                {
+                    // Fallback: add to the clips collection directly using reflection
+                    var clipsField = track.GetType().GetField("clips", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (clipsField != null && clipsField.FieldType.IsGenericType)
+                    {
+                        var clipsList = clipsField.GetValue(track);
+                        var addMethod = clipsList.GetType().GetMethod("Add");
+                        if (addMethod != null)
+                        {
+                            addMethod.Invoke(clipsList, new object[] { clip });
+                        }
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to add clip to track using reflection: {ex.Message}");
+            }
         }
         
         private void DuplicateTrack()
