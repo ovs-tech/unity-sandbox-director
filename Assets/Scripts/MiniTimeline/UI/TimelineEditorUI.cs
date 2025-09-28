@@ -19,11 +19,13 @@ namespace MiniTimeline.UI
         [SerializeField] private RectTransform rulerContainer;
         [SerializeField] private RectTransform tracksContainer;
         [SerializeField] private ScrollRect timelineScrollRect;
+        [SerializeField] private Button addTrackButton;
         [SerializeField] private Button playButton;
         [SerializeField] private Button pauseButton;
         [SerializeField] private Button stopButton;
         [SerializeField] private Button undoButton;
         [SerializeField] private Button redoButton;
+
         [SerializeField] private Slider timeSlider;
         [SerializeField] private Text timeText;
 
@@ -209,6 +211,10 @@ namespace MiniTimeline.UI
             if (redoButton != null)
                 redoButton.onClick.AddListener(() => commandManager?.Redo());
 
+            // Setup add track button
+            if (addTrackButton != null)
+                addTrackButton.onClick.AddListener(ShowAddTrackForm);
+
             if (timeSlider != null)
             {
                 timeSlider.onValueChanged.AddListener(OnTimeSliderChanged);
@@ -319,7 +325,7 @@ namespace MiniTimeline.UI
 
         #region Timeline UI Building
 
-        private void BuildTimelineUI()
+        public void BuildTimelineUI()
         {
             ClearTimelineUI();
 
@@ -649,6 +655,152 @@ namespace MiniTimeline.UI
                 timelineScrollRect.vertical = enabled;
 
             }
+        }
+
+        #endregion
+
+        #region Add Track Methods
+
+        /// <summary>
+        /// Show form for adding a new track to the timeline
+        /// </summary>
+        private void ShowAddTrackForm()
+        {
+            if (director?.Project == null)
+            {
+                Debug.LogError("Cannot add track: No project loaded");
+                return;
+            }
+
+            // Define form fields for track creation
+            var fieldDefinitions = new List<FormFieldDefinition>
+            {
+                new FormFieldDefinition
+                {
+                    name = "trackType",
+                    type = "selectbox",
+                    label = "Track Type",
+                    required = true,
+                    options = new Dictionary<string, object>
+                    {
+                        { "items", new List<string>
+                        {
+                            MiniTimelineConstants.TRACK_ANIM,
+                            MiniTimelineConstants.TRACK_ANIMATOR,
+                            MiniTimelineConstants.TRACK_MORPH,
+                            MiniTimelineConstants.TRACK_MOVEMENT,
+                            MiniTimelineConstants.TRACK_SIGNAL,
+                            MiniTimelineConstants.TRACK_AUDIO
+                        }}
+                    },
+                    defaultValue = MiniTimelineConstants.TRACK_ANIM,
+                    tooltip = "Select the type of track to create"
+                },
+                new FormFieldDefinition
+                {
+                    name = "trackName",
+                    type = "text",
+                    label = "Track Name",
+                    required = true,
+                    placeholder = "Enter track name...",
+                    defaultValue = "New Track"
+                },
+                new FormFieldDefinition
+                {
+                    name = "bindKey",
+                    type = "text",
+                    label = "Bind Key",
+                    required = false,
+                    placeholder = "e.g., character, camera...",
+                    tooltip = "Key to bind this track to game objects in the scene"
+                },
+                new FormFieldDefinition
+                {
+                    name = "enabled",
+                    type = "toggle",
+                    label = "Enabled",
+                    required = false,
+                    defaultValue = true
+                }
+            };
+
+            // Show the form using FormSubmitPanel singleton
+            FormSubmitPanel.Instance.Show(
+                "Add New Track",
+                fieldDefinitions,
+                OnAddTrackFormSubmitted,
+                OnAddTrackFormCancelled
+            );
+        }
+
+        /// <summary>
+        /// Handle track creation form submission
+        /// </summary>
+        private void OnAddTrackFormSubmitted(Dictionary<string, object> formData)
+        {
+            try
+            {
+                // Extract form data
+                string trackType = formData.ContainsKey("trackType") ? formData["trackType"].ToString() : MiniTimelineConstants.TRACK_ANIM;
+                string trackName = formData.ContainsKey("trackName") ? formData["trackName"].ToString() : "New Track";
+                string bindKey = formData.ContainsKey("bindKey") ? formData["bindKey"].ToString() : "";
+                bool enabled = formData.ContainsKey("enabled") ? Convert.ToBoolean(formData["enabled"]) : true;
+
+                // Generate unique ID for the track
+                string trackId = System.Guid.NewGuid().ToString();
+
+                // Determine track order (place at the end)
+                int trackOrder = director.Project.tracks.Count > 0 ? director.Project.tracks.Max(t => t.order) + 1 : 0;
+
+                // Create track data
+                var trackData = new TrackData
+                {
+                    id = trackId,
+                    type = trackType,
+                    bindKey = bindKey,
+                    enabled = enabled,
+                    order = trackOrder,
+                    clips = new List<ClipData>()
+                };
+
+                // Create and execute add track command
+                var addTrackCommand = new AddTrackCommand(director, trackData, this);
+                ExecuteCommand(addTrackCommand);
+
+                Debug.Log($"Added new {GetTrackDisplayName(trackType)} track: {trackName}");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to create track: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Handle track creation form cancellation
+        /// </summary>
+        private void OnAddTrackFormCancelled()
+        {
+            Debug.Log("Add track cancelled");
+        }
+
+        /// <summary>
+        /// Get user-friendly display name for track type
+        /// </summary>
+        private string GetTrackDisplayName(string trackType)
+        {
+            return trackType switch
+            {
+                MiniTimelineConstants.TRACK_ANIM => "Animation",
+                MiniTimelineConstants.TRACK_ANIMATOR => "Animator",
+                MiniTimelineConstants.TRACK_MORPH => "Morph",
+                MiniTimelineConstants.TRACK_MOVEMENT => "Movement",
+                MiniTimelineConstants.TRACK_SIGNAL => "Signal",
+                MiniTimelineConstants.TRACK_AUDIO => "Audio",
+                MiniTimelineConstants.TRACK_EXPRESSION => "Expression", 
+                MiniTimelineConstants.TRACK_IK => "IK Pose",
+                MiniTimelineConstants.TRACK_LIGHT_FX => "FX Light",
+                _ => trackType.Replace("Track", "")
+            };
         }
 
         #endregion

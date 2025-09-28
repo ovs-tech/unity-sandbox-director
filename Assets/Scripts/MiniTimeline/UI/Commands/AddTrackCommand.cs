@@ -1,4 +1,6 @@
+using System.Linq;
 using MiniTimeline.Core;
+using MiniTimeline.Serialization;
 using UnityEngine;
 
 namespace MiniTimeline.UI.Commands
@@ -24,28 +26,66 @@ namespace MiniTimeline.UI.Commands
 
         protected override void ExecuteInternal()
         {
-            // TODO: Add track through proper project API
-            // director.Project.tracks.Add(trackData);
-            // director.MarkDirty();
+            if (director?.Project == null)
+            {
+                Debug.LogError("Cannot add track: No project loaded");
+                return;
+            }
 
-            // Rebuild UI
-            // editorUI?.BuildTimelineUI();
+            try
+            {
+                // Add track data to project
+                director.Project.tracks.Add(trackData);
+                
+                // Create track instance using factory
+                createdTrack = TrackFactory.CreateTrack(trackData);
+                
+                // Mark director as dirty (this typically triggers a rebuild)
+                director.MarkDirty();
+                
+                // Trigger UI rebuild if available
+                editorUI?.BuildTimelineUI();
 
-            Debug.Log($"Adding {trackData.type} track");
+                Debug.Log($"Successfully added {trackData.type} track with ID: {trackData.id}");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to add track: {ex.Message}");
+            }
         }
 
         protected override void UndoInternal()
         {
-            if (createdTrack != null)
+            if (director?.Project == null || createdTrack == null)
             {
-                // TODO: Remove track through proper project API
-                // director.Project.tracks.Remove(trackData);
-                // director.MarkDirty();
+                Debug.LogWarning("Cannot undo add track: Invalid state");
+                return;
+            }
 
-                // Rebuild UI
-                // editorUI?.BuildTimelineUI();
-
-                Debug.Log($"Removing {trackData.type} track");
+            try
+            {
+                // Remove track data from project
+                var trackToRemove = director.Project.tracks.FirstOrDefault(t => t.id == trackData.id);
+                if (trackToRemove != null)
+                {
+                    director.Project.tracks.Remove(trackToRemove);
+                    
+                    // Mark director as dirty
+                    director.MarkDirty();
+                    
+                    // Trigger UI rebuild
+                    editorUI?.BuildTimelineUI();
+                    
+                    Debug.Log($"Successfully removed {trackData.type} track with ID: {trackData.id}");
+                }
+                else
+                {
+                    Debug.LogWarning($"Track with ID {trackData.id} not found for removal");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to undo add track: {ex.Message}");
             }
         }
     }
