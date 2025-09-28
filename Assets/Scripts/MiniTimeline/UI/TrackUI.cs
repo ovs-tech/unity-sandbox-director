@@ -1059,8 +1059,355 @@ namespace MiniTimeline.UI
         
         private void ShowTrackSettings()
         {
+            if (track == null)
+            {
+                Debug.LogError("Cannot show track settings: track is null");
+                return;
+            }
+
+            // Define form fields for track settings
+            var fieldDefinitions = new List<FormFieldDefinition>
+            {
+                new FormFieldDefinition
+                {
+                    name = "trackName",
+                    type = "text",
+                    label = "Track Name",
+                    required = true,
+                    placeholder = "Enter track name...",
+                    defaultValue = GetFriendlyTrackName(track.GetType().Name),
+                    tooltip = "Display name for this track"
+                },
+                new FormFieldDefinition
+                {
+                    name = "bindKey",
+                    type = "selectbox",
+                    label = "Bind Key",
+                    required = false,
+                    defaultValue = track.BindKey ?? "",
+                    tooltip = "Select a binding key to associate this track with scene objects",
+                    options = new Dictionary<string, object>
+                    {
+                        { "items", GetAvailableBindings() },
+                        { "allowCustom", true },
+                        { "placeholder", "Select or enter binding key..." }
+                    }
+                },
+                new FormFieldDefinition
+                {
+                    name = "enabled",
+                    type = "toggle",
+                    label = "Enabled",
+                    required = false,
+                    defaultValue = track.Enabled,
+                    tooltip = "Enable or disable this track"
+                },
+                new FormFieldDefinition
+                {
+                    name = "trackOrder",
+                    type = "number",
+                    label = "Track Order",
+                    required = false,
+                    defaultValue = GetTrackOrder(),
+                    tooltip = "Display order of this track (lower numbers appear first)"
+                }
+            };
+
+            // Add track-specific settings based on track type
+            AddTrackSpecificSettings(fieldDefinitions);
+
+            // Show the form using FormSubmitPanel
+            FormSubmitPanel.Instance.Show(
+                $"Track Settings - {GetFriendlyTrackName(track.GetType().Name)}",
+                fieldDefinitions,
+                OnTrackSettingsFormSubmitted,
+                OnTrackSettingsFormCancelled
+            );
+
             Debug.Log($"Show track settings: {track?.GetType().Name}");
-            // TODO: Show track settings panel
+        }
+        
+        /// <summary>
+        /// Get the current track order from the director's project
+        /// </summary>
+        private int GetTrackOrder()
+        {
+            if (track == null || timelineEditor?.Director?.Project == null) return 0;
+            
+            var projectTracks = timelineEditor.Director.Project.tracks;
+            var trackData = projectTracks?.FirstOrDefault(t => t.id == track.Id);
+            return trackData?.order ?? 0;
+        }
+        
+        /// <summary>
+        /// Add track-specific settings to the form definition based on track type
+        /// </summary>
+        private void AddTrackSpecificSettings(List<FormFieldDefinition> fieldDefinitions)
+        {
+            // Add track-specific fields based on track type
+            switch (track)
+            {
+                case AnimTrack animTrack:
+                    AddAnimTrackSettings(fieldDefinitions);
+                    break;
+                case AnimatorTrack animatorTrack:
+                    AddAnimatorTrackSettings(fieldDefinitions);
+                    break;
+                case MorphTrack morphTrack:
+                    AddMorphTrackSettings(fieldDefinitions);
+                    break;
+                case MovementTrack movementTrack:
+                    AddMovementTrackSettings(fieldDefinitions);
+                    break;
+                case SignalTrack signalTrack:
+                    AddSignalTrackSettings(fieldDefinitions);
+                    break;
+            }
+        }
+        
+        /// <summary>
+        /// Get available binding keys from the timeline director's BindingContext
+        /// </summary>
+        private List<string> GetAvailableBindings()
+        {
+            var bindings = new List<string>();
+            
+            // Get bindings from timeline director's BindingContext
+            var bindingContext = GetBindingContext();
+            if (bindingContext != null)
+            {
+                bindings.AddRange(bindingContext.GetKeys());
+            }
+            
+            // Add some common default bindings if none exist
+            if (bindings.Count == 0)
+            {
+                bindings.AddRange(new[] { "character", "camera", "player", "environment", "ui" });
+            }
+            
+            // Add current bind key if it's not in the list
+            if (!string.IsNullOrEmpty(track?.BindKey) && !bindings.Contains(track.BindKey))
+            {
+                bindings.Add(track.BindKey);
+            }
+            
+            return bindings.OrderBy(b => b).ToList();
+        }
+        
+        /// <summary>
+        /// Get the BindingContext from the director
+        /// </summary>
+        private BindingContext GetBindingContext()
+        {
+            // Try to get BindingContext from the director
+            if (timelineEditor?.Director != null)
+            {
+                // Check if director has a BindingContext property
+                var directorType = timelineEditor.Director.GetType();
+                var bindingContextProperty = directorType.GetProperty("BindingContext");
+                if (bindingContextProperty != null)
+                {
+                    return bindingContextProperty.GetValue(timelineEditor.Director) as BindingContext;
+                }
+                
+                // Check if director has a BindingContext field
+                var bindingContextField = directorType.GetField("bindingContext", 
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+                if (bindingContextField != null)
+                {
+                    return bindingContextField.GetValue(timelineEditor.Director) as BindingContext;
+                }
+            }
+            
+            // Fallback: create a temporary BindingContext with scene objects
+            var tempContext = new BindingContext();
+            PopulateContextWithSceneObjects(tempContext);
+            return tempContext;
+        }
+        
+        /// <summary>
+        /// Populate a BindingContext with common scene objects
+        /// </summary>
+        private void PopulateContextWithSceneObjects(BindingContext context)
+        {
+            // Try to find common objects in the scene
+            var gameObjects = FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+            foreach (var go in gameObjects)
+            {
+                string name = go.name.ToLower();
+                if (name.Contains("character") || name.Contains("player"))
+                    context.Bind("character", go);
+                else if (name.Contains("camera"))
+                    context.Bind("camera", go);
+                else if (name.Contains("environment"))
+                    context.Bind("environment", go);
+                else if (name.Contains("ui"))
+                    context.Bind("ui", go);
+            }
+        }
+        
+        /// <summary>
+        /// Add Animation Track specific settings
+        /// </summary>
+        private void AddAnimTrackSettings(List<FormFieldDefinition> fieldDefinitions)
+        {
+            fieldDefinitions.Add(new FormFieldDefinition
+            {
+                name = "animationLayer",
+                type = "number",
+                label = "Animation Layer",
+                required = false,
+                defaultValue = 0,
+                tooltip = "Animation layer for this track"
+            });
+        }
+        
+        /// <summary>
+        /// Add Animator Track specific settings
+        /// </summary>
+        private void AddAnimatorTrackSettings(List<FormFieldDefinition> fieldDefinitions)
+        {
+            fieldDefinitions.Add(new FormFieldDefinition
+            {
+                name = "layerIndex",
+                type = "number",
+                label = "Animator Layer Index",
+                required = false,
+                defaultValue = 0,
+                tooltip = "Animator layer index for this track"
+            });
+        }
+        
+        /// <summary>
+        /// Add Morph Track specific settings
+        /// </summary>
+        private void AddMorphTrackSettings(List<FormFieldDefinition> fieldDefinitions)
+        {
+            fieldDefinitions.Add(new FormFieldDefinition
+            {
+                name = "morphWeight",
+                type = "slider",
+                label = "Default Morph Weight",
+                required = false,
+                defaultValue = 1.0f,
+                options = new Dictionary<string, object>
+                {
+                    { "minValue", 0.0f },
+                    { "maxValue", 1.0f }
+                },
+                tooltip = "Default weight for morph targets"
+            });
+        }
+        
+        /// <summary>
+        /// Add Movement Track specific settings
+        /// </summary>
+        private void AddMovementTrackSettings(List<FormFieldDefinition> fieldDefinitions)
+        {
+            fieldDefinitions.Add(new FormFieldDefinition
+            {
+                name = "coordinateSpace",
+                type = "selectbox",
+                label = "Coordinate Space",
+                required = false,
+                defaultValue = "World",
+                options = new Dictionary<string, object>
+                {
+                    { "items", new List<string> { "World", "Local", "Parent" }}
+                },
+                tooltip = "Coordinate space for movement calculations"
+            });
+        }
+        
+        /// <summary>
+        /// Add Signal Track specific settings
+        /// </summary>
+        private void AddSignalTrackSettings(List<FormFieldDefinition> fieldDefinitions)
+        {
+            fieldDefinitions.Add(new FormFieldDefinition
+            {
+                name = "signalPriority",
+                type = "number",
+                label = "Signal Priority",
+                required = false,
+                defaultValue = 0,
+                tooltip = "Priority level for signal processing"
+            });
+        }
+        
+        /// <summary>
+        /// Handle track settings form submission
+        /// </summary>
+        private void OnTrackSettingsFormSubmitted(Dictionary<string, object> formData)
+        {
+            try
+            {
+                Debug.Log("Track settings form submitted with data:");
+                foreach (var kvp in formData)
+                {
+                    Debug.Log($"  {kvp.Key}: {kvp.Value}");
+                }
+                
+                // Apply the settings changes through a command
+                ApplyTrackSettings(formData);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to apply track settings: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// Handle track settings form cancellation
+        /// </summary>
+        private void OnTrackSettingsFormCancelled()
+        {
+            Debug.Log("Track settings cancelled");
+        }
+        
+        /// <summary>
+        /// Apply track settings from form data
+        /// </summary>
+        private void ApplyTrackSettings(Dictionary<string, object> formData)
+        {
+            if (track == null || timelineEditor == null) return;
+            
+            // Create a command to update track settings
+            var oldSettings = CaptureCurrentTrackSettings();
+            var newSettings = CreateTrackSettingsFromFormData(formData);
+            
+            var updateCommand = new UpdateTrackSettingsCommand(track, oldSettings, newSettings, this);
+            timelineEditor.ExecuteCommand(updateCommand);
+        }
+        
+        /// <summary>
+        /// Capture current track settings for undo functionality
+        /// </summary>
+        private Dictionary<string, object> CaptureCurrentTrackSettings()
+        {
+            var settings = new Dictionary<string, object>
+            {
+                ["bindKey"] = track.BindKey ?? "",
+                ["enabled"] = track.Enabled,
+                ["trackOrder"] = GetTrackOrder()
+            };
+            
+            return settings;
+        }
+        
+        /// <summary>
+        /// Create track settings dictionary from form data
+        /// </summary>
+        private Dictionary<string, object> CreateTrackSettingsFromFormData(Dictionary<string, object> formData)
+        {
+            var settings = new Dictionary<string, object>();
+            
+            foreach (var kvp in formData)
+            {
+                settings[kvp.Key] = kvp.Value;
+            }
+            
+            return settings;
         }
         
         #if UNITY_EDITOR

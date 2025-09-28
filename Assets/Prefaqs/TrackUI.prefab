@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7603937136792263474}
   - component: {fileID: 2715124910687270354}
   - component: {fileID: 6047087752765468097}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -89,7 +89,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7696262813899895454}
   - component: {fileID: 4985390581114061001}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Checkmark
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -135,7 +135,7 @@ GameObject:
   - component: {fileID: 968418414246932505}
   - component: {fileID: 2784843871089386486}
   - component: {fileID: 8238847512553095170}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Header
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -213,7 +213,7 @@ GameObject:
   - component: {fileID: 2070622836827830994}
   - component: {fileID: 7258567716718036994}
   - component: {fileID: 286388084934047605}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -288,7 +288,7 @@ GameObject:
   - component: {fileID: 7272718507024032200}
   - component: {fileID: 5202758605175463769}
   - component: {fileID: 6550069917490410135}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: TrackUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -350,6 +350,7 @@ MonoBehaviour:
   - {r: 0.7, g: 0.7, b: 0.3, a: 0.8}
   - {r: 0.5, g: 0.3, b: 0.7, a: 0.8}
   - {r: 0.7, g: 0.5, b: 0.3, a: 0.8}
+  longPressDuration: 0.8
 --- !u!1 &4882880196782570127
 GameObject:
   m_ObjectHideFlags: 0
@@ -361,7 +362,7 @@ GameObject:
   - component: {fileID: 2469915144838352309}
   - component: {fileID: 3000730033715457128}
   - component: {fileID: 4256706612219666926}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: CheckText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -441,7 +442,7 @@ GameObject:
   - component: {fileID: 6787444594349193638}
   - component: {fileID: 7379732897003527185}
   - component: {fileID: 4003373381651841215}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: MuteToggle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -566,7 +567,7 @@ GameObject:
   - component: {fileID: 4268023956866576343}
   - component: {fileID: 7538898288430611451}
   - component: {fileID: 929198758672246277}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Options
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -686,7 +687,7 @@ GameObject:
   - component: {fileID: 4917388219006110877}
   - component: {fileID: 580480707592294420}
   - component: {fileID: 8331501181569442532}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: TrackName
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -765,7 +766,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4618158168774926020}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Clips
   m_TagString: Untagged
   m_Icon: {fileID: 0}

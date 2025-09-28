@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7383689008844920696}
   - component: {fileID: 6367546989932119825}
   - component: {fileID: 1030207536011484525}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: ResizeLeft
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -86,7 +86,7 @@ GameObject:
   - component: {fileID: 4894208930105383538}
   - component: {fileID: 5568473285561920892}
   - component: {fileID: 2420271998336597125}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: ResizeRight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -161,7 +161,7 @@ GameObject:
   - component: {fileID: 7844882758994622281}
   - component: {fileID: 811714961993945048}
   - component: {fileID: 628259198440994696}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Label
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -240,7 +240,7 @@ GameObject:
   - component: {fileID: 6691127547468046056}
   - component: {fileID: 8279048045705887462}
   - component: {fileID: 5990533508959267950}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -315,7 +315,7 @@ GameObject:
   - component: {fileID: 8169343045220216942}
   - component: {fileID: 4940618692411048607}
   - component: {fileID: 4086388001295906948}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Border
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -391,7 +391,7 @@ GameObject:
   - component: {fileID: 6218564394155767300}
   - component: {fileID: 6920700555865032106}
   - component: {fileID: 5001628259137597209}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: ClipUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -452,6 +452,7 @@ MonoBehaviour:
   hoverColor: {r: 0.5, g: 0.7, b: 0.9, a: 0.9}
   borderColor: {r: 0.24116908, g: 0.5170569, b: 0.84276724, a: 0.4627451}
   selectedBorderColor: {r: 0.23921569, g: 0.5176471, b: 0.84313726, a: 1}
+  longPressDuration: 0.8
 --- !u!225 &5001628259137597209
 CanvasGroup:
   m_ObjectHideFlags: 0

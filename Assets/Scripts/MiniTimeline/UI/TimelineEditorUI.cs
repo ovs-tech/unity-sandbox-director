@@ -20,6 +20,7 @@ namespace MiniTimeline.UI
         [SerializeField] private RectTransform tracksContainer;
         [SerializeField] private ScrollRect timelineScrollRect;
         [SerializeField] private Button addTrackButton;
+        [SerializeField] private Button bindingManagerButton;
         [SerializeField] private Button playButton;
         [SerializeField] private Button pauseButton;
         [SerializeField] private Button stopButton;
@@ -90,6 +91,9 @@ namespace MiniTimeline.UI
 
         private void Awake()
         {
+            // Initialize UI creation helper to prevent TextMeshPro threading issues
+            UICreationHelper.Initialize(this);
+            
             // Initialize command manager
             commandManager = new TimelineCommandManager();
 
@@ -214,6 +218,10 @@ namespace MiniTimeline.UI
             // Setup add track button
             if (addTrackButton != null)
                 addTrackButton.onClick.AddListener(ShowAddTrackForm);
+
+            // Setup binding manager button
+            if (bindingManagerButton != null)
+                bindingManagerButton.onClick.AddListener(ShowBindingManagerForm);
 
             if (timeSlider != null)
             {
@@ -801,6 +809,288 @@ namespace MiniTimeline.UI
                 MiniTimelineConstants.TRACK_LIGHT_FX => "FX Light",
                 _ => trackType.Replace("Track", "")
             };
+        }
+
+        #endregion
+        
+        #region Binding Manager Methods
+        
+        /// <summary>
+        /// Show the main binding manager form
+        /// </summary>
+        private void ShowBindingManagerForm()
+        {
+            if (director?.BindingContext == null)
+            {
+                Debug.LogError("Cannot show binding manager: No binding context available");
+                return;
+            }
+
+            Debug.Log("Opening main binding manager form");
+            
+            // Get current BindingContext
+            var bindingContext = director.BindingContext;
+            
+            // Create form fields for binding management
+            var fieldDefinitions = new List<FormFieldDefinition>
+            {
+                new FormFieldDefinition
+                {
+                    name = "bindingList",
+                    type = "textarea",
+                    label = "Current Scene Bindings",
+                    required = false,
+                    defaultValue = FormatBindingsForDisplay(bindingContext),
+                    tooltip = "List of currently registered scene object bindings",
+                    options = new Dictionary<string, object>
+                    {
+                        { "readonly", true }
+                    }
+                },
+                new FormFieldDefinition
+                {
+                    name = "newBindingKey",
+                    type = "text",
+                    label = "New Binding Key",
+                    required = false,
+                    placeholder = "Enter binding key (e.g., 'character', 'camera')...",
+                    tooltip = "Unique key name for the new binding"
+                },
+                new FormFieldDefinition
+                {
+                    name = "newBindingObject",
+                    type = "text",  // Using text for now since objectfield might not be implemented
+                    label = "Target Object Name",
+                    required = false,
+                    placeholder = "Enter GameObject name in scene...",
+                    tooltip = "Name of the GameObject to bind to this key"
+                },
+                new FormFieldDefinition
+                {
+                    name = "removeBinding",
+                    type = "selectbox",
+                    label = "Remove Binding",
+                    required = false,
+                    tooltip = "Select a binding to remove from the scene",
+                    options = new Dictionary<string, object>
+                    {
+                        { "items", bindingContext?.GetKeys().ToList() ?? new List<string>() },
+                        { "placeholder", "Select binding to remove..." }
+                    }
+                },
+                new FormFieldDefinition
+                {
+                    name = "autoDetectObjects",
+                    type = "button",
+                    label = "Auto-Detect Scene Objects",
+                    required = false,
+                    defaultValue = "Scan Scene for Common Objects",
+                    tooltip = "Automatically detect and bind common GameObjects in the scene",
+                    options = new Dictionary<string, object>
+                    {
+                        { "action", "autoDetectBindings" }
+                    }
+                }
+            };
+            
+            // Show the binding manager form
+            FormSubmitPanel.Instance.Show(
+                "Scene Binding Manager",
+                fieldDefinitions,
+                OnBindingManagerFormSubmitted,
+                OnBindingManagerFormCancelled
+            );
+        }
+        
+        /// <summary>
+        /// Format the current bindings for display in the info field
+        /// </summary>
+        private string FormatBindingsForDisplay(BindingContext bindingContext)
+        {
+            if (bindingContext == null)
+            {
+                return "No binding context available.";
+            }
+            
+            var keys = bindingContext.GetKeys().ToList();
+            if (keys.Count == 0)
+            {
+                return "No bindings currently registered.\n\nTip: Use 'Auto-Detect Scene Objects' to automatically find common GameObjects, or manually add bindings below.";
+            }
+            
+            var displayText = "Active Scene Bindings:\n\n";
+            foreach (var key in keys)
+            {
+                if (bindingContext.TryResolve(key, out UnityEngine.Object obj))
+                {
+                    string objectName = obj != null ? obj.name : "<null>";
+                    string objectType = obj != null ? obj.GetType().Name : "missing";
+                    string status = obj != null ? "✓" : "✗";
+                    displayText += $"{status} {key} → {objectName} ({objectType})\n";
+                }
+                else
+                {
+                    displayText += $"✗ {key} → <not resolved>\n";
+                }
+            }
+            
+            displayText += "\nTip: Tracks use these binding keys to reference GameObjects in the scene.";
+            return displayText;
+        }
+        
+        /// <summary>
+        /// Handle binding manager form submission
+        /// </summary>
+        private void OnBindingManagerFormSubmitted(Dictionary<string, object> formData)
+        {
+            try
+            {
+                Debug.Log("Main binding manager form submitted with data:");
+                foreach (var kvp in formData)
+                {
+                    Debug.Log($"  {kvp.Key}: {kvp.Value}");
+                }
+                
+                // Check if this is an auto-detect action
+                if (formData.ContainsKey("action") && formData["action"].ToString() == "autoDetectBindings")
+                {
+                    AutoDetectSceneBindings();
+                    ShowBindingManagerForm(); // Refresh the form
+                    return;
+                }
+                
+                bool bindingsChanged = false;
+                
+                // Handle adding new binding
+                if (formData.ContainsKey("newBindingKey") && formData.ContainsKey("newBindingObject"))
+                {
+                    string newKey = formData["newBindingKey"]?.ToString();
+                    string objectName = formData["newBindingObject"]?.ToString();
+                    
+                    if (!string.IsNullOrEmpty(newKey) && !string.IsNullOrEmpty(objectName))
+                    {
+                        // Find the GameObject by name
+                        GameObject targetObject = GameObject.Find(objectName);
+                        if (targetObject != null)
+                        {
+                            AddBinding(newKey, targetObject);
+                            bindingsChanged = true;
+                            Debug.Log($"Added new binding: {newKey} → {targetObject.name}");
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"Could not find GameObject with name '{objectName}' in scene");
+                        }
+                    }
+                }
+                
+                // Handle removing binding
+                if (formData.ContainsKey("removeBinding"))
+                {
+                    string removeKey = formData["removeBinding"]?.ToString();
+                    if (!string.IsNullOrEmpty(removeKey))
+                    {
+                        RemoveBinding(removeKey);
+                        bindingsChanged = true;
+                        Debug.Log($"Removed binding: {removeKey}");
+                    }
+                }
+                
+                if (bindingsChanged)
+                {
+                    Debug.Log("Scene bindings updated successfully");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to process binding manager changes: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// Handle binding manager form cancellation
+        /// </summary>
+        private void OnBindingManagerFormCancelled()
+        {
+            Debug.Log("Binding manager cancelled");
+        }
+        
+        /// <summary>
+        /// Auto-detect common GameObjects in the scene and bind them
+        /// </summary>
+        private void AutoDetectSceneBindings()
+        {
+            if (director?.BindingContext == null) return;
+            
+            var bindingContext = director.BindingContext;
+            int bindingsAdded = 0;
+            
+            // Find common objects in the scene
+            var gameObjects = FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+            
+            foreach (var go in gameObjects)
+            {
+                string name = go.name.ToLower();
+                string bindingKey = null;
+                
+                // Determine binding key based on object name patterns
+                if (name.Contains("character") || name.Contains("player"))
+                    bindingKey = "character";
+                else if (name.Contains("camera") && go.GetComponent<Camera>() != null)
+                    bindingKey = "camera";
+                else if (name.Contains("environment") || name.Contains("level"))
+                    bindingKey = "environment";
+                else if (name.Contains("ui") && go.GetComponent<Canvas>() != null)
+                    bindingKey = "ui";
+                else if (name.Contains("light") && go.GetComponent<Light>() != null)
+                    bindingKey = "light";
+                else if (name.Contains("audio") && go.GetComponent<AudioSource>() != null)
+                    bindingKey = "audio";
+                
+                // Add binding if we found a key and it doesn't already exist
+                if (!string.IsNullOrEmpty(bindingKey) && !bindingContext.HasKey(bindingKey))
+                {
+                    bindingContext.Bind(bindingKey, go);
+                    bindingsAdded++;
+                    Debug.Log($"Auto-detected binding: {bindingKey} → {go.name}");
+                }
+            }
+            
+            Debug.Log($"Auto-detection complete. Added {bindingsAdded} new bindings.");
+        }
+        
+        /// <summary>
+        /// Add a new binding to the BindingContext
+        /// </summary>
+        private void AddBinding(string key, UnityEngine.Object targetObject)
+        {
+            var bindingContext = director?.BindingContext;
+            if (bindingContext != null)
+            {
+                bindingContext.Bind(key, targetObject);
+                Debug.Log($"Added binding: {key} → {targetObject?.name ?? "<null>"}");
+            }
+            else
+            {
+                Debug.LogWarning($"Cannot add binding: BindingContext not available");
+            }
+        }
+        
+        /// <summary>
+        /// Remove a binding from the BindingContext
+        /// </summary>
+        private void RemoveBinding(string key)
+        {
+            var bindingContext = director?.BindingContext;
+            if (bindingContext != null)
+            {
+                bindingContext.Unbind(key);
+                Debug.Log($"Removed binding: {key}");
+            }
+            else
+            {
+                Debug.LogWarning($"Cannot remove binding: BindingContext not available");
+            }
         }
 
         #endregion

@@ -376,10 +376,7 @@ namespace MiniTimeline.UI
             cancelTextRect.anchorMax = Vector2.one;
             cancelTextRect.sizeDelta = Vector2.zero;
             
-            var cancelTextMesh = cancelTextObj.AddComponent<TextMeshProUGUI>();
-            cancelTextMesh.text = "Cancel";
-            cancelTextMesh.fontSize = 14f;
-            cancelTextMesh.color = Color.white;
+            var cancelTextMesh = UICreationHelper.CreateStandardTextMesh(cancelTextObj, "Cancel", 14f, Color.white);
             cancelTextMesh.alignment = TextAlignmentOptions.Center;
             
             // Submit button
@@ -397,10 +394,7 @@ namespace MiniTimeline.UI
             submitTextRect.anchorMax = Vector2.one;
             submitTextRect.sizeDelta = Vector2.zero;
             
-            var submitTextMesh = submitTextObj.AddComponent<TextMeshProUGUI>();
-            submitTextMesh.text = "Create";
-            submitTextMesh.fontSize = 14f;
-            submitTextMesh.color = Color.white;
+            var submitTextMesh = UICreationHelper.CreateStandardTextMesh(submitTextObj, "Create", 14f, Color.white);
             submitTextMesh.alignment = TextAlignmentOptions.Center;
         }
         
@@ -531,6 +525,15 @@ namespace MiniTimeline.UI
             Initialize();
         }
         
+        /// <summary>
+        /// Handle form submission with custom data (used by button fields)
+        /// </summary>
+        public void HandleCustomSubmission(Dictionary<string, object> customData)
+        {
+            OnFormSubmitted?.Invoke(customData);
+            CloseForm();
+        }
+        
         #endregion
         
         #region Form Management
@@ -604,6 +607,12 @@ namespace MiniTimeline.UI
                 case "color":
                     fieldObj = CreateColorField(fieldDef);
                     break;
+                case "button":
+                    fieldObj = CreateButtonField(fieldDef);
+                    break;
+                case "info":
+                    fieldObj = CreateInfoField(fieldDef);
+                    break;
                 default:
                     Debug.LogWarning($"Unsupported field type: {fieldDef.type}");
                     fieldObj = CreateTextField(fieldDef); // Fallback to text
@@ -643,7 +652,7 @@ namespace MiniTimeline.UI
             GameObject fieldObj = new GameObject($"TextAreaField_{fieldDef.name}");
             
             var layoutElement = fieldObj.AddComponent<LayoutElement>();
-            layoutElement.minHeight = 100f;
+            layoutElement.minHeight = 150f; // Increased for better scrollable experience
             
             var textAreaField = fieldObj.AddComponent<TextAreaFormField>();
             textAreaField.Initialize(fieldDef);
@@ -714,6 +723,40 @@ namespace MiniTimeline.UI
             colorField.Initialize(fieldDef);
             
             return fieldObj;
+        }
+        
+        private GameObject CreateButtonField(FormFieldDefinition fieldDef)
+        {
+            GameObject fieldObj = new GameObject($"ButtonField_{fieldDef.name}");
+            
+            var layoutElement = fieldObj.AddComponent<LayoutElement>();
+            layoutElement.minHeight = 50f;
+            
+            var buttonField = fieldObj.AddComponent<ButtonFormField>();
+            buttonField.Initialize(fieldDef);
+            
+            return fieldObj;
+        }
+        
+        private GameObject CreateInfoField(FormFieldDefinition fieldDef)
+        {
+            // Convert info field to readonly textarea
+            var textAreaDef = new FormFieldDefinition
+            {
+                name = fieldDef.name,
+                label = fieldDef.label,
+                type = "textarea",
+                defaultValue = fieldDef.defaultValue,
+                required = fieldDef.required,
+                placeholder = fieldDef.placeholder,
+                tooltip = fieldDef.tooltip,
+                options = new Dictionary<string, object>(fieldDef.options ?? new Dictionary<string, object>())
+            };
+            
+            // Mark as readonly
+            textAreaDef.options["readonly"] = true;
+            
+            return CreateTextAreaField(textAreaDef);
         }
         
         private void FocusFirstField()
@@ -805,6 +848,118 @@ namespace MiniTimeline.UI
         string GetName();
         bool IsValid();
         void Focus();
+    }
+    
+    #endregion
+    
+    #region Form Field Components
+    
+    /// <summary>
+    /// Button form field that triggers actions
+    /// </summary>
+    public class ButtonFormField : MonoBehaviour, IFormField
+    {
+        private FormFieldDefinition fieldDefinition;
+        private Button button;
+        private TextMeshProUGUI buttonText;
+        private string actionValue;
+        
+        public void Initialize(FormFieldDefinition definition)
+        {
+            fieldDefinition = definition;
+            CreateUI();
+            
+            // Get action from options
+            if (definition.options != null && definition.options.ContainsKey("action"))
+            {
+                actionValue = definition.options["action"].ToString();
+            }
+        }
+        
+        private void CreateUI()
+        {
+            // Safety check for fieldDefinition
+            if (fieldDefinition == null)
+            {
+                Debug.LogError("ButtonFormField.CreateUI: fieldDefinition is null");
+                return;
+            }
+            
+            // Get or add RectTransform (don't add if it already exists)
+            var rect = GetComponent<RectTransform>();
+            if (rect == null)
+            {
+                rect = gameObject.AddComponent<RectTransform>();
+            }
+            
+            // Create button
+            button = gameObject.AddComponent<Button>();
+            var buttonImage = gameObject.AddComponent<Image>();
+            buttonImage.color = new Color(0.3f, 0.6f, 0.9f, 0.8f);
+            
+            // Create button text
+            GameObject textObj = new GameObject("Text");
+            textObj.transform.SetParent(transform, false);
+            
+            var textRect = textObj.AddComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.sizeDelta = Vector2.zero;
+            textRect.anchoredPosition = Vector2.zero;
+            
+            buttonText = textObj.AddComponent<TextMeshProUGUI>();
+            buttonText.text = fieldDefinition.defaultValue?.ToString() ?? fieldDefinition.label;
+            buttonText.fontSize = 14f;
+            buttonText.color = Color.white;
+            buttonText.alignment = TextAlignmentOptions.Center;
+            
+            // Handle button click
+            button.onClick.AddListener(() =>
+            {
+                // For button fields, we set a special action value that the form handler can detect
+                if (!string.IsNullOrEmpty(actionValue))
+                {
+                    // Create a special form data entry that indicates this was a button click
+                    var formPanel = GetComponentInParent<FormSubmitPanel>();
+                    if (formPanel != null)
+                    {
+                        var formData = new Dictionary<string, object>
+                        {
+                            ["action"] = actionValue,
+                            [fieldDefinition.name] = actionValue
+                        };
+                        
+                        // Use the new public method to handle custom submission
+                        formPanel.HandleCustomSubmission(formData);
+                    }
+                }
+            });
+        }
+        
+        public object GetValue()
+        {
+            return actionValue ?? fieldDefinition.name;
+        }
+        
+        public void SetValue(object value)
+        {
+            // Buttons don't have settable values
+        }
+        
+        public string GetName()
+        {
+            return fieldDefinition?.name ?? "unknown";
+        }
+        
+        public bool IsValid()
+        {
+            return true; // Buttons are always valid
+        }
+        
+        public void Focus()
+        {
+            button?.Select();
+        }
     }
     
     #endregion
