@@ -198,7 +198,7 @@ namespace MiniTimeline.UI
             var containerRect = formContainer.AddComponent<RectTransform>();
             containerRect.anchorMin = new Vector2(0.5f, 0.5f);
             containerRect.anchorMax = new Vector2(0.5f, 0.5f);
-            containerRect.sizeDelta = new Vector2(400f, 500f);
+            containerRect.sizeDelta = new Vector2(240f, 320f);
             containerRect.anchoredPosition = Vector2.zero;
             
             var containerImage = formContainer.AddComponent<Image>();
