@@ -12,6 +12,8 @@ public class FreeCameraMoving : MonoBehaviour
     [SerializeField] private float turboMultiplier = 3f;
     [SerializeField] private float lookSpeedMouse = 4f;
     [SerializeField] private float mouseSensitivityMultiplier = 0.01f;
+    [SerializeField] private bool invertVerticalLook = false;
+    [SerializeField] private bool invertHorizontalLook = false;
     
     [Header("Orbit Camera Settings")]
     [SerializeField] private Transform target;
@@ -34,6 +36,7 @@ public class FreeCameraMoving : MonoBehaviour
     
     public enum CameraMode
     {
+        None,
         FreeMove,
         Orbit
     }
@@ -47,6 +50,7 @@ public class FreeCameraMoving : MonoBehaviour
     private InputAction resetCameraAction;
     private InputAction sprintAction;
     private InputAction verticalMoveAction;
+    private InputAction switchModeAction;
     
     // Free movement variables
     private bool isSprinting = false;
@@ -86,13 +90,14 @@ public class FreeCameraMoving : MonoBehaviour
         }
         
         // Find the camera actions
-        moveAction = inputActions.FindAction("Player/Move");
-        lookAction = inputActions.FindAction("Player/Look");
-        sprintAction = inputActions.FindAction("Player/Sprint");
+        moveAction = inputActions.FindAction("Camera/Move");
+        lookAction = inputActions.FindAction("Camera/Look");
+        sprintAction = inputActions.FindAction("Camera/Sprint");
         orbitAction = inputActions.FindAction("Camera/Orbit");
         panAction = inputActions.FindAction("Camera/Pan");
         zoomAction = inputActions.FindAction("Camera/Zoom");
         resetCameraAction = inputActions.FindAction("Camera/ResetCamera");
+        switchModeAction = inputActions.FindAction("Camera/SwitchMode");
         
         // Create vertical movement action if it doesn't exist
         var actionMap = inputActions.FindActionMap("Player");
@@ -168,6 +173,11 @@ public class FreeCameraMoving : MonoBehaviour
                 resetCameraAction.performed += OnResetCamera;
             }
             
+            if (switchModeAction != null)
+            {
+                switchModeAction.performed += OnSwitchMode;
+            }
+            
             // Subscribe to orbit-specific input events
             if (orbitAction != null)
             {
@@ -210,6 +220,11 @@ public class FreeCameraMoving : MonoBehaviour
                 resetCameraAction.performed -= OnResetCamera;
             }
             
+            if (switchModeAction != null)
+            {
+                switchModeAction.performed -= OnSwitchMode;
+            }
+            
             if (orbitAction != null)
             {
                 orbitAction.started -= OnOrbitStarted;
@@ -242,6 +257,7 @@ public class FreeCameraMoving : MonoBehaviour
             HandleOrbitInput();
             UpdateCameraPosition();
         }
+        // None mode: Do nothing, camera is completely disabled
     }
     
     private void HandleFreeMoveInput()
@@ -250,8 +266,16 @@ public class FreeCameraMoving : MonoBehaviour
         if (isFreeLooking && lookAction != null)
         {
             Vector2 lookDelta = lookAction.ReadValue<Vector2>();
+            
+            // Apply invert settings
             float rotationX = lookDelta.x * lookSpeedMouse * mouseSensitivityMultiplier;
             float rotationY = lookDelta.y * lookSpeedMouse * mouseSensitivityMultiplier;
+            
+            if (invertHorizontalLook)
+                rotationX = -rotationX;
+            
+            if (invertVerticalLook)
+                rotationY = -rotationY;
             
             // Apply rotation
             float currentRotationX = transform.localEulerAngles.x;
@@ -365,6 +389,7 @@ public class FreeCameraMoving : MonoBehaviour
         {
             isFreeLooking = true;
             Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
     }
     
@@ -374,6 +399,7 @@ public class FreeCameraMoving : MonoBehaviour
         {
             isFreeLooking = false;
             Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
     }
     
@@ -453,6 +479,33 @@ public class FreeCameraMoving : MonoBehaviour
             verticalAngle = initialVerticalAngle;
             Debug.Log("Orbit camera reset to initial position");
         }
+        // None mode: Reset is not available
+    }
+    
+    private void OnSwitchMode(InputAction.CallbackContext context)
+    {
+        // Cycle between camera modes: None -> FreeMove -> Orbit -> None
+        switch (cameraMode)
+        {
+            case CameraMode.None:
+                SetCameraMode(CameraMode.FreeMove);
+                break;
+            case CameraMode.FreeMove:
+                // Only switch to orbit mode if we have a target
+                if (target != null)
+                {
+                    SetCameraMode(CameraMode.Orbit);
+                }
+                else
+                {
+                    SetCameraMode(CameraMode.None);
+                    Debug.LogWarning("Skipping Orbit mode: No target assigned!");
+                }
+                break;
+            case CameraMode.Orbit:
+                SetCameraMode(CameraMode.None);
+                break;
+        }
     }
     
     #endregion
@@ -472,6 +525,7 @@ public class FreeCameraMoving : MonoBehaviour
         isPanning = false;
         isFreeLooking = false;
         Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
         
         Debug.Log($"Camera mode switched to: {mode}");
     }
@@ -543,6 +597,42 @@ public class FreeCameraMoving : MonoBehaviour
     public CameraMode GetCameraMode()
     {
         return cameraMode;
+    }
+    
+    /// <summary>
+    /// Set vertical look inversion for free movement mode
+    /// </summary>
+    /// <param name="invert">True to invert vertical look</param>
+    public void SetInvertVerticalLook(bool invert)
+    {
+        invertVerticalLook = invert;
+    }
+    
+    /// <summary>
+    /// Set horizontal look inversion for free movement mode
+    /// </summary>
+    /// <param name="invert">True to invert horizontal look</param>
+    public void SetInvertHorizontalLook(bool invert)
+    {
+        invertHorizontalLook = invert;
+    }
+    
+    /// <summary>
+    /// Get vertical look inversion setting
+    /// </summary>
+    /// <returns>True if vertical look is inverted</returns>
+    public bool GetInvertVerticalLook()
+    {
+        return invertVerticalLook;
+    }
+    
+    /// <summary>
+    /// Get horizontal look inversion setting
+    /// </summary>
+    /// <returns>True if horizontal look is inverted</returns>
+    public bool GetInvertHorizontalLook()
+    {
+        return invertHorizontalLook;
     }
     
     #endregion
