@@ -30,12 +30,12 @@ namespace SceneSandbox.Input
         private InputAction _clickAction;
         private InputAction _rightClickAction;
         private InputAction _dragAction;
-        private InputAction _selectAction;
-        private InputAction _deleteAction;
         
-        // Touch-specific actions
-        private InputAction _touchPressAction;
-        private InputAction _touchPositionAction;
+        // Placement actions
+        private InputAction _placeAnchorAction;
+        private InputAction _moveAction;
+        private InputAction _rotateAction;
+        private InputAction _scaleAction;
         
         // Drag state
         private bool _isDragging;
@@ -54,6 +54,12 @@ namespace SceneSandbox.Input
         public System.Action<GameObject> OnObjectSelect;
         public System.Action<GameObject> OnObjectHover;
         public System.Action<GameObject> OnObjectDelete;
+        
+        // Placement events
+        public System.Action<Vector2> OnPlaceAnchor;
+        public System.Action<Vector2> OnMove;
+        public System.Action<Vector2> OnRotate;
+        public System.Action<Vector2> OnScale;
         
         private Camera _camera;
         
@@ -77,13 +83,11 @@ namespace SceneSandbox.Input
             _clickAction = _inputActions.FindAction("UI/Click");
             _rightClickAction = _inputActions.FindAction("UI/RightClick");
             
-            // Touch actions (if available)
-            _touchPressAction = _inputActions.FindAction("UI/TouchPress");
-            _touchPositionAction = _inputActions.FindAction("UI/TouchPosition");
-            
-            // Scene builder specific actions (we'll add these to the input actions)
-            _selectAction = _inputActions.FindAction("SceneBuilder/Select");
-            _deleteAction = _inputActions.FindAction("SceneBuilder/Delete");
+            // Placement actions
+            _placeAnchorAction = _inputActions.FindAction("Placement/PlaceAnchor");
+            _moveAction = _inputActions.FindAction("Placement/Move");
+            _rotateAction = _inputActions.FindAction("Placement/Rotate");
+            _scaleAction = _inputActions.FindAction("Placement/Scale");
             
             BindInputEvents();
         }
@@ -107,22 +111,25 @@ namespace SceneSandbox.Input
                 _rightClickAction.performed += OnRightClickPerformed;
             }
             
-            if (_selectAction != null)
+            // Placement actions
+            if (_placeAnchorAction != null)
             {
-                _selectAction.performed += OnSelectPerformed;
+                _placeAnchorAction.performed += OnPlaceAnchorPerformed;
             }
             
-            if (_deleteAction != null)
+            if (_moveAction != null)
             {
-                _deleteAction.performed += OnDeletePerformed;
+                _moveAction.performed += OnMovePerformed;
             }
             
-            // Touch input
-            if (_touchPressAction != null && _touchPositionAction != null)
+            if (_rotateAction != null)
             {
-                _touchPressAction.started += OnTouchStarted;
-                _touchPressAction.performed += OnTouchPerformed;
-                _touchPressAction.canceled += OnTouchCanceled;
+                _rotateAction.performed += OnRotatePerformed;
+            }
+            
+            if (_scaleAction != null)
+            {
+                _scaleAction.performed += OnScalePerformed;
             }
         }
         
@@ -141,18 +148,18 @@ namespace SceneSandbox.Input
             if (_rightClickAction != null)
                 _rightClickAction.performed -= OnRightClickPerformed;
             
-            if (_selectAction != null)
-                _selectAction.performed -= OnSelectPerformed;
+            // Placement actions
+            if (_placeAnchorAction != null)
+                _placeAnchorAction.performed -= OnPlaceAnchorPerformed;
             
-            if (_deleteAction != null)
-                _deleteAction.performed -= OnDeletePerformed;
+            if (_moveAction != null)
+                _moveAction.performed -= OnMovePerformed;
             
-            if (_touchPressAction != null)
-            {
-                _touchPressAction.started -= OnTouchStarted;
-                _touchPressAction.performed -= OnTouchPerformed;
-                _touchPressAction.canceled -= OnTouchCanceled;
-            }
+            if (_rotateAction != null)
+                _rotateAction.performed -= OnRotatePerformed;
+            
+            if (_scaleAction != null)
+                _scaleAction.performed -= OnScalePerformed;
         }
         
         private void OnPointPerformed(InputAction.CallbackContext context)
@@ -213,64 +220,25 @@ namespace SceneSandbox.Input
             OnRightClick?.Invoke(_currentPosition);
         }
         
-        private void OnSelectPerformed(InputAction.CallbackContext context)
+        // Placement action handlers
+        private void OnPlaceAnchorPerformed(InputAction.CallbackContext context)
         {
-            var hitObject = GetObjectAtScreenPosition(_currentPosition);
-            if (hitObject != null)
-            {
-                OnObjectSelect?.Invoke(hitObject);
-            }
+            OnPlaceAnchor?.Invoke(_currentPosition);
         }
         
-        private void OnDeletePerformed(InputAction.CallbackContext context)
+        private void OnMovePerformed(InputAction.CallbackContext context)
         {
-            var hitObject = GetObjectAtScreenPosition(_currentPosition);
-            if (hitObject != null)
-            {
-                OnObjectDelete?.Invoke(hitObject);
-            }
+            OnMove?.Invoke(_currentPosition);
         }
         
-        // Touch input handlers
-        private void OnTouchStarted(InputAction.CallbackContext context)
+        private void OnRotatePerformed(InputAction.CallbackContext context)
         {
-            if (_touchPositionAction != null)
-            {
-                _currentPosition = _touchPositionAction.ReadValue<Vector2>();
-                _dragStartPosition = _currentPosition;
-                
-                var hitObject = GetObjectAtScreenPosition(_currentPosition);
-                if (hitObject != null)
-                {
-                    _draggedObject = hitObject;
-                }
-            }
+            OnRotate?.Invoke(_currentPosition);
         }
         
-        private void OnTouchPerformed(InputAction.CallbackContext context)
+        private void OnScalePerformed(InputAction.CallbackContext context)
         {
-            if (_isDragging)
-            {
-                EndDrag();
-            }
-            else
-            {
-                OnClick?.Invoke(_currentPosition);
-                
-                var hitObject = GetObjectAtScreenPosition(_currentPosition);
-                if (hitObject != null)
-                {
-                    OnObjectSelect?.Invoke(hitObject);
-                }
-            }
-        }
-        
-        private void OnTouchCanceled(InputAction.CallbackContext context)
-        {
-            if (_isDragging)
-            {
-                EndDrag();
-            }
+            OnScale?.Invoke(_currentPosition);
         }
         
         private void Update()

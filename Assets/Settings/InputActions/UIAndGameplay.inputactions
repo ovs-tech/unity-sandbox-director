@@ -158,6 +158,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "New action",
+                    "type": "Button",
+                    "id": "e6072c39-16dc-41e5-b363-471ecfb89f4c",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -686,6 +695,17 @@
                     "processors": "",
                     "groups": ";XRControllers",
                     "action": "TrackedDeviceOrientation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b060b931-c46a-452f-9ba0-1eb4d3ddf67a",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "New action",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
@@ -2107,7 +2127,7 @@
                     "name": "Select",
                     "type": "Button",
                     "id": "1a2b3c4d-5e6f-7890-abcd-ef1234567890",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -2188,7 +2208,7 @@
             "bindings": [
                 {
                     "name": "",
-                    "id": "01234567-8901-2345-3456-012345678901",
+                    "id": "0c1cdae9-6e03-483d-b150-dd762ae8161f",
                     "path": "<Mouse>/leftButton",
                     "interactions": "",
                     "processors": "",

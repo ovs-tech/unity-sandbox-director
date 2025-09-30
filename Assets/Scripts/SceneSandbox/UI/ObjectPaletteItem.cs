@@ -42,9 +42,6 @@ namespace SceneSandbox.UI
         
         private void Awake()
         {
-            // Create UI components if they don't exist
-            CreateUIIfMissing();
-            
             if (_selectButton != null)
             {
                 _selectButton.onClick.AddListener(() => OnItemSelected?.Invoke(this));
@@ -78,8 +75,17 @@ namespace SceneSandbox.UI
             // Update icon
             if (_iconImage != null)
             {
-                _iconImage.sprite = _objectData.icon;
-                _iconImage.color = _objectData.iconColor;
+                if (_objectData.icon != null)
+                {
+                    _iconImage.sprite = _objectData.icon;
+                    _iconImage.color = _objectData.iconColor;
+                }
+                else
+                {
+                    // Use default sprite if no icon provided
+                    _iconImage.sprite = CreateDefaultSprite();
+                    _iconImage.color = _objectData.iconColor;
+                }
             }
             
             // Update name
@@ -216,130 +222,44 @@ namespace SceneSandbox.UI
         }
         
         /// <summary>
-        /// Create UI components if they don't exist
-        /// </summary>
-        private void CreateUIIfMissing()
-        {
-            if (_iconImage == null || _nameText == null || _selectButton == null)
-            {
-                CreatePaletteItemUI();
-            }
-        }
-        
-        /// <summary>
-        /// Create the complete UI for this palette item
-        /// </summary>
-        private void CreatePaletteItemUI()
-        {
-            // Ensure we have a RectTransform
-            var rectTransform = GetComponent<RectTransform>();
-            if (rectTransform == null)
-            {
-                rectTransform = gameObject.AddComponent<RectTransform>();
-            }
-            
-            // Set default size for palette item
-            rectTransform.sizeDelta = new Vector2(100, 120);
-            
-            // Create background button (this acts as the main selectable area)
-            if (_selectButton == null)
-            {
-                _selectButton = gameObject.AddComponent<Button>();
-                
-                // Create background image for button
-                var bgImage = gameObject.AddComponent<Image>();
-                bgImage.color = new Color(0.9f, 0.9f, 0.9f, 1f);
-                _selectButton.targetGraphic = bgImage;
-                
-                // Set button colors
-                var colors = _selectButton.colors;
-                colors.normalColor = new Color(0.9f, 0.9f, 0.9f, 1f);
-                colors.highlightedColor = new Color(0.8f, 0.8f, 1f, 1f);
-                colors.pressedColor = new Color(0.7f, 0.7f, 0.9f, 1f);
-                colors.selectedColor = new Color(0.6f, 0.8f, 1f, 1f);
-                _selectButton.colors = colors;
-            }
-            
-            // Create icon image
-            if (_iconImage == null)
-            {
-                var iconGO = new GameObject("Icon");
-                iconGO.transform.SetParent(transform, false);
-                
-                _iconImage = iconGO.AddComponent<Image>();
-                _iconImage.color = Color.white;
-                
-                var iconRect = iconGO.GetComponent<RectTransform>();
-                iconRect.anchorMin = new Vector2(0.1f, 0.3f);
-                iconRect.anchorMax = new Vector2(0.9f, 0.9f);
-                iconRect.offsetMin = Vector2.zero;
-                iconRect.offsetMax = Vector2.zero;
-                
-                // Set default icon (a simple colored square)
-                _iconImage.sprite = CreateDefaultSprite();
-            }
-            
-            // Create name text
-            if (_nameText == null)
-            {
-                var textGO = new GameObject("Name Text");
-                textGO.transform.SetParent(transform, false);
-                
-                _nameText = textGO.AddComponent<Text>();
-                _nameText.text = "Object";
-                _nameText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-                _nameText.fontSize = 12;
-                _nameText.color = Color.black;
-                _nameText.alignment = TextAnchor.MiddleCenter;
-                _nameText.horizontalOverflow = HorizontalWrapMode.Wrap;
-                _nameText.verticalOverflow = VerticalWrapMode.Truncate;
-                
-                var textRect = textGO.GetComponent<RectTransform>();
-                textRect.anchorMin = new Vector2(0f, 0f);
-                textRect.anchorMax = new Vector2(1f, 0.25f);
-                textRect.offsetMin = new Vector2(2, 2);
-                textRect.offsetMax = new Vector2(-2, -2);
-            }
-        }
-        
-        /// <summary>
         /// Create a default sprite for items without icons
         /// </summary>
         private Sprite CreateDefaultSprite()
         {
-            // Create a simple 32x32 white texture
-            var texture = new Texture2D(32, 32);
-            var pixels = new Color32[32 * 32];
+            // Create a simple 64x64 texture with a border for visibility
+            var texture = new Texture2D(64, 64);
+            var pixels = new Color32[64 * 64];
             
-            // Fill with white color
-            for (int i = 0; i < pixels.Length; i++)
+            // Fill with a pattern to make it visible
+            for (int y = 0; y < 64; y++)
             {
-                pixels[i] = Color.white;
+                for (int x = 0; x < 64; x++)
+                {
+                    int index = y * 64 + x;
+                    
+                    // Create a border
+                    if (x == 0 || x == 63 || y == 0 || y == 63)
+                    {
+                        pixels[index] = new Color32(50, 50, 50, 255); // Dark border
+                    }
+                    // Create a gradient center
+                    else if (x > 10 && x < 53 && y > 10 && y < 53)
+                    {
+                        byte intensity = (byte)(100 + (x + y) * 2);
+                        pixels[index] = new Color32(intensity, intensity, 255, 255); // Blue gradient
+                    }
+                    else
+                    {
+                        pixels[index] = new Color32(200, 200, 200, 255); // Light gray
+                    }
+                }
             }
             
             texture.SetPixels32(pixels);
             texture.Apply();
             
             // Create sprite from texture
-            return Sprite.Create(texture, new Rect(0, 0, 32, 32), new Vector2(0.5f, 0.5f));
-        }
-        
-        /// <summary>
-        /// Static factory method to create a complete ObjectPaletteItem from scratch
-        /// </summary>
-        public static ObjectPaletteItem CreatePaletteItem(Transform parent, SceneObjectData objectData, ObjectPalette parentPalette = null)
-        {
-            var itemGO = new GameObject($"PaletteItem_{objectData.displayName}");
-            itemGO.transform.SetParent(parent, false);
-            
-            var paletteItem = itemGO.AddComponent<ObjectPaletteItem>();
-            
-            if (parentPalette != null && objectData != null)
-            {
-                paletteItem.Initialize(objectData, parentPalette);
-            }
-            
-            return paletteItem;
+            return Sprite.Create(texture, new Rect(0, 0, 64, 64), new Vector2(0.5f, 0.5f));
         }
     }
 }

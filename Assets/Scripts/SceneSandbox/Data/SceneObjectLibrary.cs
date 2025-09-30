@@ -21,9 +21,6 @@ namespace SceneSandbox.Data
         [Header("Light Objects")]
         [SerializeField] private List<SceneObjectData> lights = new List<SceneObjectData>();
         
-        [Header("Categories")]
-        [SerializeField] private List<string> categories = new List<string> { "Default", "Characters", "Environment", "Tools" };
-        
         /// <summary>
         /// Get all objects of a specific type
         /// </summary>
@@ -97,12 +94,6 @@ namespace SceneSandbox.Data
             if (!targetList.Contains(objectData))
             {
                 targetList.Add(objectData);
-                
-                // Add category if it doesn't exist
-                if (!categories.Contains(objectData.category))
-                {
-                    categories.Add(objectData.category);
-                }
             }
         }
         
@@ -120,11 +111,32 @@ namespace SceneSandbox.Data
         }
         
         /// <summary>
-        /// Get all available categories
+        /// Get all available categories (dynamically built from objects)
         /// </summary>
         public List<string> GetCategories()
         {
-            return new List<string>(categories);
+            var categorySet = new HashSet<string>();
+            var allObjects = GetAllObjects();
+            
+            foreach (var obj in allObjects)
+            {
+                if (!string.IsNullOrEmpty(obj.category))
+                {
+                    categorySet.Add(obj.category);
+                }
+            }
+            
+            var categoriesList = new List<string>(categorySet);
+            categoriesList.Sort(); // Sort alphabetically
+            
+            // Always ensure "Default" is first if it exists
+            if (categoriesList.Contains("Default"))
+            {
+                categoriesList.Remove("Default");
+                categoriesList.Insert(0, "Default");
+            }
+            
+            return categoriesList;
         }
         
         #if UNITY_EDITOR

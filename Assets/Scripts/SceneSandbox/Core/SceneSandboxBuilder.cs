@@ -181,7 +181,10 @@ namespace SceneSandbox.Core
                 customName = objectData.displayName
             };
             
-            _currentScene.AddPlacedObject(placedObjectData);
+            if (_currentScene != null)
+            {
+                _currentScene.AddPlacedObject(placedObjectData);
+            }
             _placedObjects[placedObjectId] = newObject;
             
             // Select the object if requested
@@ -200,15 +203,20 @@ namespace SceneSandbox.Core
         /// </summary>
         public bool RemoveObject(GameObject obj)
         {
+            if (obj == null) return false;
+            
             var draggable = obj.GetComponent<DraggableItem>();
             if (draggable == null) return false;
             
             string objectId = draggable.ObjectId;
             
             // Remove from scene configuration
-            if (_currentScene.RemovePlacedObject(objectId))
+            if (_currentScene != null && _currentScene.RemovePlacedObject(objectId))
             {
-                _placedObjects.Remove(objectId);
+                if (_placedObjects != null)
+                {
+                    _placedObjects.Remove(objectId);
+                }
                 
                 if (_selectedObject == obj)
                 {
@@ -266,14 +274,25 @@ namespace SceneSandbox.Core
         public void ClearScene()
         {
             // Remove all placed objects
-            var objectsToRemove = new List<GameObject>(_placedObjects.Values);
-            foreach (var obj in objectsToRemove)
+            if (_placedObjects != null)
             {
-                RemoveObject(obj);
+                var objectsToRemove = new List<GameObject>(_placedObjects.Values);
+                foreach (var obj in objectsToRemove)
+                {
+                    if (obj != null)
+                    {
+                        RemoveObject(obj);
+                    }
+                }
+                
+                _placedObjects.Clear();
             }
             
-            _placedObjects.Clear();
-            _currentScene.ClearPlacedObjects();
+            // Clear scene configuration if it exists
+            if (_currentScene != null)
+            {
+                _currentScene.ClearPlacedObjects();
+            }
             
             SelectObject(null);
             OnSceneCleared?.Invoke();
@@ -469,6 +488,8 @@ namespace SceneSandbox.Core
         
         private void UpdateObjectInScene(DraggableItem draggable)
         {
+            if (_currentScene == null) return;
+            
             var placedObjectData = _currentScene.GetPlacedObject(draggable.ObjectId);
             if (placedObjectData != null)
             {

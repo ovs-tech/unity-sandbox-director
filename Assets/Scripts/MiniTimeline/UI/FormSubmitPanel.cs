@@ -160,11 +160,11 @@ namespace MiniTimeline.UI
                                       
             if (!needsInitialization)
             {
-                Debug.Log("FormSubmitPanel: Already properly initialized, skipping...");
+                // Debug.Log("FormSubmitPanel: Already properly initialized, skipping...");
                 return;
             }
             
-            Debug.Log($"FormSubmitPanel: Starting initialization... (isInitialized: {isInitialized}, fieldsParent: {GetFieldsParent() != null}, titleText: {titleText != null}, backgroundPanel: {backgroundPanel != null})");
+            // Debug.Log($"FormSubmitPanel: Starting initialization... (isInitialized: {isInitialized}, fieldsParent: {GetFieldsParent() != null}, titleText: {titleText != null}, backgroundPanel: {backgroundPanel != null})");
             
             // Reset flag if we're re-initializing
             isInitialized = false;
@@ -173,7 +173,7 @@ namespace MiniTimeline.UI
             SetupEventListeners();
             CloseForm();
             isInitialized = true;
-            Debug.Log("FormSubmitPanel: Initialization complete");
+            // Debug.Log("FormSubmitPanel: Initialization complete");
         }
         
         private void CreateFormUI()
@@ -217,11 +217,11 @@ namespace MiniTimeline.UI
             CreateFieldPrefabs();
             
             // Verify all critical components were created
-            Debug.Log($"FormSubmitPanel: CreateFormUI complete - fieldsParent: {GetFieldsParent() != null}");
+            // Debug.Log($"FormSubmitPanel: CreateFormUI complete - fieldsParent: {GetFieldsParent() != null}");
             
             if (GetFieldsParent() == null)
             {
-                Debug.LogError("FormSubmitPanel: Critical error - fieldsParent is null after CreateFormUI!");
+                // Debug.LogError("FormSubmitPanel: Critical error - fieldsParent is null after CreateFormUI!");
             }
         }
         
@@ -317,7 +317,7 @@ namespace MiniTimeline.UI
             GameObject content = new GameObject("Content");
             content.transform.SetParent(viewport.transform, false);
             
-            Debug.Log($"FormSubmitPanel: Content GameObject created for fields parent");
+            // Debug.Log($"FormSubmitPanel: Content GameObject created for fields parent");
             
             var contentRect = content.AddComponent<RectTransform>();
             contentRect.anchorMin = new Vector2(0f, 1f);
@@ -341,7 +341,7 @@ namespace MiniTimeline.UI
             this.scrollRect.horizontal = false;
             this.scrollRect.vertical = true;
             
-            Debug.Log($"FormSubmitPanel: ScrollableContent created successfully");
+            // Debug.Log($"FormSubmitPanel: ScrollableContent created successfully");
         }
         
         private void CreateFooter()
@@ -442,14 +442,14 @@ namespace MiniTimeline.UI
             // Only initialize if not already initialized
             if (GetFieldsParent() == null || titleText == null || backgroundPanel == null)
             {
-                Debug.LogWarning("FormSubmitPanel: UI not properly initialized, forcing re-initialization...");
+                // Debug.LogWarning("FormSubmitPanel: UI not properly initialized, forcing re-initialization...");
                 Initialize();
             }
             
             // Verify fieldsParent is still valid after potential re-initialization
             if (GetFieldsParent() == null)
             {
-                Debug.LogError("FormSubmitPanel: fieldsParent is null after initialization!");
+                // Debug.LogError("FormSubmitPanel: fieldsParent is null after initialization!");
                 return;
             }
             
@@ -459,7 +459,7 @@ namespace MiniTimeline.UI
             }
             else
             {
-                Debug.LogError("FormSubmitPanel: titleText is still null after initialization!");
+                // Debug.LogError("FormSubmitPanel: titleText is still null after initialization!");
             }
             
             // Clear existing fields
@@ -468,7 +468,7 @@ namespace MiniTimeline.UI
             // Verify fieldsParent is still valid after clearing
             if (GetFieldsParent() == null)
             {
-                Debug.LogError("FormSubmitPanel: fieldsParent became null after ClearFields!");
+                // Debug.LogError("FormSubmitPanel: fieldsParent became null after ClearFields!");
                 return;
             }
             
@@ -487,7 +487,7 @@ namespace MiniTimeline.UI
             }
             else
             {
-                Debug.LogError("FormSubmitPanel: backgroundPanel is null, cannot show form!");
+                // Debug.LogError("FormSubmitPanel: backgroundPanel is null, cannot show form!");
             }
             
             // Focus first field if available
@@ -511,7 +511,7 @@ namespace MiniTimeline.UI
             }
             else
             {
-                Debug.LogWarning("FormSubmitPanel: Skipping ClearFields() because fieldsParent is null");
+                // Debug.LogWarning("FormSubmitPanel: Skipping ClearFields() because fieldsParent is null");
             }
         }
         
@@ -520,7 +520,7 @@ namespace MiniTimeline.UI
         /// </summary>
         public void ForceReinitialize()
         {
-            Debug.Log("FormSubmitPanel: Force reinitializing...");
+            // Debug.Log("FormSubmitPanel: Force reinitializing...");
             isInitialized = false;
             Initialize();
         }
@@ -553,11 +553,11 @@ namespace MiniTimeline.UI
                         Destroy(child.gameObject);
                     }
                 }
-                Debug.Log($"FormSubmitPanel: Cleared {fieldsParent.childCount} field children");
+                // Debug.Log($"FormSubmitPanel: Cleared {fieldsParent.childCount} field children");
             }
             else
             {
-                Debug.LogWarning("FormSubmitPanel: fieldsParent is null when trying to clear fields");
+                // Debug.LogWarning("FormSubmitPanel: fieldsParent is null when trying to clear fields");
             }
         }
         
@@ -575,7 +575,7 @@ namespace MiniTimeline.UI
             
             if (fieldsParent == null)
             {
-                Debug.LogError("FormSubmitPanel: fieldsParent is null when trying to create field");
+                // Debug.LogError("FormSubmitPanel: fieldsParent is null when trying to create field");
                 return;
             }
             
@@ -614,7 +614,7 @@ namespace MiniTimeline.UI
                     fieldObj = CreateInfoField(fieldDef);
                     break;
                 default:
-                    Debug.LogWarning($"Unsupported field type: {fieldDef.type}");
+                    // Debug.LogWarning($"Unsupported field type: {fieldDef.type}");
                     fieldObj = CreateTextField(fieldDef); // Fallback to text
                     break;
             }
@@ -627,7 +627,7 @@ namespace MiniTimeline.UI
                 if (formField != null)
                 {
                     dynamicFields.Add(formField);
-                    Debug.Log($"FormSubmitPanel: Successfully created field '{fieldDef.name}'");
+                    // Debug.Log($"FormSubmitPanel: Successfully created field '{fieldDef.name}'");
                 }
             }
         }
@@ -783,7 +783,7 @@ namespace MiniTimeline.UI
                 }
                 else
                 {
-                    Debug.LogError($"Field '{field.GetName()}' is invalid");
+                    // Debug.LogError($"Field '{field.GetName()}' is invalid");
                     return; // Don't submit if any field is invalid
                 }
             }
@@ -881,7 +881,7 @@ namespace MiniTimeline.UI
             // Safety check for fieldDefinition
             if (fieldDefinition == null)
             {
-                Debug.LogError("ButtonFormField.CreateUI: fieldDefinition is null");
+                // Debug.LogError("ButtonFormField.CreateUI: fieldDefinition is null");
                 return;
             }
             

@@ -44,14 +44,14 @@ namespace MiniTimeline.Tracks
         
         protected override void OnPrepare()
         {
-            Debug.Log($"[AnimTrack] OnPrepare called for track '{Id}', target object: {targetObject}");
+            // Debug.Log($"[AnimTrack] OnPrepare called for track '{Id}', target object: {targetObject}");
             
             // Try to find Animator first (preferred)
             if (targetObject is Animator animator)
             {
                 targetAnimator = animator;
                 targetTransform = animator.transform;
-                Debug.Log($"[AnimTrack] Target is Animator: {animator.name}");
+                // Debug.Log($"[AnimTrack] Target is Animator: {animator.name}");
             }
             else if (targetObject is GameObject go)
             {
@@ -59,7 +59,7 @@ namespace MiniTimeline.Tracks
                 if (targetAnimator != null)
                 {
                     targetTransform = targetAnimator.transform;
-                    Debug.Log($"[AnimTrack] Target GameObject has Animator: {go.name}");
+                    // Debug.Log($"[AnimTrack] Target GameObject has Animator: {go.name}");
                 }
                 else
                 {
@@ -68,13 +68,13 @@ namespace MiniTimeline.Tracks
                     if (targetAnimation != null)
                     {
                         targetTransform = targetAnimation.transform;
-                        Debug.Log($"[AnimTrack] Target GameObject has Animation (legacy): {go.name}");
+                        // Debug.Log($"[AnimTrack] Target GameObject has Animation (legacy): {go.name}");
                     }
                     else
                     {
                         // Just get the transform for basic animation
                         targetTransform = go.transform;
-                        Debug.LogWarning($"[AnimTrack] No Animator or Animation found on {go.name}, using Transform only");
+                        // Debug.LogWarning($"[AnimTrack] No Animator or Animation found on {go.name}, using Transform only");
                     }
                 }
             }
@@ -83,12 +83,12 @@ namespace MiniTimeline.Tracks
                 targetTransform = transform;
                 targetAnimator = transform.GetComponent<Animator>();
                 targetAnimation = transform.GetComponent<Animation>();
-                Debug.Log($"[AnimTrack] Target is Transform: {transform.name}");
+                // Debug.Log($"[AnimTrack] Target is Transform: {transform.name}");
             }
             
             if (targetTransform == null)
             {
-                Debug.LogError($"[AnimTrack] Could not resolve target for track '{Id}' with bind key '{BindKey}'");
+                // Debug.LogError($"[AnimTrack] Could not resolve target for track '{Id}' with bind key '{BindKey}'");
                 return;
             }
             
@@ -160,7 +160,7 @@ namespace MiniTimeline.Tracks
             await System.Threading.Tasks.Task.WhenAll(loadTasks);
             
             hasLoadedAssets = true;
-            Debug.Log($"[AnimTrack] Finished loading {loadedClips.Count} animation clips");
+            // Debug.Log($"[AnimTrack] Finished loading {loadedClips.Count} animation clips");
         }
         
         private async System.Threading.Tasks.Task LoadAnimationClipAsync(string assetPath)
@@ -185,7 +185,7 @@ namespace MiniTimeline.Tracks
                     animClip = Resources.Load<AnimationClip>(assetPath);
                     if (animClip == null)
                     {
-                        Debug.LogWarning($"[AnimTrack] Could not load animation clip: {assetPath}");
+                        // Debug.LogWarning($"[AnimTrack] Could not load animation clip: {assetPath}");
                         return;
                     }
                 }
@@ -193,12 +193,12 @@ namespace MiniTimeline.Tracks
                 if (animClip != null)
                 {
                     loadedClips[assetPath] = animClip;
-                    Debug.Log($"[AnimTrack] Loaded animation clip: {assetPath}");
+                    // Debug.Log($"[AnimTrack] Loaded animation clip: {assetPath}");
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Debug.LogError($"[AnimTrack] Error loading animation clip '{assetPath}': {e.Message}");
+                // Debug.LogError($"[AnimTrack] Error loading animation clip '{assetPath}': {e.Message}");
             }
         }
         
@@ -206,7 +206,7 @@ namespace MiniTimeline.Tracks
         {
             try
             {
-                Debug.Log($"[AnimTrack] Loading Addressable animation clip: {addressableKey}");
+                // Debug.Log($"[AnimTrack] Loading Addressable animation clip: {addressableKey}");
                 
                 // Start the addressable load operation
                 var handle = Addressables.LoadAssetAsync<AnimationClip>(addressableKey);
@@ -222,17 +222,17 @@ namespace MiniTimeline.Tracks
                 {
                     loadedClips[assetPath] = animClip;
                     loadedHandles[assetPath] = handle;
-                    Debug.Log($"[AnimTrack] Successfully loaded Addressable animation clip: {addressableKey}");
+                    // Debug.Log($"[AnimTrack] Successfully loaded Addressable animation clip: {addressableKey}");
                 }
                 else
                 {
-                    Debug.LogError($"[AnimTrack] Failed to load Addressable animation clip: {addressableKey}");
+                    // Debug.LogError($"[AnimTrack] Failed to load Addressable animation clip: {addressableKey}");
                     Addressables.Release(handle);
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Debug.LogError($"[AnimTrack] Exception loading Addressable animation clip '{addressableKey}': {e.Message}");
+                // Debug.LogError($"[AnimTrack] Exception loading Addressable animation clip '{addressableKey}': {e.Message}");
                 
                 // Clean up failed operation
                 if (loadingOperations.TryGetValue(assetPath, out var failedHandle))
@@ -270,7 +270,7 @@ namespace MiniTimeline.Tracks
                     else
                     {
                         // Synchronous Addressable load (not recommended but sometimes necessary)
-                        Debug.LogWarning($"[AnimTrack] Using synchronous Addressable load for: {addressableKey}");
+                        // Debug.LogWarning($"[AnimTrack] Using synchronous Addressable load for: {addressableKey}");
                         var handle = Addressables.LoadAssetAsync<AnimationClip>(addressableKey);
                         animClip = handle.WaitForCompletion();
                         
@@ -290,19 +290,19 @@ namespace MiniTimeline.Tracks
                     animClip = Resources.Load<AnimationClip>(assetPath);
                     if (animClip == null)
                     {
-                        Debug.LogWarning($"[AnimTrack] Could not load animation clip: {assetPath}");
+                        // Debug.LogWarning($"[AnimTrack] Could not load animation clip: {assetPath}");
                     }
                 }
                 
                 if (animClip != null)
                 {
                     loadedClips[assetPath] = animClip;
-                    Debug.Log($"[AnimTrack] Loaded animation clip: {assetPath}");
+                    // Debug.Log($"[AnimTrack] Loaded animation clip: {assetPath}");
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Debug.LogError($"[AnimTrack] Error loading animation clip '{assetPath}': {e.Message}");
+                // Debug.LogError($"[AnimTrack] Error loading animation clip '{assetPath}': {e.Message}");
             }
         }
         
@@ -331,7 +331,7 @@ namespace MiniTimeline.Tracks
             // Clear loaded clips
             loadedClips.Clear();
             
-            Debug.Log($"[AnimTrack] Unloaded all animation assets for track '{Id}'");
+            // Debug.Log($"[AnimTrack] Unloaded all animation assets for track '{Id}'");
         }
         
         #endregion
@@ -402,7 +402,7 @@ namespace MiniTimeline.Tracks
                 
                 // Basic interpolation logic would go here
                 // For now, just log that we're in fallback mode
-                Debug.LogWarning($"[AnimTrack] Using transform-only evaluation for clip {clip.Id} - limited functionality");
+                // Debug.LogWarning($"[AnimTrack] Using transform-only evaluation for clip {clip.Id} - limited functionality");
                 
                 lastClipStates[state.clipId] = state;
             }

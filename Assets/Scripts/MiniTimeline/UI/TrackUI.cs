@@ -399,45 +399,45 @@ namespace MiniTimeline.UI
             
             if (track == null) 
             {
-                Debug.LogWarning("TrackUI: BuildClipUIs called but track is null");
+                // Debug.LogWarning("TrackUI: BuildClipUIs called but track is null");
                 return;
             }
             
             var clips = track.GetClips().ToList();
-            Debug.Log($"TrackUI: Building clip UIs for track {track.Id}, found {clips.Count} clips");
+            // Debug.Log($"TrackUI: Building clip UIs for track {track.Id}, found {clips.Count} clips");
 
             foreach (var clip in clips)
             {
-                Debug.Log($"TrackUI: Creating UI for clip {clip.Id} (Start: {clip.Start}, Duration: {clip.Duration})");
+                // Debug.Log($"TrackUI: Creating UI for clip {clip.Id} (Start: {clip.Start}, Duration: {clip.Duration})");
                 CreateClipUI(clip);
             }
             
-            Debug.Log($"TrackUI: Finished building clip UIs, total created: {clipUIs.Count}");
+            // Debug.Log($"TrackUI: Finished building clip UIs, total created: {clipUIs.Count}");
         }
         
         private void CreateClipUI(IMiniClip clip)
         {
             if (clipContainer == null)
             {
-                Debug.LogError("TrackUI: Cannot create clip UI - clipContainer is null");
+                // Debug.LogError("TrackUI: Cannot create clip UI - clipContainer is null");
                 return;
             }
 
             if (timelineEditor?.ClipUIPrefab == null)
             {
-                Debug.Log($"TrackUI: No ClipUIPrefab provided, creating simple clip UI for {clip.Id}");
+                // Debug.Log($"TrackUI: No ClipUIPrefab provided, creating simple clip UI for {clip.Id}");
                 // Create a simple clip UI if no prefab is provided
                 CreateSimpleClipUI(clip);
                 return;
             }
             
-            Debug.Log($"TrackUI: Creating clip UI from prefab for {clip.Id}");
+            // Debug.Log($"TrackUI: Creating clip UI from prefab for {clip.Id}");
             var clipGO = Instantiate(timelineEditor.ClipUIPrefab, clipContainer);
             var clipUI = clipGO.GetComponent<ClipUI>();
             
             if (clipUI != null)
             {
-                Debug.Log($"TrackUI: Initializing clip UI for {clip.Id}");
+                // Debug.Log($"TrackUI: Initializing clip UI for {clip.Id}");
                 clipUI.Initialize(this, clip);
                 clipUIs.Add(clipUI);
                 clipUILookup[clip.Id] = clipUI;
@@ -448,17 +448,17 @@ namespace MiniTimeline.UI
                 
                 // Verify clip was positioned
                 var rect = clipUI.GetComponent<RectTransform>();
-                Debug.Log($"TrackUI: Clip {clip.Id} positioned at {rect.anchoredPosition} with size {rect.sizeDelta}");
+                // Debug.Log($"TrackUI: Clip {clip.Id} positioned at {rect.anchoredPosition} with size {rect.sizeDelta}");
             }
             else
             {
-                Debug.LogError($"TrackUI: ClipUIPrefab does not have ClipUI component for clip {clip.Id}");
+                // Debug.LogError($"TrackUI: ClipUIPrefab does not have ClipUI component for clip {clip.Id}");
             }
         }
         
         private void CreateSimpleClipUI(IMiniClip clip)
         {
-            Debug.Log($"TrackUI: Creating simple clip UI for {clip.Id}");
+            // Debug.Log($"TrackUI: Creating simple clip UI for {clip.Id}");
             var clipGO = new GameObject($"Clip_{clip.Id}", typeof(RectTransform), typeof(ClipUI));
             clipGO.transform.SetParent(clipContainer, false);
             
@@ -474,7 +474,7 @@ namespace MiniTimeline.UI
             
             // Verify clip was positioned
             var rect = clipUI.GetComponent<RectTransform>();
-            Debug.Log($"TrackUI: Simple clip {clip.Id} positioned at {rect.anchoredPosition} with size {rect.sizeDelta}");
+            // Debug.Log($"TrackUI: Simple clip {clip.Id} positioned at {rect.anchoredPosition} with size {rect.sizeDelta}");
         }
         
         private void ClearClipUIs()
@@ -528,7 +528,7 @@ namespace MiniTimeline.UI
         {
             if (track == null || timelineEditor == null)
             {
-                Debug.LogWarning("Cannot mute track: track or timeline editor is null");
+                // Debug.LogWarning("Cannot mute track: track or timeline editor is null");
                 return;
             }
             
@@ -568,7 +568,7 @@ namespace MiniTimeline.UI
         /// <param name="fromLongPress">Whether this was triggered by a long press</param>
         private void ShowTrackContextMenu(Vector2 screenPosition, bool fromLongPress = false)
         {
-            Debug.Log($"Showing context menu for track: {track?.GetType().Name} (long press: {fromLongPress})");
+            // Debug.Log($"Showing context menu for track: {track?.GetType().Name} (long press: {fromLongPress})");
             
             // Use the dynamic context menu system
             if (TimelineContextMenu.HasInstance)
@@ -585,7 +585,7 @@ namespace MiniTimeline.UI
             }
             else
             {
-                Debug.LogWarning("TimelineContextMenu instance not available");
+                // Debug.LogWarning("TimelineContextMenu instance not available");
             }
         }
         
@@ -724,7 +724,7 @@ namespace MiniTimeline.UI
         /// </summary>
         private void HandleLongPress(Vector2 screenPosition)
         {
-            Debug.Log($"Long press detected on track: {track?.GetType().Name}");
+            // Debug.Log($"Long press detected on track: {track?.GetType().Name}");
             
             // Trigger the long press event
             OnTrackLongPressed?.Invoke(this, screenPosition);
@@ -768,7 +768,7 @@ namespace MiniTimeline.UI
                 if (!longPressTriggered)
                 {
                     // Handle left click - could be used for track selection in the future
-                    Debug.Log($"Track clicked: {track?.GetType().Name}");
+                    // Debug.Log($"Track clicked: {track?.GetType().Name}");
                 }
                 
                 // Reset long press triggered flag
@@ -861,7 +861,7 @@ namespace MiniTimeline.UI
         
         private void AddClipToTrack()
         {
-            Debug.Log($"Create clip for track: {track?.GetType().Name}");
+            // Debug.Log($"Create clip for track: {track?.GetType().Name}");
             ShowCreateClipForm();
         }
         
@@ -869,7 +869,7 @@ namespace MiniTimeline.UI
         {
             if (track == null)
             {
-                Debug.LogError("Cannot create clip: track is null");
+                // Debug.LogError("Cannot create clip: track is null");
                 return;
             }
             
@@ -907,14 +907,14 @@ namespace MiniTimeline.UI
                 case SignalTrack _:
                     return MiniTimelineConstants.TRACK_SIGNAL;
                 default:
-                    Debug.LogWarning($"Unknown track type: {track.GetType().Name}");
+                    // Debug.LogWarning($"Unknown track type: {track.GetType().Name}");
                     return "generic";
             }
         }
         
         private void OnClipFormSubmitted(Dictionary<string, object> formData)
         {
-            Debug.Log("Clip form submitted with data:");
+            // Debug.Log("Clip form submitted with data:");
             foreach (var kvp in formData)
             {
                 Debug.Log($"  {kvp.Key}: {kvp.Value}");

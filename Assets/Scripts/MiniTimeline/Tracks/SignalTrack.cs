@@ -35,7 +35,7 @@ namespace MiniTimeline.Tracks
 			// Sort clips by time for efficient processing
 			clips.Sort((a, b) => a.Start.CompareTo(b.Start));
             
-			Debug.Log($"[SignalTrack] Prepared track '{Id}' with {clips.Count} signal clips");
+			// Debug.Log($"[SignalTrack] Prepared track '{Id}' with {clips.Count} signal clips");
 		}
         
 		protected override void OnEvaluate(float time, bool scrub)
@@ -71,7 +71,7 @@ namespace MiniTimeline.Tracks
 			// Clear event handlers
 			eventHandlers.Clear();
             
-			Debug.Log($"[SignalTrack] Cleaned up track '{Id}'");
+			// Debug.Log($"[SignalTrack] Cleaned up track '{Id}'");
 		}
         
 		#endregion
@@ -111,11 +111,11 @@ namespace MiniTimeline.Tracks
 					handler.Invoke(timelineEvent);
 				}
                 
-				Debug.Log($"[SignalTrack] Fired event '{signal.eventId}' at time {signal.Start:F2} (payload: '{signal.payload}')");
+				// Debug.Log($"[SignalTrack] Fired event '{signal.eventId}' at time {signal.Start:F2} (payload: '{signal.payload}')");
 			}
-			catch (Exception e)
+			catch (Exception)
 			{
-				Debug.LogError($"[SignalTrack] Error firing event '{signal.eventId}': {e.Message}");
+				// Debug.LogError($"[SignalTrack] Error firing event '{signal.eventId}': {e.Message}");
 			}
 		}
         
@@ -137,7 +137,7 @@ namespace MiniTimeline.Tracks
 				eventHandlers[eventId] = handler;
 			}
             
-			Debug.Log($"[SignalTrack] Registered handler for event '{eventId}'");
+			// Debug.Log($"[SignalTrack] Registered handler for event '{eventId}'");
 		}
         
 		/// <summary>
