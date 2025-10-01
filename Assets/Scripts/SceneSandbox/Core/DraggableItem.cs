@@ -254,8 +254,7 @@ namespace SceneSandbox.Core
         /// </summary>
         public void SetSelectedState(bool isSelected)
         {
-            // Could implement selection highlighting here
-            // For now, just use hover material
+            // Update visual material feedback
             SetHoverState(isSelected);
         }
         
