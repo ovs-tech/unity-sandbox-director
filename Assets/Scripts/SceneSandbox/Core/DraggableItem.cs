@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using SceneSandbox.Input;
 
 namespace SceneSandbox.Core
 {
@@ -108,6 +109,7 @@ namespace SceneSandbox.Core
         {
             if (!_canDrag) return;
             
+            Debug.Log($"[DraggableItem] OnBeginDrag called for {gameObject.name}");
             StartDrag(eventData.position);
         }
         
@@ -142,6 +144,8 @@ namespace SceneSandbox.Core
         {
             if (!_canDrag || _isDragging) return;
             
+            Debug.Log($"[DraggableItem] StartDrag called for {gameObject.name} at position {screenPosition}");
+            
             _isDragging = true;
             _originalPosition = transform.position;
             
@@ -165,6 +169,14 @@ namespace SceneSandbox.Core
             }
             
             OnDragStarted?.Invoke(this, _originalPosition);
+            
+            // Also notify SandboxInputHandler if it exists and isn't already aware
+            var inputHandler = FindFirstObjectByType<SandboxInputHandler>();
+            if (inputHandler != null)
+            {
+                Debug.Log($"[DraggableItem] Notifying SandboxInputHandler about drag start");
+                inputHandler.ManualStartDrag(gameObject, screenPosition);
+            }
         }
         
         /// <summary>
@@ -254,6 +266,8 @@ namespace SceneSandbox.Core
         /// </summary>
         public void SetSelectedState(bool isSelected)
         {
+            Debug.Log($"[DraggableItem] SetSelectedState called for {gameObject.name}: {isSelected}");
+            
             // Update visual material feedback
             SetHoverState(isSelected);
         }

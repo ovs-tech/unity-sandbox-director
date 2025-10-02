@@ -24,7 +24,9 @@ namespace SceneSandbox.Core
         [SerializeField] private bool _snapToGrid = true;
         [SerializeField] private float _gridSize = 1f;
         [SerializeField] private float _defaultPlacementHeight = 0f;
+        [SerializeField] private float _minimumPlacementHeight = 0f; // Minimum Y position for placement
         [SerializeField] private bool _useRaycastForPlacement = true;
+        [SerializeField] private bool _useConsistentHeight = false; // Force consistent Y height for indicator
         
         [Header("Preview Settings")]
         [SerializeField] private MiniTimelineDirector _timelineDirector;
@@ -152,15 +154,6 @@ namespace SceneSandbox.Core
             Debug.Log("SceneSandboxBuilder Start beginning...");
             SetupInputHandler();
             CreateNewScene();
-            
-            // Test drop indicator system at startup
-            Debug.Log("=== Drop Indicator Startup Test ===");
-            Debug.Log($"Drop indicator enabled: {_enableDropIndicator}");
-            Debug.Log($"Drop indicator size: {_dropIndicatorSize}");
-            Debug.Log($"Valid drop color: {_validDropColor}");
-            Debug.Log($"Invalid drop color: {_invalidDropColor}");
-            Debug.Log($"Scene camera: {(_sceneCamera != null ? _sceneCamera.name : "null")}");
-            
             Debug.Log("SceneSandboxBuilder Start complete.");
         }
         
@@ -377,6 +370,18 @@ namespace SceneSandbox.Core
             {
                 var draggable = _selectedObject.GetComponent<DraggableItem>();
                 draggable?.SetSelectedState(true);
+                
+                // Show indicator for draggable objects when selected
+                if (draggable != null && draggable.CanDrag && _enableDropIndicator)
+                {
+                    Debug.Log($"[SceneSandboxBuilder] Showing indicator for selected draggable object: {_selectedObject.name}");
+                    ShowDropIndicator(_selectedObject.transform.position);
+                }
+            }
+            else
+            {
+                // Hide indicator when nothing is selected
+                HideDropIndicator();
             }
             
             OnObjectSelected?.Invoke(_selectedObject);
@@ -633,6 +638,46 @@ namespace SceneSandbox.Core
             return _dragPreviewPosition;
         }
         
+        /// <summary>
+        /// Debug method to test drop indicator creation
+        /// </summary>
+        public void TestCreateDropIndicator()
+        {
+            Debug.Log("=== Testing Drop Indicator Creation ===");
+            Debug.Log($"Drop indicator enabled: {_enableDropIndicator}");
+            Debug.Log($"Drop indicator prefab assigned: {_dropIndicatorPrefab != null}");
+            if (_dropIndicatorPrefab != null)
+            {
+                Debug.Log($"Prefab name: {_dropIndicatorPrefab.name}");
+                Debug.Log($"Prefab active: {_dropIndicatorPrefab.activeInHierarchy}");
+            }
+            Debug.Log($"Current drop indicator exists: {_currentDropIndicator != null}");
+            
+            // Force recreation
+            if (_currentDropIndicator != null)
+            {
+                DestroyImmediate(_currentDropIndicator);
+                _currentDropIndicator = null;
+            }
+            
+            CreateDropIndicator();
+            
+            if (_currentDropIndicator != null)
+            {
+                Debug.Log($"Drop indicator created successfully: {_currentDropIndicator.name}");
+                Debug.Log($"Position: {_currentDropIndicator.transform.position}");
+                Debug.Log($"Scale: {_currentDropIndicator.transform.localScale}");
+                Debug.Log($"Active: {_currentDropIndicator.activeInHierarchy}");
+                
+                // Test showing it
+                ShowDropIndicator(Vector3.zero);
+            }
+            else
+            {
+                Debug.LogError("Failed to create drop indicator!");
+            }
+        }
+        
         #endregion
         
         #region Input Event Handlers
@@ -673,8 +718,22 @@ namespace SceneSandbox.Core
             {
                 Debug.Log($"HandlePointMove updating drop indicator - screen: {screenPosition}, dragging: {_isDraggingObject}, enabled: {_enableDropIndicator}");
                 Vector3 worldPos = GetWorldPositionFromScreen(screenPosition);
-                Debug.Log($"HandlePointMove world position: {worldPos}");
+                Debug.Log($"HandlePointMove world position from drag: {worldPos}");
                 UpdateDropIndicator(worldPos);
+            }
+            // Show indicator following mouse when a draggable object is selected (but not being dragged)
+            else if (_selectedObject != null && !_isDraggingObject && _enableDropIndicator)
+            {
+                var draggable = _selectedObject.GetComponent<DraggableItem>();
+                if (draggable != null && draggable.CanDrag)
+                {
+                    Vector3 worldPos = GetWorldPositionFromScreen(screenPosition);
+                    if (worldPos != Vector3.zero) // Valid world position
+                    {
+                        Debug.Log($"HandlePointMove world position from selection: {worldPos} (input screen: {screenPosition})");
+                        UpdateDropIndicator(worldPos);
+                    }
+                }
             }
         }
         
@@ -825,24 +884,27 @@ namespace SceneSandbox.Core
             // If raycast placement is disabled, always use default placement height
             if (!_useRaycastForPlacement)
             {
-                return new Vector3(position.x, _defaultPlacementHeight, position.z);
+                Vector3 result = new Vector3(position.x, _defaultPlacementHeight, position.z);
+                Debug.Log($"[GetSurfacePosition] Raycast disabled - using default height: {result}");
+                return result;
             }
             
             // Try to find surface through raycast
             Vector3 rayStart = position + Vector3.up * 10f;
             if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, 20f, _placementLayers))
             {
-                // Found surface, but check if we should use default height instead
-                float surfaceHeight = hit.point.y;
-                
-                // Use the higher of the two: surface height or default placement height
-                float finalHeight = Mathf.Max(surfaceHeight, _defaultPlacementHeight);
-                
-                return new Vector3(position.x, finalHeight, position.z);
+                // Found surface, use the hit point's Y position but respect minimum height
+                float finalY = Mathf.Max(hit.point.y, _minimumPlacementHeight);
+                Vector3 result = new Vector3(position.x, finalY, position.z);
+                Debug.Log($"[GetSurfacePosition] Surface hit: input Y={position.y}, hit Y={hit.point.y}, final Y={finalY}, hit object: {hit.collider.name}");
+                return result;
             }
             
-            // No surface found, use default placement height
-            return new Vector3(position.x, _defaultPlacementHeight, position.z);
+            // No surface found, use default placement height (respecting minimum)
+            float finalDefaultHeight = Mathf.Max(_defaultPlacementHeight, _minimumPlacementHeight);
+            Vector3 defaultResult = new Vector3(position.x, finalDefaultHeight, position.z);
+            Debug.Log($"[GetSurfacePosition] No surface found - using final height: {finalDefaultHeight} (default: {_defaultPlacementHeight}, min: {_minimumPlacementHeight})");
+            return defaultResult;
         }
         
         private GameObject GetObjectAtScreenPosition(Vector2 screenPosition)
@@ -863,33 +925,54 @@ namespace SceneSandbox.Core
         /// </summary>
         private Vector3 GetWorldPositionFromScreen(Vector2 screenPosition)
         {
-            if (_sceneCamera == null) return Vector3.zero;
+            if (_sceneCamera == null) 
+            {
+                Debug.LogWarning("[GetWorldPositionFromScreen] Scene camera is null!");
+                return Vector3.zero;
+            }
             
             Ray ray = _sceneCamera.ScreenPointToRay(screenPosition);
             Vector3 worldPos;
             
-            // If raycast placement is disabled, always project to default height
-            if (!_useRaycastForPlacement)
+            // If raycast placement is disabled or consistent height is enabled, always project to default height
+            if (!_useRaycastForPlacement || _useConsistentHeight)
             {
                 Vector3 rayDirection = ray.direction.normalized;
+                if (Mathf.Abs(rayDirection.y) < 0.001f)
+                {
+                    Debug.LogWarning("[GetWorldPositionFromScreen] Ray direction is nearly horizontal, using default height");
+                    return new Vector3(0, _defaultPlacementHeight, 0);
+                }
+                
                 float t = (_defaultPlacementHeight - ray.origin.y) / rayDirection.y;
                 worldPos = ray.origin + rayDirection * t;
+                Debug.Log($"[GetWorldPositionFromScreen] Using consistent/default height: {worldPos} (raycast disabled: {!_useRaycastForPlacement}, consistent height: {_useConsistentHeight})");
                 return worldPos;
             }
             
             // Try to hit the ground or existing objects
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, _placementLayers))
             {
-                // Use the higher of surface height or default placement height
-                float finalHeight = Mathf.Max(hit.point.y, _defaultPlacementHeight);
-                worldPos = new Vector3(hit.point.x, finalHeight, hit.point.z);
+                // Use the hit point's Y position but respect minimum height
+                float finalY = Mathf.Max(hit.point.y, _minimumPlacementHeight);
+                worldPos = new Vector3(hit.point.x, finalY, hit.point.z);
+                Debug.Log($"[GetWorldPositionFromScreen] Raycast hit: original Y={hit.point.y:F3}, final Y={finalY:F3}, hit object: {hit.collider.name}");
             }
             else
             {
                 // Project ray onto the default placement height
                 Vector3 rayDirection = ray.direction.normalized;
+                if (Mathf.Abs(rayDirection.y) < 0.001f)
+                {
+                    Debug.LogWarning("[GetWorldPositionFromScreen] Ray direction is nearly horizontal, using default height");
+                    return new Vector3(0, _defaultPlacementHeight, 0);
+                }
+                
                 float t = (_defaultPlacementHeight - ray.origin.y) / rayDirection.y;
-                worldPos = ray.origin + rayDirection * t;
+                Vector3 projectedPos = ray.origin + rayDirection * t;
+                float finalY = Mathf.Max(projectedPos.y, _minimumPlacementHeight);
+                worldPos = new Vector3(projectedPos.x, finalY, projectedPos.z);
+                Debug.Log($"[GetWorldPositionFromScreen] No raycast hit - projected Y={projectedPos.y:F3}, final Y={finalY:F3}");
             }
             
             return worldPos;
@@ -984,7 +1067,8 @@ namespace SceneSandbox.Core
             
             // Snap to grid if enabled
             Vector3 finalPosition = _snapToGrid ? SnapToGrid(position) : position;
-            finalPosition = GetSurfacePosition(finalPosition);
+            // Note: GetWorldPositionFromScreen already handles surface detection, 
+            // so we don't need to call GetSurfacePosition again here
             
             Debug.Log($"UpdateDropIndicator - input: {position}, final: {finalPosition}, snap: {_snapToGrid}");
             
@@ -1030,43 +1114,65 @@ namespace SceneSandbox.Core
         /// </summary>
         private void CreateDropIndicator()
         {
-            Debug.Log("CreateDropIndicator called");
+            Debug.Log($"CreateDropIndicator called - prefab assigned: {_dropIndicatorPrefab != null}");
             
             if (_dropIndicatorPrefab != null)
             {
                 Debug.Log($"Creating drop indicator from prefab: {_dropIndicatorPrefab.name}");
-                _currentDropIndicator = Instantiate(_dropIndicatorPrefab);
-                _currentDropIndicator.name = "Drop Indicator (Prefab)";
-            }
-            else
-            {
-                Debug.Log("Creating default drop indicator (Cylinder)");
-                // Create default drop indicator
-                _currentDropIndicator = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                _currentDropIndicator.name = "Drop Indicator (Default)";
-                
-                // Remove collider to prevent interference
-                var collider = _currentDropIndicator.GetComponent<Collider>();
-                if (collider != null)
+                try
                 {
-                    DestroyImmediate(collider);
+                    _currentDropIndicator = Instantiate(_dropIndicatorPrefab);
+                    _currentDropIndicator.name = "Drop Indicator (Prefab)";
+                    Debug.Log($"Successfully instantiated prefab. Result: {_currentDropIndicator.name}");
                 }
-                
-                // Scale to indicator size
-                _currentDropIndicator.transform.localScale = new Vector3(_dropIndicatorSize, 0.1f, _dropIndicatorSize);
-                
-                // Create a more visible material
-                var renderer = _currentDropIndicator.GetComponent<Renderer>();
-                if (renderer != null)
+                catch (System.Exception e)
                 {
-                    // Create a new material to ensure visibility
-                    Material indicatorMaterial = new Material(Shader.Find("Standard"));
-                    indicatorMaterial.color = _validDropColor;
-                    indicatorMaterial.SetFloat("_Metallic", 0f);
-                    indicatorMaterial.SetFloat("_Glossiness", 0.5f);
-                    renderer.material = indicatorMaterial;
+                    Debug.LogError($"Failed to instantiate drop indicator prefab: {e.Message}");
+                    _currentDropIndicator = null;
+                }
+            }
+            
+            // If prefab failed or wasn't assigned, create default
+            if (_currentDropIndicator == null)
+            {
+                Debug.Log($"Creating default drop indicator (Cylinder) - prefab was {(_dropIndicatorPrefab != null ? "assigned but failed" : "not assigned")}");
+                
+                try
+                {
+                    // Create default drop indicator
+                    _currentDropIndicator = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                    _currentDropIndicator.name = "Drop Indicator (Default)";
                     
-                    Debug.Log($"Drop indicator material created with color: {_validDropColor}");
+                    // Remove collider to prevent interference
+                    var collider = _currentDropIndicator.GetComponent<Collider>();
+                    if (collider != null)
+                    {
+                        DestroyImmediate(collider);
+                    }
+                    
+                    // Scale to indicator size
+                    _currentDropIndicator.transform.localScale = new Vector3(_dropIndicatorSize, 0.1f, _dropIndicatorSize);
+                    
+                    // Create a more visible material
+                    var renderer = _currentDropIndicator.GetComponent<Renderer>();
+                    if (renderer != null)
+                    {
+                        // Create a new material to ensure visibility
+                        Material indicatorMaterial = new Material(Shader.Find("Standard"));
+                        indicatorMaterial.color = _validDropColor;
+                        indicatorMaterial.SetFloat("_Metallic", 0f);
+                        indicatorMaterial.SetFloat("_Glossiness", 0.5f);
+                        renderer.material = indicatorMaterial;
+                        
+                        Debug.Log($"Drop indicator material created with color: {_validDropColor}");
+                    }
+                    
+                    Debug.Log("Successfully created default drop indicator");
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError($"Failed to create default drop indicator: {e.Message}");
+                    return;
                 }
             }
             
