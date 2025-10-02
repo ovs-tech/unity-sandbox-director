@@ -24,6 +24,7 @@ namespace SceneSandbox.Core
         [SerializeField] private bool _snapToGrid = true;
         [SerializeField] private float _gridSize = 1f;
         [SerializeField] private float _defaultPlacementHeight = 0f;
+        [SerializeField] private bool _useRaycastForPlacement = true;
         
         [Header("Preview Settings")]
         [SerializeField] private MiniTimelineDirector _timelineDirector;
@@ -43,8 +44,10 @@ namespace SceneSandbox.Core
         [SerializeField] private bool _showSceneGrid = true;
         [SerializeField] private bool _showSceneBounds = true;
         [SerializeField] private bool _showStageAreaGizmo = true;
+        [SerializeField] private bool _showPlacementHeightGizmo = true;
         [SerializeField] private Vector3 _sceneBounds = new Vector3(20f, 10f, 20f);
         [SerializeField] private Color _sceneBoundsColor = Color.cyan;
+        [SerializeField] private Color _placementHeightColor = Color.yellow;
         
         [Header("Drop Indicator Settings")]
         [SerializeField] private bool _enableDropIndicator = true;
@@ -99,17 +102,69 @@ namespace SceneSandbox.Core
             _objectLibrary = library;
         }
         
+        /// <summary>
+        /// Automatically find and assign the InputActions asset if not already set
+        /// </summary>
+        private void AutoAssignInputActions()
+        {
+            if (_inputActions != null) return;
+            
+            Debug.Log("Attempting to auto-assign InputActions asset...");
+            
+            // Try to find the UIAndGameplay InputActions asset
+            string[] assetPaths = {
+                "Assets/Settings/InputActions/UIAndGameplay.inputactions",
+                "Assets/InputActions/UIAndGameplay.inputactions",
+                "Assets/Settings/UIAndGameplay.inputactions"
+            };
+            
+            foreach (string path in assetPaths)
+            {
+                var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<InputActionAsset>(path);
+                if (asset != null)
+                {
+                    _inputActions = asset;
+                    Debug.Log($"Auto-assigned InputActions asset from: {path}");
+                    return;
+                }
+            }
+            
+            Debug.LogWarning("Could not auto-assign InputActions asset. Please assign it manually in the Inspector.");
+        }
+        
         private void Awake()
         {
+            Debug.Log("SceneSandboxBuilder Awake starting...");
+            
+            // Auto-assign InputActions if not set
+            if (_inputActions == null)
+            {
+                AutoAssignInputActions();
+            }
+            
             InitializeComponents();
             InitializeState();
+            Debug.Log("SceneSandboxBuilder Awake complete.");
         }
         
         private void Start()
         {
+            Debug.Log("SceneSandboxBuilder Start beginning...");
             SetupInputHandler();
             CreateNewScene();
+            
+            // Test drop indicator system at startup
+            Debug.Log("=== Drop Indicator Startup Test ===");
+            Debug.Log($"Drop indicator enabled: {_enableDropIndicator}");
+            Debug.Log($"Drop indicator size: {_dropIndicatorSize}");
+            Debug.Log($"Valid drop color: {_validDropColor}");
+            Debug.Log($"Invalid drop color: {_invalidDropColor}");
+            Debug.Log($"Scene camera: {(_sceneCamera != null ? _sceneCamera.name : "null")}");
+            
+            Debug.Log("SceneSandboxBuilder Start complete.");
         }
+        
+
         
         private void InitializeComponents()
         {
@@ -147,12 +202,18 @@ namespace SceneSandbox.Core
         {
             _placedObjects = new Dictionary<string, GameObject>();
             _previewObjects = new List<GameObject>();
+            
+            // Don't create drop indicator here - create it when first needed
+            // This avoids potential issues with early initialization
         }
         
         private void SetupInputHandler()
         {
+            Debug.Log("Setting up input handler...");
+            
             if (_inputHandler != null && _inputActions != null)
             {
+                Debug.Log($"Input handler exists: {_inputHandler != null}, Input actions exists: {_inputActions != null}");
                 _inputHandler.Initialize(_inputActions);
                 
                 // Bind input events
@@ -163,8 +224,22 @@ namespace SceneSandbox.Core
                 _inputHandler.OnDragEnd += HandleDragEnd;
                 _inputHandler.OnObjectSelect += HandleObjectSelect;
                 _inputHandler.OnObjectDelete += HandleObjectDelete;
+                _inputHandler.OnPointMove += HandlePointMove;
+                
+                Debug.Log("All input events bound successfully");
                 
                 _inputHandler.Enable();
+                
+                Debug.Log("Input handler setup complete. Events bound and enabled.");
+            }
+            else
+            {
+                Debug.LogWarning($"Input handler setup failed. InputHandler: {_inputHandler != null}, InputActions: {_inputActions != null}");
+                
+                if (_inputHandler == null)
+                    Debug.LogError("Input handler is null!");
+                if (_inputActions == null)
+                    Debug.LogError("Input actions asset is null!");
             }
         }
         
@@ -482,6 +557,30 @@ namespace SceneSandbox.Core
         }
         
         /// <summary>
+        /// Toggle placement height gizmo visibility
+        /// </summary>
+        public void SetPlacementHeightGizmoVisibility(bool visible)
+        {
+            _showPlacementHeightGizmo = visible;
+        }
+        
+        /// <summary>
+        /// Set the default placement height
+        /// </summary>
+        public void SetDefaultPlacementHeight(float height)
+        {
+            _defaultPlacementHeight = height;
+        }
+        
+        /// <summary>
+        /// Toggle raycast-based placement vs fixed height placement
+        /// </summary>
+        public void SetUseRaycastForPlacement(bool useRaycast)
+        {
+            _useRaycastForPlacement = useRaycast;
+        }
+        
+        /// <summary>
         /// Set the scene bounds for visualization and validation
         /// </summary>
         public void SetSceneBounds(Vector3 bounds)
@@ -540,8 +639,13 @@ namespace SceneSandbox.Core
         
         private void HandleClick(Vector2 screenPosition)
         {
+            Debug.Log($"HandleClick called at screen position: {screenPosition}");
+            
+            var hitObject = GetObjectAtScreenPosition(screenPosition);
+            Debug.Log($"HandleClick hit object: {(hitObject != null ? hitObject.name : "null")}");
+            
             // Handle empty space clicks (deselect)
-            if (GetObjectAtScreenPosition(screenPosition) == null)
+            if (hitObject == null)
             {
                 SelectObject(null);
             }
@@ -562,8 +666,22 @@ namespace SceneSandbox.Core
             }
         }
         
+        private void HandlePointMove(Vector2 screenPosition)
+        {
+            // Update drop indicator position during drag operations
+            if (_isDraggingObject && _enableDropIndicator)
+            {
+                Debug.Log($"HandlePointMove updating drop indicator - screen: {screenPosition}, dragging: {_isDraggingObject}, enabled: {_enableDropIndicator}");
+                Vector3 worldPos = GetWorldPositionFromScreen(screenPosition);
+                Debug.Log($"HandlePointMove world position: {worldPos}");
+                UpdateDropIndicator(worldPos);
+            }
+        }
+        
         private void HandleDragStart(GameObject obj, Vector2 screenPosition)
         {
+            Debug.Log($"HandleDragStart called for object: {obj?.name} at screen position: {screenPosition}");
+            
             var draggable = obj.GetComponent<DraggableItem>();
             if (draggable != null)
             {
@@ -572,7 +690,16 @@ namespace SceneSandbox.Core
                 
                 // Start drop indicator system
                 _isDraggingObject = true;
-                ShowDropIndicator(GetWorldPositionFromScreen(screenPosition));
+                Debug.Log($"Starting drop indicator system - _isDraggingObject: {_isDraggingObject}, _enableDropIndicator: {_enableDropIndicator}");
+                
+                Vector3 worldPos = GetWorldPositionFromScreen(screenPosition);
+                Debug.Log($"World position from screen: {worldPos}");
+                
+                ShowDropIndicator(worldPos);
+            }
+            else
+            {
+                Debug.LogWarning($"No DraggableItem component found on {obj?.name}");
             }
         }
         
@@ -581,12 +708,7 @@ namespace SceneSandbox.Core
             var draggable = obj.GetComponent<DraggableItem>();
             draggable?.ContinueDrag(screenPosition);
             
-            // Update drop indicator
-            if (_isDraggingObject && _enableDropIndicator)
-            {
-                Vector3 worldPos = GetWorldPositionFromScreen(screenPosition);
-                UpdateDropIndicator(worldPos);
-            }
+            // Drop indicator updates are now handled by HandlePointMove
         }
         
         private void HandleDragEnd(GameObject obj, Vector2 screenPosition)
@@ -700,12 +822,26 @@ namespace SceneSandbox.Core
         
         private Vector3 GetSurfacePosition(Vector3 position)
         {
+            // If raycast placement is disabled, always use default placement height
+            if (!_useRaycastForPlacement)
+            {
+                return new Vector3(position.x, _defaultPlacementHeight, position.z);
+            }
+            
+            // Try to find surface through raycast
             Vector3 rayStart = position + Vector3.up * 10f;
             if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, 20f, _placementLayers))
             {
-                return hit.point;
+                // Found surface, but check if we should use default height instead
+                float surfaceHeight = hit.point.y;
+                
+                // Use the higher of the two: surface height or default placement height
+                float finalHeight = Mathf.Max(surfaceHeight, _defaultPlacementHeight);
+                
+                return new Vector3(position.x, finalHeight, position.z);
             }
             
+            // No surface found, use default placement height
             return new Vector3(position.x, _defaultPlacementHeight, position.z);
         }
         
@@ -732,10 +868,21 @@ namespace SceneSandbox.Core
             Ray ray = _sceneCamera.ScreenPointToRay(screenPosition);
             Vector3 worldPos;
             
+            // If raycast placement is disabled, always project to default height
+            if (!_useRaycastForPlacement)
+            {
+                Vector3 rayDirection = ray.direction.normalized;
+                float t = (_defaultPlacementHeight - ray.origin.y) / rayDirection.y;
+                worldPos = ray.origin + rayDirection * t;
+                return worldPos;
+            }
+            
             // Try to hit the ground or existing objects
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, _placementLayers))
             {
-                worldPos = hit.point;
+                // Use the higher of surface height or default placement height
+                float finalHeight = Mathf.Max(hit.point.y, _defaultPlacementHeight);
+                worldPos = new Vector3(hit.point.x, finalHeight, hit.point.z);
             }
             else
             {
@@ -766,18 +913,36 @@ namespace SceneSandbox.Core
         /// </summary>
         private void ShowDropIndicator(Vector3 position)
         {
-            if (!_enableDropIndicator) return;
+            Debug.Log($"ShowDropIndicator called with position: {position}, enabled: {_enableDropIndicator}");
+            
+            if (!_enableDropIndicator) 
+            {
+                Debug.Log("Drop indicator is disabled, returning");
+                return;
+            }
             
             // Create drop indicator if it doesn't exist
             if (_currentDropIndicator == null)
             {
+                Debug.Log("Drop indicator doesn't exist, creating new one...");
                 CreateDropIndicator();
             }
             
             if (_currentDropIndicator != null)
             {
+                Debug.Log($"Activating drop indicator: {_currentDropIndicator.name}");
                 _currentDropIndicator.SetActive(true);
+                
+                Debug.Log($"Drop indicator active state: {_currentDropIndicator.activeInHierarchy}");
+                Debug.Log($"Drop indicator world position before update: {_currentDropIndicator.transform.position}");
+                
                 UpdateDropIndicator(position);
+                
+                Debug.Log($"Drop indicator world position after update: {_currentDropIndicator.transform.position}");
+            }
+            else
+            {
+                Debug.LogError("Failed to create or access drop indicator!");
             }
         }
         
@@ -786,11 +951,42 @@ namespace SceneSandbox.Core
         /// </summary>
         private void UpdateDropIndicator(Vector3 position)
         {
-            if (!_enableDropIndicator || _currentDropIndicator == null) return;
+            if (!_enableDropIndicator) 
+            {
+                Debug.Log($"UpdateDropIndicator early return - drop indicator disabled");
+                return;
+            }
+            
+            // Create drop indicator if it doesn't exist
+            if (_currentDropIndicator == null) 
+            {
+                Debug.Log("UpdateDropIndicator: Drop indicator is null, creating new one...");
+                CreateDropIndicator();
+                
+                if (_currentDropIndicator != null)
+                {
+                    Debug.Log("UpdateDropIndicator: Successfully created drop indicator");
+                    _currentDropIndicator.SetActive(true);
+                }
+                else
+                {
+                    Debug.LogError("UpdateDropIndicator: Failed to create drop indicator!");
+                    return;
+                }
+            }
+            
+            // Ensure indicator is active
+            if (!_currentDropIndicator.activeInHierarchy)
+            {
+                Debug.Log("UpdateDropIndicator: Activating drop indicator");
+                _currentDropIndicator.SetActive(true);
+            }
             
             // Snap to grid if enabled
             Vector3 finalPosition = _snapToGrid ? SnapToGrid(position) : position;
             finalPosition = GetSurfacePosition(finalPosition);
+            
+            Debug.Log($"UpdateDropIndicator - input: {position}, final: {finalPosition}, snap: {_snapToGrid}");
             
             _dragPreviewPosition = finalPosition;
             _currentDropIndicator.transform.position = finalPosition;
@@ -799,15 +995,18 @@ namespace SceneSandbox.Core
             bool isValidPosition = IsPositionInSceneBounds(finalPosition);
             Color indicatorColor = isValidPosition ? _validDropColor : _invalidDropColor;
             
+            Debug.Log($"UpdateDropIndicator - valid position: {isValidPosition}, color: {indicatorColor}");
+            
             // Apply color to the indicator
             var renderer = _currentDropIndicator.GetComponent<Renderer>();
-            if (renderer != null)
+            if (renderer != null && renderer.material != null)
             {
-                var material = renderer.material;
-                if (material != null)
-                {
-                    material.color = indicatorColor;
-                }
+                renderer.material.color = indicatorColor;
+                Debug.Log($"Applied color to drop indicator material: {indicatorColor}");
+            }
+            else
+            {
+                Debug.LogWarning("Drop indicator renderer or material is null!");
             }
         }
         
@@ -816,9 +1015,13 @@ namespace SceneSandbox.Core
         /// </summary>
         private void HideDropIndicator()
         {
+            Debug.Log($"HideDropIndicator called - indicator exists: {_currentDropIndicator != null}");
+            
             if (_currentDropIndicator != null)
             {
+                Debug.Log($"Hiding drop indicator: {_currentDropIndicator.name}");
                 _currentDropIndicator.SetActive(false);
+                Debug.Log($"Drop indicator hidden - active state: {_currentDropIndicator.activeInHierarchy}");
             }
         }
         
@@ -827,15 +1030,20 @@ namespace SceneSandbox.Core
         /// </summary>
         private void CreateDropIndicator()
         {
+            Debug.Log("CreateDropIndicator called");
+            
             if (_dropIndicatorPrefab != null)
             {
+                Debug.Log($"Creating drop indicator from prefab: {_dropIndicatorPrefab.name}");
                 _currentDropIndicator = Instantiate(_dropIndicatorPrefab);
+                _currentDropIndicator.name = "Drop Indicator (Prefab)";
             }
             else
             {
+                Debug.Log("Creating default drop indicator (Cylinder)");
                 // Create default drop indicator
                 _currentDropIndicator = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                _currentDropIndicator.name = "Drop Indicator";
+                _currentDropIndicator.name = "Drop Indicator (Default)";
                 
                 // Remove collider to prevent interference
                 var collider = _currentDropIndicator.GetComponent<Collider>();
@@ -847,30 +1055,33 @@ namespace SceneSandbox.Core
                 // Scale to indicator size
                 _currentDropIndicator.transform.localScale = new Vector3(_dropIndicatorSize, 0.1f, _dropIndicatorSize);
                 
-                // Make it semi-transparent
+                // Create a more visible material
                 var renderer = _currentDropIndicator.GetComponent<Renderer>();
                 if (renderer != null)
                 {
-                    var material = new Material(Shader.Find("Standard"));
-                    material.SetFloat("_Mode", 3); // Transparent mode
-                    material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                    material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                    material.SetInt("_ZWrite", 0);
-                    material.DisableKeyword("_ALPHATEST_ON");
-                    material.EnableKeyword("_ALPHABLEND_ON");
-                    material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-                    material.renderQueue = 3000;
+                    // Create a new material to ensure visibility
+                    Material indicatorMaterial = new Material(Shader.Find("Standard"));
+                    indicatorMaterial.color = _validDropColor;
+                    indicatorMaterial.SetFloat("_Metallic", 0f);
+                    indicatorMaterial.SetFloat("_Glossiness", 0.5f);
+                    renderer.material = indicatorMaterial;
                     
-                    Color color = _validDropColor;
-                    color.a = 0.5f; // Semi-transparent
-                    material.color = color;
-                    
-                    renderer.material = material;
+                    Debug.Log($"Drop indicator material created with color: {_validDropColor}");
                 }
             }
             
-            // Initially hide the indicator
-            _currentDropIndicator.SetActive(false);
+            if (_currentDropIndicator != null)
+            {
+                Debug.Log($"Drop indicator created successfully: {_currentDropIndicator.name} at position {_currentDropIndicator.transform.position}");
+                
+                // Initially hide the indicator
+                _currentDropIndicator.SetActive(false);
+                Debug.Log("Drop indicator initially hidden");
+            }
+            else
+            {
+                Debug.LogError("Failed to create drop indicator!");
+            }
         }
         
         private string GetDefaultSavePath()
@@ -925,6 +1136,12 @@ namespace SceneSandbox.Core
             if (_showStageAreaGizmo && _stageArea != null)
             {
                 DrawStageArea();
+            }
+            
+            // Draw placement height level
+            if (_showPlacementHeightGizmo)
+            {
+                DrawPlacementHeight();
             }
         }
         
@@ -1058,6 +1275,61 @@ namespace SceneSandbox.Core
             Vector3 floorPos = new Vector3(stagePos.x, stagePos.y - stageScale.y/2f, stagePos.z);
             Vector3 floorSize = new Vector3(stageScale.x, 0.01f, stageScale.z);
             Gizmos.DrawCube(floorPos, floorSize);
+        }
+        
+        /// <summary>
+        /// Draw default placement height level
+        /// </summary>
+        private void DrawPlacementHeight()
+        {
+            Vector3 center = _stageArea != null ? _stageArea.position : transform.position;
+            Vector3 placementPos = new Vector3(center.x, _defaultPlacementHeight, center.z);
+            
+            // Draw placement height plane
+            Gizmos.color = _placementHeightColor;
+            
+            // Draw a grid at the placement height
+            float gridExtent = 15f; // Smaller than scene grid
+            int gridLines = Mathf.RoundToInt(gridExtent * 2 / _gridSize);
+            
+            // Draw horizontal grid lines at placement height
+            for (int i = 0; i <= gridLines; i++)
+            {
+                float x = center.x - gridExtent + (i * _gridSize);
+                Vector3 start = new Vector3(x, _defaultPlacementHeight, center.z - gridExtent);
+                Vector3 end = new Vector3(x, _defaultPlacementHeight, center.z + gridExtent);
+                Gizmos.DrawLine(start, end);
+            }
+            
+            for (int i = 0; i <= gridLines; i++)
+            {
+                float z = center.z - gridExtent + (i * _gridSize);
+                Vector3 start = new Vector3(center.x - gridExtent, _defaultPlacementHeight, z);
+                Vector3 end = new Vector3(center.x + gridExtent, _defaultPlacementHeight, z);
+                Gizmos.DrawLine(start, end);
+            }
+            
+            // Draw placement height indicator at center
+            Gizmos.color = Color.white;
+            Gizmos.DrawWireSphere(placementPos, 0.2f);
+            
+            // Draw vertical line from ground to placement height
+            Vector3 groundPos = new Vector3(center.x, center.y, center.z);
+            Gizmos.color = _placementHeightColor;
+            Gizmos.DrawLine(groundPos, placementPos);
+            
+            // Draw height text indicator (visual marker)
+            Vector3[] heightMarkers = {
+                placementPos + Vector3.right * 2f,
+                placementPos + Vector3.left * 2f,
+                placementPos + Vector3.forward * 2f,
+                placementPos + Vector3.back * 2f
+            };
+            
+            foreach (var marker in heightMarkers)
+            {
+                Gizmos.DrawWireCube(marker, Vector3.one * 0.1f);
+            }
         }
         
         /// <summary>
@@ -1252,6 +1524,16 @@ namespace SceneSandbox.Core
         {
             if (_inputHandler != null)
             {
+                // Unbind input events
+                _inputHandler.OnClick -= HandleClick;
+                _inputHandler.OnRightClick -= HandleRightClick;
+                _inputHandler.OnDragStart -= HandleDragStart;
+                _inputHandler.OnDragMove -= HandleDragMove;
+                _inputHandler.OnDragEnd -= HandleDragEnd;
+                _inputHandler.OnObjectSelect -= HandleObjectSelect;
+                _inputHandler.OnObjectDelete -= HandleObjectDelete;
+                _inputHandler.OnPointMove -= HandlePointMove;
+                
                 _inputHandler.Cleanup();
             }
             
