@@ -30,6 +30,7 @@ namespace MiniTimeline.Serialization
             RegisterTrackType(MiniTimelineConstants.TRACK_MOVEMENT, CreateMovementTrack);
             RegisterTrackType(MiniTimelineConstants.TRACK_ANIMATOR, CreateAnimatorTrack);
             RegisterTrackType(MiniTimelineConstants.TRACK_SIGNAL, CreateSignalTrack);
+            RegisterTrackType(MiniTimelineConstants.TRACK_UMA_WARDROBE, CreateUmaWardrobeTrack);
             // Add more track types as they are implemented
         }
         
@@ -93,6 +94,8 @@ namespace MiniTimeline.Serialization
                     return CreateAnimatorClipFromForm(clipId, startTime, duration, formData);
                 case MiniTimelineConstants.TRACK_SIGNAL:
                     return CreateSignalClipFromForm(clipId, startTime, duration, formData);
+                case MiniTimelineConstants.TRACK_UMA_WARDROBE:
+                    return CreateUmaWardrobeClipFromForm(clipId, startTime, duration, formData);
                 default:
                     Debug.LogWarning($"[TrackFactory] Clip creation from form not implemented for track type: {trackType}");
                     return null;
@@ -101,6 +104,29 @@ namespace MiniTimeline.Serialization
         
         #region Track Creators
         
+        private static IMiniTrack CreateUmaWardrobeTrack(TrackData data)
+        {
+            var track = new UmaWardrobeTrack
+            {
+                Id = data.id,
+                BindKey = data.bindKey,
+                Enabled = data.enabled
+            };
+
+            var clips = new List<UmaWardrobeClip>();
+            foreach (var clipData in data.clips)
+            {
+                var clip = DeserializeUmaWardrobeClip(clipData);
+                if (clip != null)
+                {
+                    clips.Add(clip);
+                }
+            }
+
+            track.SetClips(clips);
+            return track;
+        }
+
         private static IMiniTrack CreateAnimTrack(TrackData data)
         {
             var track = new AnimTrack
@@ -431,6 +457,21 @@ namespace MiniTimeline.Serialization
             return signalClip;
         }
         
+        private static UmaWardrobeClip CreateUmaWardrobeClipFromForm(string clipId, float startTime, float duration, Dictionary<string, object> formData)
+        {
+            var umaClip = new UmaWardrobeClip
+            {
+                Id = clipId,
+                Start = startTime,
+                Duration = duration
+            };
+
+            if (formData.ContainsKey("wardrobeJson"))
+                umaClip.wardrobeJson = formData["wardrobeJson"].ToString();
+
+            return umaClip;
+        }
+
         #endregion
         
         #region Clip Deserializers
@@ -885,6 +926,31 @@ namespace MiniTimeline.Serialization
                 }
             }
             return Quaternion.identity;
+        }
+
+        private static UmaWardrobeClip DeserializeUmaWardrobeClip(ClipData data)
+        {
+            try
+            {
+                var clip = new UmaWardrobeClip
+                {
+                    Id = data.id,
+                    Start = data.start,
+                    Duration = data.duration
+                };
+
+                if (data.payload.TryGetValue("wardrobeJson", out var json))
+                {
+                    clip.wardrobeJson = json.ToString();
+                }
+
+                return clip;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[TrackFactory] Error deserializing UmaWardrobeClip: {e.Message}");
+                return null;
+            }
         }
         
         #endregion

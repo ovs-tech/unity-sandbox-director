@@ -32,6 +32,9 @@ namespace MiniTimeline.UI
                 
                 case MiniTimelineConstants.TRACK_SIGNAL:
                     return GetSignalClipFields();
+
+                case MiniTimelineConstants.TRACK_UMA_WARDROBE:
+                    return GetUmaWardrobeClipFields();
                 
                 default:
                     return GetGenericClipFields();
@@ -55,6 +58,8 @@ namespace MiniTimeline.UI
                     return "Movement Clip";
                 case MiniTimelineConstants.TRACK_SIGNAL:
                     return "Signal Clip";
+                case MiniTimelineConstants.TRACK_UMA_WARDROBE:
+                    return "UMA Wardrobe Clip";
                 default:
                     return "Generic Clip";
             }
@@ -426,6 +431,54 @@ namespace MiniTimeline.UI
             };
         }
         
+        #endregion
+
+        #region UMA Wardrobe Clip Fields
+
+        private static List<FormFieldDefinition> GetUmaWardrobeClipFields()
+        {
+            return new List<FormFieldDefinition>
+            {
+                new FormFieldDefinition("name", "Clip Name", "text", "New UMA Wardrobe Clip")
+                {
+                    required = true,
+                    placeholder = "Enter clip name",
+                    tooltip = "Display name for this UMA wardrobe clip"
+                },
+
+                new FormFieldDefinition("start", "Start Time", "number", 0f)
+                {
+                    required = true,
+                    placeholder = "0.0",
+                    tooltip = "When the clip starts on the timeline (in seconds)",
+                    options = new Dictionary<string, object>
+                    {
+                        { "min", 0f },
+                        { "max", 300f }
+                    }
+                },
+
+                new FormFieldDefinition("duration", "Duration", "number", 1f)
+                {
+                    required = true,
+                    placeholder = "1.0",
+                    tooltip = "How long the clip lasts (in seconds)",
+                    options = new Dictionary<string, object>
+                    {
+                        { "min", 0.1f },
+                        { "max", 60f }
+                    }
+                },
+
+                new FormFieldDefinition("wardrobeJson", "Wardrobe JSON", "textarea", "")
+                {
+                    required = true,
+                    placeholder = "Enter wardrobe JSON here",
+                    tooltip = "JSON data defining the wardrobe recipes and colors"
+                }
+            };
+        }
+
         #endregion
         
         #region Generic Clip Fields
