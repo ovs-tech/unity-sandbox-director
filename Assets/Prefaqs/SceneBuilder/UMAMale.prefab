@@ -5776,6 +5776,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b1288fce97312f45b9e031cb3091be1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MiniTimeline.Core.BindableObject
+  objectType: 1
+  customTypeName: 
   tags:
   - actor
 --- !u!95 &6026475256862203985

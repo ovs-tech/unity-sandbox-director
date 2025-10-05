@@ -90,6 +90,13 @@ namespace MiniTimeline.Core
         
         public virtual void Bind(BindingContext context)
         {
+            if (context == null)
+            {
+                UnityEngine.Debug.LogWarning($"[MiniTrack] Cannot bind track '{Id}': BindingContext is null");
+                isBound = false;
+                return;
+            }
+            
             if (!string.IsNullOrEmpty(BindKey))
             {
                 targetObject = context.Resolve<UnityEngine.Object>(BindKey);
@@ -99,6 +106,11 @@ namespace MiniTimeline.Core
                 {
                     UnityEngine.Debug.LogWarning($"[MiniTrack] Failed to bind track '{Id}' with key '{BindKey}'");
                 }
+            }
+            else
+            {
+                // Track doesn't require binding (e.g., global tracks)
+                isBound = true;
             }
         }
         

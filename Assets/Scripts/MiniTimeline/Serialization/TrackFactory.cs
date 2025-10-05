@@ -79,7 +79,7 @@ namespace MiniTimeline.Serialization
         public static IMiniClip CreateClipFromFormData(string trackType, Dictionary<string, object> formData)
         {
             // Extract common fields
-            string clipId = System.Guid.NewGuid().ToString();
+            string clipId = Guid.NewGuid().ToString();
             float startTime = formData.ContainsKey("start") ? Convert.ToSingle(formData["start"]) : 0f;
             float duration = formData.ContainsKey("duration") ? Convert.ToSingle(formData["duration"]) : 1f;
             

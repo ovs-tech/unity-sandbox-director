@@ -6,6 +6,8 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using MiniTimeline.Core;
 using MiniTimeline.UI.Commands;
+using MiniTimeline.Tracks;
+using MiniTimeline.UI.FormDefinitions;
 
 namespace MiniTimeline.UI
 {
@@ -270,7 +272,7 @@ namespace MiniTimeline.UI
         
         #region Visual Updates
         
-        private void UpdateClipAppearance()
+        public void UpdateClipAppearance()
         {
             if (clip == null) return;
             
@@ -1186,7 +1188,274 @@ namespace MiniTimeline.UI
         private void ShowProperties()
         {
             Debug.Log($"Show properties for clip: {clip.Id}");
-            // TODO: Show clip properties panel
+            
+            if (clip == null || parentTrack == null)
+            {
+                Debug.LogWarning("Cannot show properties: clip or parent track is null");
+                return;
+            }
+            
+            // Get track type to determine form fields
+            string trackType = GetClipTrackType();
+            
+            // Get field definitions for this track type (same as creation form)
+            var fieldDefinitions = ClipFormDefinitions.GetFieldsForTrackType(trackType);
+            
+            // Populate form fields with current clip data
+            PopulateFormFieldsWithClipData(fieldDefinitions);
+            
+            string formTitle = $"Edit {ClipFormDefinitions.GetTrackTypeDisplayName(trackType)}";
+            
+            // Show the form for editing
+            FormSubmitPanel.Instance.Show(
+                formTitle,
+                fieldDefinitions,
+                OnClipEditFormSubmitted,
+                OnClipEditFormCancelled
+            );
+        }
+        
+        /// <summary>
+        /// Get the track type string for this clip's parent track
+        /// </summary>
+        private string GetClipTrackType()
+        {
+            if (parentTrack?.Track == null) return "generic";
+            
+            // Use the same logic as TrackUI.GetTrackType()
+            switch (parentTrack.Track)
+            {
+                case AnimTrack _:
+                    return MiniTimelineConstants.TRACK_ANIM;
+                case AnimatorTrack _:
+                    return MiniTimelineConstants.TRACK_ANIMATOR;
+                case MorphTrack _:
+                    return MiniTimelineConstants.TRACK_MORPH;
+                case MovementTrack _:
+                    return MiniTimelineConstants.TRACK_MOVEMENT;
+                case SignalTrack _:
+                    return MiniTimelineConstants.TRACK_SIGNAL;
+                case UmaWardrobeTrack _:
+                    return MiniTimelineConstants.TRACK_UMA_WARDROBE;
+                case UMAExpressionTrack _:
+                    return MiniTimelineConstants.TRACK_UMA_EXPRESSION;
+                default:
+                    return "generic";
+            }
+        }
+        
+        /// <summary>
+        /// Populate form field definitions with current clip data
+        /// </summary>
+        private void PopulateFormFieldsWithClipData(List<FormFieldDefinition> fieldDefinitions)
+        {
+            foreach (var fieldDef in fieldDefinitions)
+            {
+                switch (fieldDef.name)
+                {
+                    case "trackType":
+                        // Keep the hidden track type field as is
+                        break;
+                        
+                    case "name":
+                        fieldDef.defaultValue = clip.Id;
+                        break;
+                        
+                    case "start":
+                        fieldDef.defaultValue = clip.Start;
+                        break;
+                        
+                    case "duration":
+                        fieldDef.defaultValue = clip.Duration;
+                        break;
+                        
+                    default:
+                        // Handle clip-specific properties using reflection
+                        PopulateClipSpecificProperty(fieldDef);
+                        break;
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Populate clip-specific properties using reflection
+        /// </summary>
+        private void PopulateClipSpecificProperty(FormFieldDefinition fieldDef)
+        {
+            try
+            {
+                var clipType = clip.GetType();
+                var property = clipType.GetProperty(fieldDef.name);
+                var field = clipType.GetField(fieldDef.name);
+                
+                if (property != null && property.CanRead)
+                {
+                    fieldDef.defaultValue = property.GetValue(clip);
+                }
+                else if (field != null)
+                {
+                    fieldDef.defaultValue = field.GetValue(clip);
+                }
+                // If property/field not found, keep the original default value
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"Could not populate field '{fieldDef.name}': {ex.Message}");
+                // Keep the original default value
+            }
+        }
+        
+        /// <summary>
+        /// Handle form submission for clip editing
+        /// </summary>
+        private void OnClipEditFormSubmitted(Dictionary<string, object> formData)
+        {
+            Debug.Log($"Clip edit form submitted with {formData.Count} fields to clip {clip.Id}");
+            
+            try
+            {
+                // Create a command to update the clip properties
+                var command = new EditClipCommand(clip, formData, parentTrack);
+                
+                if (parentTrack?.TimelineEditor != null)
+                {
+                    parentTrack.TimelineEditor.ExecuteCommand(command);
+                }
+                else
+                {
+                    // Fallback: apply changes directly if no command system
+                    ApplyClipChangesDirectly(formData);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to update clip properties: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// Handle form cancellation for clip editing
+        /// </summary>
+        private void OnClipEditFormCancelled()
+        {
+            Debug.Log("Clip edit cancelled");
+        }
+        
+        /// <summary>
+        /// Apply clip changes directly (fallback when no command system available)
+        /// </summary>
+        private void ApplyClipChangesDirectly(Dictionary<string, object> formData)
+        {
+            // Cast to MiniClipBase to access setters
+            var clipBase = clip as MiniClipBase;
+            if (clipBase == null)
+            {
+                Debug.LogError($"Cannot edit clip: clip {clip.GetType().Name} is not derived from MiniClipBase");
+                return;
+            }
+            
+            // Store original values for basic properties
+            float originalStart = clipBase.Start;
+            float originalDuration = clipBase.Duration;
+            string originalId = clipBase.Id;
+            
+            // Apply basic properties
+            if (formData.ContainsKey("name"))
+            {
+                clipBase.Id = formData["name"].ToString();
+            }
+            
+            if (formData.ContainsKey("start") && float.TryParse(formData["start"].ToString(), out float newStart))
+            {
+                clipBase.Start = newStart;
+            }
+            
+            if (formData.ContainsKey("duration") && float.TryParse(formData["duration"].ToString(), out float newDuration))
+            {
+                clipBase.Duration = Mathf.Max(0.1f, newDuration); // Ensure minimum duration
+            }
+            
+            // Apply clip-specific properties using reflection
+            ApplyClipSpecificProperties(formData);
+            
+            // Update visual representation
+            UpdateClipAppearance();
+            UpdateLayout();
+            
+            // If position or duration changed, rebuild track layout
+            if (Math.Abs(originalStart - clipBase.Start) > 0.001f || 
+                Math.Abs(originalDuration - clipBase.Duration) > 0.001f)
+            {
+                parentTrack?.RebuildClipUIs();
+            }
+            
+            Debug.Log($"Applied clip changes directly: {originalId} -> {clipBase.Id}");
+        }
+        
+        /// <summary>
+        /// Apply clip-specific properties using reflection
+        /// </summary>
+        private void ApplyClipSpecificProperties(Dictionary<string, object> formData)
+        {
+            var clipType = clip.GetType();
+            
+            foreach (var kvp in formData)
+            {
+                // Skip basic properties already handled
+                if (kvp.Key == "trackType" || kvp.Key == "name" || kvp.Key == "start" || kvp.Key == "duration")
+                    continue;
+                
+                try
+                {
+                    var property = clipType.GetProperty(kvp.Key);
+                    var field = clipType.GetField(kvp.Key);
+                    
+                    if (property != null && property.CanWrite)
+                    {
+                        // Convert value to appropriate type
+                        var convertedValue = ConvertValueToPropertyType(kvp.Value, property.PropertyType);
+                        property.SetValue(clip, convertedValue);
+                    }
+                    else if (field != null)
+                    {
+                        // Convert value to appropriate type
+                        var convertedValue = ConvertValueToPropertyType(kvp.Value, field.FieldType);
+                        field.SetValue(clip, convertedValue);
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogWarning($"Could not set property '{kvp.Key}': {ex.Message}");
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Convert form value to the target property type
+        /// </summary>
+        private object ConvertValueToPropertyType(object value, System.Type targetType)
+        {
+            if (value == null) return null;
+            
+            // If already correct type, return as-is
+            if (targetType.IsAssignableFrom(value.GetType()))
+                return value;
+            
+            // Handle common type conversions
+            if (targetType == typeof(string))
+                return value.ToString();
+            
+            if (targetType == typeof(float))
+                return System.Convert.ToSingle(value);
+            
+            if (targetType == typeof(int))
+                return System.Convert.ToInt32(value);
+            
+            if (targetType == typeof(bool))
+                return System.Convert.ToBoolean(value);
+            
+            // For other types, try direct conversion
+            return System.Convert.ChangeType(value, targetType);
         }
         
         #if UNITY_EDITOR

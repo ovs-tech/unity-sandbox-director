@@ -415,19 +415,6 @@ namespace MiniTimeline.UI
             
             if (submitButton != null)
                 submitButton.onClick.AddListener(HandleSubmit);
-            
-            // Close panel when clicking background
-            if (backgroundPanel != null)
-            {
-                var backgroundButton = backgroundPanel.GetComponent<Button>();
-                if (backgroundButton == null)
-                {
-                    backgroundButton = backgroundPanel.AddComponent<Button>();
-                    var targetGraphic = backgroundPanel.GetComponent<Image>();
-                    backgroundButton.targetGraphic = targetGraphic;
-                    backgroundButton.onClick.AddListener(CloseForm);
-                }
-            }
         }
         
         #endregion
@@ -613,6 +600,9 @@ namespace MiniTimeline.UI
                 case "info":
                     fieldObj = CreateInfoField(fieldDef);
                     break;
+                case "hidden":
+                    fieldObj = CreateHiddenField(fieldDef);
+                    break;
                 default:
                     // Debug.LogWarning($"Unsupported field type: {fieldDef.type}");
                     fieldObj = CreateTextField(fieldDef); // Fallback to text
@@ -757,6 +747,17 @@ namespace MiniTimeline.UI
             textAreaDef.options["readonly"] = true;
             
             return CreateTextAreaField(textAreaDef);
+        }
+        
+        private GameObject CreateHiddenField(FormFieldDefinition fieldDef)
+        {
+            GameObject fieldObj = new GameObject($"HiddenField_{fieldDef.name}");
+            
+            // Hidden fields don't need layout elements since they're not visible
+            var hiddenField = fieldObj.AddComponent<HiddenFormField>();
+            hiddenField.Initialize(fieldDef);
+            
+            return fieldObj;
         }
         
         private void FocusFirstField()

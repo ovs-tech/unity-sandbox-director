@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using MiniTimeline.Core;
 using MiniTimeline.UI.Commands;
+using MiniTimeline.UI.FormDefinitions;
 
 namespace MiniTimeline.UI
 {
@@ -48,7 +49,7 @@ namespace MiniTimeline.UI
         [SerializeField] bool isDebug;
 
         // Core references
-        private MiniTimelineDirector director;
+        [SerializeField] private MiniTimelineDirector director;
         private TimelineCommandManager commandManager;
         private TimelineContextMenu contextMenu;
         private FormSubmitPanel formSubmitPanel;
@@ -680,57 +681,8 @@ namespace MiniTimeline.UI
                 return;
             }
 
-            // Define form fields for track creation
-            var fieldDefinitions = new List<FormFieldDefinition>
-            {
-                new FormFieldDefinition
-                {
-                    name = "trackType",
-                    type = "selectbox",
-                    label = "Track Type",
-                    required = true,
-                    options = new Dictionary<string, object>
-                    {
-                        { "items", new List<string>
-                        {
-                            MiniTimelineConstants.TRACK_ANIM,
-                            MiniTimelineConstants.TRACK_ANIMATOR,
-                            MiniTimelineConstants.TRACK_MORPH,
-                            MiniTimelineConstants.TRACK_MOVEMENT,
-                            MiniTimelineConstants.TRACK_SIGNAL,
-                            MiniTimelineConstants.TRACK_AUDIO
-                        }}
-                    },
-                    defaultValue = MiniTimelineConstants.TRACK_ANIM,
-                    tooltip = "Select the type of track to create"
-                },
-                new FormFieldDefinition
-                {
-                    name = "trackName",
-                    type = "text",
-                    label = "Track Name",
-                    required = true,
-                    placeholder = "Enter track name...",
-                    defaultValue = "New Track"
-                },
-                new FormFieldDefinition
-                {
-                    name = "bindKey",
-                    type = "text",
-                    label = "Bind Key",
-                    required = false,
-                    placeholder = "e.g., character, camera...",
-                    tooltip = "Key to bind this track to game objects in the scene"
-                },
-                new FormFieldDefinition
-                {
-                    name = "enabled",
-                    type = "toggle",
-                    label = "Enabled",
-                    required = false,
-                    defaultValue = true
-                }
-            };
+            // Get form field definitions from TrackFormDefinitions
+            var fieldDefinitions = TrackFormDefinitions.GetCreateTrackFields();
 
             // Show the form using FormSubmitPanel singleton
             FormSubmitPanel.Instance.Show(
@@ -775,7 +727,7 @@ namespace MiniTimeline.UI
                 var addTrackCommand = new AddTrackCommand(director, trackData, this);
                 ExecuteCommand(addTrackCommand);
 
-                Debug.Log($"Added new {GetTrackDisplayName(trackType)} track: {trackName}");
+                Debug.Log($"Added new {TrackUIHelper.GetTrackDisplayName(trackType)} track: {trackName}");
             }
             catch (System.Exception ex)
             {
@@ -789,26 +741,6 @@ namespace MiniTimeline.UI
         private void OnAddTrackFormCancelled()
         {
             Debug.Log("Add track cancelled");
-        }
-
-        /// <summary>
-        /// Get user-friendly display name for track type
-        /// </summary>
-        private string GetTrackDisplayName(string trackType)
-        {
-            return trackType switch
-            {
-                MiniTimelineConstants.TRACK_ANIM => "Animation",
-                MiniTimelineConstants.TRACK_ANIMATOR => "Animator",
-                MiniTimelineConstants.TRACK_MORPH => "Morph",
-                MiniTimelineConstants.TRACK_MOVEMENT => "Movement",
-                MiniTimelineConstants.TRACK_SIGNAL => "Signal",
-                MiniTimelineConstants.TRACK_AUDIO => "Audio",
-                MiniTimelineConstants.TRACK_EXPRESSION => "Expression", 
-                MiniTimelineConstants.TRACK_IK => "IK Pose",
-                MiniTimelineConstants.TRACK_LIGHT_FX => "FX Light",
-                _ => trackType.Replace("Track", "")
-            };
         }
 
         #endregion
@@ -1016,7 +948,7 @@ namespace MiniTimeline.UI
         }
         
         /// <summary>
-        /// Auto-detect common GameObjects in the scene and bind them
+        /// Auto-detect common GameObjects in the scene and bind them using BindableObject components
         /// </summary>
         private void AutoDetectSceneBindings()
         {
@@ -1024,12 +956,176 @@ namespace MiniTimeline.UI
             
             var bindingContext = director.BindingContext;
             int bindingsAdded = 0;
+            int bindableObjectsFound = 0;
+            int fallbackBindingsAdded = 0;
             
-            // Find common objects in the scene
+            // Track binding counts for each type to handle multiple objects of same type
+            var typeBindingCounts = new Dictionary<string, int>();
+            
+            // First pass: Find objects with BindableObject components
+            var bindableObjects = FindObjectsByType<BindableObject>(FindObjectsSortMode.None);
+            
+            foreach (var bindableObj in bindableObjects)
+            {
+                if (!bindableObj.IsValid) continue;
+                
+                bindableObjectsFound++;
+                
+                // Get binding key from the object's type
+                string baseBindingKey = DetermineBindingKeyFromType(bindableObj);
+                
+                if (string.IsNullOrEmpty(baseBindingKey))
+                {
+                    // Fallback to component-based detection
+                    baseBindingKey = DetermineBindingKeyFromComponents(bindableObj.gameObject);
+                }
+                
+                if (string.IsNullOrEmpty(baseBindingKey))
+                {
+                    // Last resort: use sanitized object name
+                    baseBindingKey = SanitizeBindingKey(bindableObj.gameObject.name.ToLower());
+                }
+                
+                // Handle multiple objects of the same type by incrementing
+                string finalBindingKey = baseBindingKey;
+                if (typeBindingCounts.ContainsKey(baseBindingKey))
+                {
+                    typeBindingCounts[baseBindingKey]++;
+                    finalBindingKey = $"{baseBindingKey}_{typeBindingCounts[baseBindingKey]}";
+                }
+                else
+                {
+                    typeBindingCounts[baseBindingKey] = 0;
+                    // Check if base key already exists in binding context
+                    if (bindingContext.HasKey(baseBindingKey))
+                    {
+                        typeBindingCounts[baseBindingKey] = 1;
+                        finalBindingKey = $"{baseBindingKey}_1";
+                    }
+                }
+                
+                // Ensure the final key is truly unique
+                finalBindingKey = EnsureUniqueBindingKey(bindingContext, finalBindingKey);
+                
+                if (!string.IsNullOrEmpty(finalBindingKey))
+                {
+                    bindingContext.Bind(finalBindingKey, bindableObj.gameObject);
+                    bindingsAdded++;
+                    
+                    string typeInfo = bindableObj.ObjectType == BindableObjectType.Custom 
+                        ? $"Custom({bindableObj.CustomTypeName})" 
+                        : bindableObj.ObjectType.ToString();
+                    string tagsInfo = bindableObj.Tags.Count > 0 ? $" [Tags: {string.Join(", ", bindableObj.Tags)}]" : "";
+                    Debug.Log($"Auto-detected binding: {finalBindingKey} → {bindableObj.gameObject.name} (Type: {typeInfo}){tagsInfo}");
+                }
+            }
+            
+            // Second pass: Fallback detection for objects without BindableObject components
+            if (bindableObjectsFound == 0)
+            {
+                Debug.Log("No BindableObject components found, falling back to name-based detection");
+                fallbackBindingsAdded = AutoDetectSceneBindingsFallback();
+            }
+            
+            string summary = $"Auto-detection complete. Found {bindableObjectsFound} BindableObject components, added {bindingsAdded} bindings";
+            if (fallbackBindingsAdded > 0)
+            {
+                summary += $", plus {fallbackBindingsAdded} fallback bindings";
+            }
+            Debug.Log(summary);
+        }
+        
+        /// <summary>
+        /// Determine binding key from BindableObject type
+        /// </summary>
+        private string DetermineBindingKeyFromType(BindableObject bindableObj)
+        {
+            // Use the object's TypeName property which handles both enum types and custom types
+            return bindableObj.TypeName;
+        }
+        
+        /// <summary>
+        /// Determine binding key from GameObject components
+        /// </summary>
+        private string DetermineBindingKeyFromComponents(GameObject go)
+        {
+            if (go.GetComponent<Camera>())
+                return "camera";
+            else if (go.GetComponent<Canvas>())
+                return "ui";
+            else if (go.GetComponent<Light>())
+                return "light";
+            else if (go.GetComponent<AudioSource>())
+                return "audio";
+            else if (go.GetComponent<Animator>() || go.GetComponent<Animation>())
+            {
+                string name = go.name.ToLower();
+                return name.Contains("character") || name.Contains("player") ? "character" : "animated_object";
+            }
+            
+            return null;
+        }
+        
+        /// <summary>
+        /// Sanitize a string to be a valid binding key
+        /// </summary>
+        private string SanitizeBindingKey(string key)
+        {
+            if (string.IsNullOrEmpty(key)) return "object";
+            
+            // Remove invalid characters and convert to lowercase
+            key = key.ToLower();
+            key = System.Text.RegularExpressions.Regex.Replace(key, @"[^a-z0-9_]", "_");
+            key = System.Text.RegularExpressions.Regex.Replace(key, @"_+", "_");
+            key = key.Trim('_');
+            
+            return string.IsNullOrEmpty(key) ? "object" : key;
+        }
+        
+        /// <summary>
+        /// Ensure the binding key is unique by appending numbers if needed
+        /// </summary>
+        private string EnsureUniqueBindingKey(BindingContext bindingContext, string baseKey)
+        {
+            if (string.IsNullOrEmpty(baseKey)) return null;
+            
+            if (!bindingContext.HasKey(baseKey))
+            {
+                return baseKey;
+            }
+            
+            // Generate unique key by appending numbers
+            for (int i = 1; i < 100; i++)
+            {
+                string uniqueKey = $"{baseKey}_{i}";
+                if (!bindingContext.HasKey(uniqueKey))
+                {
+                    return uniqueKey;
+                }
+            }
+            
+            Debug.LogWarning($"Could not generate unique binding key for base key: {baseKey}");
+            return null;
+        }
+        
+        /// <summary>
+        /// Fallback auto-detection using name patterns when no BindingableObject components are found
+        /// </summary>
+        private int AutoDetectSceneBindingsFallback()
+        {
+            if (director?.BindingContext == null) return 0;
+            
+            var bindingContext = director.BindingContext;
+            int bindingsAdded = 0;
+            
+            // Find common objects in the scene using the old method
             var gameObjects = FindObjectsByType<GameObject>(FindObjectsSortMode.None);
             
             foreach (var go in gameObjects)
             {
+                // Skip objects that already have BindableObject components
+                if (go.GetComponent<BindableObject>() != null) continue;
+                
                 string name = go.name.ToLower();
                 string bindingKey = null;
                 
@@ -1052,11 +1148,11 @@ namespace MiniTimeline.UI
                 {
                     bindingContext.Bind(bindingKey, go);
                     bindingsAdded++;
-                    Debug.Log($"Auto-detected binding: {bindingKey} → {go.name}");
+                    Debug.Log($"Fallback auto-detected binding: {bindingKey} → {go.name}");
                 }
             }
             
-            Debug.Log($"Auto-detection complete. Added {bindingsAdded} new bindings.");
+            return bindingsAdded;
         }
         
         /// <summary>

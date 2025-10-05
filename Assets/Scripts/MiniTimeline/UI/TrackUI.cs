@@ -10,6 +10,7 @@ using MiniTimeline.UI.Commands;
 using MiniTimeline.Tracks;
 using MiniTimeline.Serialization;
 using Debug = UnityEngine.Debug;
+using MiniTimeline.UI.FormDefinitions;
 
 namespace MiniTimeline.UI
 {
@@ -326,14 +327,11 @@ namespace MiniTimeline.UI
         {
             if (track == null) return;
             
-            // Assign color based on track type
-            string trackType = track.GetType().Name;
-            trackColorIndex = Math.Abs(trackType.GetHashCode()) % trackColors.Length;
-            
             if (trackBackground != null)
             {
-                Color bgColor = trackColors[trackColorIndex];
-                bgColor.a = 0.3f;
+                // Use the helper to get track-specific color
+                Color bgColor = TrackUIHelper.GetTrackColor(track);
+                bgColor.a = 0.3f; // Make it semi-transparent for background
                 trackBackground.color = bgColor;
             }
         }
@@ -344,7 +342,7 @@ namespace MiniTimeline.UI
             
             if (trackNameText != null)
             {
-                string trackTypeName = GetFriendlyTrackName(track.GetType().Name);
+                string trackTypeName = TrackUIHelper.GetFriendlyTrackName(track.GetType().Name);
                 trackNameText.text = $"{trackTypeName}\n{track.BindKey}";
             }
             
@@ -371,22 +369,6 @@ namespace MiniTimeline.UI
         public void RebuildClipUIs()
         {
             BuildClipUIs();
-        }
-        
-        private string GetFriendlyTrackName(string typeName)
-        {
-            return typeName switch
-            {
-                "AnimTrack" => "Animation",
-                "MorphTrack" => "Morph",
-                "ExpressionTrack" => "Expression",
-                "CameraTrack" => "Camera",
-                "PoseIKTrack" => "IK Pose",
-                "AudioTrack" => "Audio",
-                "FxLightTrack" => "FX Light",
-                "SignalTrack" => "Events",
-                _ => typeName.Replace("Track", "")
-            };
         }
         
         #endregion
@@ -817,7 +799,7 @@ namespace MiniTimeline.UI
                 .WithTooltip("Create a copy of this track");
                 
             yield return new ContextMenuItem("Delete Track", () => DeleteTrack(), MenuCategory.Edit, MenuPriority.Delete, "🗑️")
-                .WithTooltip("Delete this track")
+                .WithTooltip("Delete this track and all its clips")
                 .WithTextColor(Color.red);
 
             // Action operations
@@ -906,6 +888,10 @@ namespace MiniTimeline.UI
                     return MiniTimelineConstants.TRACK_MOVEMENT;
                 case SignalTrack _:
                     return MiniTimelineConstants.TRACK_SIGNAL;
+                case UmaWardrobeTrack _:
+                    return MiniTimelineConstants.TRACK_UMA_WARDROBE;
+                case UMAExpressionTrack _:
+                    return MiniTimelineConstants.TRACK_UMA_EXPRESSION;
                 default:
                     // Debug.LogWarning($"Unknown track type: {track.GetType().Name}");
                     return "generic";
@@ -914,13 +900,12 @@ namespace MiniTimeline.UI
         
         private void OnClipFormSubmitted(Dictionary<string, object> formData)
         {
-            // Debug.Log("Clip form submitted with data:");
-            foreach (var kvp in formData)
-            {
-                Debug.Log($"  {kvp.Key}: {kvp.Value}");
-            }
+            Debug.Log($"Clip form submitted with {formData.Count} fields: {string.Join(", ", formData.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
             
-            CreateClipFromFormData(formData);
+            // Get track type from form data (it's included as a hidden field)
+            string trackType = formData.ContainsKey("trackType") ? formData["trackType"].ToString() : GetTrackType();
+            
+            CreateClipFromFormData(trackType, formData);
         }
         
         private void OnClipFormCancelled()
@@ -928,12 +913,11 @@ namespace MiniTimeline.UI
             Debug.Log("Clip creation cancelled");
         }
         
-        private void CreateClipFromFormData(Dictionary<string, object> formData)
+        private void CreateClipFromFormData(string trackType, Dictionary<string, object> formData)
         {
             try
             {
-                // Get the track type and use TrackFactory to create the clip instance
-                string trackType = GetTrackType();
+                // Use TrackFactory to create the clip instance
                 IMiniClip clipInstance = TrackFactory.CreateClipFromFormData(trackType, formData);
                 
                 if (clipInstance != null)
@@ -1038,8 +1022,139 @@ namespace MiniTimeline.UI
         
         private void DeleteTrack()
         {
-            Debug.Log($"Delete track: {track?.GetType().Name}");
-            // TODO: Implement delete track functionality through command system
+            if (track == null || timelineEditor?.Director == null)
+            {
+                Debug.LogError("Cannot delete track: track or timeline director is null");
+                return;
+            }
+
+            // Show confirmation dialog for track deletion
+            ShowDeleteTrackConfirmation();
+        }
+
+        /// <summary>
+        /// Show confirmation dialog for track deletion
+        /// </summary>
+        private void ShowDeleteTrackConfirmation()
+        {
+            string trackDisplayName = TrackUIHelper.GetTrackDisplayName(track);
+            int clipCount = track.GetClips()?.Count() ?? 0;
+            
+            // Create confirmation form
+            var fieldDefinitions = new List<FormFieldDefinition>
+            {
+                new FormFieldDefinition
+                {
+                    name = "confirmationText",
+                    type = "textarea",
+                    label = "Confirmation",
+                    required = false,
+                    defaultValue = $"Are you sure you want to delete '{trackDisplayName}'?\n\n" +
+                                   $"This track contains {clipCount} clip(s).\n\n" +
+                                   "This action cannot be undone (but can be undone via Undo command).\n\n" +
+                                   "Type 'DELETE' below to confirm:",
+                    tooltip = "Confirmation message for track deletion",
+                    options = new Dictionary<string, object>
+                    {
+                        { "readonly", true }
+                    }
+                },
+                
+                new FormFieldDefinition
+                {
+                    name = "confirmationInput",
+                    type = "text",
+                    label = "Type 'DELETE' to confirm",
+                    required = true,
+                    placeholder = "DELETE",
+                    tooltip = "Type 'DELETE' exactly to confirm track deletion"
+                },
+                
+                new FormFieldDefinition
+                {
+                    name = "preserveClips",
+                    type = "toggle",
+                    label = "Preserve Clips Data (for debugging)",
+                    required = false,
+                    defaultValue = false,
+                    tooltip = "Keep clip data in memory for debugging purposes (not recommended for production)"
+                }
+            };
+
+            // Show confirmation form
+            FormSubmitPanel.Instance.Show(
+                $"⚠️ Delete {trackDisplayName}",
+                fieldDefinitions,
+                OnDeleteTrackConfirmed,
+                OnDeleteTrackCancelled
+            );
+        }
+
+        /// <summary>
+        /// Handle track deletion confirmation
+        /// </summary>
+        private void OnDeleteTrackConfirmed(Dictionary<string, object> formData)
+        {
+            try
+            {
+                // Validate confirmation input
+                string confirmationInput = formData.ContainsKey("confirmationInput") 
+                    ? formData["confirmationInput"]?.ToString() ?? "" 
+                    : "";
+
+                if (confirmationInput != "DELETE")
+                {
+                    Debug.LogWarning("Track deletion cancelled: confirmation text does not match 'DELETE'");
+                    return;
+                }
+
+                // Get preserve clips option
+                bool preserveClips = formData.ContainsKey("preserveClips") 
+                    ? System.Convert.ToBoolean(formData["preserveClips"]) 
+                    : false;
+
+                // Execute delete command
+                ExecuteDeleteTrack(preserveClips);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to process track deletion confirmation: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Handle track deletion cancellation
+        /// </summary>
+        private void OnDeleteTrackCancelled()
+        {
+            Debug.Log("Track deletion cancelled by user");
+        }
+
+        /// <summary>
+        /// Execute the actual track deletion
+        /// </summary>
+        private void ExecuteDeleteTrack(bool preserveClips = false)
+        {
+            try
+            {
+                string trackDisplayName = TrackUIHelper.GetTrackDisplayName(track);
+                
+                if (preserveClips)
+                {
+                    Debug.Log($"Preserving clips data for debugging: {track.GetClips()?.Count() ?? 0} clips");
+                    // Could store clips data here for debugging if needed
+                }
+
+                // Create and execute remove track command
+                var removeCommand = new RemoveTrackCommand(timelineEditor.Director, track, timelineEditor);
+                timelineEditor.ExecuteCommand(removeCommand);
+
+                Debug.Log($"Successfully deleted {trackDisplayName}");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to delete track: {ex.Message}\n{ex.StackTrace}");
+            }
         }
         
         private void ToggleMute()
@@ -1065,66 +1180,53 @@ namespace MiniTimeline.UI
                 return;
             }
 
-            // Define form fields for track settings
-            var fieldDefinitions = new List<FormFieldDefinition>
-            {
-                new FormFieldDefinition
-                {
-                    name = "trackName",
-                    type = "text",
-                    label = "Track Name",
-                    required = true,
-                    placeholder = "Enter track name...",
-                    defaultValue = GetFriendlyTrackName(track.GetType().Name),
-                    tooltip = "Display name for this track"
-                },
-                new FormFieldDefinition
-                {
-                    name = "bindKey",
-                    type = "selectbox",
-                    label = "Bind Key",
-                    required = false,
-                    defaultValue = track.BindKey ?? "",
-                    tooltip = "Select a binding key to associate this track with scene objects",
-                    options = new Dictionary<string, object>
-                    {
-                        { "items", GetAvailableBindings() },
-                        { "allowCustom", true },
-                        { "placeholder", "Select or enter binding key..." }
-                    }
-                },
-                new FormFieldDefinition
-                {
-                    name = "enabled",
-                    type = "toggle",
-                    label = "Enabled",
-                    required = false,
-                    defaultValue = track.Enabled,
-                    tooltip = "Enable or disable this track"
-                },
-                new FormFieldDefinition
-                {
-                    name = "trackOrder",
-                    type = "number",
-                    label = "Track Order",
-                    required = false,
-                    defaultValue = GetTrackOrder(),
-                    tooltip = "Display order of this track (lower numbers appear first)"
-                }
-            };
-
-            // Add track-specific settings based on track type
-            AddTrackSpecificSettings(fieldDefinitions);
+            // Get the track type for form definition lookup
+            string trackType = GetTrackType();
+            
+            // Get form field definitions from TrackFormDefinitions
+            var fieldDefinitions = TrackFormDefinitions.GetTrackSettingsFields(trackType);
+            
+            // Set default values from current track state
+            SetDefaultValuesForTrackSettings(fieldDefinitions);
 
             // Show the form using FormSubmitPanel
             FormSubmitPanel.Instance.Show(
-                $"Track Settings - {GetFriendlyTrackName(track.GetType().Name)}",
+                $"Track Settings - {TrackFormDefinitions.GetTrackTypeDisplayName(trackType)}",
                 fieldDefinitions,
                 OnTrackSettingsFormSubmitted,
                 OnTrackSettingsFormCancelled
             );
 
             Debug.Log($"Show track settings: {track?.GetType().Name}");
+        }
+        
+        /// <summary>
+        /// Set default values for track settings form fields based on current track state
+        /// </summary>
+        private void SetDefaultValuesForTrackSettings(List<FormFieldDefinition> fieldDefinitions)
+        {
+            foreach (var field in fieldDefinitions)
+            {
+                switch (field.name)
+                {
+                    case "trackName":
+                        field.defaultValue = TrackUIHelper.GetFriendlyTrackName(track.GetType().Name);
+                        break;
+                    case "bindKey":
+                        field.defaultValue = track.BindKey ?? "";
+                        // Update selectbox options with available bindings
+                        if (field.options == null)
+                            field.options = new Dictionary<string, object>();
+                        field.options["items"] = GetAvailableBindings();
+                        break;
+                    case "enabled":
+                        field.defaultValue = track.Enabled;
+                        break;
+                    case "trackOrder":
+                        field.defaultValue = GetTrackOrder();
+                        break;
+                }
+            }
         }
         
         /// <summary>
@@ -1137,32 +1239,6 @@ namespace MiniTimeline.UI
             var projectTracks = timelineEditor.Director.Project.tracks;
             var trackData = projectTracks?.FirstOrDefault(t => t.id == track.Id);
             return trackData?.order ?? 0;
-        }
-        
-        /// <summary>
-        /// Add track-specific settings to the form definition based on track type
-        /// </summary>
-        private void AddTrackSpecificSettings(List<FormFieldDefinition> fieldDefinitions)
-        {
-            // Add track-specific fields based on track type
-            switch (track)
-            {
-                case AnimTrack animTrack:
-                    AddAnimTrackSettings(fieldDefinitions);
-                    break;
-                case AnimatorTrack animatorTrack:
-                    AddAnimatorTrackSettings(fieldDefinitions);
-                    break;
-                case MorphTrack morphTrack:
-                    AddMorphTrackSettings(fieldDefinitions);
-                    break;
-                case MovementTrack movementTrack:
-                    AddMovementTrackSettings(fieldDefinitions);
-                    break;
-                case SignalTrack signalTrack:
-                    AddSignalTrackSettings(fieldDefinitions);
-                    break;
-            }
         }
         
         /// <summary>
@@ -1247,95 +1323,6 @@ namespace MiniTimeline.UI
         }
         
         /// <summary>
-        /// Add Animation Track specific settings
-        /// </summary>
-        private void AddAnimTrackSettings(List<FormFieldDefinition> fieldDefinitions)
-        {
-            fieldDefinitions.Add(new FormFieldDefinition
-            {
-                name = "animationLayer",
-                type = "number",
-                label = "Animation Layer",
-                required = false,
-                defaultValue = 0,
-                tooltip = "Animation layer for this track"
-            });
-        }
-        
-        /// <summary>
-        /// Add Animator Track specific settings
-        /// </summary>
-        private void AddAnimatorTrackSettings(List<FormFieldDefinition> fieldDefinitions)
-        {
-            fieldDefinitions.Add(new FormFieldDefinition
-            {
-                name = "layerIndex",
-                type = "number",
-                label = "Animator Layer Index",
-                required = false,
-                defaultValue = 0,
-                tooltip = "Animator layer index for this track"
-            });
-        }
-        
-        /// <summary>
-        /// Add Morph Track specific settings
-        /// </summary>
-        private void AddMorphTrackSettings(List<FormFieldDefinition> fieldDefinitions)
-        {
-            fieldDefinitions.Add(new FormFieldDefinition
-            {
-                name = "morphWeight",
-                type = "slider",
-                label = "Default Morph Weight",
-                required = false,
-                defaultValue = 1.0f,
-                options = new Dictionary<string, object>
-                {
-                    { "minValue", 0.0f },
-                    { "maxValue", 1.0f }
-                },
-                tooltip = "Default weight for morph targets"
-            });
-        }
-        
-        /// <summary>
-        /// Add Movement Track specific settings
-        /// </summary>
-        private void AddMovementTrackSettings(List<FormFieldDefinition> fieldDefinitions)
-        {
-            fieldDefinitions.Add(new FormFieldDefinition
-            {
-                name = "coordinateSpace",
-                type = "selectbox",
-                label = "Coordinate Space",
-                required = false,
-                defaultValue = "World",
-                options = new Dictionary<string, object>
-                {
-                    { "items", new List<string> { "World", "Local", "Parent" }}
-                },
-                tooltip = "Coordinate space for movement calculations"
-            });
-        }
-        
-        /// <summary>
-        /// Add Signal Track specific settings
-        /// </summary>
-        private void AddSignalTrackSettings(List<FormFieldDefinition> fieldDefinitions)
-        {
-            fieldDefinitions.Add(new FormFieldDefinition
-            {
-                name = "signalPriority",
-                type = "number",
-                label = "Signal Priority",
-                required = false,
-                defaultValue = 0,
-                tooltip = "Priority level for signal processing"
-            });
-        }
-        
-        /// <summary>
         /// Handle track settings form submission
         /// </summary>
         private void OnTrackSettingsFormSubmitted(Dictionary<string, object> formData)
@@ -1372,9 +1359,18 @@ namespace MiniTimeline.UI
         {
             if (track == null || timelineEditor == null) return;
             
+            string trackType = GetTrackType();
+            
+            // Validate the form data using TrackFormDefinitions
+            if (!TrackFormDefinitions.ValidateTrackSettings(formData, trackType, out string errorMessage))
+            {
+                Debug.LogError($"Track settings validation failed: {errorMessage}");
+                return;
+            }
+            
             // Create a command to update track settings
             var oldSettings = CaptureCurrentTrackSettings();
-            var newSettings = CreateTrackSettingsFromFormData(formData);
+            var newSettings = TrackFormDefinitions.ConvertFormDataToTrackSettings(formData, trackType);
             
             var updateCommand = new UpdateTrackSettingsCommand(track, oldSettings, newSettings, this);
             timelineEditor.ExecuteCommand(updateCommand);
@@ -1391,21 +1387,6 @@ namespace MiniTimeline.UI
                 ["enabled"] = track.Enabled,
                 ["trackOrder"] = GetTrackOrder()
             };
-            
-            return settings;
-        }
-        
-        /// <summary>
-        /// Create track settings dictionary from form data
-        /// </summary>
-        private Dictionary<string, object> CreateTrackSettingsFromFormData(Dictionary<string, object> formData)
-        {
-            var settings = new Dictionary<string, object>();
-            
-            foreach (var kvp in formData)
-            {
-                settings[kvp.Key] = kvp.Value;
-            }
             
             return settings;
         }

@@ -24,6 +24,7 @@ namespace MiniTimeline.Demo
         [Header("Settings")]
         [SerializeField] private bool autoPlay = true;
         [SerializeField] private bool loadSampleProject = true;
+        [SerializeField] private float emptyProjectDuration = 10f;
         
         [Header("Controls")]
         [SerializeField] private KeyCode playKey = KeyCode.Space;
@@ -47,6 +48,10 @@ namespace MiniTimeline.Demo
             if (loadSampleProject)
             {
                 LoadSampleProject();
+            }
+            else
+            {
+                CreateEmptyProject();
             }
             
             // Store original camera settings
@@ -162,10 +167,16 @@ namespace MiniTimeline.Demo
             {
                 GUILayout.Label("No project loaded");
                 
+                GUILayout.BeginHorizontal();
                 if (GUILayout.Button("Load Sample Project"))
                 {
                     LoadSampleProject();
                 }
+                if (GUILayout.Button("Create Empty Project"))
+                {
+                    CreateEmptyProject();
+                }
+                GUILayout.EndHorizontal();
             }
             
             GUILayout.Space(10);
@@ -225,6 +236,22 @@ namespace MiniTimeline.Demo
             director.SetProject(currentProject);
             
             // Debug.Log("[MiniTimelineDemo] Loaded sample project");
+        }
+        
+        private void CreateEmptyProject()
+        {
+            currentProject = new MiniTimelineProject
+            {
+                name = "Empty Project",
+                version = 1,
+                length = emptyProjectDuration, // Use configurable duration
+                frameRate = 30f,
+                tracks = new System.Collections.Generic.List<TrackData>()
+            };
+            
+            director.SetProject(currentProject);
+            
+            Debug.Log($"[MiniTimelineDemo] Created empty project with {emptyProjectDuration}s duration");
         }
         
         private void HandleInput()

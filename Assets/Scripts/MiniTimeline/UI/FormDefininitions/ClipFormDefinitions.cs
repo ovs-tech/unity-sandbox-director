@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using MiniTimeline.Core;
 using MiniTimeline.Tracks;
+using UMA.PoseTools;
 
-namespace MiniTimeline.UI
+namespace MiniTimeline.UI.FormDefinitions
 {
     /// <summary>
     /// Provides form field definitions for creating different types of clips
@@ -16,32 +17,50 @@ namespace MiniTimeline.UI
         /// </summary>
         public static List<FormFieldDefinition> GetFieldsForTrackType(string trackType)
         {
+            List<FormFieldDefinition> fields;
+            
             switch (trackType)
             {
                 case MiniTimelineConstants.TRACK_ANIM:
-                    return GetAnimationClipFields();
+                    fields = GetAnimationClipFields();
+                    break;
                 
                 case MiniTimelineConstants.TRACK_ANIMATOR:
-                    return GetAnimatorClipFields();
+                    fields = GetAnimatorClipFields();
+                    break;
                 
                 case MiniTimelineConstants.TRACK_MORPH:
-                    return GetMorphClipFields();
+                    fields = GetMorphClipFields();
+                    break;
                 
                 case MiniTimelineConstants.TRACK_MOVEMENT:
-                    return GetMovementClipFields();
+                    fields = GetMovementClipFields();
+                    break;
                 
                 case MiniTimelineConstants.TRACK_SIGNAL:
-                    return GetSignalClipFields();
+                    fields = GetSignalClipFields();
+                    break;
 
                 case MiniTimelineConstants.TRACK_UMA_WARDROBE:
-                    return GetUmaWardrobeClipFields();
+                    fields = GetUmaWardrobeClipFields();
+                    break;
 
                 case MiniTimelineConstants.TRACK_UMA_EXPRESSION:
-                    return GetUmaExpressionClipFields();
+                    fields = GetUmaExpressionClipFields();
+                    break;
                 
                 default:
-                    return GetGenericClipFields();
+                    fields = GetGenericClipFields();
+                    break;
             }
+            
+            // Add hidden trackType field to all forms
+            fields.Insert(0, new FormFieldDefinition("trackType", "Track Type", "hidden", trackType)
+            {
+                tooltip = "The type of track this clip belongs to"
+            });
+            
+            return fields;
         }
         
         /// <summary>
@@ -523,11 +542,35 @@ namespace MiniTimeline.UI
                     }
                 },
 
-                new FormFieldDefinition("expression", "Expression", "text", "")
+                new FormFieldDefinition("expression", "Expression", "select", "")
                 {
                     required = true,
-                    placeholder = "e.g. shy_smile",
-                    tooltip = "Name of the expression to control"
+                    placeholder = "Select an expression",
+                    tooltip = "Name of the expression to control",
+                    options = new Dictionary<string, object>
+                    {
+                        { "items", GetExpressionPoseNames() }
+                    }
+                },
+
+                new FormFieldDefinition("from", "From Value", "slider", 0f)
+                {
+                    tooltip = "Starting expression strength/value",
+                    options = new Dictionary<string, object>
+                    {
+                        { "min", -1f },
+                        { "max", 1f }
+                    }
+                },
+
+                new FormFieldDefinition("to", "To Value", "slider", 1f)
+                {
+                    tooltip = "Target expression strength/value",
+                    options = new Dictionary<string, object>
+                    {
+                        { "min", -1f },
+                        { "max", 1f }
+                    }
                 }
             };
         }
@@ -645,6 +688,25 @@ namespace MiniTimeline.UI
             {
                 payload["targetWeight"] = weight / 100f;
             }
+        }
+        
+        /// <summary>
+        /// Get expression pose names from ExpressionPlayer.PoseNames
+        /// </summary>
+        private static List<string> GetExpressionPoseNames()
+        {
+            var poseNames = new List<string>();
+            
+            // Convert the static array to a list
+            if (ExpressionPlayer.PoseNames != null)
+            {
+                poseNames.AddRange(ExpressionPlayer.PoseNames);
+            }
+            
+            // Add a default empty option at the beginning
+            poseNames.Insert(0, "");
+            
+            return poseNames;
         }
         
         private static bool TryParseVector3(string str, out Vector3 result)

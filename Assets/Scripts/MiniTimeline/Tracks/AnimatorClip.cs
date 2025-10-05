@@ -9,12 +9,8 @@ namespace MiniTimeline.Tracks
     /// Clip for controlling Animator parameters over time
     /// </summary>
     [Serializable]
-    public class AnimatorClip : IMiniClip
+    public class AnimatorClip : MiniClipBase
     {
-        [SerializeField] private string id;
-        [SerializeField] private float start;
-        [SerializeField] private float duration;
-        
         [Header("Parameter Settings")]
         public List<AnimatorParameterKey> parameterKeys = new List<AnimatorParameterKey>();
         
@@ -23,53 +19,15 @@ namespace MiniTimeline.Tracks
         public float fadeOut = 0f;
         public AnimatorBlendMode blendMode = AnimatorBlendMode.Override;
         
-        #region IMiniClip Implementation
+        #region Animator Specific Methods
         
-        public string Id 
-        { 
-            get => id; 
-            set => id = value; 
-        }
-        
-        public float Start 
-        { 
-            get => start; 
-            set => start = value; 
-        }
-        
-        public float Duration 
-        { 
-            get => duration; 
-            set => duration = Mathf.Max(0.01f, value); 
-        }
-        
-        public float End => Start + Duration;
-        
-        public bool IsActive(float time)
-        {
-            return time >= Start && time <= End;
-        }
-        
-        public bool Contains(float time)
-        {
-            return time >= Start && time <= End;
-        }
-        
+        /// <summary>
+        /// Get local time within this clip
+        /// </summary>
         public float GetLocalTime(float globalTime)
         {
             return globalTime - Start;
         }
-        
-        public float GetNormalizedTime(float globalTime)
-        {
-            if (Duration <= 0f) return 0f;
-            float localTime = GetLocalTime(globalTime);
-            return Mathf.Clamp01(localTime / Duration);
-        }
-        
-        #endregion
-        
-        #region Animator Specific Methods
         
         /// <summary>
         /// Get parameter value at global time

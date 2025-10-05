@@ -8,12 +8,8 @@ namespace MiniTimeline.Tracks
     /// Camera clip for controlling camera movement and properties
     /// </summary>
     [Serializable]
-    public class MovementClip : IMiniClip
+    public class MovementClip : MiniClipBase
     {
-        [SerializeField] private string id;
-        [SerializeField] private float start;
-        [SerializeField] private float duration;
-        
         // Camera transform properties
         [Header("Position")]
         public bool hasPosition = false;
@@ -38,53 +34,15 @@ namespace MiniTimeline.Tracks
         public float fadeIn = 0f;
         public float fadeOut = 0f;
         
-        #region IMiniClip Implementation
+        #region Camera Specific Methods
         
-        public string Id 
-        { 
-            get => id; 
-            set => id = value; 
-        }
-        
-        public float Start 
-        { 
-            get => start; 
-            set => start = value; 
-        }
-        
-        public float Duration 
-        { 
-            get => duration; 
-            set => duration = Mathf.Max(0.01f, value); 
-        }
-        
-        public float End => Start + Duration;
-        
-        public bool IsActive(float time)
-        {
-            return time >= Start && time <= End;
-        }
-        
-        public bool Contains(float time)
-        {
-            return time >= Start && time <= End;
-        }
-        
+        /// <summary>
+        /// Get local time within this clip
+        /// </summary>
         public float GetLocalTime(float globalTime)
         {
             return globalTime - Start;
         }
-        
-        public float GetNormalizedTime(float globalTime)
-        {
-            if (Duration <= 0f) return 0f;
-            float localTime = GetLocalTime(globalTime);
-            return Mathf.Clamp01(localTime / Duration);
-        }
-        
-        #endregion
-        
-        #region Camera Specific Methods
         
         /// <summary>
         /// Get interpolated position at global time

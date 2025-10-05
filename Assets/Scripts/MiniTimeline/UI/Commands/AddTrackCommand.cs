@@ -37,28 +37,80 @@ namespace MiniTimeline.UI.Commands
                 // Add track data to project
                 director.Project.tracks.Add(trackData);
                 
-                // Create track instance using factory
-                createdTrack = TrackFactory.CreateTrack(trackData);
+                // Force immediate track rebuild by calling BuildTracks via reflection
+                ForceTrackRebuild();
                 
-                // Mark director as dirty (this typically triggers a rebuild)
-                director.MarkDirty();
+                // Find the created track in the director's track list
+                createdTrack = director.Tracks.FirstOrDefault(t => t.Id == trackData.id);
+                
+                if (createdTrack != null)
+                {
+                    Debug.Log($"Successfully created and added {trackData.type} track with ID: {trackData.id}");
+                }
+                else
+                {
+                    Debug.LogWarning($"Track was added to project but not found in runtime tracks. Type: {trackData.type}, ID: {trackData.id}");
+                }
                 
                 // Trigger UI rebuild if available
                 editorUI?.BuildTimelineUI();
 
-                Debug.Log($"Successfully added {trackData.type} track with ID: {trackData.id}");
+                Debug.Log($"Add track complete. Project tracks: {director.Project.tracks.Count}, Runtime tracks: {director.Tracks.Count}");
             }
             catch (System.Exception ex)
             {
                 Debug.LogError($"Failed to add track: {ex.Message}");
             }
         }
+        
+        /// <summary>
+        /// Force track rebuild using reflection to call BuildTracks method
+        /// </summary>
+        private void ForceTrackRebuild()
+        {
+            try
+            {
+                var directorType = director.GetType();
+                
+                // Try to find BuildTracks method
+                var buildTracksMethod = directorType.GetMethod("BuildTracks", 
+                    System.Reflection.BindingFlags.Instance | 
+                    System.Reflection.BindingFlags.NonPublic | 
+                    System.Reflection.BindingFlags.Public);
+                
+                if (buildTracksMethod != null)
+                {
+                    buildTracksMethod.Invoke(director, null);
+                    Debug.Log("Successfully called BuildTracks() via reflection");
+                }
+                else
+                {
+                    // Fallback: mark dirty and seek
+                    director.MarkDirty();
+                    if (UnityEngine.Application.isPlaying)
+                    {
+                        director.Seek(director.Time);
+                    }
+                    Debug.Log("Used fallback track rebuild method");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"Failed to force track rebuild: {ex.Message}");
+                // Fallback to original method
+                director.MarkDirty();
+                if (UnityEngine.Application.isPlaying)
+                {
+                    director.Seek(director.Time);
+                }
+            }
+        }
 
         protected override void UndoInternal()
         {
-            if (director?.Project == null || createdTrack == null)
+            if (director?.Project == null)
             {
-                Debug.LogWarning("Cannot undo add track: Invalid state");
+                Debug.LogWarning("Cannot undo add track: No project loaded");
                 return;
             }
 
@@ -70,18 +122,21 @@ namespace MiniTimeline.UI.Commands
                 {
                     director.Project.tracks.Remove(trackToRemove);
                     
-                    // Mark director as dirty
-                    director.MarkDirty();
+                    // Force immediate track rebuild
+                    ForceTrackRebuild();
                     
                     // Trigger UI rebuild
                     editorUI?.BuildTimelineUI();
                     
-                    Debug.Log($"Successfully removed {trackData.type} track with ID: {trackData.id}");
+                    Debug.Log($"Successfully removed {trackData.type} track with ID: {trackData.id}. Project tracks: {director.Project.tracks.Count}, Runtime tracks: {director.Tracks.Count}");
                 }
                 else
                 {
                     Debug.LogWarning($"Track with ID {trackData.id} not found for removal");
                 }
+                
+                // Clean up the created track reference
+                createdTrack = null;
             }
             catch (System.Exception ex)
             {

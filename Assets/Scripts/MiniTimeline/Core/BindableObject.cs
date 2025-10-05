@@ -6,12 +6,59 @@ using UnityEngine;
 namespace MiniTimeline.Core
 {
     /// <summary>
-    /// MonoBehaviour component that provides tagging and discovery functionality for Unity objects
+    /// Types of bindable objects for categorization
+    /// </summary>
+    public enum BindableObjectType
+    {
+        Generic = 0,
+        Character = 1,
+        Player = 2,
+        Camera = 3,
+        Environment = 4,
+        UI = 5,
+        Audio = 6,
+        Light = 7,
+        Animated = 8,
+        Effect = 9,
+        Interactive = 10,
+        Custom = 11
+    }
+
+    /// <summary>
+    /// MonoBehaviour component that provides typing and discovery functionality for Unity objects
     /// Can be attached to GameObjects to make them discoverable through the binding system
     /// </summary>
     public class BindableObject : MonoBehaviour
     {
+        [Header("Binding Configuration")]
+        [SerializeField] private BindableObjectType objectType = BindableObjectType.Generic;
+        [SerializeField] private string customTypeName = "";
         [SerializeField] private List<string> tags = new List<string>();
+        
+        /// <summary>
+        /// The type of this bindable object
+        /// </summary>
+        public BindableObjectType ObjectType => objectType;
+        
+        /// <summary>
+        /// Custom type name (used when ObjectType is Custom)
+        /// </summary>
+        public string CustomTypeName => customTypeName;
+        
+        /// <summary>
+        /// Get the effective type name for binding purposes
+        /// </summary>
+        public string TypeName 
+        {
+            get
+            {
+                if (objectType == BindableObjectType.Custom && !string.IsNullOrEmpty(customTypeName))
+                {
+                    return customTypeName.ToLower();
+                }
+                return objectType.ToString().ToLower();
+            }
+        }
         
         /// <summary>
         /// Read-only list of tags associated with this object
