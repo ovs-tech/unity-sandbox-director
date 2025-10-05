@@ -31,6 +31,7 @@ namespace MiniTimeline.Serialization
             RegisterTrackType(MiniTimelineConstants.TRACK_ANIMATOR, CreateAnimatorTrack);
             RegisterTrackType(MiniTimelineConstants.TRACK_SIGNAL, CreateSignalTrack);
             RegisterTrackType(MiniTimelineConstants.TRACK_UMA_WARDROBE, CreateUmaWardrobeTrack);
+            RegisterTrackType(MiniTimelineConstants.TRACK_UMA_EXPRESSION, CreateUmaExpressionTrack);
             // Add more track types as they are implemented
         }
         
@@ -96,6 +97,8 @@ namespace MiniTimeline.Serialization
                     return CreateSignalClipFromForm(clipId, startTime, duration, formData);
                 case MiniTimelineConstants.TRACK_UMA_WARDROBE:
                     return CreateUmaWardrobeClipFromForm(clipId, startTime, duration, formData);
+                case MiniTimelineConstants.TRACK_UMA_EXPRESSION:
+                    return CreateUmaExpressionClipFromForm(clipId, startTime, duration, formData);
                 default:
                     Debug.LogWarning($"[TrackFactory] Clip creation from form not implemented for track type: {trackType}");
                     return null;
@@ -104,6 +107,29 @@ namespace MiniTimeline.Serialization
         
         #region Track Creators
         
+        private static IMiniTrack CreateUmaExpressionTrack(TrackData data)
+        {
+            var track = new UMAExpressionTrack
+            {
+                Id = data.id,
+                BindKey = data.bindKey,
+                Enabled = data.enabled
+            };
+
+            var clips = new List<UMAExpressionClip>();
+            foreach (var clipData in data.clips)
+            {
+                var clip = DeserializeUmaExpressionClip(clipData);
+                if (clip != null)
+                {
+                    clips.Add(clip);
+                }
+            }
+
+            track.SetClips(clips);
+            return track;
+        }
+
         private static IMiniTrack CreateUmaWardrobeTrack(TrackData data)
         {
             var track = new UmaWardrobeTrack
@@ -470,6 +496,21 @@ namespace MiniTimeline.Serialization
                 umaClip.wardrobeJson = formData["wardrobeJson"].ToString();
 
             return umaClip;
+        }
+
+        private static UMAExpressionClip CreateUmaExpressionClipFromForm(string clipId, float startTime, float duration, Dictionary<string, object> formData)
+        {
+            var expressionClip = new UMAExpressionClip
+            {
+                Id = clipId,
+                Start = startTime,
+                Duration = duration
+            };
+
+            if (formData.ContainsKey("expression"))
+                expressionClip.expression = formData["expression"].ToString();
+
+            return expressionClip;
         }
 
         #endregion
@@ -926,6 +967,34 @@ namespace MiniTimeline.Serialization
                 }
             }
             return Quaternion.identity;
+        }
+
+        private static UMAExpressionClip DeserializeUmaExpressionClip(ClipData data)
+        {
+            try
+            {
+                var clip = new UMAExpressionClip
+                {
+                    Id = data.id,
+                    Start = data.start,
+                    Duration = data.duration
+                };
+
+                if (data.payload.TryGetValue("expression", out var expression))
+                {
+                    clip.expression = expression.ToString();
+                }
+
+                // Note: blendCurve is not serialized/deserialized for simplicity.
+                // It will use the default value from the UMAExpressionClip class.
+
+                return clip;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[TrackFactory] Error deserializing UMAExpressionClip: {e.Message}");
+                return null;
+            }
         }
 
         private static UmaWardrobeClip DeserializeUmaWardrobeClip(ClipData data)

@@ -153,6 +153,7 @@ namespace MiniTimeline.Core
         public const string TRACK_LIGHT_FX = "FxLightTrack";
         public const string TRACK_SIGNAL = "SignalTrack";
         public const string TRACK_UMA_WARDROBE = "UmaWardrobeTrack";
+        public const string TRACK_UMA_EXPRESSION = "UMAExpressionTrack";
 
         // Asset reference prefixes
         public const string ASSET_ADDRESSABLE = "addr:";

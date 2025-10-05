@@ -35,6 +35,9 @@ namespace MiniTimeline.UI
 
                 case MiniTimelineConstants.TRACK_UMA_WARDROBE:
                     return GetUmaWardrobeClipFields();
+
+                case MiniTimelineConstants.TRACK_UMA_EXPRESSION:
+                    return GetUmaExpressionClipFields();
                 
                 default:
                     return GetGenericClipFields();
@@ -60,6 +63,8 @@ namespace MiniTimeline.UI
                     return "Signal Clip";
                 case MiniTimelineConstants.TRACK_UMA_WARDROBE:
                     return "UMA Wardrobe Clip";
+                case MiniTimelineConstants.TRACK_UMA_EXPRESSION:
+                    return "UMA Expression Clip";
                 default:
                     return "Generic Clip";
             }
@@ -475,6 +480,54 @@ namespace MiniTimeline.UI
                     required = true,
                     placeholder = "Enter wardrobe JSON here",
                     tooltip = "JSON data defining the wardrobe recipes and colors"
+                }
+            };
+        }
+
+        #endregion
+
+        #region UMA Expression Clip Fields
+
+        private static List<FormFieldDefinition> GetUmaExpressionClipFields()
+        {
+            return new List<FormFieldDefinition>
+            {
+                new FormFieldDefinition("name", "Clip Name", "text", "New UMA Expression Clip")
+                {
+                    required = true,
+                    placeholder = "Enter clip name",
+                    tooltip = "Display name for this UMA expression clip"
+                },
+
+                new FormFieldDefinition("start", "Start Time", "number", 0f)
+                {
+                    required = true,
+                    placeholder = "0.0",
+                    tooltip = "When the clip starts on the timeline (in seconds)",
+                    options = new Dictionary<string, object>
+                    {
+                        { "min", 0f },
+                        { "max", 300f }
+                    }
+                },
+
+                new FormFieldDefinition("duration", "Duration", "number", 1f)
+                {
+                    required = true,
+                    placeholder = "1.0",
+                    tooltip = "How long the clip lasts (in seconds)",
+                    options = new Dictionary<string, object>
+                    {
+                        { "min", 0.1f },
+                        { "max", 60f }
+                    }
+                },
+
+                new FormFieldDefinition("expression", "Expression", "text", "")
+                {
+                    required = true,
+                    placeholder = "e.g. shy_smile",
+                    tooltip = "Name of the expression to control"
                 }
             };
         }
