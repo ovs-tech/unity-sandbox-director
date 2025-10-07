@@ -5,6 +5,22 @@ using System.Collections.Generic;
 
 public class UmaAvatar : MonoBehaviour
 {
+    public enum WardrobeSlot
+    {
+        Hair,
+        Chest,
+        Legs,
+        Feet
+    }
+
+    public static readonly List<string> WardrobeSlotNames = new List<string>
+    {
+        "Hair",
+        "Chest",
+        "Legs",
+        "Feet"
+    };
+
     private DynamicCharacterAvatar avatar;
 
     void Awake()
@@ -20,10 +36,11 @@ public class UmaAvatar : MonoBehaviour
             return;
         }
 
-        // Clear existing wardrobe
-        avatar.ClearSlots();
-
-        // Apply new wardrobe
+        // The SetSlot method is used to apply wardrobe recipes.
+        // This approach allows for incremental changes to the avatar's wardrobe,
+        // such as changing only the shirt without affecting the pants.
+        // To clear a specific slot, an empty or null string can be passed as the recipe value.
+        // This is in contrast to ClearSlots(), which would remove all wardrobe items.
         foreach (var recipe in recipes)
         {
             avatar.SetSlot(recipe.Key, recipe.Value);
