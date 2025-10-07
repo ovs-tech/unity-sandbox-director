@@ -609,6 +609,10 @@ namespace MiniTimeline.UI
                 case MiniTimelineConstants.TRACK_MORPH:
                     ProcessMorphPayload(payload);
                     break;
+
+                case MiniTimelineConstants.TRACK_UMA_EXPRESSION:
+                    // No special processing needed for expression payload
+                    break;
             }
             
             return payload;
