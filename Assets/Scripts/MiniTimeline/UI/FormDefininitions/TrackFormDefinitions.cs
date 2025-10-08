@@ -516,16 +516,6 @@ namespace MiniTimeline.UI.FormDefinitions
                 bindingKeys.AddRange(director.BindingContext.GetKeys());
             }
             
-            // Add some common default binding keys if none exist or as fallback options
-            var defaultKeys = new List<string> { "character", "player", "camera", "environment", "ui", "audio", "light" };
-            foreach (var key in defaultKeys)
-            {
-                if (!bindingKeys.Contains(key))
-                {
-                    bindingKeys.Add(key);
-                }
-            }
-            
             // Also check for BindableObjects in the scene to suggest their type names
             var bindableObjects = UnityEngine.Object.FindObjectsByType<BindableObject>(UnityEngine.FindObjectsSortMode.None);
             foreach (var bindableObj in bindableObjects)

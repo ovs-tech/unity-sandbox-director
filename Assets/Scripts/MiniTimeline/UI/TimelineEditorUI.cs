@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using MiniTimeline.Core;
+using MiniTimeline.Serialization;
 using MiniTimeline.UI.Commands;
 using MiniTimeline.UI.FormDefinitions;
 
@@ -22,6 +23,8 @@ namespace MiniTimeline.UI
         [SerializeField] private ScrollRect timelineScrollRect;
         [SerializeField] private Button addTrackButton;
         [SerializeField] private Button bindingManagerButton;
+        [SerializeField] private Button saveButton;
+        [SerializeField] private Button loadButton;
         [SerializeField] private Button playButton;
         [SerializeField] private Button pauseButton;
         [SerializeField] private Button stopButton;
@@ -223,6 +226,13 @@ namespace MiniTimeline.UI
             // Setup binding manager button
             if (bindingManagerButton != null)
                 bindingManagerButton.onClick.AddListener(ShowBindingManagerForm);
+
+            // Setup save/load buttons
+            if (saveButton != null)
+                saveButton.onClick.AddListener(ShowSaveProjectForm);
+
+            if (loadButton != null)
+                loadButton.onClick.AddListener(ShowLoadProjectForm);
 
             if (timeSlider != null)
             {
@@ -1187,6 +1197,337 @@ namespace MiniTimeline.UI
             {
                 Debug.LogWarning($"Cannot remove binding: BindingContext not available");
             }
+        }
+
+        #endregion
+        
+        #region Save/Load Project Methods
+        
+        /// <summary>
+        /// Show the save project form
+        /// </summary>
+        private void ShowSaveProjectForm()
+        {
+            if (director?.Project == null)
+            {
+                Debug.LogError("Cannot save project: No project loaded");
+                return;
+            }
+
+            Debug.Log("Opening save project form");
+            
+            // Create form fields for saving
+            var fieldDefinitions = new List<FormFieldDefinition>
+            {
+                new FormFieldDefinition
+                {
+                    name = "filename",
+                    type = "text",
+                    label = "Filename",
+                    required = true,
+                    defaultValue = director.Project.name ?? "timeline_project",
+                    placeholder = "Enter project filename...",
+                    tooltip = "Name of the file to save (without extension)"
+                },
+                new FormFieldDefinition
+                {
+                    name = "prettyPrint",
+                    type = "checkbox", 
+                    label = "Pretty Print JSON",
+                    required = false,
+                    defaultValue = "true",
+                    tooltip = "Format JSON for better readability"
+                },
+                new FormFieldDefinition
+                {
+                    name = "projectInfo",
+                    type = "textarea",
+                    label = "Project Information",
+                    required = false,
+                    defaultValue = GetProjectInfoForDisplay(),
+                    tooltip = "Current project details (read-only)",
+                    options = new Dictionary<string, object>
+                    {
+                        { "readonly", true }
+                    }
+                }
+            };
+            
+            // Show the save form
+            FormSubmitPanel.Instance.Show(
+                "Save Timeline Project",
+                fieldDefinitions,
+                OnSaveProjectFormSubmitted,
+                OnSaveProjectFormCancelled
+            );
+        }
+        
+        /// <summary>
+        /// Handle save project form submission
+        /// </summary>
+        private void OnSaveProjectFormSubmitted(Dictionary<string, object> formData)
+        {
+            try
+            {
+                Debug.Log("Save project form submitted with data:");
+                foreach (var kvp in formData)
+                {
+                    Debug.Log($"  {kvp.Key}: {kvp.Value}");
+                }
+                
+                string filename = formData.ContainsKey("filename") ? formData["filename"].ToString() : "timeline_project";
+                bool prettyPrint = formData.ContainsKey("prettyPrint") ? Convert.ToBoolean(formData["prettyPrint"]) : true;
+                
+                // Ensure filename has .json extension
+                if (!filename.EndsWith(".json"))
+                {
+                    filename += ".json";
+                }
+                
+                // For now, save to persistent data path (in a real game you'd want file browser)
+                string filePath = System.IO.Path.Combine(UnityEngine.Application.persistentDataPath, filename);
+                
+                // Save the project (automatically updates from runtime tracks)
+                bool success = ProjectSerializer.SaveToFile(director.Project, director, filePath);
+                
+                if (success)
+                {
+                    Debug.Log($"Project saved successfully to: {filePath}");
+                }
+                else
+                {
+                    Debug.LogError("Failed to save project. Check console for details.");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to save project: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// Handle save project form cancellation
+        /// </summary>
+        private void OnSaveProjectFormCancelled()
+        {
+            Debug.Log("Save project cancelled");
+        }
+        
+        /// <summary>
+        /// Show the load project form
+        /// </summary>
+        private void ShowLoadProjectForm()
+        {
+            Debug.Log("Opening load project form");
+            
+            // Get list of available project files in persistent data path
+            string[] projectFiles = GetAvailableProjectFiles();
+            
+            // Create form fields for loading
+            var fieldDefinitions = new List<FormFieldDefinition>
+            {
+                new FormFieldDefinition
+                {
+                    name = "availableFiles",
+                    type = "selectbox",
+                    label = "Select Project File",
+                    required = false,
+                    placeholder = "Choose from available files...",
+                    tooltip = "Select a project file from the list of available files",
+                    options = new Dictionary<string, object>
+                    {
+                        { "items", projectFiles.ToList() },
+                        { "placeholder", "Select a project file..." }
+                    }
+                },
+                new FormFieldDefinition
+                {
+                    name = "filename",
+                    type = "text",
+                    label = "Or Enter Filename Manually",
+                    required = false,
+                    placeholder = "Enter project filename...",
+                    tooltip = "Alternatively, manually enter the filename (with or without .json extension)"
+                },
+                new FormFieldDefinition
+                {
+                    name = "filesInfo",
+                    type = "textarea",
+                    label = "Available Files Info",
+                    required = false,
+                    defaultValue = GetAvailableFilesDisplay(projectFiles),
+                    tooltip = "Information about available project files",
+                    options = new Dictionary<string, object>
+                    {
+                        { "readonly", true }
+                    }
+                },
+                new FormFieldDefinition
+                {
+                    name = "replaceBindings",
+                    type = "checkbox",
+                    label = "Auto-Update Scene Bindings",
+                    required = false,
+                    defaultValue = "true",
+                    tooltip = "Automatically update scene bindings after loading the project"
+                }
+            };
+            
+            // Show the load form
+            FormSubmitPanel.Instance.Show(
+                "Load Timeline Project",
+                fieldDefinitions,
+                OnLoadProjectFormSubmitted,
+                OnLoadProjectFormCancelled
+            );
+        }
+        
+        /// <summary>
+        /// Handle load project form submission
+        /// </summary>
+        private void OnLoadProjectFormSubmitted(Dictionary<string, object> formData)
+        {
+            try
+            {
+                Debug.Log("Load project form submitted with data:");
+                foreach (var kvp in formData)
+                {
+                    Debug.Log($"  {kvp.Key}: {kvp.Value}");
+                }
+                
+                // Try to get filename from dropdown first, then manual entry
+                string filename = "";
+                
+                if (formData.ContainsKey("availableFiles") && !string.IsNullOrEmpty(formData["availableFiles"]?.ToString()))
+                {
+                    filename = formData["availableFiles"].ToString();
+                    Debug.Log($"Using selected file from dropdown: {filename}");
+                }
+                else if (formData.ContainsKey("filename") && !string.IsNullOrEmpty(formData["filename"]?.ToString()))
+                {
+                    filename = formData["filename"].ToString();
+                    Debug.Log($"Using manually entered filename: {filename}");
+                }
+                
+                bool replaceBindings = formData.ContainsKey("replaceBindings") ? Convert.ToBoolean(formData["replaceBindings"]) : true;
+                
+                if (string.IsNullOrEmpty(filename))
+                {
+                    Debug.LogError("No filename provided for loading. Please select a file from the dropdown or enter a filename manually.");
+                    return;
+                }
+                
+                // Ensure filename has .json extension
+                if (!filename.EndsWith(".json"))
+                {
+                    filename += ".json";
+                }
+                
+                // For now, load from persistent data path
+                string filePath = System.IO.Path.Combine(UnityEngine.Application.persistentDataPath, filename);
+                
+                // Load the project
+                var loadedProject = ProjectSerializer.LoadFromFile(filePath);
+                
+                if (loadedProject != null)
+                {
+                    director.SetProject(loadedProject);
+                    
+                    // Auto-update bindings if requested
+                    if (replaceBindings)
+                    {
+                        AutoDetectSceneBindings();
+                    }
+                    
+                    Debug.Log($"Project '{loadedProject.name}' loaded successfully from: {filePath}");
+                }
+                else
+                {
+                    Debug.LogError("Failed to load project. Check console for details.");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to load project: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// Handle load project form cancellation
+        /// </summary>
+        private void OnLoadProjectFormCancelled()
+        {
+            Debug.Log("Load project cancelled");
+        }
+        
+        /// <summary>
+        /// Get project information for display in save form
+        /// </summary>
+        private string GetProjectInfoForDisplay()
+        {
+            if (director?.Project == null)
+            {
+                return "No project loaded.";
+            }
+            
+            // Update project data from runtime tracks to ensure accuracy
+            ProjectSerializer.UpdateProjectFromRuntimeTracks(director.Project, director);
+            
+            var project = director.Project;
+            var info = $"Project: {project.name}\n";
+            info += $"Length: {project.length}s\n";
+            info += $"Frame Rate: {project.frameRate} FPS\n";
+            info += $"Tracks: {project.tracks.Count}\n";
+            
+            // Now we can get accurate clip count from the updated project data
+            int totalClips = 0;
+            foreach (var track in project.tracks)
+            {
+                totalClips += track.clips.Count;
+            }
+            
+            info += $"Total Clips: {totalClips}\n";
+            
+            return info;
+        }
+        
+        /// <summary>
+        /// Get available project files in persistent data path
+        /// </summary>
+        private string[] GetAvailableProjectFiles()
+        {
+            try
+            {
+                string persistentPath = UnityEngine.Application.persistentDataPath;
+                if (System.IO.Directory.Exists(persistentPath))
+                {
+                    return System.IO.Directory.GetFiles(persistentPath, "*.json")
+                        .Select(System.IO.Path.GetFileName)
+                        .ToArray();
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"Failed to get available project files: {ex.Message}");
+            }
+            
+            return new string[0];
+        }
+        
+        /// <summary>
+        /// Format available files for display in load form
+        /// </summary>
+        private string GetAvailableFilesDisplay(string[] files)
+        {
+            if (files.Length == 0)
+            {
+                return $"No project files found in:\n{UnityEngine.Application.persistentDataPath}\n\nTip: Save a project first, or manually place .json files in this directory.";
+            }
+            
+            var display = $"Found {files.Length} project file(s) in:\n{UnityEngine.Application.persistentDataPath}\n\n";
+            display += "Use the dropdown above to select a file, or enter a filename manually.";
+            
+            return display;
         }
 
         #endregion

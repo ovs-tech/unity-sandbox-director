@@ -506,7 +506,7 @@ namespace MiniTimeline.Core
         {
             return FrameToTime(TimeToFrame(time));
         }
-        
+
         #endregion
     }
 }

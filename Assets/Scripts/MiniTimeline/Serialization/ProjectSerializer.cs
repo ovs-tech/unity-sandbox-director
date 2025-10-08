@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using MiniTimeline.Core;
-using MiniTimeline.Tracks;
 
 namespace MiniTimeline.Serialization
 {
@@ -13,6 +12,43 @@ namespace MiniTimeline.Serialization
     /// </summary>
     public static class ProjectSerializer
     {
+        /// <summary>
+        /// Update project data from runtime tracks state before saving.
+        /// This ensures that runtime changes are captured in the serialization.
+        /// </summary>
+        /// <param name="project">Project to update</param>
+        /// <param name="director">Director containing runtime tracks</param>
+        public static void UpdateProjectFromRuntimeTracks(MiniTimelineProject project, MiniTimelineDirector director)
+        {
+            if (project == null)
+            {
+                Debug.LogWarning("[ProjectSerializer] Cannot update project: Project is null");
+                return;
+            }
+            
+            if (director == null)
+            {
+                Debug.LogWarning("[ProjectSerializer] Cannot update project: Director is null");
+                return;
+            }
+            
+            // Clear existing track data
+            project.tracks.Clear();
+            
+            // Convert each runtime track back to TrackData using TrackFactory
+            var runtimeTracks = director.Tracks;
+            foreach (var track in runtimeTracks)
+            {
+                var trackData = TrackFactory.ConvertRuntimeTrackToData(track, director);
+                if (trackData != null)
+                {
+                    project.tracks.Add(trackData);
+                }
+            }
+            
+            Debug.Log($"[ProjectSerializer] Updated project data from {runtimeTracks.Count} runtime tracks");
+        }
+
         /// <summary>
         /// Save a timeline project to JSON string
         /// </summary>
@@ -29,6 +65,30 @@ namespace MiniTimeline.Serialization
             catch (Exception e)
             {
                 Debug.LogError($"[ProjectSerializer] Error saving project to JSON: {e.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Save a timeline project to JSON string, updating from runtime tracks first
+        /// </summary>
+        /// <param name="project">Project to save</param>
+        /// <param name="director">Director containing runtime tracks</param>
+        /// <param name="prettyPrint">Whether to format JSON for readability</param>
+        /// <returns>JSON string</returns>
+        public static string SaveToJson(MiniTimelineProject project, MiniTimelineDirector director, bool prettyPrint = true)
+        {
+            try
+            {
+                // Update project from runtime tracks first
+                UpdateProjectFromRuntimeTracks(project, director);
+                
+                // Then serialize normally
+                return SaveToJson(project, prettyPrint);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[ProjectSerializer] Error saving project with director to JSON: {e.Message}");
                 return null;
             }
         }
@@ -54,6 +114,33 @@ namespace MiniTimeline.Serialization
             catch (Exception e)
             {
                 Debug.LogError($"[ProjectSerializer] Error saving project to file '{filePath}': {e.Message}");
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Save a timeline project to file, updating from runtime tracks first
+        /// </summary>
+        /// <param name="project">Project to save</param>
+        /// <param name="director">Director containing runtime tracks</param>
+        /// <param name="filePath">File path to save to</param>
+        /// <returns>True if successful</returns>
+        public static bool SaveToFile(MiniTimelineProject project, MiniTimelineDirector director, string filePath)
+        {
+            try
+            {
+                string json = SaveToJson(project, director);
+                if (json != null)
+                {
+                    File.WriteAllText(filePath, json);
+                    Debug.Log($"[ProjectSerializer] Saved project with runtime tracks to: {filePath}");
+                    return true;
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[ProjectSerializer] Error saving project with director to file '{filePath}': {e.Message}");
             }
 
             return false;

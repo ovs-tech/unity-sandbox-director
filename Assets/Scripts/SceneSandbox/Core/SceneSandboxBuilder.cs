@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using SceneSandbox.Data;
 using SceneSandbox.Input;
+using SceneSandbox.Serialization;
 using MiniTimeline.Core;
 
 namespace SceneSandbox.Core
@@ -61,6 +62,7 @@ namespace SceneSandbox.Core
         [Header("Save/Load")]
         [SerializeField] private string _defaultSavePath = "Assets/SceneSandboxBuilder/SavedScenes/";
         [SerializeField] private string _currentSceneName = "Untitled Scene";
+        [SerializeField] private string _defaultProjectSavePath = "Assets/SceneSandboxBuilder/SavedProjects/";
 
         // Components
         private SandboxInputHandler _inputHandler;
@@ -68,6 +70,7 @@ namespace SceneSandbox.Core
 
         // State
         private SceneConfiguration _currentScene;
+        private SandboxProjectData _currentProject;
         private Dictionary<string, GameObject> _placedObjects;
         private GameObject _selectedObject;
         private List<GameObject> _previewObjects;
@@ -88,6 +91,7 @@ namespace SceneSandbox.Core
 
         // Properties
         public SceneConfiguration CurrentScene => _currentScene;
+        public SandboxProjectData CurrentProject => _currentProject;
         public SceneObjectLibrary ObjectLibrary => _objectLibrary;
         public bool IsInPreviewMode => _previewObjects?.Count > 0;
         public GameObject SelectedObject => _selectedObject;
@@ -262,7 +266,7 @@ namespace SceneSandbox.Core
             BindDraggableEvents(draggable);
 
             // Add to scene configuration
-            var placedObjectData = new PlacedObjectData(objectDataId, finalPosition)
+            var placedObjectData = new Data.PlacedObjectData(objectDataId, finalPosition)
             {
                 id = placedObjectId,
                 rotation = newObject.transform.eulerAngles,
@@ -465,6 +469,357 @@ namespace SceneSandbox.Core
             }
 
             return false;
+        }
+
+        #endregion
+
+        #region Project Management (New Serialization System)
+
+        /// <summary>
+        /// Create a new sandbox project
+        /// </summary>
+        public void CreateNewProject(string projectName = null)
+        {
+            ClearScene();
+
+            string name = projectName ?? "New Sandbox Project";
+            _currentProject = new SandboxProjectData(name);
+
+            // Set default configuration from current settings
+            UpdateProjectSettingsFromBuilder();
+
+            // Create new scene as part of the project
+            _currentScene = new SceneConfiguration($"{name} Scene");
+            _currentProject.sceneConfiguration = _currentScene;
+            
+            _currentSceneName = _currentScene.sceneName;
+
+            OnSceneLoaded?.Invoke(_currentScene);
+            Debug.Log($"[SceneSandboxBuilder] Created new project: {name}");
+        }
+
+        /// <summary>
+        /// Save the current project to JSON file
+        /// </summary>
+        public bool SaveProject(string filePath = null)
+        {
+            if (_currentProject == null)
+            {
+                Debug.LogWarning("[SceneSandboxBuilder] No project to save. Creating default project.");
+                CreateDefaultProject();
+            }
+
+            try
+            {
+                string savePath = filePath ?? GetDefaultProjectSavePath();
+                bool success = SandboxProjectSerializer.SaveToFile(_currentProject, this, savePath);
+                
+                if (success)
+                {
+                    Debug.Log($"[SceneSandboxBuilder] Saved project to: {savePath}");
+                    OnSceneSaved?.Invoke(_currentScene);
+                }
+                
+                return success;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[SceneSandboxBuilder] Error saving project: {e.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Load a project from JSON file
+        /// </summary>
+        public bool LoadProject(string filePath)
+        {
+            try
+            {
+                var project = SandboxProjectSerializer.LoadFromFile(filePath);
+                if (project != null)
+                {
+                    LoadProjectData(project);
+                    Debug.Log($"[SceneSandboxBuilder] Loaded project from: {filePath}");
+                    return true;
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[SceneSandboxBuilder] Error loading project: {e.Message}");
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Get metadata for all projects in the default directory
+        /// </summary>
+        public List<SandboxProjectMetadata> GetAvailableProjects()
+        {
+            return SandboxProjectSerializer.GetProjectsInDirectory(_defaultProjectSavePath, "*.sbproj");
+        }
+
+        /// <summary>
+        /// Get project information for display in UI
+        /// </summary>
+        public SandboxProjectMetadata GetCurrentProjectInfo()
+        {
+            if (_currentProject == null)
+                return null;
+
+            // Update project from runtime state before getting info
+            SandboxProjectSerializer.UpdateProjectFromRuntimeState(_currentProject, this);
+
+            return new SandboxProjectMetadata
+            {
+                projectName = _currentProject.projectName,
+                filePath = GetDefaultProjectSavePath(),
+                created = _currentProject.created,
+                lastModified = _currentProject.lastModified,
+                description = _currentProject.description,
+                objectCount = _placedObjects?.Count ?? 0,
+                hasTimelineIntegration = _currentProject.hasTimelineIntegration,
+                sceneBounds = _currentProject.settings.sceneBounds
+            };
+        }
+
+        /// <summary>
+        /// Update project settings from current builder configuration
+        /// </summary>
+        private void UpdateProjectSettingsFromBuilder()
+        {
+            if (_currentProject?.settings == null)
+                return;
+
+            var settings = _currentProject.settings;
+            
+            // Update placement settings
+            settings.snapToGrid = _snapToGrid;
+            settings.gridSize = _gridSize;
+            settings.defaultPlacementHeight = _defaultPlacementHeight;
+            settings.minimumPlacementHeight = _minimumPlacementHeight;
+            settings.useRaycastForPlacement = _useRaycastForPlacement;
+            settings.useConsistentHeight = _useConsistentHeight;
+            settings.placementLayers = _placementLayers;
+
+            // Update visual settings
+            settings.sceneBounds = _sceneBounds;
+            settings.sceneBoundsColor = _sceneBoundsColor;
+            settings.enableGizmos = _enableGizmos;
+            settings.showBoundsGizmo = _showBoundsGizmo;
+            settings.showAxesGizmo = _showAxesGizmo;
+            settings.showHandlesGizmo = _showHandlesGizmo;
+            settings.gizmoBoundsColor = _gizmoBoundsColor;
+            settings.gizmoAxisLength = _gizmoAxisLength;
+            settings.enableSceneGizmos = _enableSceneGizmos;
+            settings.showSceneGrid = _showSceneGrid;
+            settings.showSceneBounds = _showSceneBounds;
+            settings.showStageAreaGizmo = _showStageAreaGizmo;
+            settings.showPlacementHeightGizmo = _showPlacementHeightGizmo;
+            settings.placementHeightColor = _placementHeightColor;
+
+            // Update drop indicator settings
+            settings.enableDropIndicator = _enableDropIndicator;
+            settings.validDropColor = _validDropColor;
+            settings.invalidDropColor = _invalidDropColor;
+            settings.dropIndicatorSize = _dropIndicatorSize;
+
+            // Update preview settings
+            settings.autoPreview = _autoPreview;
+            settings.previewDuration = _previewDuration;
+
+            _currentProject.lastModified = System.DateTime.Now;
+        }
+
+        /// <summary>
+        /// Apply project settings to builder configuration
+        /// </summary>
+        private void ApplyProjectSettingsToBuilder()
+        {
+            if (_currentProject?.settings == null)
+                return;
+
+            var settings = _currentProject.settings;
+
+            // Apply placement settings
+            _snapToGrid = settings.snapToGrid;
+            _gridSize = settings.gridSize;
+            _defaultPlacementHeight = settings.defaultPlacementHeight;
+            _minimumPlacementHeight = settings.minimumPlacementHeight;
+            _useRaycastForPlacement = settings.useRaycastForPlacement;
+            _useConsistentHeight = settings.useConsistentHeight;
+            _placementLayers = settings.placementLayers;
+
+            // Apply visual settings
+            _sceneBounds = settings.sceneBounds;
+            _sceneBoundsColor = settings.sceneBoundsColor;
+            _enableGizmos = settings.enableGizmos;
+            _showBoundsGizmo = settings.showBoundsGizmo;
+            _showAxesGizmo = settings.showAxesGizmo;
+            _showHandlesGizmo = settings.showHandlesGizmo;
+            _gizmoBoundsColor = settings.gizmoBoundsColor;
+            _gizmoAxisLength = settings.gizmoAxisLength;
+            _enableSceneGizmos = settings.enableSceneGizmos;
+            _showSceneGrid = settings.showSceneGrid;
+            _showSceneBounds = settings.showSceneBounds;
+            _showStageAreaGizmo = settings.showStageAreaGizmo;
+            _showPlacementHeightGizmo = settings.showPlacementHeightGizmo;
+            _placementHeightColor = settings.placementHeightColor;
+
+            // Apply drop indicator settings
+            _enableDropIndicator = settings.enableDropIndicator;
+            _validDropColor = settings.validDropColor;
+            _invalidDropColor = settings.invalidDropColor;
+            _dropIndicatorSize = settings.dropIndicatorSize;
+
+            // Apply preview settings
+            _autoPreview = settings.autoPreview;
+            _previewDuration = settings.previewDuration;
+        }
+
+        /// <summary>
+        /// Load project data and apply to current builder state
+        /// </summary>
+        private void LoadProjectData(SandboxProjectData project)
+        {
+            // Clear current state
+            ClearScene();
+
+            // Set project
+            _currentProject = project;
+
+            // Apply project settings to builder
+            ApplyProjectSettingsToBuilder();
+
+            // Load scene configuration
+            if (project.sceneConfiguration != null)
+            {
+                LoadSceneConfiguration(project.sceneConfiguration);
+            }
+            else
+            {
+                // Create default scene if none exists
+                _currentScene = new SceneConfiguration($"{project.projectName} Scene");
+                _currentProject.sceneConfiguration = _currentScene;
+            }
+
+            _currentSceneName = _currentScene.sceneName;
+        }
+
+        /// <summary>
+        /// Create a default project from current state
+        /// </summary>
+        private void CreateDefaultProject()
+        {
+            if (_currentProject == null)
+            {
+                _currentProject = new SandboxProjectData(_currentSceneName ?? "Untitled Project");
+            }
+
+            if (_currentScene == null)
+            {
+                _currentScene = new SceneConfiguration(_currentSceneName ?? "New Scene");
+            }
+
+            _currentProject.sceneConfiguration = _currentScene;
+            UpdateProjectSettingsFromBuilder();
+        }
+
+        /// <summary>
+        /// Get default save path for projects
+        /// </summary>
+        private string GetDefaultProjectSavePath()
+        {
+            string projectName = _currentProject?.projectName ?? _currentSceneName ?? "Untitled";
+            return $"{_defaultProjectSavePath}{projectName}.sbproj";
+        }
+
+        /// <summary>
+        /// Place an object using the new factory system
+        /// </summary>
+        public GameObject PlaceObjectWithFactory(string objectDataId, Vector3 position, bool autoSelect = true)
+        {
+            if (_objectLibrary == null) return null;
+
+            var objectData = _objectLibrary.GetObjectById(objectDataId);
+            if (objectData == null || objectData.prefab == null) return null;
+
+            // Create placed object data using existing API
+            string placedObjectId = System.Guid.NewGuid().ToString();
+            var placedObjectData = new Data.PlacedObjectData(objectDataId, position)
+            {
+                id = placedObjectId,
+                rotation = objectData.prefab.transform.eulerAngles,
+                scale = objectData.defaultScale != Vector3.zero ? objectData.defaultScale : objectData.prefab.transform.localScale,
+                customName = objectData.displayName
+            };
+
+            // Apply positioning
+            placedObjectData.position = _snapToGrid ? SnapToGrid(position) : position;
+            placedObjectData.position = GetSurfacePosition(placedObjectData.position);
+
+            // Store factory-related properties in the existing properties dictionary
+            placedObjectData.properties["objectType"] = SandboxObjectFactory.DetermineObjectType(objectData.prefab);
+            placedObjectData.properties["libraryName"] = objectData.displayName;
+            placedObjectData.properties["isActive"] = true;
+
+            // Create new factory data for runtime object creation
+            var factoryData = new Serialization.PlacedObjectData
+            {
+                instanceId = placedObjectId,
+                objectType = placedObjectData.properties["objectType"].ToString(),
+                position = placedObjectData.position,
+                rotation = Quaternion.Euler(placedObjectData.rotation),
+                scale = placedObjectData.scale,
+                customName = placedObjectData.customName,
+                isActive = true,
+                customProperties = new Dictionary<string, object>(placedObjectData.properties)
+            };
+
+            // Create runtime object using factory
+            GameObject newObject = SandboxObjectFactory.CreateRuntimeObjectFromData(factoryData, _stageArea);
+            
+            if (newObject == null)
+            {
+                Debug.LogError($"[SceneSandboxBuilder] Failed to create object with factory: {objectDataId}");
+                return null;
+            }
+
+            // Add draggable component for interaction
+            var draggable = newObject.GetComponent<DraggableItem>();
+            if (draggable == null)
+            {
+                draggable = newObject.AddComponent<DraggableItem>();
+            }
+
+            draggable.SetObjectData(objectDataId, placedObjectId);
+            BindDraggableEvents(draggable);
+
+            // Add to scene and project
+            if (_currentScene != null)
+            {
+                _currentScene.AddPlacedObject(placedObjectData);
+            }
+            
+            _placedObjects[placedObjectId] = newObject;
+
+            // Ensure project exists
+            if (_currentProject == null)
+            {
+                CreateDefaultProject();
+            }
+
+            // Select if requested
+            if (autoSelect)
+            {
+                SelectObject(newObject);
+            }
+
+            OnObjectPlaced?.Invoke(newObject);
+            Debug.Log($"[SceneSandboxBuilder] Placed object using factory: {objectData.displayName} ({factoryData.objectType})");
+
+            return newObject;
         }
 
         /// <summary>
