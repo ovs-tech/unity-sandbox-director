@@ -1,0 +1,98 @@
+{
+    "version": 1,
+    "projectName": "New Sandbox Project",
+    "description": "",
+    "created": "2025-10-09T19:30:28.7173560+07:00",
+    "lastModified": "2025-10-09T19:30:54.5379530+07:00",
+    "settings": {
+        "snapToGrid": true,
+        "gridSize": 1.0,
+        "defaultPlacementHeight": 1.0,
+        "minimumPlacementHeight": 0.0,
+        "useRaycastForPlacement": true,
+        "useConsistentHeight": true,
+        "placementLayers": 64,
+        "sceneBounds": "10,0.1,10",
+        "sceneBoundsColor": "#00FFFFFF",
+        "enableGizmos": false,
+        "showBoundsGizmo": true,
+        "showAxesGizmo": true,
+        "showHandlesGizmo": true,
+        "gizmoBoundsColor": "#FFEB04FF",
+        "gizmoAxisLength": 1.0,
+        "enableSceneGizmos": false,
+        "showSceneGrid": true,
+        "showSceneBounds": true,
+        "showStageAreaGizmo": true,
+        "showPlacementHeightGizmo": true,
+        "placementHeightColor": "#FFEB04FF",
+        "enableDropIndicator": false,
+        "validDropColor": "#00FF00CC",
+        "invalidDropColor": "#FF0000CC",
+        "dropIndicatorSize": 1.0,
+        "autoPreview": true,
+        "previewDuration": 10.0
+    },
+    "sceneConfiguration": {
+        "sceneName": "New Sandbox Project Scene",
+        "description": "",
+        "placedObjects": [
+            {
+                "id": "c4f0f932-86b1-44b7-8d43-01241f861748",
+                "objectDataId": "base_female",
+                "position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": -1.0
+                },
+                "rotation": {
+                    "x": 0.0,
+                    "y": 180.00001525878907,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                },
+                "customName": "Base Female"
+            }
+        ],
+        "defaultCameraPosition": {
+            "x": 0.0,
+            "y": 2.0,
+            "z": -5.0
+        },
+        "defaultCameraRotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+        },
+        "environmentColor": {
+            "r": 0.5,
+            "g": 0.5,
+            "b": 0.5,
+            "a": 1.0
+        },
+        "environmentLighting": "Default"
+    },
+    "objectLibraryPath": "",
+    "timelineProjectPath": "",
+    "hasTimelineIntegration": false,
+    "exportSettings": {
+        "includeObjectLibrary": true,
+        "includeTimelineData": false,
+        "compressTextures": true,
+        "optimizeMeshes": true,
+        "targetPlatforms": [
+            "StandaloneWindows64",
+            "Android"
+        ],
+        "packageName": "",
+        "packageVersion": "1.0.0",
+        "packageAuthor": "",
+        "createExecutable": false,
+        "createPackage": true,
+        "outputDirectory": "Builds/"
+    }
+}

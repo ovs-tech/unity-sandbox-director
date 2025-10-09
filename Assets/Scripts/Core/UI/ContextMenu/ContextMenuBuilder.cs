@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace MiniTimeline.UI
+namespace Core.UI.ContextMenu
 {
     /// <summary>
     /// Builder class for constructing context menus with proper grouping and organization

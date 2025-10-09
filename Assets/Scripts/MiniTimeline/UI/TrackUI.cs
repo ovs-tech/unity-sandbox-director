@@ -10,7 +10,9 @@ using MiniTimeline.UI.Commands;
 using MiniTimeline.Tracks;
 using MiniTimeline.Serialization;
 using Debug = UnityEngine.Debug;
-using MiniTimeline.UI.FormDefinitions;
+using Core.UI.FormSubmit.FormDefinitions;
+using Core.UI.FormSubmit;
+using Core.UI.ContextMenu;
 
 namespace MiniTimeline.UI
 {
@@ -869,7 +871,8 @@ namespace MiniTimeline.UI
                 formTitle,
                 fieldDefinitions,
                 OnClipFormSubmitted,
-                OnClipFormCancelled
+                OnClipFormCancelled,
+                timelineEditor.transform
             );
         }
         
@@ -1086,7 +1089,8 @@ namespace MiniTimeline.UI
                 $"⚠️ Delete {trackDisplayName}",
                 fieldDefinitions,
                 OnDeleteTrackConfirmed,
-                OnDeleteTrackCancelled
+                OnDeleteTrackCancelled,
+                timelineEditor.transform
             );
         }
 
@@ -1194,7 +1198,8 @@ namespace MiniTimeline.UI
                 $"Track Settings - {TrackFormDefinitions.GetTrackTypeDisplayName(trackType)}",
                 fieldDefinitions,
                 OnTrackSettingsFormSubmitted,
-                OnTrackSettingsFormCancelled
+                OnTrackSettingsFormCancelled,
+                timelineEditor.transform
             );
 
             Debug.Log($"Show track settings: {track?.GetType().Name}");

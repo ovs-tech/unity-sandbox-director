@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace MiniTimeline.Core
+namespace Core.Behaviors.Command
 {
 
     /// <summary>

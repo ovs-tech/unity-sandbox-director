@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace MiniTimeline.Core
+namespace Core.Behaviors.Command
 {
     /// <summary>
     /// Manages command execution and undo/redo stack for timeline operations

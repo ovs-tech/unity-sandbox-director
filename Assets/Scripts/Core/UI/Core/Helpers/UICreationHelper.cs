@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
-namespace MiniTimeline.UI
+namespace Core.UI.Core.Helpers
 {
     /// <summary>
     /// Helper class to safely create UI elements and prevent TextMeshPro threading issues

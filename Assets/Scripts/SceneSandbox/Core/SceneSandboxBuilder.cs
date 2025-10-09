@@ -511,6 +511,16 @@ namespace SceneSandbox.Core
 
             try
             {
+                // Update scene configuration with current object states before saving
+                if (_currentScene != null)
+                {
+                    UpdateSceneConfiguration();
+                    _currentProject.sceneConfiguration = _currentScene;
+                }
+
+                // Update project settings from current builder state
+                UpdateProjectSettingsFromBuilder();
+
                 string savePath = filePath ?? GetDefaultProjectSavePath();
                 bool success = SandboxProjectSerializer.SaveToFile(_currentProject, this, savePath);
                 
@@ -550,6 +560,40 @@ namespace SceneSandbox.Core
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Delete a project file from disk
+        /// </summary>
+        public bool DeleteProject(string filePath)
+        {
+            try
+            {
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                    Debug.Log($"[SceneSandboxBuilder] Deleted project: {filePath}");
+                    
+                    // If the deleted project is currently loaded, clear the current project
+                    if (_currentProject != null && filePath.Contains(_currentProject.projectName))
+                    {
+                        _currentProject = null;
+                        CreateNewScene();
+                    }
+                    
+                    return true;
+                }
+                else
+                {
+                    Debug.LogWarning($"[SceneSandboxBuilder] Project file not found: {filePath}");
+                    return false;
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[SceneSandboxBuilder] Error deleting project: {e.Message}");
+                return false;
+            }
         }
 
         /// <summary>

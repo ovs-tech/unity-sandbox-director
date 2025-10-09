@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace MiniTimeline.UI
+namespace Core.UI.ContextMenu
 {
     /// <summary>
     /// Interface for UI components that can register context menu items

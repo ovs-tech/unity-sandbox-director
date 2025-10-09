@@ -1,4 +1,4 @@
-namespace MiniTimeline.Core
+namespace Core.Behaviors.Command
 {
     /// <summary>
     /// Command interface for implementing undo/redo operations

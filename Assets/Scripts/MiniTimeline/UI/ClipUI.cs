@@ -7,7 +7,9 @@ using UnityEngine.EventSystems;
 using MiniTimeline.Core;
 using MiniTimeline.UI.Commands;
 using MiniTimeline.Tracks;
-using MiniTimeline.UI.FormDefinitions;
+using Core.UI.FormSubmit.FormDefinitions;
+using Core.UI.FormSubmit;
+using Core.UI.ContextMenu;
 
 namespace MiniTimeline.UI
 {
@@ -1211,7 +1213,8 @@ namespace MiniTimeline.UI
                 formTitle,
                 fieldDefinitions,
                 OnClipEditFormSubmitted,
-                OnClipEditFormCancelled
+                OnClipEditFormCancelled,
+                parentTrack.TimelineEditor.transform
             );
         }
         

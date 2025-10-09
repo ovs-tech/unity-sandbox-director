@@ -5,8 +5,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Newtonsoft.Json;
+using MiniTimeline.UI;
+using Core.UI.Core.Helpers;
 
-namespace MiniTimeline.UI
+namespace Core.UI.FormSubmit
 {
     /// <summary>
     /// Dynamic form panel that can build UI forms from JSON field definitions
@@ -424,8 +426,24 @@ namespace MiniTimeline.UI
         /// <summary>
         /// Show the form panel with specified form definition
         /// </summary>
-        public void Show(string title, List<FormFieldDefinition> fieldDefinitions, Action<Dictionary<string, object>> onSubmit = null, Action onCancel = null)
+        public void Show(string title, List<FormFieldDefinition> fieldDefinitions, Action<Dictionary<string, object>> onSubmit = null, Action onCancel = null, Transform parent = null)
         {
+            // If a parent is specified, ensure we're parented to it
+            if (parent != null && transform.parent != parent)
+            {
+                transform.SetParent(parent, false);
+                
+                // Ensure proper anchoring when parent changes
+                var rectTransform = GetComponent<RectTransform>();
+                if (rectTransform != null)
+                {
+                    rectTransform.anchorMin = Vector2.zero;
+                    rectTransform.anchorMax = Vector2.one;
+                    rectTransform.offsetMin = Vector2.zero;
+                    rectTransform.offsetMax = Vector2.zero;
+                }
+            }
+            
             // Only initialize if not already initialized
             if (GetFieldsParent() == null || titleText == null || backgroundPanel == null)
             {

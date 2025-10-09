@@ -4,7 +4,7 @@ using TMPro;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MiniTimeline.UI
+namespace Core.UI.FormSubmit
 {
     /// <summary>
     /// Select/Dropdown form field
@@ -93,8 +93,8 @@ namespace MiniTimeline.UI
             var templateRect = templateObj.AddComponent<RectTransform>();
             templateRect.anchorMin = new Vector2(0, 0);
             templateRect.anchorMax = new Vector2(1, 0);
-            templateRect.anchoredPosition = new Vector2(0, -2);
-            templateRect.sizeDelta = new Vector2(0, 150);
+            templateRect.anchoredPosition = new Vector2(0, -25);
+            templateRect.sizeDelta = new Vector2(0, 50);
             
             templateObj.SetActive(false);
             
@@ -134,7 +134,7 @@ namespace MiniTimeline.UI
             itemRect.anchorMin = new Vector2(0, 0.5f);
             itemRect.anchorMax = new Vector2(1, 0.5f);
             itemRect.anchoredPosition = Vector2.zero;
-            itemRect.sizeDelta = new Vector2(0, 20);
+            itemRect.sizeDelta = new Vector2(0, 40);
             
             var itemToggle = itemObj.AddComponent<Toggle>();
             

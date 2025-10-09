@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.Collections.Generic;
+using Core.UI.Core.Helpers;
 
-namespace MiniTimeline.UI
+namespace Core.UI.FormSubmit
 {
     /// <summary>
     /// Text input form field
