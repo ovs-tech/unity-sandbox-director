@@ -10,9 +10,9 @@ using MiniTimeline.UI.Commands;
 using MiniTimeline.Tracks;
 using MiniTimeline.Serialization;
 using Debug = UnityEngine.Debug;
-using Core.UI.FormSubmit.FormDefinitions;
 using Core.UI.FormSubmit;
 using Core.UI.ContextMenu;
+using MiniTimeline.UI.FormDefinitions;
 
 namespace MiniTimeline.UI
 {
