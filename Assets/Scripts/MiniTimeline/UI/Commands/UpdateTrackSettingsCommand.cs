@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Core.Behaviors.Command;
 using MiniTimeline.Core;
 using UnityEngine;
 
@@ -19,7 +20,7 @@ namespace MiniTimeline.UI.Commands
 
         public UpdateTrackSettingsCommand(IMiniTrack targetTrack, Dictionary<string, object> previousSettings, 
             Dictionary<string, object> updatedSettings, TrackUI trackInterface)
-            : base($"Update {GetTrackDisplayName(targetTrack)} Settings")
+            : base($"Update {TrackUIHelper.GetTrackDisplayName(targetTrack)} Settings")
         {
             track = targetTrack;
             oldSettings = new Dictionary<string, object>(previousSettings);
@@ -230,29 +231,6 @@ namespace MiniTimeline.UI.Commands
                 }
                 Debug.Log($"Merged track settings command for track {track.Id}");
             }
-        }
-
-        private static string GetTrackDisplayName(IMiniTrack track)
-        {
-            if (track == null) return "Unknown Track";
-
-            string trackType = track.GetType().Name;
-            string friendlyName = trackType switch
-            {
-                "AnimTrack" => "Animation",
-                "AnimatorTrack" => "Animator",
-                "MorphTrack" => "Morph",
-                "MovementTrack" => "Movement",
-                "ExpressionTrack" => "Expression",
-                "CameraTrack" => "Camera",
-                "PoseIKTrack" => "IK Pose",
-                "AudioTrack" => "Audio",
-                "FxLightTrack" => "FX Light",
-                "SignalTrack" => "Events",
-                _ => trackType.Replace("Track", "")
-            };
-
-            return $"{friendlyName} Track";
         }
     }
 }

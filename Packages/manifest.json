@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.unity.addressables": "2.7.2",
+    "com.unity.addressables": "2.7.3",
     "com.unity.ai.assistant": "1.0.0-pre.12",
     "com.unity.ai.generators": "1.0.0-pre.20",
     "com.unity.ai.inference": "2.3.0",
@@ -10,7 +10,7 @@
     "com.unity.inputsystem": "1.14.2",
     "com.unity.multiplayer.center": "1.0.0",
     "com.unity.render-pipelines.universal": "17.2.0",
-    "com.unity.test-framework": "1.5.1",
+    "com.unity.test-framework": "1.6.0",
     "com.unity.timeline": "1.8.9",
     "com.unity.ugui": "2.0.0",
     "com.unity.visualscripting": "1.9.7",

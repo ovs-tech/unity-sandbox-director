@@ -158,6 +158,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "New action",
+                    "type": "Button",
+                    "id": "e6072c39-16dc-41e5-b363-471ecfb89f4c",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -686,6 +695,17 @@
                     "processors": "",
                     "groups": ";XRControllers",
                     "action": "TrackedDeviceOrientation",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b060b931-c46a-452f-9ba0-1eb4d3ddf67a",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "New action",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
@@ -2094,6 +2114,216 @@
                     "processors": "",
                     "groups": ";Gamepad",
                     "action": "NudgeRight",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "SceneBuilder",
+            "id": "f7a3c2d1-8e4b-4629-9da5-3b7e8f1a2c6d",
+            "actions": [
+                {
+                    "name": "Select",
+                    "type": "Button",
+                    "id": "1a2b3c4d-5e6f-7890-abcd-ef1234567890",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Delete",
+                    "type": "Button",
+                    "id": "2b3c4d5e-6f78-9012-bcde-f23456789012",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Duplicate",
+                    "type": "Button",
+                    "id": "3c4d5e6f-7890-1234-cdef-345678901234",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ToggleSnapToGrid",
+                    "type": "Button",
+                    "id": "4d5e6f78-9012-3456-def0-456789012345",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Preview",
+                    "type": "Button",
+                    "id": "5e6f7890-1234-5678-ef01-567890123456",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "SaveScene",
+                    "type": "Button",
+                    "id": "6f789012-3456-7890-f012-678901234567",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "LoadScene",
+                    "type": "Button",
+                    "id": "78901234-5678-9012-0123-789012345678",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "TouchPress",
+                    "type": "Button",
+                    "id": "89012345-6789-0123-1234-890123456789",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "TouchPosition",
+                    "type": "Value",
+                    "id": "90123456-7890-1234-2345-901234567890",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "0c1cdae9-6e03-483d-b150-dd762ae8161f",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";MouseKeyboard",
+                    "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "12345678-9012-3456-4567-123456789012",
+                    "path": "<Touchscreen>/primaryTouch/tap",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";MobileTouch",
+                    "action": "Select",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "23456789-0123-4567-5678-234567890123",
+                    "path": "<Keyboard>/delete",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";MouseKeyboard",
+                    "action": "Delete",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "34567890-1234-5678-6789-345678901234",
+                    "path": "<Keyboard>/x",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";MouseKeyboard",
+                    "action": "Delete",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "45678901-2345-6789-7890-456789012345",
+                    "path": "<Keyboard>/ctrl+d",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";MouseKeyboard",
+                    "action": "Duplicate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "56789012-3456-7890-8901-567890123456",
+                    "path": "<Keyboard>/g",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";MouseKeyboard",
+                    "action": "ToggleSnapToGrid",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "67890123-4567-8901-9012-678901234567",
+                    "path": "<Keyboard>/p",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";MouseKeyboard",
+                    "action": "Preview",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "78901234-5678-9012-0123-789012345678",
+                    "path": "<Keyboard>/ctrl+s",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";MouseKeyboard",
+                    "action": "SaveScene",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "89012345-6789-0123-1234-890123456789",
+                    "path": "<Keyboard>/ctrl+o",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";MouseKeyboard",
+                    "action": "LoadScene",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "90123456-7890-1234-2345-901234567890",
+                    "path": "<Touchscreen>/primaryTouch/press",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";MobileTouch",
+                    "action": "TouchPress",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "01234567-8901-2345-3456-012345678901",
+                    "path": "<Touchscreen>/primaryTouch/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";MobileTouch",
+                    "action": "TouchPosition",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

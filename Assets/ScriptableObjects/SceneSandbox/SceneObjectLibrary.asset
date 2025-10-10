@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc5d3f0a05b0e4f188c1652de12f6d13, type: 3}
+  m_Name: SceneObjectLibrary
+  m_EditorClassIdentifier: Assembly-CSharp::SceneSandboxBuilder.Data.SceneObjectLibrary
+  actors:
+  - id: base_female
+    displayName: Base Female
+    objectType: 0
+    prefab: {fileID: 6960119122640606369, guid: b279a02baa2da42dcac5fb51bdefa40a, type: 3}
+    icon: {fileID: 21300000, guid: ecadaada9dd71a946923ce1576e25862, type: 3}
+    iconColor: {r: 1, g: 1, b: 1, a: 1}
+    canRotate: 0
+    canScale: 0
+    defaultScale: {x: 0, y: 0, z: 0}
+    snapOffset: {x: 0, y: 0, z: 0}
+    category: Actor
+    tags:
+    - actor
+    - female
+  - id: base_male
+    displayName: Base male
+    objectType: 0
+    prefab: {fileID: 7578467819517741765, guid: 6882cb6b7a80f40e980f587c5b4e3e51, type: 3}
+    icon: {fileID: 21300000, guid: 94540527e5fef3841a3dd9112ca48ac8, type: 3}
+    iconColor: {r: 1, g: 1, b: 1, a: 1}
+    canRotate: 0
+    canScale: 0
+    defaultScale: {x: 0, y: 0, z: 0}
+    snapOffset: {x: 0, y: 0, z: 0}
+    category: Actor
+    tags:
+    - actor
+    - male
+  props:
+  - id: sphere
+    displayName: Sphere
+    objectType: 1
+    prefab: {fileID: 750190952117439811, guid: 617ba906653374cd7a9d297d989acc5f, type: 3}
+    icon: {fileID: 0}
+    iconColor: {r: 1, g: 1, b: 1, a: 1}
+    canRotate: 1
+    canScale: 1
+    defaultScale: {x: 0.5, y: 0.5, z: 0.5}
+    snapOffset: {x: 0, y: 0, z: 0}
+    category: Prop
+    tags: []
+  - id: wall
+    displayName: Wall
+    objectType: 1
+    prefab: {fileID: 2829120537274968647, guid: 33f30db7777f04f228b394d88d4255f2, type: 3}
+    icon: {fileID: 0}
+    iconColor: {r: 1, g: 1, b: 1, a: 1}
+    canRotate: 1
+    canScale: 1
+    defaultScale: {x: 0.1, y: 1, z: 1}
+    snapOffset: {x: 0, y: 0, z: 0}
+    category: Prop
+    tags: []
+  cameras: []
+  lights:
+  - id: area-light
+    displayName: Area Light
+    objectType: 3
+    prefab: {fileID: 6709121272351812685, guid: 6216345b2380043a49668f8f445cd587, type: 3}
+    icon: {fileID: 0}
+    iconColor: {r: 1, g: 1, b: 1, a: 1}
+    canRotate: 1
+    canScale: 1
+    defaultScale: {x: 1, y: 1, z: 1}
+    snapOffset: {x: 0, y: 0, z: 0}
+    category: Light
+    tags: []

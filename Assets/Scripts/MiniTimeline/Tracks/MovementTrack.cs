@@ -29,13 +29,13 @@ namespace MiniTimeline.Tracks
         
         protected override void OnPrepare()
         {
-            Debug.Log($"[MovementTrack] OnPrepare called for track '{Id}', target object: {targetObject}");
+            // Debug.Log($"[MovementTrack] OnPrepare called for track '{Id}', target object: {targetObject}");
             
             if(targetObject is Camera camera)
             {
                 targetCamera = camera;
                 cameraTransform = camera.transform;
-                Debug.Log($"[MovementTrack] Target is Camera: {camera.name}");
+                // Debug.Log($"[MovementTrack] Target is Camera: {camera.name}");
             }
             else if (targetObject is GameObject go)
             {
@@ -43,22 +43,22 @@ namespace MiniTimeline.Tracks
                 if (targetCamera != null)
                 {
                     cameraTransform = targetCamera.transform;
-                    Debug.Log($"[MovementTrack] Target is GameObject: {go.name}, Camera found: {targetCamera != null}");
+                    // Debug.Log($"[MovementTrack] Target is GameObject: {go.name}, Camera found: {targetCamera != null}");
                 }
             }
             else
             {
-                Debug.LogError($"[MovementTrack] Target object for track '{Id}' is not a Camera or GameObject with Camera");
+                // Debug.LogError($"[MovementTrack] Target object for track '{Id}' is not a Camera or GameObject with Camera");
                 return;
             }
             
             if (targetCamera == null)
             {
-                Debug.LogError($"[MovementTrack] No Camera found for track '{Id}'");
+                // Debug.LogError($"[MovementTrack] No Camera found for track '{Id}'");
                 return;
             }
             
-            Debug.Log($"[MovementTrack] Prepared track '{Id}' with {clips.Count} clips");
+            // Debug.Log($"[MovementTrack] Prepared track '{Id}' with {clips.Count} clips");
         }
         
         protected override void OnEvaluate(float time, bool scrub)
@@ -95,7 +95,7 @@ namespace MiniTimeline.Tracks
         {
             currentClip = null;
             nextClip = null;
-            Debug.Log($"[MovementTrack] Cleaned up track '{Id}'");
+            // Debug.Log($"[MovementTrack] Cleaned up track '{Id}'");
         }
         
         #endregion

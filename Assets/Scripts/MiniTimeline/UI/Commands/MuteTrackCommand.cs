@@ -1,3 +1,4 @@
+using Core.Behaviors.Command;
 using MiniTimeline.Core;
 using UnityEngine;
 
@@ -17,7 +18,7 @@ namespace MiniTimeline.UI.Commands
         private readonly TrackUI trackUI;
 
         public MuteTrackCommand(IMiniTrack trackToMute, bool oldEnabled, bool newEnabled, TrackUI trackInterface)
-            : base(newEnabled ? $"Unmute {GetTrackDisplayName(trackToMute)}" : $"Mute {GetTrackDisplayName(trackToMute)}")
+            : base(newEnabled ? $"Unmute {TrackUIHelper.GetTrackDisplayName(trackToMute)}" : $"Mute {TrackUIHelper.GetTrackDisplayName(trackToMute)}")
         {
             track = trackToMute;
             oldEnabledState = oldEnabled;
@@ -95,27 +96,6 @@ namespace MiniTimeline.UI.Commands
                 // Update the track header to reflect the new mute state
                 trackUI.RefreshUI();
             }
-        }
-
-        private static string GetTrackDisplayName(IMiniTrack track)
-        {
-            if (track == null) return "Unknown Track";
-
-            string trackType = track.GetType().Name;
-            string friendlyName = trackType switch
-            {
-                "AnimTrack" => "Animation",
-                "MorphTrack" => "Morph",
-                "ExpressionTrack" => "Expression",
-                "CameraTrack" => "Camera",
-                "PoseIKTrack" => "IK Pose",
-                "AudioTrack" => "Audio",
-                "FxLightTrack" => "FX Light",
-                "SignalTrack" => "Events",
-                _ => trackType.Replace("Track", "")
-            };
-
-            return $"{friendlyName} Track";
         }
     }
 

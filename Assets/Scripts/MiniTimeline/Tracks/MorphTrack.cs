@@ -43,14 +43,14 @@ namespace MiniTimeline.Tracks
             
             if (targetRenderer == null)
             {
-                Debug.LogError($"[MorphTrack] Target object for track '{Id}' does not have a SkinnedMeshRenderer");
+                // Debug.LogError($"[MorphTrack] Target object for track '{Id}' does not have a SkinnedMeshRenderer");
                 return;
             }
             
             targetMesh = targetRenderer.sharedMesh;
             if (targetMesh == null)
             {
-                Debug.LogError($"[MorphTrack] SkinnedMeshRenderer on '{targetRenderer.name}' has no mesh");
+                // Debug.LogError($"[MorphTrack] SkinnedMeshRenderer on '{targetRenderer.name}' has no mesh");
                 return;
             }
             
@@ -60,7 +60,7 @@ namespace MiniTimeline.Tracks
             // Initialize current values
             InitializeCurrentValues();
             
-            Debug.Log($"[MorphTrack] Prepared track '{Id}' with {blendshapeIndices.Count} blendshapes");
+            // Debug.Log($"[MorphTrack] Prepared track '{Id}' with {blendshapeIndices.Count} blendshapes");
         }
         
         protected override void OnEvaluate(float time, bool scrub)
@@ -103,7 +103,7 @@ namespace MiniTimeline.Tracks
             currentValues.Clear();
             accumulatedValues.Clear();
             
-            Debug.Log($"[MorphTrack] Cleaned up track '{Id}'");
+            // Debug.Log($"[MorphTrack] Cleaned up track '{Id}'");
         }
         
         #endregion
@@ -123,7 +123,7 @@ namespace MiniTimeline.Tracks
                 blendshapeIndices[name] = i;
             }
             
-            Debug.Log($"[MorphTrack] Cached {blendshapeIndices.Count} blendshape indices");
+            // Debug.Log($"[MorphTrack] Cached {blendshapeIndices.Count} blendshape indices");
         }
         
         /// <summary>
@@ -263,7 +263,7 @@ namespace MiniTimeline.Tracks
                 }
                 else
                 {
-                    Debug.LogWarning($"[MorphTrack] Blendshape '{kvp.Key}' not found on mesh '{targetMesh.name}'");
+                    // Debug.LogWarning($"[MorphTrack] Blendshape '{kvp.Key}' not found on mesh '{targetMesh.name}'");
                 }
             }
         }

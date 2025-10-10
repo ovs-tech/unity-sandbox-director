@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using MiniTimeline.Core;
 using MiniTimeline.Tracks;
@@ -71,6 +72,172 @@ namespace MiniTimeline.Serialization
         }
         
         /// <summary>
+        /// Convert a runtime track to serializable TrackData
+        /// </summary>
+        /// <param name="track">Runtime track to convert</param>
+        /// <param name="director">Director for context (track ordering)</param>
+        /// <returns>Serializable track data</returns>
+        public static TrackData ConvertRuntimeTrackToData(IMiniTrack track, MiniTimelineDirector director)
+        {
+            if (track == null) return null;
+            
+            var trackData = new TrackData
+            {
+                id = track.Id,
+                type = GetTrackTypeName(track),
+                bindKey = track.BindKey,
+                enabled = track.Enabled,
+                order = DetermineTrackOrder(track, director),
+                clips = new List<ClipData>(),
+                properties = new Dictionary<string, object>()
+            };
+            
+            // Convert clips
+            var clips = track.GetClips();
+            foreach (var clip in clips)
+            {
+                var clipData = ConvertRuntimeClipToData(clip);
+                if (clipData != null)
+                {
+                    trackData.clips.Add(clipData);
+                }
+            }
+            
+            return trackData;
+        }
+        
+        /// <summary>
+        /// Convert a runtime clip to serializable ClipData
+        /// </summary>
+        /// <param name="clip">Runtime clip to convert</param>
+        /// <returns>Serializable clip data</returns>
+        public static ClipData ConvertRuntimeClipToData(IMiniClip clip)
+        {
+            if (clip == null) return null;
+            
+            var clipData = new ClipData
+            {
+                id = clip.Id,
+                start = clip.Start,
+                duration = clip.Duration,
+                payload = ExtractClipPayload(clip)
+            };
+            
+            return clipData;
+        }
+        
+        /// <summary>
+        /// Extract type-specific payload data from a runtime clip
+        /// </summary>
+        /// <param name="clip">Runtime clip to extract data from</param>
+        /// <returns>Payload dictionary</returns>
+        public static Dictionary<string, object> ExtractClipPayload(IMiniClip clip)
+        {
+            var payload = new Dictionary<string, object>();
+            
+            try
+            {
+                // Handle different clip types
+                switch (clip)
+                {
+                    case AnimClip animClip:
+                        payload["animationAsset"] = animClip.animationAsset ?? "";
+                        payload["speed"] = animClip.speed;
+                        payload["wrapMode"] = animClip.wrapMode.ToString();
+                        payload["layer"] = animClip.layer;
+                        payload["fadeIn"] = animClip.fadeIn;
+                        payload["fadeOut"] = animClip.fadeOut;
+                        payload["weight"] = animClip.weight;
+                        payload["clipOffset"] = animClip.clipOffset;
+                        break;
+                        
+                    case UMAExpressionClip expressionClip:
+                        payload["expression"] = expressionClip.expression ?? "";
+                        break;
+                        
+                    case UmaWardrobeClip wardrobeClip:
+                        payload["wardrobeJson"] = wardrobeClip.wardrobeJson ?? "";
+                        break;
+                        
+                    case SignalClip signalClip:
+                        payload["eventId"] = signalClip.eventId ?? "";
+                        payload["payload"] = signalClip.payload ?? "";
+                        payload["edge"] = signalClip.edge.ToString();
+                        payload["fireOnScrub"] = signalClip.fireOnScrub;
+                        if (signalClip.color != Color.white)
+                        {
+                            payload["color"] = $"#{ColorUtility.ToHtmlStringRGBA(signalClip.color)}";
+                        }
+                        break;
+                        
+                    case MovementClip movementClip:
+                        // Add movement-specific properties
+                        payload["hasPosition"] = movementClip.hasPosition;
+                        payload["startPosition"] = $"{movementClip.startPosition.x},{movementClip.startPosition.y},{movementClip.startPosition.z}";
+                        payload["endPosition"] = $"{movementClip.endPosition.x},{movementClip.endPosition.y},{movementClip.endPosition.z}";
+                        payload["hasRotation"] = movementClip.hasRotation;
+                        payload["startRotation"] = $"{movementClip.startRotation.x},{movementClip.startRotation.y},{movementClip.startRotation.z},{movementClip.startRotation.w}";
+                        payload["endRotation"] = $"{movementClip.endRotation.x},{movementClip.endRotation.y},{movementClip.endRotation.z},{movementClip.endRotation.w}";
+                        payload["hasFieldOfView"] = movementClip.hasFieldOfView;
+                        payload["startFieldOfView"] = movementClip.startFieldOfView;
+                        payload["endFieldOfView"] = movementClip.endFieldOfView;
+                        payload["animationCurve"] = movementClip.animationCurve.ToString();
+                        payload["fadeIn"] = movementClip.fadeIn;
+                        payload["fadeOut"] = movementClip.fadeOut;
+                        break;
+                        
+                    // Add more clip types as needed
+                    default:
+                        // For unknown clip types, try to extract basic properties via reflection
+                        Debug.LogWarning($"[TrackFactory] Unknown clip type for serialization: {clip.GetType().Name}");
+                        break;
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[TrackFactory] Error extracting payload for clip {clip.Id}: {ex.Message}");
+            }
+            
+            return payload;
+        }
+        
+        /// <summary>
+        /// Get the track type name for serialization
+        /// </summary>
+        /// <param name="track">Runtime track</param>
+        /// <returns>Track type string</returns>
+        public static string GetTrackTypeName(IMiniTrack track)
+        {
+            // Map runtime track types to their string identifiers
+            switch (track)
+            {
+                case AnimTrack _: return MiniTimelineConstants.TRACK_ANIM;
+                case UMAExpressionTrack _: return MiniTimelineConstants.TRACK_MORPH;
+                case UmaWardrobeTrack _: return MiniTimelineConstants.TRACK_UMA_WARDROBE;
+                case SignalTrack _: return MiniTimelineConstants.TRACK_SIGNAL;
+                case MovementTrack _: return MiniTimelineConstants.TRACK_MOVEMENT;
+                case AnimatorTrack _: return MiniTimelineConstants.TRACK_ANIMATOR;
+                case MorphTrack _: return MiniTimelineConstants.TRACK_MORPH;
+                default:
+                    Debug.LogWarning($"[TrackFactory] Unknown track type: {track.GetType().Name}");
+                    return "Unknown";
+            }
+        }
+        
+        /// <summary>
+        /// Determine the order/priority of a track for serialization
+        /// </summary>
+        /// <param name="track">Runtime track</param>
+        /// <param name="director">Director containing the track</param>
+        /// <returns>Order index</returns>
+        private static int DetermineTrackOrder(IMiniTrack track, MiniTimelineDirector director)
+        {
+            var tracks = director.Tracks;
+            int index = tracks.ToList().IndexOf(track);
+            return index >= 0 ? index * 10 : 0; // Use index * 10 to allow for insertions
+        }
+        
+        /// <summary>
         /// Create a clip instance from form data for the specified track type
         /// </summary>
         /// <param name="trackType">The track type</param>
@@ -79,7 +246,7 @@ namespace MiniTimeline.Serialization
         public static IMiniClip CreateClipFromFormData(string trackType, Dictionary<string, object> formData)
         {
             // Extract common fields
-            string clipId = System.Guid.NewGuid().ToString();
+            string clipId = Guid.NewGuid().ToString();
             float startTime = formData.ContainsKey("start") ? Convert.ToSingle(formData["start"]) : 0f;
             float duration = formData.ContainsKey("duration") ? Convert.ToSingle(formData["duration"]) : 1f;
             

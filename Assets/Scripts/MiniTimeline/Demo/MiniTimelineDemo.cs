@@ -24,6 +24,7 @@ namespace MiniTimeline.Demo
         [Header("Settings")]
         [SerializeField] private bool autoPlay = true;
         [SerializeField] private bool loadSampleProject = true;
+        [SerializeField] private float emptyProjectDuration = 10f;
         
         [Header("Controls")]
         [SerializeField] private KeyCode playKey = KeyCode.Space;
@@ -47,6 +48,10 @@ namespace MiniTimeline.Demo
             if (loadSampleProject)
             {
                 LoadSampleProject();
+            }
+            else
+            {
+                CreateEmptyProject();
             }
             
             // Store original camera settings
@@ -162,10 +167,16 @@ namespace MiniTimeline.Demo
             {
                 GUILayout.Label("No project loaded");
                 
+                GUILayout.BeginHorizontal();
                 if (GUILayout.Button("Load Sample Project"))
                 {
                     LoadSampleProject();
                 }
+                if (GUILayout.Button("Create Empty Project"))
+                {
+                    CreateEmptyProject();
+                }
+                GUILayout.EndHorizontal();
             }
             
             GUILayout.Space(10);
@@ -224,7 +235,23 @@ namespace MiniTimeline.Demo
             currentProject = SampleProjectCreator.CreateSampleProject();
             director.SetProject(currentProject);
             
-            Debug.Log("[MiniTimelineDemo] Loaded sample project");
+            // Debug.Log("[MiniTimelineDemo] Loaded sample project");
+        }
+        
+        private void CreateEmptyProject()
+        {
+            currentProject = new MiniTimelineProject
+            {
+                name = "Empty Project",
+                version = 1,
+                length = emptyProjectDuration, // Use configurable duration
+                frameRate = 30f,
+                tracks = new System.Collections.Generic.List<TrackData>()
+            };
+            
+            director.SetProject(currentProject);
+            
+            Debug.Log($"[MiniTimelineDemo] Created empty project with {emptyProjectDuration}s duration");
         }
         
         private void HandleInput()
@@ -258,7 +285,7 @@ namespace MiniTimeline.Demo
         {
             if (currentProject == null)
             {
-                Debug.LogWarning("[MiniTimelineDemo] No project to save");
+                // Debug.LogWarning("[MiniTimelineDemo] No project to save");
                 return;
             }
             
@@ -267,7 +294,7 @@ namespace MiniTimeline.Demo
             
             if (success)
             {
-                Debug.Log($"[MiniTimelineDemo] Project saved to: {path}");
+                // Debug.Log($"[MiniTimelineDemo] Project saved to: {path}");
             }
         }
         
@@ -280,7 +307,7 @@ namespace MiniTimeline.Demo
             {
                 currentProject = project;
                 director.SetProject(project);
-                Debug.Log($"[MiniTimelineDemo] Project loaded from: {path}");
+                // Debug.Log($"[MiniTimelineDemo] Project loaded from: {path}");
             }
         }
         
@@ -325,7 +352,7 @@ namespace MiniTimeline.Demo
                 camera.transform.position = originalCameraPosition;
                 camera.transform.rotation = originalCameraRotation;
                 camera.fieldOfView = originalCameraFOV;
-                Debug.Log("[MiniTimelineDemo] Camera reset to original position");
+                // Debug.Log("[MiniTimelineDemo] Camera reset to original position");
             }
         }
         
@@ -356,7 +383,7 @@ namespace MiniTimeline.Demo
         
         private void OnStateChanged(PlaybackState state)
         {
-            Debug.Log($"[MiniTimelineDemo] State changed to: {state}");
+            // Debug.Log($"[MiniTimelineDemo] State changed to: {state}");
         }
         
         private void OnTimeChanged(float time)
@@ -366,7 +393,7 @@ namespace MiniTimeline.Demo
         
         private void OnProjectLoaded()
         {
-            Debug.Log("[MiniTimelineDemo] Project loaded successfully");
+            // Debug.Log("[MiniTimelineDemo] Project loaded successfully");
             
             // Setup event handlers for the event track
             var signalTrack = director.GetTrack<SignalTrack>();
@@ -380,19 +407,19 @@ namespace MiniTimeline.Demo
             {
                 string trackType = track.GetType().Name;
                 int clipCount = track.GetClips().Count();
-                Debug.Log($"[MiniTimelineDemo] Loaded {trackType} with {clipCount} clips (BindKey: {track.BindKey})");
+                // Debug.Log($"[MiniTimelineDemo] Loaded {trackType} with {clipCount} clips (BindKey: {track.BindKey})");
             }
         }
         
         private void OnTimelineEvent(TimelineEvent evt)
         {
-            Debug.Log($"[MiniTimelineDemo] Timeline event: {evt.eventId} - {evt.payload} at {evt.time:F2}s");
+            // Debug.Log($"[MiniTimelineDemo] Timeline event: {evt.eventId} - {evt.payload} at {evt.time:F2}s");
             
             // Handle specific events
             switch (evt.eventId)
             {
                 case "StartSmile":
-                    Debug.Log("Character should start smiling!");
+                    // Debug.Log("Character should start smiling!");
                     break;
                     
                 // Add more event handlers as needed

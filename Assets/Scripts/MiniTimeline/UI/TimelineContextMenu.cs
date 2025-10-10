@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Core.UI.ContextMenu;
 
 namespace MiniTimeline.UI
 {
@@ -29,7 +30,7 @@ namespace MiniTimeline.UI
                     
                     if (instance == null)
                     {
-                        Debug.LogWarning("TimelineContextMenu: No instance found. Creating new one.");
+                        // Debug.LogWarning("TimelineContextMenu: No instance found. Creating new one.");
                         CreateInstance();
                     }
                 }
@@ -103,7 +104,7 @@ namespace MiniTimeline.UI
             }
             else if (instance != this)
             {
-                Debug.LogWarning("Multiple TimelineContextMenu instances detected. Destroying duplicate.");
+                // Debug.LogWarning("Multiple TimelineContextMenu instances detected. Destroying duplicate.");
                 Destroy(gameObject);
                 return;
             }
@@ -144,7 +145,7 @@ namespace MiniTimeline.UI
             else
             {
                 // Queue for registration when instance is available
-                Debug.LogWarning($"TimelineContextMenu: Attempted to register {provider.ComponentId} before instance is available");
+                // Debug.LogWarning($"TimelineContextMenu: Attempted to register {provider.ComponentId} before instance is available");
             }
         }
         
@@ -200,18 +201,18 @@ namespace MiniTimeline.UI
             // Create default button prefab if none provided
             if (menuButtonPrefab == null)
             {
-                Debug.Log("No menu button prefab assigned, creating default");
+                // Debug.Log("No menu button prefab assigned, creating default");
                 CreateDefaultButtonPrefab();
             }
             
             // Verify prefab was created successfully
             if (menuButtonPrefab == null)
             {
-                Debug.LogError("Failed to create default button prefab!");
+                // Debug.LogError("Failed to create default button prefab!");
             }
             else
             {
-                Debug.Log("Menu button prefab ready");
+                // Debug.Log("Menu button prefab ready");
             }
         }
         
@@ -323,7 +324,7 @@ namespace MiniTimeline.UI
             // Store as prefab
             menuButtonPrefab = buttonGO;
             
-            Debug.Log("Created default button prefab successfully");
+            // Debug.Log("Created default button prefab successfully");
         }
         
         #endregion
@@ -356,7 +357,7 @@ namespace MiniTimeline.UI
             // Instead, update the content if menu is already open
             if (isMenuOpen)
             {
-                Debug.Log("Menu already open - updating content instead of closing/reopening");
+                // Debug.Log("Menu already open - updating content instead of closing/reopening");
                 // Update the menu content and position without closing
                 currentMenuItems = menuItems ?? new List<ContextMenuItem>();
                 menuPosition = screenPosition;
@@ -371,7 +372,7 @@ namespace MiniTimeline.UI
                 return;
             }
             
-            Debug.Log("Showing new menu");
+            // Debug.Log("Showing new menu");
             currentMenuItems = menuItems ?? new List<ContextMenuItem>();
             menuPosition = screenPosition;
             currentContext = context;
@@ -456,7 +457,7 @@ namespace MiniTimeline.UI
         /// </summary>
         public void CloseMenu()
         {
-            Debug.Log("CloseMenu called");
+            // Debug.Log("CloseMenu called");
             if (!isMenuOpen) return;
             isMenuOpen = false;
             canCloseMenu = false;
@@ -468,7 +469,7 @@ namespace MiniTimeline.UI
         // Backdrop click handler with delay logic
         private void OnBackdropClicked()
         {
-            Debug.Log($"Backdrop clicked. canCloseMenu: {canCloseMenu}, fromLongPress: {fromLongPress}");
+            // Debug.Log($"Backdrop clicked. canCloseMenu: {canCloseMenu}, fromLongPress: {fromLongPress}");
             if (canCloseMenu)
             {
                 CloseMenu();
@@ -495,7 +496,7 @@ namespace MiniTimeline.UI
         {
             if (menuButtonPrefab == null || buttonContainer == null) 
             {
-                Debug.LogError("Cannot create menu button: missing prefab or container");
+                // Debug.LogError("Cannot create menu button: missing prefab or container");
                 return;
             }
             
@@ -529,7 +530,7 @@ namespace MiniTimeline.UI
             }
             else
             {
-                Debug.LogWarning("No TextMeshProUGUI component found in menu button prefab");
+                // Debug.LogWarning("No TextMeshProUGUI component found in menu button prefab");
             }
             
             // Setup button action
@@ -539,7 +540,7 @@ namespace MiniTimeline.UI
                 button.onClick.RemoveAllListeners();
                 button.onClick.AddListener(() =>
                 {
-                    Debug.Log($"Menu button clicked: {item.text}");
+                    // Debug.Log($"Menu button clicked: {item.text}");
                     item.action?.Invoke();
                     CloseMenu();
                 });
@@ -549,11 +550,11 @@ namespace MiniTimeline.UI
             }
             else
             {
-                Debug.LogWarning("No Button component found in menu button prefab");
+                // Debug.LogWarning("No Button component found in menu button prefab");
             }
             
             instantiatedButtons.Add(buttonGO);
-            Debug.Log($"Created menu button: {item.text}");
+            // Debug.Log($"Created menu button: {item.text}");
         }
         
         private void CreateSeparator()
@@ -634,7 +635,7 @@ namespace MiniTimeline.UI
         
         private void ShowMenuAnimated()
         {
-            Debug.Log($"ShowMenuAnimated called. fromLongPress: {fromLongPress}");
+            // Debug.Log($"ShowMenuAnimated called. fromLongPress: {fromLongPress}");
             gameObject.SetActive(true);
             isMenuOpen = true;
             canCloseMenu = false;
@@ -677,17 +678,17 @@ namespace MiniTimeline.UI
             // Use longer delay if menu was shown from long press
             if (fromLongPress)
             {
-                Debug.Log("Enabling backdrop close with long press delay (0.3s)");
+                // Debug.Log("Enabling backdrop close with long press delay (0.3s)");
                 yield return new WaitForSeconds(0.3f); // Longer delay for long press
                 fromLongPress = false; // Reset flag
             }
             else
             {
-                Debug.Log("Enabling backdrop close with normal delay (1 frame)");
+                // Debug.Log("Enabling backdrop close with normal delay (1 frame)");
                 yield return null; // Single frame delay for normal cases
             }
             canCloseMenu = true;
-            Debug.Log("Backdrop close enabled");
+            // Debug.Log("Backdrop close enabled");
         }
         
         private void HideMenuAnimated()
@@ -715,7 +716,7 @@ namespace MiniTimeline.UI
         
         private void AddClipToTrack(TrackUI track)
         {
-            Debug.Log($"Add clip to track: {track.Track.Id}");
+            // Debug.Log($"Add clip to track: {track.Track.Id}");
             // TODO: Show clip creation dialog
         }
         

@@ -40,15 +40,12 @@ public class UmaAvatar : MonoBehaviour
             return;
         }
 
-        var overlayColorData = new UMA.OverlayColorData[colors.Count];
-        int i = 0;
+        // Apply each color using the correct UMA API
         foreach (var color in colors)
         {
-            overlayColorData[i] = new UMA.OverlayColorData(color.Key, color.Value);
-            i++;
+            avatar.SetColorValue(color.Key, color.Value);
         }
 
-        avatar.SetColors(overlayColorData);
         avatar.BuildCharacter();
     }
 }

@@ -4,7 +4,12 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using MiniTimeline.Core;
+using MiniTimeline.Serialization;
 using MiniTimeline.UI.Commands;
+using Core.UI.FormSubmit;
+using Core.UI.Core.Helpers;
+using Core.Behaviors.Command;
+using MiniTimeline.UI.FormDefinitions;
 
 namespace MiniTimeline.UI
 {
@@ -21,6 +26,8 @@ namespace MiniTimeline.UI
         [SerializeField] private ScrollRect timelineScrollRect;
         [SerializeField] private Button addTrackButton;
         [SerializeField] private Button bindingManagerButton;
+        [SerializeField] private Button saveButton;
+        [SerializeField] private Button loadButton;
         [SerializeField] private Button playButton;
         [SerializeField] private Button pauseButton;
         [SerializeField] private Button stopButton;
@@ -42,13 +49,12 @@ namespace MiniTimeline.UI
         [SerializeField] private GameObject clipUIPrefab;
         [SerializeField] private GameObject rulerMarkerPrefab;
         [SerializeField] private GameObject contextMenuPrefab;
-        [SerializeField] private GameObject formSubmitPanelPrefab;
 
         [Header("Debug")]
         [SerializeField] bool isDebug;
 
         // Core references
-        private MiniTimelineDirector director;
+        [SerializeField] private MiniTimelineDirector director;
         private TimelineCommandManager commandManager;
         private TimelineContextMenu contextMenu;
         private FormSubmitPanel formSubmitPanel;
@@ -83,7 +89,6 @@ namespace MiniTimeline.UI
         public bool EnableFrameSnap => enableFrameSnap;
         public GameObject ClipUIPrefab => clipUIPrefab;
         public GameObject ContextMenuPrefab => contextMenuPrefab;
-        public GameObject FormSubmitPanelPrefab => formSubmitPanelPrefab;
 
         #endregion
 
@@ -93,7 +98,7 @@ namespace MiniTimeline.UI
         {
             // Initialize UI creation helper to prevent TextMeshPro threading issues
             UICreationHelper.Initialize(this);
-            
+
             // Initialize command manager
             commandManager = new TimelineCommandManager();
 
@@ -223,6 +228,13 @@ namespace MiniTimeline.UI
             if (bindingManagerButton != null)
                 bindingManagerButton.onClick.AddListener(ShowBindingManagerForm);
 
+            // Setup save/load buttons
+            if (saveButton != null)
+                saveButton.onClick.AddListener(ShowSaveProjectForm);
+
+            if (loadButton != null)
+                loadButton.onClick.AddListener(ShowLoadProjectForm);
+
             if (timeSlider != null)
             {
                 timeSlider.onValueChanged.AddListener(OnTimeSliderChanged);
@@ -257,13 +269,6 @@ namespace MiniTimeline.UI
             if (contextMenu != null)
             {
                 contextMenu.OnMenuClosed += EnableTimelineInteraction;
-            }
-
-            if (formSubmitPanelPrefab != null)
-            {
-                var formSubmitGO = Instantiate(formSubmitPanelPrefab, editorCanvas.transform);
-                formSubmitPanel = formSubmitGO.GetComponent<FormSubmitPanel>();
-                formSubmitPanel.CloseForm();
             }
         }
 
@@ -476,19 +481,19 @@ namespace MiniTimeline.UI
             float frameRate = director.Project.frameRate;
             return Mathf.Round(time * frameRate) / frameRate;
         }
-        
+
         // Public versions for ClipUI access
         public float PositionToTimePublic(float xPosition) => PositionToTime(xPosition);
         public float TimeToPositionPublic(float time) => TimeToPosition(time);
         public float SnapTimePublic(float time) => SnapTime(time);
-        
+
         /// <summary>
         /// Check if a local position hits the ruler area
         /// </summary>
         private bool IsRulerHit(Vector2 localPos)
         {
             if (ruler == null || rulerContainer == null) return false;
-            
+
             RectTransform rulerRect = rulerContainer;
             Vector2 rulerLocalPos;
             if (RectTransformUtility.ScreenPointToLocalPointInRectangle(rulerRect,
@@ -498,7 +503,7 @@ namespace MiniTimeline.UI
                 Rect rulerBounds = rulerRect.rect;
                 return rulerBounds.Contains(rulerLocalPos);
             }
-            
+
             return false;
         }
 
@@ -550,7 +555,7 @@ namespace MiniTimeline.UI
 
         // Most clip interaction methods moved to ClipUI itself
         // Only keep methods that TimelineEditorUI needs to manage selection
-        
+
         public void HandleClipSelection(ClipUI clipUI)
         {
             if (!selectedClips.Contains(clipUI))
@@ -601,7 +606,7 @@ namespace MiniTimeline.UI
             // Enable scroll rect
             SetScrollRectEnabled(true);
         }
-        
+
         /// <summary>
         /// Called when any clip starts being interacted with (drag/resize)
         /// </summary>
@@ -609,7 +614,7 @@ namespace MiniTimeline.UI
         {
             DisableTimelineInteraction();
         }
-        
+
         /// <summary>
         /// Called when any clip ends being interacted with (drag/resize)
         /// </summary>
@@ -652,7 +657,7 @@ namespace MiniTimeline.UI
 
             return $"{minutes:00}:{seconds:00}:{frames:00}";
         }
-        
+
         private void SetScrollRectEnabled(bool enabled)
         {
             if (timelineScrollRect != null)
@@ -680,64 +685,16 @@ namespace MiniTimeline.UI
                 return;
             }
 
-            // Define form fields for track creation
-            var fieldDefinitions = new List<FormFieldDefinition>
-            {
-                new FormFieldDefinition
-                {
-                    name = "trackType",
-                    type = "selectbox",
-                    label = "Track Type",
-                    required = true,
-                    options = new Dictionary<string, object>
-                    {
-                        { "items", new List<string>
-                        {
-                            MiniTimelineConstants.TRACK_ANIM,
-                            MiniTimelineConstants.TRACK_ANIMATOR,
-                            MiniTimelineConstants.TRACK_MORPH,
-                            MiniTimelineConstants.TRACK_MOVEMENT,
-                            MiniTimelineConstants.TRACK_SIGNAL,
-                            MiniTimelineConstants.TRACK_AUDIO
-                        }}
-                    },
-                    defaultValue = MiniTimelineConstants.TRACK_ANIM,
-                    tooltip = "Select the type of track to create"
-                },
-                new FormFieldDefinition
-                {
-                    name = "trackName",
-                    type = "text",
-                    label = "Track Name",
-                    required = true,
-                    placeholder = "Enter track name...",
-                    defaultValue = "New Track"
-                },
-                new FormFieldDefinition
-                {
-                    name = "bindKey",
-                    type = "text",
-                    label = "Bind Key",
-                    required = false,
-                    placeholder = "e.g., character, camera...",
-                    tooltip = "Key to bind this track to game objects in the scene"
-                },
-                new FormFieldDefinition
-                {
-                    name = "enabled",
-                    type = "toggle",
-                    label = "Enabled",
-                    required = false,
-                    defaultValue = true
-                }
-            };
+            // Get form field definitions from TrackFormDefinitions
+            var fieldDefinitions = TrackFormDefinitions.GetCreateTrackFields();
 
             // Show the form using FormSubmitPanel singleton
             FormSubmitPanel.Instance.Show(
                 "Add New Track",
                 fieldDefinitions,
                 OnAddTrackFormSubmitted,
-                OnAddTrackFormCancelled
+                OnAddTrackFormCancelled,
+                transform
             );
         }
 
@@ -775,7 +732,7 @@ namespace MiniTimeline.UI
                 var addTrackCommand = new AddTrackCommand(director, trackData, this);
                 ExecuteCommand(addTrackCommand);
 
-                Debug.Log($"Added new {GetTrackDisplayName(trackType)} track: {trackName}");
+                Debug.Log($"Added new {TrackUIHelper.GetTrackDisplayName(trackType)} track: {trackName}");
             }
             catch (System.Exception ex)
             {
@@ -791,30 +748,10 @@ namespace MiniTimeline.UI
             Debug.Log("Add track cancelled");
         }
 
-        /// <summary>
-        /// Get user-friendly display name for track type
-        /// </summary>
-        private string GetTrackDisplayName(string trackType)
-        {
-            return trackType switch
-            {
-                MiniTimelineConstants.TRACK_ANIM => "Animation",
-                MiniTimelineConstants.TRACK_ANIMATOR => "Animator",
-                MiniTimelineConstants.TRACK_MORPH => "Morph",
-                MiniTimelineConstants.TRACK_MOVEMENT => "Movement",
-                MiniTimelineConstants.TRACK_SIGNAL => "Signal",
-                MiniTimelineConstants.TRACK_AUDIO => "Audio",
-                MiniTimelineConstants.TRACK_EXPRESSION => "Expression", 
-                MiniTimelineConstants.TRACK_IK => "IK Pose",
-                MiniTimelineConstants.TRACK_LIGHT_FX => "FX Light",
-                _ => trackType.Replace("Track", "")
-            };
-        }
-
         #endregion
-        
+
         #region Binding Manager Methods
-        
+
         /// <summary>
         /// Show the main binding manager form
         /// </summary>
@@ -827,10 +764,10 @@ namespace MiniTimeline.UI
             }
 
             Debug.Log("Opening main binding manager form");
-            
+
             // Get current BindingContext
             var bindingContext = director.BindingContext;
-            
+
             // Create form fields for binding management
             var fieldDefinitions = new List<FormFieldDefinition>
             {
@@ -892,16 +829,17 @@ namespace MiniTimeline.UI
                     }
                 }
             };
-            
+
             // Show the binding manager form
             FormSubmitPanel.Instance.Show(
                 "Scene Binding Manager",
                 fieldDefinitions,
                 OnBindingManagerFormSubmitted,
-                OnBindingManagerFormCancelled
+                OnBindingManagerFormCancelled,
+                transform
             );
         }
-        
+
         /// <summary>
         /// Format the current bindings for display in the info field
         /// </summary>
@@ -911,13 +849,13 @@ namespace MiniTimeline.UI
             {
                 return "No binding context available.";
             }
-            
+
             var keys = bindingContext.GetKeys().ToList();
             if (keys.Count == 0)
             {
                 return "No bindings currently registered.\n\nTip: Use 'Auto-Detect Scene Objects' to automatically find common GameObjects, or manually add bindings below.";
             }
-            
+
             var displayText = "Active Scene Bindings:\n\n";
             foreach (var key in keys)
             {
@@ -933,11 +871,11 @@ namespace MiniTimeline.UI
                     displayText += $"✗ {key} → <not resolved>\n";
                 }
             }
-            
+
             displayText += "\nTip: Tracks use these binding keys to reference GameObjects in the scene.";
             return displayText;
         }
-        
+
         /// <summary>
         /// Handle binding manager form submission
         /// </summary>
@@ -950,7 +888,7 @@ namespace MiniTimeline.UI
                 {
                     Debug.Log($"  {kvp.Key}: {kvp.Value}");
                 }
-                
+
                 // Check if this is an auto-detect action
                 if (formData.ContainsKey("action") && formData["action"].ToString() == "autoDetectBindings")
                 {
@@ -958,15 +896,15 @@ namespace MiniTimeline.UI
                     ShowBindingManagerForm(); // Refresh the form
                     return;
                 }
-                
+
                 bool bindingsChanged = false;
-                
+
                 // Handle adding new binding
                 if (formData.ContainsKey("newBindingKey") && formData.ContainsKey("newBindingObject"))
                 {
                     string newKey = formData["newBindingKey"]?.ToString();
                     string objectName = formData["newBindingObject"]?.ToString();
-                    
+
                     if (!string.IsNullOrEmpty(newKey) && !string.IsNullOrEmpty(objectName))
                     {
                         // Find the GameObject by name
@@ -983,7 +921,7 @@ namespace MiniTimeline.UI
                         }
                     }
                 }
-                
+
                 // Handle removing binding
                 if (formData.ContainsKey("removeBinding"))
                 {
@@ -995,7 +933,7 @@ namespace MiniTimeline.UI
                         Debug.Log($"Removed binding: {removeKey}");
                     }
                 }
-                
+
                 if (bindingsChanged)
                 {
                     Debug.Log("Scene bindings updated successfully");
@@ -1006,7 +944,7 @@ namespace MiniTimeline.UI
                 Debug.LogError($"Failed to process binding manager changes: {ex.Message}");
             }
         }
-        
+
         /// <summary>
         /// Handle binding manager form cancellation
         /// </summary>
@@ -1014,25 +952,189 @@ namespace MiniTimeline.UI
         {
             Debug.Log("Binding manager cancelled");
         }
-        
+
         /// <summary>
-        /// Auto-detect common GameObjects in the scene and bind them
+        /// Auto-detect common GameObjects in the scene and bind them using BindableObject components
         /// </summary>
         private void AutoDetectSceneBindings()
         {
             if (director?.BindingContext == null) return;
-            
+
             var bindingContext = director.BindingContext;
             int bindingsAdded = 0;
-            
-            // Find common objects in the scene
-            var gameObjects = FindObjectsByType<GameObject>(FindObjectsSortMode.None);
-            
-            foreach (var go in gameObjects)
+            int bindableObjectsFound = 0;
+            int fallbackBindingsAdded = 0;
+
+            // Track binding counts for each type to handle multiple objects of same type
+            var typeBindingCounts = new Dictionary<string, int>();
+
+            // First pass: Find objects with BindableObject components
+            var bindableObjects = FindObjectsByType<BindableObject>(FindObjectsSortMode.None);
+
+            foreach (var bindableObj in bindableObjects)
+            {
+                if (!bindableObj.IsValid) continue;
+
+                bindableObjectsFound++;
+
+                // Get binding key from the object's type
+                string baseBindingKey = DetermineBindingKeyFromType(bindableObj);
+
+                if (string.IsNullOrEmpty(baseBindingKey))
+                {
+                    // Fallback to component-based detection
+                    baseBindingKey = DetermineBindingKeyFromComponents(bindableObj.gameObject);
+                }
+
+                if (string.IsNullOrEmpty(baseBindingKey))
+                {
+                    // Last resort: use sanitized object name
+                    baseBindingKey = SanitizeBindingKey(bindableObj.gameObject.name.ToLower());
+                }
+
+                // Handle multiple objects of the same type by incrementing
+                string finalBindingKey = baseBindingKey;
+                if (typeBindingCounts.ContainsKey(baseBindingKey))
+                {
+                    typeBindingCounts[baseBindingKey]++;
+                    finalBindingKey = $"{baseBindingKey}_{typeBindingCounts[baseBindingKey]}";
+                }
+                else
+                {
+                    typeBindingCounts[baseBindingKey] = 0;
+                    // Check if base key already exists in binding context
+                    if (bindingContext.HasKey(baseBindingKey))
+                    {
+                        typeBindingCounts[baseBindingKey] = 1;
+                        finalBindingKey = $"{baseBindingKey}_1";
+                    }
+                }
+
+                // Ensure the final key is truly unique
+                finalBindingKey = EnsureUniqueBindingKey(bindingContext, finalBindingKey);
+
+                if (!string.IsNullOrEmpty(finalBindingKey))
+                {
+                    bindingContext.Bind(finalBindingKey, bindableObj.gameObject);
+                    bindingsAdded++;
+
+                    string typeInfo = bindableObj.ObjectType == BindableObjectType.Custom
+                        ? $"Custom({bindableObj.CustomTypeName})"
+                        : bindableObj.ObjectType.ToString();
+                    string tagsInfo = bindableObj.Tags.Count > 0 ? $" [Tags: {string.Join(", ", bindableObj.Tags)}]" : "";
+                    Debug.Log($"Auto-detected binding: {finalBindingKey} → {bindableObj.gameObject.name} (Type: {typeInfo}){tagsInfo}");
+                }
+            }
+
+            // Second pass: Fallback detection for objects without BindableObject components
+            if (bindableObjectsFound == 0)
+            {
+                Debug.Log("No BindableObject components found, falling back to name-based detection");
+                fallbackBindingsAdded = AutoDetectSceneBindingsFallback();
+            }
+
+            string summary = $"Auto-detection complete. Found {bindableObjectsFound} BindableObject components, added {bindingsAdded} bindings";
+            if (fallbackBindingsAdded > 0)
+            {
+                summary += $", plus {fallbackBindingsAdded} fallback bindings";
+            }
+            Debug.Log(summary);
+        }
+
+        /// <summary>
+        /// Determine binding key from BindableObject type
+        /// </summary>
+        private string DetermineBindingKeyFromType(BindableObject bindableObj)
+        {
+            // Use the object's TypeName property which handles both enum types and custom types
+            return bindableObj.TypeName;
+        }
+
+        /// <summary>
+        /// Determine binding key from GameObject components
+        /// </summary>
+        private string DetermineBindingKeyFromComponents(GameObject go)
+        {
+            if (go.GetComponent<Camera>())
+                return "camera";
+            else if (go.GetComponent<Canvas>())
+                return "ui";
+            else if (go.GetComponent<Light>())
+                return "light";
+            else if (go.GetComponent<AudioSource>())
+                return "audio";
+            else if (go.GetComponent<Animator>() || go.GetComponent<Animation>())
             {
                 string name = go.name.ToLower();
+                return name.Contains("character") || name.Contains("player") ? "character" : "animated_object";
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Sanitize a string to be a valid binding key
+        /// </summary>
+        private string SanitizeBindingKey(string key)
+        {
+            if (string.IsNullOrEmpty(key)) return "object";
+
+            // Remove invalid characters and convert to lowercase
+            key = key.ToLower();
+            key = System.Text.RegularExpressions.Regex.Replace(key, @"[^a-z0-9_]", "_");
+            key = System.Text.RegularExpressions.Regex.Replace(key, @"_+", "_");
+            key = key.Trim('_');
+
+            return string.IsNullOrEmpty(key) ? "object" : key;
+        }
+
+        /// <summary>
+        /// Ensure the binding key is unique by appending numbers if needed
+        /// </summary>
+        private string EnsureUniqueBindingKey(BindingContext bindingContext, string baseKey)
+        {
+            if (string.IsNullOrEmpty(baseKey)) return null;
+
+            if (!bindingContext.HasKey(baseKey))
+            {
+                return baseKey;
+            }
+
+            // Generate unique key by appending numbers
+            for (int i = 1; i < 100; i++)
+            {
+                string uniqueKey = $"{baseKey}_{i}";
+                if (!bindingContext.HasKey(uniqueKey))
+                {
+                    return uniqueKey;
+                }
+            }
+
+            Debug.LogWarning($"Could not generate unique binding key for base key: {baseKey}");
+            return null;
+        }
+
+        /// <summary>
+        /// Fallback auto-detection using name patterns when no BindingableObject components are found
+        /// </summary>
+        private int AutoDetectSceneBindingsFallback()
+        {
+            if (director?.BindingContext == null) return 0;
+
+            var bindingContext = director.BindingContext;
+            int bindingsAdded = 0;
+
+            // Find common objects in the scene using the old method
+            var gameObjects = FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+
+            foreach (var go in gameObjects)
+            {
+                // Skip objects that already have BindableObject components
+                if (go.GetComponent<BindableObject>() != null) continue;
+
+                string name = go.name.ToLower();
                 string bindingKey = null;
-                
+
                 // Determine binding key based on object name patterns
                 if (name.Contains("character") || name.Contains("player"))
                     bindingKey = "character";
@@ -1046,19 +1148,19 @@ namespace MiniTimeline.UI
                     bindingKey = "light";
                 else if (name.Contains("audio") && go.GetComponent<AudioSource>() != null)
                     bindingKey = "audio";
-                
+
                 // Add binding if we found a key and it doesn't already exist
                 if (!string.IsNullOrEmpty(bindingKey) && !bindingContext.HasKey(bindingKey))
                 {
                     bindingContext.Bind(bindingKey, go);
                     bindingsAdded++;
-                    Debug.Log($"Auto-detected binding: {bindingKey} → {go.name}");
+                    Debug.Log($"Fallback auto-detected binding: {bindingKey} → {go.name}");
                 }
             }
-            
-            Debug.Log($"Auto-detection complete. Added {bindingsAdded} new bindings.");
+
+            return bindingsAdded;
         }
-        
+
         /// <summary>
         /// Add a new binding to the BindingContext
         /// </summary>
@@ -1075,7 +1177,7 @@ namespace MiniTimeline.UI
                 Debug.LogWarning($"Cannot add binding: BindingContext not available");
             }
         }
-        
+
         /// <summary>
         /// Remove a binding from the BindingContext
         /// </summary>
@@ -1091,6 +1193,339 @@ namespace MiniTimeline.UI
             {
                 Debug.LogWarning($"Cannot remove binding: BindingContext not available");
             }
+        }
+
+        #endregion
+
+        #region Save/Load Project Methods
+
+        /// <summary>
+        /// Show the save project form
+        /// </summary>
+        private void ShowSaveProjectForm()
+        {
+            if (director?.Project == null)
+            {
+                Debug.LogError("Cannot save project: No project loaded");
+                return;
+            }
+
+            Debug.Log("Opening save project form");
+
+            // Create form fields for saving
+            var fieldDefinitions = new List<FormFieldDefinition>
+            {
+                new FormFieldDefinition
+                {
+                    name = "filename",
+                    type = "text",
+                    label = "Filename",
+                    required = true,
+                    defaultValue = director.Project.name ?? "timeline_project",
+                    placeholder = "Enter project filename...",
+                    tooltip = "Name of the file to save (without extension)"
+                },
+                new FormFieldDefinition
+                {
+                    name = "prettyPrint",
+                    type = "checkbox",
+                    label = "Pretty Print JSON",
+                    required = false,
+                    defaultValue = "true",
+                    tooltip = "Format JSON for better readability"
+                },
+                new FormFieldDefinition
+                {
+                    name = "projectInfo",
+                    type = "textarea",
+                    label = "Project Information",
+                    required = false,
+                    defaultValue = GetProjectInfoForDisplay(),
+                    tooltip = "Current project details (read-only)",
+                    options = new Dictionary<string, object>
+                    {
+                        { "readonly", true }
+                    }
+                }
+            };
+
+            // Show the save form
+            FormSubmitPanel.Instance.Show(
+                "Save Timeline Project",
+                fieldDefinitions,
+                OnSaveProjectFormSubmitted,
+                OnSaveProjectFormCancelled,
+                transform
+            );
+        }
+
+        /// <summary>
+        /// Handle save project form submission
+        /// </summary>
+        private void OnSaveProjectFormSubmitted(Dictionary<string, object> formData)
+        {
+            try
+            {
+                Debug.Log("Save project form submitted with data:");
+                foreach (var kvp in formData)
+                {
+                    Debug.Log($"  {kvp.Key}: {kvp.Value}");
+                }
+
+                string filename = formData.ContainsKey("filename") ? formData["filename"].ToString() : "timeline_project";
+                bool prettyPrint = formData.ContainsKey("prettyPrint") ? Convert.ToBoolean(formData["prettyPrint"]) : true;
+
+                // Ensure filename has .json extension
+                if (!filename.EndsWith(".json"))
+                {
+                    filename += ".json";
+                }
+
+                // For now, save to persistent data path (in a real game you'd want file browser)
+                string filePath = System.IO.Path.Combine(UnityEngine.Application.persistentDataPath, filename);
+
+                // Save the project (automatically updates from runtime tracks)
+                bool success = ProjectSerializer.SaveToFile(director.Project, director, filePath);
+
+                if (success)
+                {
+                    Debug.Log($"Project saved successfully to: {filePath}");
+                }
+                else
+                {
+                    Debug.LogError("Failed to save project. Check console for details.");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to save project: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Handle save project form cancellation
+        /// </summary>
+        private void OnSaveProjectFormCancelled()
+        {
+            Debug.Log("Save project cancelled");
+        }
+
+        /// <summary>
+        /// Show the load project form
+        /// </summary>
+        private void ShowLoadProjectForm()
+        {
+            Debug.Log("Opening load project form");
+
+            // Get list of available project files in persistent data path
+            string[] projectFiles = GetAvailableProjectFiles();
+
+            // Create form fields for loading
+            var fieldDefinitions = new List<FormFieldDefinition>
+            {
+                new FormFieldDefinition
+                {
+                    name = "availableFiles",
+                    type = "selectbox",
+                    label = "Select Project File",
+                    required = false,
+                    placeholder = "Choose from available files...",
+                    tooltip = "Select a project file from the list of available files",
+                    options = new Dictionary<string, object>
+                    {
+                        { "items", projectFiles.ToList() },
+                        { "placeholder", "Select a project file..." }
+                    }
+                },
+                new FormFieldDefinition
+                {
+                    name = "filename",
+                    type = "text",
+                    label = "Or Enter Filename Manually",
+                    required = false,
+                    placeholder = "Enter project filename...",
+                    tooltip = "Alternatively, manually enter the filename (with or without .json extension)"
+                },
+                new FormFieldDefinition
+                {
+                    name = "filesInfo",
+                    type = "textarea",
+                    label = "Available Files Info",
+                    required = false,
+                    defaultValue = GetAvailableFilesDisplay(projectFiles),
+                    tooltip = "Information about available project files",
+                    options = new Dictionary<string, object>
+                    {
+                        { "readonly", true }
+                    }
+                },
+                new FormFieldDefinition
+                {
+                    name = "replaceBindings",
+                    type = "checkbox",
+                    label = "Auto-Update Scene Bindings",
+                    required = false,
+                    defaultValue = "true",
+                    tooltip = "Automatically update scene bindings after loading the project"
+                }
+            };
+
+            // Show the load form
+            FormSubmitPanel.Instance.Show(
+                "Load Timeline Project",
+                fieldDefinitions,
+                OnLoadProjectFormSubmitted,
+                OnLoadProjectFormCancelled,
+                transform
+            );
+        }
+
+        /// <summary>
+        /// Handle load project form submission
+        /// </summary>
+        private void OnLoadProjectFormSubmitted(Dictionary<string, object> formData)
+        {
+            try
+            {
+                Debug.Log("Load project form submitted with data:");
+                foreach (var kvp in formData)
+                {
+                    Debug.Log($"  {kvp.Key}: {kvp.Value}");
+                }
+
+                // Try to get filename from dropdown first, then manual entry
+                string filename = "";
+
+                if (formData.ContainsKey("availableFiles") && !string.IsNullOrEmpty(formData["availableFiles"]?.ToString()))
+                {
+                    filename = formData["availableFiles"].ToString();
+                    Debug.Log($"Using selected file from dropdown: {filename}");
+                }
+                else if (formData.ContainsKey("filename") && !string.IsNullOrEmpty(formData["filename"]?.ToString()))
+                {
+                    filename = formData["filename"].ToString();
+                    Debug.Log($"Using manually entered filename: {filename}");
+                }
+
+                bool replaceBindings = formData.ContainsKey("replaceBindings") ? Convert.ToBoolean(formData["replaceBindings"]) : true;
+
+                if (string.IsNullOrEmpty(filename))
+                {
+                    Debug.LogError("No filename provided for loading. Please select a file from the dropdown or enter a filename manually.");
+                    return;
+                }
+
+                // Ensure filename has .json extension
+                if (!filename.EndsWith(".json"))
+                {
+                    filename += ".json";
+                }
+
+                // For now, load from persistent data path
+                string filePath = System.IO.Path.Combine(UnityEngine.Application.persistentDataPath, filename);
+
+                // Load the project
+                var loadedProject = ProjectSerializer.LoadFromFile(filePath);
+
+                if (loadedProject != null)
+                {
+                    director.SetProject(loadedProject);
+
+                    // Auto-update bindings if requested
+                    if (replaceBindings)
+                    {
+                        AutoDetectSceneBindings();
+                    }
+
+                    Debug.Log($"Project '{loadedProject.name}' loaded successfully from: {filePath}");
+                }
+                else
+                {
+                    Debug.LogError("Failed to load project. Check console for details.");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to load project: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Handle load project form cancellation
+        /// </summary>
+        private void OnLoadProjectFormCancelled()
+        {
+            Debug.Log("Load project cancelled");
+        }
+
+        /// <summary>
+        /// Get project information for display in save form
+        /// </summary>
+        private string GetProjectInfoForDisplay()
+        {
+            if (director?.Project == null)
+            {
+                return "No project loaded.";
+            }
+
+            // Update project data from runtime tracks to ensure accuracy
+            ProjectSerializer.UpdateProjectFromRuntimeTracks(director.Project, director);
+
+            var project = director.Project;
+            var info = $"Project: {project.name}\n";
+            info += $"Length: {project.length}s\n";
+            info += $"Frame Rate: {project.frameRate} FPS\n";
+            info += $"Tracks: {project.tracks.Count}\n";
+
+            // Now we can get accurate clip count from the updated project data
+            int totalClips = 0;
+            foreach (var track in project.tracks)
+            {
+                totalClips += track.clips.Count;
+            }
+
+            info += $"Total Clips: {totalClips}\n";
+
+            return info;
+        }
+
+        /// <summary>
+        /// Get available project files in persistent data path
+        /// </summary>
+        private string[] GetAvailableProjectFiles()
+        {
+            try
+            {
+                string persistentPath = UnityEngine.Application.persistentDataPath;
+                if (System.IO.Directory.Exists(persistentPath))
+                {
+                    return System.IO.Directory.GetFiles(persistentPath, "*.json")
+                        .Select(System.IO.Path.GetFileName)
+                        .ToArray();
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"Failed to get available project files: {ex.Message}");
+            }
+
+            return new string[0];
+        }
+
+        /// <summary>
+        /// Format available files for display in load form
+        /// </summary>
+        private string GetAvailableFilesDisplay(string[] files)
+        {
+            if (files.Length == 0)
+            {
+                return $"No project files found in:\n{UnityEngine.Application.persistentDataPath}\n\nTip: Save a project first, or manually place .json files in this directory.";
+            }
+
+            var display = $"Found {files.Length} project file(s) in:\n{UnityEngine.Application.persistentDataPath}\n\n";
+            display += "Use the dropdown above to select a file, or enter a filename manually.";
+
+            return display;
         }
 
         #endregion
