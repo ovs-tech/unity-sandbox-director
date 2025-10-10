@@ -7,9 +7,9 @@ using UnityEngine.EventSystems;
 using MiniTimeline.Core;
 using MiniTimeline.UI.Commands;
 using MiniTimeline.Tracks;
-using Core.UI.FormSubmit.FormDefinitions;
 using Core.UI.FormSubmit;
 using Core.UI.ContextMenu;
+using MiniTimeline.UI.FormDefinitions;
 
 namespace MiniTimeline.UI
 {
