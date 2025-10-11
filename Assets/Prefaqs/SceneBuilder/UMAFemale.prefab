@@ -4280,6 +4280,8 @@ GameObject:
   - component: {fileID: 4917106743087086849}
   - component: {fileID: 4667227131455200300}
   - component: {fileID: 3816339506941256997}
+  - component: {fileID: -9015318289523129792}
+  - component: {fileID: 6006747952432265921}
   m_Layer: 0
   m_Name: UMAFemale
   m_TagString: Untagged
@@ -6098,6 +6100,63 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &-9015318289523129792
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6960119122640606369}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2914408d8fd64384b2a25ebd6019c77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneSandbox.Core.TransformableItem
+  _canDrag: 1
+  _snapToGrid: 0
+  _gridSize: 1
+  _dropLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _dragMaterial: {fileID: 0}
+  _hoverMaterial: {fileID: 0}
+  _dragHeight: 0.5
+  _showDragPreview: 1
+  _enableTransformControls: 1
+  _moveMaterial: {fileID: 0}
+  _rotateMaterial: {fileID: 0}
+  _scaleMaterial: {fileID: 0}
+  _rotationSensitivity: 2
+  _scaleSensitivity: 0.01
+  _minScale: {x: 0.1, y: 0.1, z: 0.1}
+  _maxScale: {x: 5, y: 5, z: 5}
+  _currentTransformMode: 0
+  _objectId: 
+  _objectDataId: 
+  _longPressDuration: 0.8
+--- !u!114 &6006747952432265921
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6960119122640606369}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1f125766b05c4e5f82b6f8a218acbd9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneSandbox.Core.TransformableItemGizmo
+  target: {fileID: 0}
+  _autoSync: 1
+  screenScale: 0.12
+  gizmoLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  xColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  yColor: {r: 0.2, g: 1, b: 0.2, a: 1}
+  zColor: {r: 0.2, g: 0.6, b: 1, a: 1}
+  highlight: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  disabledColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.3}
 --- !u!1 &6965570121932428646
 GameObject:
   m_ObjectHideFlags: 0

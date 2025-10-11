@@ -4,7 +4,6 @@ using MiniTimeline.Core;
 using MiniTimeline.Serialization;
 using MiniTimeline.Tracks;
 #if UNITY_EDITOR
-using UnityEditor;
 #endif
 
 namespace MiniTimeline.Demo

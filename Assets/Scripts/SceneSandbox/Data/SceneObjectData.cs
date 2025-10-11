@@ -42,12 +42,12 @@ namespace SceneSandbox.Data
         
         public SceneObjectData()
         {
-            id = System.Guid.NewGuid().ToString();
+            id = Guid.NewGuid().ToString();
         }
         
         public SceneObjectData(string displayName, GameObject prefab, SceneObjectType type)
         {
-            this.id = System.Guid.NewGuid().ToString();
+            this.id = Guid.NewGuid().ToString();
             this.displayName = displayName;
             this.prefab = prefab;
             this.objectType = type;

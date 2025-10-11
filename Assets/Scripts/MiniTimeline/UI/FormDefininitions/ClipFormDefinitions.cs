@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using MiniTimeline.Core;
-using MiniTimeline.Tracks;
 using UMA.PoseTools;
 using Core.UI.FormSubmit;
 

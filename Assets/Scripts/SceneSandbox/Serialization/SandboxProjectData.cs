@@ -25,7 +25,7 @@ namespace SceneSandbox.Serialization
 
         public PlacedObjectData()
         {
-            instanceId = System.Guid.NewGuid().ToString();
+            instanceId = Guid.NewGuid().ToString();
             objectType = "GameObject";
             position = Vector3.zero;
             rotation = Quaternion.identity;

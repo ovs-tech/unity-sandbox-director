@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using SceneSandbox.Data;
-using SceneSandbox.Core;
 
 namespace SceneSandbox.UI
 {
@@ -64,7 +63,7 @@ namespace SceneSandbox.UI
             }
             else
             {
-                Debug.LogWarning("[ObjectPalette] No object library assigned!");
+                // No object library assigned
             }
         }
         
@@ -242,13 +241,11 @@ namespace SceneSandbox.UI
         {
             if (_itemContainer == null) 
             {
-                Debug.LogWarning("[ObjectPalette] No item container found, items cannot be created");
                 return;
             }
             
             if (_itemPrefab == null)
             {
-                Debug.LogError("[ObjectPalette] No item prefab assigned, cannot create palette items");
                 return;
             }
             
@@ -263,7 +260,6 @@ namespace SceneSandbox.UI
         
         private void CreatePaletteItem(SceneObjectData objectData)
         {
-            Debug.Log($"Creating palette item for: {objectData.displayName}");
             
             // Use prefab to create item
             GameObject itemGO = Instantiate(_itemPrefab, _itemContainer);

@@ -1,7 +1,6 @@
 using System.Linq;
 using Core.Behaviors.Command;
 using MiniTimeline.Core;
-using MiniTimeline.Serialization;
 using UnityEngine;
 
 namespace MiniTimeline.UI.Commands
@@ -88,7 +87,7 @@ namespace MiniTimeline.UI.Commands
                 {
                     // Fallback: mark dirty and seek
                     director.MarkDirty();
-                    if (UnityEngine.Application.isPlaying)
+                    if (Application.isPlaying)
                     {
                         director.Seek(director.Time);
                     }
@@ -100,7 +99,7 @@ namespace MiniTimeline.UI.Commands
                 Debug.LogWarning($"Failed to force track rebuild: {ex.Message}");
                 // Fallback to original method
                 director.MarkDirty();
-                if (UnityEngine.Application.isPlaying)
+                if (Application.isPlaying)
                 {
                     director.Seek(director.Time);
                 }

@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using UnityEngine;
 using MiniTimeline.Core;
-using MiniTimeline.Tracks;
 using Core.UI.FormSubmit;
 
 namespace MiniTimeline.UI.FormDefinitions

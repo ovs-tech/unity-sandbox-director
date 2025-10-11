@@ -35,14 +35,14 @@ namespace SceneSandbox.Core
         // State
         private bool _isHighlighted;
         private bool _hasValidDragOver;
-        private DraggableItem _hoveredItem;
+        private TransformableItem _hoveredItem;
         
         // Events
-        public System.Action<DraggableItem, Vector3> OnItemDropped;
-        public System.Action<DraggableItem> OnValidItemEnter;
-        public System.Action<DraggableItem> OnValidItemExit;
-        public System.Action<DraggableItem> OnInvalidItemEnter;
-        public System.Action<DraggableItem> OnInvalidItemExit;
+        public System.Action<TransformableItem, Vector3> OnItemDropped;
+        public System.Action<TransformableItem> OnValidItemEnter;
+        public System.Action<TransformableItem> OnValidItemExit;
+        public System.Action<TransformableItem> OnInvalidItemEnter;
+        public System.Action<TransformableItem> OnInvalidItemExit;
         
         // Properties
         public Vector3 ZoneSize 
@@ -91,7 +91,7 @@ namespace SceneSandbox.Core
         
         public void OnDrop(PointerEventData eventData)
         {
-            var draggableItem = eventData.pointerDrag?.GetComponent<DraggableItem>();
+            var draggableItem = eventData.pointerDrag?.GetComponent<TransformableItem>();
             if (draggableItem == null) return;
             
             if (CanAcceptItem(draggableItem))
@@ -105,7 +105,7 @@ namespace SceneSandbox.Core
         
         public void OnPointerEnter(PointerEventData eventData)
         {
-            var draggableItem = eventData.pointerDrag?.GetComponent<DraggableItem>();
+            var draggableItem = eventData.pointerDrag?.GetComponent<TransformableItem>();
             if (draggableItem == null) return;
             
             _hoveredItem = draggableItem;
@@ -143,7 +143,7 @@ namespace SceneSandbox.Core
         /// <summary>
         /// Check if this drop zone can accept the given item
         /// </summary>
-        public bool CanAcceptItem(DraggableItem item)
+        public bool CanAcceptItem(TransformableItem item)
         {
             if (item == null) return false;
             
@@ -156,7 +156,7 @@ namespace SceneSandbox.Core
         /// <summary>
         /// Calculate the final position where the item should be dropped
         /// </summary>
-        public Vector3 CalculateDropPosition(Vector2 screenPosition, DraggableItem item)
+        public Vector3 CalculateDropPosition(Vector2 screenPosition, TransformableItem item)
         {
             Vector3 worldPosition;
             

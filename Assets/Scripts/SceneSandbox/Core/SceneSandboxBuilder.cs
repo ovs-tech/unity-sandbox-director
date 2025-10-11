@@ -252,10 +252,10 @@ namespace SceneSandbox.Core
             newObject.transform.localScale = targetScale;
 
             // Add draggable component if not present
-            var draggable = newObject.GetComponent<DraggableItem>();
+            var draggable = newObject.GetComponent<TransformableItem>();
             if (draggable == null)
             {
-                draggable = newObject.AddComponent<DraggableItem>();
+                draggable = newObject.AddComponent<TransformableItem>();
             }
 
             // Set up draggable item
@@ -298,7 +298,7 @@ namespace SceneSandbox.Core
         {
             if (obj == null) return false;
 
-            var draggable = obj.GetComponent<DraggableItem>();
+            var draggable = obj.GetComponent<TransformableItem>();
             if (draggable == null) return false;
 
             string objectId = draggable.ObjectId;
@@ -345,7 +345,7 @@ namespace SceneSandbox.Core
             // Deselect previous object
             if (_selectedObject != null)
             {
-                var prevDraggable = _selectedObject.GetComponent<DraggableItem>();
+                var prevDraggable = _selectedObject.GetComponent<TransformableItem>();
                 prevDraggable?.SetSelectedState(false);
             }
 
@@ -354,7 +354,7 @@ namespace SceneSandbox.Core
             // Select new object
             if (_selectedObject != null)
             {
-                var draggable = _selectedObject.GetComponent<DraggableItem>();
+                var draggable = _selectedObject.GetComponent<TransformableItem>();
                 draggable?.SetSelectedState(true);
 
                 // Show indicator for draggable objects when selected
@@ -495,7 +495,6 @@ namespace SceneSandbox.Core
             _currentSceneName = _currentScene.sceneName;
 
             OnSceneLoaded?.Invoke(_currentScene);
-            Debug.Log($"[SceneSandboxBuilder] Created new project: {name}");
         }
 
         /// <summary>
@@ -505,7 +504,6 @@ namespace SceneSandbox.Core
         {
             if (_currentProject == null)
             {
-                Debug.LogWarning("[SceneSandboxBuilder] No project to save. Creating default project.");
                 CreateDefaultProject();
             }
 
@@ -526,15 +524,13 @@ namespace SceneSandbox.Core
                 
                 if (success)
                 {
-                    Debug.Log($"[SceneSandboxBuilder] Saved project to: {savePath}");
                     OnSceneSaved?.Invoke(_currentScene);
                 }
                 
                 return success;
             }
-            catch (System.Exception e)
+            catch (System.Exception)
             {
-                Debug.LogError($"[SceneSandboxBuilder] Error saving project: {e.Message}");
                 return false;
             }
         }
@@ -550,13 +546,11 @@ namespace SceneSandbox.Core
                 if (project != null)
                 {
                     LoadProjectData(project);
-                    Debug.Log($"[SceneSandboxBuilder] Loaded project from: {filePath}");
                     return true;
                 }
             }
-            catch (System.Exception e)
+            catch (System.Exception)
             {
-                Debug.LogError($"[SceneSandboxBuilder] Error loading project: {e.Message}");
             }
 
             return false;
@@ -572,7 +566,6 @@ namespace SceneSandbox.Core
                 if (System.IO.File.Exists(filePath))
                 {
                     System.IO.File.Delete(filePath);
-                    Debug.Log($"[SceneSandboxBuilder] Deleted project: {filePath}");
                     
                     // If the deleted project is currently loaded, clear the current project
                     if (_currentProject != null && filePath.Contains(_currentProject.projectName))
@@ -585,13 +578,11 @@ namespace SceneSandbox.Core
                 }
                 else
                 {
-                    Debug.LogWarning($"[SceneSandboxBuilder] Project file not found: {filePath}");
                     return false;
                 }
             }
-            catch (System.Exception e)
+            catch (System.Exception)
             {
-                Debug.LogError($"[SceneSandboxBuilder] Error deleting project: {e.Message}");
                 return false;
             }
         }
@@ -826,15 +817,14 @@ namespace SceneSandbox.Core
             
             if (newObject == null)
             {
-                Debug.LogError($"[SceneSandboxBuilder] Failed to create object with factory: {objectDataId}");
                 return null;
             }
 
             // Add draggable component for interaction
-            var draggable = newObject.GetComponent<DraggableItem>();
+            var draggable = newObject.GetComponent<TransformableItem>();
             if (draggable == null)
             {
-                draggable = newObject.AddComponent<DraggableItem>();
+                draggable = newObject.AddComponent<TransformableItem>();
             }
 
             draggable.SetObjectData(objectDataId, placedObjectId);
@@ -861,7 +851,6 @@ namespace SceneSandbox.Core
             }
 
             OnObjectPlaced?.Invoke(newObject);
-            Debug.Log($"[SceneSandboxBuilder] Placed object using factory: {objectData.displayName} ({factoryData.objectType})");
 
             return newObject;
         }
@@ -1055,7 +1044,7 @@ namespace SceneSandbox.Core
             // Show indicator following mouse when a draggable object is selected (but not being dragged)
             else if (_selectedObject != null && !_isDraggingObject && _enableDropIndicator)
             {
-                var draggable = _selectedObject.GetComponent<DraggableItem>();
+                var draggable = _selectedObject.GetComponent<TransformableItem>();
                 if (draggable != null && draggable.CanDrag)
                 {
                     Vector3 worldPos = GetWorldPositionFromScreen(screenPosition);
@@ -1069,7 +1058,7 @@ namespace SceneSandbox.Core
 
         private void HandleDragStart(GameObject obj, Vector2 screenPosition)
         {
-            var draggable = obj.GetComponent<DraggableItem>();
+            var draggable = obj.GetComponent<TransformableItem>();
             if (draggable != null)
             {
                 SelectObject(obj);
@@ -1089,7 +1078,7 @@ namespace SceneSandbox.Core
 
         private void HandleDragMove(GameObject obj, Vector2 screenPosition)
         {
-            var draggable = obj.GetComponent<DraggableItem>();
+            var draggable = obj.GetComponent<TransformableItem>();
             draggable?.ContinueDrag(screenPosition);
 
             // Drop indicator updates are now handled by HandlePointMove
@@ -1097,7 +1086,7 @@ namespace SceneSandbox.Core
 
         private void HandleDragEnd(GameObject obj, Vector2 screenPosition)
         {
-            var draggable = obj.GetComponent<DraggableItem>();
+            var draggable = obj.GetComponent<TransformableItem>();
             if (draggable != null)
             {
                 draggable.EndDrag(screenPosition);
@@ -1125,7 +1114,7 @@ namespace SceneSandbox.Core
 
         #region Helper Methods
 
-        private void BindDraggableEvents(DraggableItem draggable)
+        private void BindDraggableEvents(TransformableItem draggable)
         {
             draggable.OnDragStarted += (item, pos) => SelectObject(item.gameObject);
             draggable.OnDragEnded += (item, pos) => UpdateObjectInScene(item);
@@ -1133,7 +1122,7 @@ namespace SceneSandbox.Core
             draggable.OnItemSelected += (item) => SelectObject(item.gameObject);
         }
 
-        private void UpdateObjectInScene(DraggableItem draggable)
+        private void UpdateObjectInScene(TransformableItem draggable)
         {
             if (_currentScene == null) return;
 
@@ -1152,7 +1141,7 @@ namespace SceneSandbox.Core
             foreach (var kvp in _placedObjects)
             {
                 var obj = kvp.Value;
-                var draggable = obj.GetComponent<DraggableItem>();
+                var draggable = obj.GetComponent<TransformableItem>();
                 if (draggable != null)
                 {
                     UpdateObjectInScene(draggable);
@@ -1179,10 +1168,10 @@ namespace SceneSandbox.Core
                     obj.transform.localScale = placedObjectData.scale;
                     obj.name = placedObjectData.customName ?? objectData.displayName;
 
-                    var draggable = obj.GetComponent<DraggableItem>();
+                    var draggable = obj.GetComponent<TransformableItem>();
                     if (draggable == null)
                     {
-                        draggable = obj.AddComponent<DraggableItem>();
+                        draggable = obj.AddComponent<TransformableItem>();
                     }
 
                     draggable.SetObjectData(placedObjectData.objectDataId, placedObjectData.id);
@@ -1857,7 +1846,7 @@ namespace SceneSandbox.Core
                 var preview = Instantiate(original);
 
                 // Disable draggable component during preview
-                var draggable = preview.GetComponent<DraggableItem>();
+                var draggable = preview.GetComponent<TransformableItem>();
                 if (draggable != null)
                 {
                     draggable.enabled = false;

@@ -65,7 +65,7 @@ namespace Core.Environment.LightingManager
             //Search scene for light that fits criteria (directional)
             else
             {
-                Light[] lights = GameObject.FindObjectsOfType<Light>();
+                Light[] lights = FindObjectsOfType<Light>();
                 foreach (Light light in lights)
                 {
                     if (light.type == LightType.Directional)

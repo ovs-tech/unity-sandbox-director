@@ -162,11 +162,10 @@ namespace Core.UI.FormSubmit
                                       
             if (!needsInitialization)
             {
-                // Debug.Log("FormSubmitPanel: Already properly initialized, skipping...");
                 return;
             }
             
-            // Debug.Log($"FormSubmitPanel: Starting initialization... (isInitialized: {isInitialized}, fieldsParent: {GetFieldsParent() != null}, titleText: {titleText != null}, backgroundPanel: {backgroundPanel != null})");
+            
             
             // Reset flag if we're re-initializing
             isInitialized = false;
@@ -175,7 +174,7 @@ namespace Core.UI.FormSubmit
             SetupEventListeners();
             CloseForm();
             isInitialized = true;
-            // Debug.Log("FormSubmitPanel: Initialization complete");
+            
         }
         
         private void CreateFormUI()
@@ -219,11 +218,10 @@ namespace Core.UI.FormSubmit
             CreateFieldPrefabs();
             
             // Verify all critical components were created
-            // Debug.Log($"FormSubmitPanel: CreateFormUI complete - fieldsParent: {GetFieldsParent() != null}");
             
             if (GetFieldsParent() == null)
             {
-                // Debug.LogError("FormSubmitPanel: Critical error - fieldsParent is null after CreateFormUI!");
+                // fieldsParent is unexpectedly null after CreateFormUI
             }
         }
         
@@ -319,7 +317,7 @@ namespace Core.UI.FormSubmit
             GameObject content = new GameObject("Content");
             content.transform.SetParent(viewport.transform, false);
             
-            // Debug.Log($"FormSubmitPanel: Content GameObject created for fields parent");
+            
             
             var contentRect = content.AddComponent<RectTransform>();
             contentRect.anchorMin = new Vector2(0f, 1f);
@@ -343,7 +341,7 @@ namespace Core.UI.FormSubmit
             this.scrollRect.horizontal = false;
             this.scrollRect.vertical = true;
             
-            // Debug.Log($"FormSubmitPanel: ScrollableContent created successfully");
+            
         }
         
         private void CreateFooter()
@@ -428,11 +426,12 @@ namespace Core.UI.FormSubmit
         /// </summary>
         public void Show(string title, List<FormFieldDefinition> fieldDefinitions, Action<Dictionary<string, object>> onSubmit = null, Action onCancel = null, Transform parent = null)
         {
+            
             // If a parent is specified, ensure we're parented to it
             if (parent != null && transform.parent != parent)
             {
                 transform.SetParent(parent, false);
-                
+
                 // Ensure proper anchoring when parent changes
                 var rectTransform = GetComponent<RectTransform>();
                 if (rectTransform != null)
@@ -444,27 +443,31 @@ namespace Core.UI.FormSubmit
                 }
             }
             
+            // Check initialization state
+            bool fieldsParentExists = GetFieldsParent() != null;
+            bool titleTextExists = titleText != null;
+            bool backgroundPanelExists = backgroundPanel != null;
+            
             // Only initialize if not already initialized
-            if (GetFieldsParent() == null || titleText == null || backgroundPanel == null)
+            if (!fieldsParentExists || !titleTextExists || !backgroundPanelExists)
             {
-                // Debug.LogWarning("FormSubmitPanel: UI not properly initialized, forcing re-initialization...");
                 Initialize();
+
+                // Re-check after initialization
+                fieldsParentExists = GetFieldsParent() != null;
+                titleTextExists = titleText != null;
+                backgroundPanelExists = backgroundPanel != null;
             }
             
             // Verify fieldsParent is still valid after potential re-initialization
             if (GetFieldsParent() == null)
             {
-                // Debug.LogError("FormSubmitPanel: fieldsParent is null after initialization!");
                 return;
             }
             
             if (titleText != null)
             {
                 titleText.text = title;
-            }
-            else
-            {
-                // Debug.LogError("FormSubmitPanel: titleText is still null after initialization!");
             }
             
             // Clear existing fields
@@ -473,7 +476,6 @@ namespace Core.UI.FormSubmit
             // Verify fieldsParent is still valid after clearing
             if (GetFieldsParent() == null)
             {
-                // Debug.LogError("FormSubmitPanel: fieldsParent became null after ClearFields!");
                 return;
             }
             
@@ -489,14 +491,26 @@ namespace Core.UI.FormSubmit
             {
                 backgroundPanel.SetActive(true);
                 IsVisible = true;
+
+                // Additional validation
+                if (backgroundPanel.activeSelf)
+                {
+                    var fieldsParentAfterShow = GetFieldsParent();
+                    if (fieldsParentAfterShow == null)
+                    {
+                        // fieldsParent became null after showing panel
+                    }
+                }
             }
             else
             {
-                // Debug.LogError("FormSubmitPanel: backgroundPanel is null, cannot show form!");
+                return;
             }
             
             // Focus first field if available
+            
             FocusFirstField();
+            
         }
         
         /// <summary>
@@ -506,17 +520,13 @@ namespace Core.UI.FormSubmit
         {
             if (backgroundPanel != null)
                 backgroundPanel.SetActive(false);
-            
+
             IsVisible = false;
-            
+
             // Only clear fields if we have fieldsParent
             if (GetFieldsParent() != null)
             {
                 ClearFields();
-            }
-            else
-            {
-                // Debug.LogWarning("FormSubmitPanel: Skipping ClearFields() because fieldsParent is null");
             }
         }
         
@@ -525,7 +535,7 @@ namespace Core.UI.FormSubmit
         /// </summary>
         public void ForceReinitialize()
         {
-            // Debug.Log("FormSubmitPanel: Force reinitializing...");
+            
             isInitialized = false;
             Initialize();
         }
@@ -535,8 +545,21 @@ namespace Core.UI.FormSubmit
         /// </summary>
         public void HandleCustomSubmission(Dictionary<string, object> customData)
         {
+            if (customData != null)
+            {
+                // no-op: customData inspection removed
+            }
+
             OnFormSubmitted?.Invoke(customData);
             CloseForm();
+        }
+        
+        /// <summary>
+        /// Trigger form submission without closing the form (used by action buttons)
+        /// </summary>
+        public void TriggerFormSubmission(Dictionary<string, object> customData)
+        {
+            OnFormSubmitted?.Invoke(customData);
         }
         
         #endregion
@@ -546,32 +569,50 @@ namespace Core.UI.FormSubmit
         private void ClearFields()
         {
             var fieldsParent = GetFieldsParent();
-            dynamicFields.Clear();
             
             if (fieldsParent != null)
             {
+                int childCountBefore = fieldsParent.childCount;
+                
                 // Only destroy the children, not the fieldsParent itself
-                foreach (Transform child in fieldsParent)
+                // Use DestroyImmediate for UI cleanup to ensure objects are removed immediately
+                // Note: We need to iterate backwards because DestroyImmediate modifies the collection
+                for (int i = fieldsParent.childCount - 1; i >= 0; i--)
                 {
+                    Transform child = fieldsParent.GetChild(i);
                     if (child != null)
                     {
-                        Destroy(child.gameObject);
+                        DestroyImmediate(child.gameObject);
                     }
                 }
-                // Debug.Log($"FormSubmitPanel: Cleared {fieldsParent.childCount} field children");
+                
+                int childCountAfter = fieldsParent.childCount;
+                if (childCountAfter != 0)
+                {
+                    // some children remain after clearing
+                }
             }
             else
             {
-                // Debug.LogWarning("FormSubmitPanel: fieldsParent is null when trying to clear fields");
+                
             }
+            
+            dynamicFields.Clear();
+            
         }
         
         private void CreateFields(List<FormFieldDefinition> fieldDefinitions)
         {
+            
+            int createdCount = 0;
+            
             foreach (var fieldDef in fieldDefinitions)
             {
+                
                 CreateField(fieldDef);
+                createdCount++;
             }
+            
         }
         
         private void CreateField(FormFieldDefinition fieldDef)
@@ -580,7 +621,6 @@ namespace Core.UI.FormSubmit
             
             if (fieldsParent == null)
             {
-                // Debug.LogError("FormSubmitPanel: fieldsParent is null when trying to create field");
                 return;
             }
             
@@ -622,7 +662,7 @@ namespace Core.UI.FormSubmit
                     fieldObj = CreateHiddenField(fieldDef);
                     break;
                 default:
-                    // Debug.LogWarning($"Unsupported field type: {fieldDef.type}");
+                    Debug.LogWarning($"FormSubmitPanel.CreateField: Unsupported field type: {fieldDef.type}, falling back to text");
                     fieldObj = CreateTextField(fieldDef); // Fallback to text
                     break;
             }
@@ -631,11 +671,10 @@ namespace Core.UI.FormSubmit
             {
                 fieldObj.transform.SetParent(fieldsParent, false);
                 formField = fieldObj.GetComponent<IFormField>();
-                
+
                 if (formField != null)
                 {
                     dynamicFields.Add(formField);
-                    // Debug.Log($"FormSubmitPanel: Successfully created field '{fieldDef.name}'");
                 }
             }
         }
@@ -802,11 +841,10 @@ namespace Core.UI.FormSubmit
                 }
                 else
                 {
-                    // Debug.LogError($"Field '{field.GetName()}' is invalid");
+                    // invalid field - abort submit
                     return; // Don't submit if any field is invalid
                 }
             }
-            
             OnFormSubmitted?.Invoke(formData);
             CloseForm();
         }
@@ -948,8 +986,23 @@ namespace Core.UI.FormSubmit
                             [fieldDefinition.name] = actionValue
                         };
                         
-                        // Use the new public method to handle custom submission
-                        formPanel.HandleCustomSubmission(formData);
+                        // Check if this button should close the form after action
+                        bool shouldCloseForm = true;
+                        if (fieldDefinition.options != null && fieldDefinition.options.ContainsKey("closeForm"))
+                        {
+                            bool.TryParse(fieldDefinition.options["closeForm"].ToString(), out shouldCloseForm);
+                        }
+                        
+                        if (shouldCloseForm)
+                        {
+                            // Use the custom submission method which closes the form
+                            formPanel.HandleCustomSubmission(formData);
+                        }
+                        else
+                        {
+                            // Trigger the event without closing the form
+                            formPanel.TriggerFormSubmission(formData);
+                        }
                     }
                 }
             });

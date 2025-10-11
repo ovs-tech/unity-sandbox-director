@@ -26,6 +26,12 @@ namespace MiniTimeline.Core
         [SerializeField] private float playbackSpeed = 1f;
         [SerializeField] private bool loop = false;
         [SerializeField] private bool playOnAwake = false;
+        [SerializeField] private bool autoCreateEmptyProject = false;
+        
+        [Header("Auto-Create Project Settings")]
+        [SerializeField] private string defaultProjectName = "New Timeline Project";
+        [SerializeField] private float defaultProjectLength = 10f;
+        [SerializeField] private float defaultFrameRate = 30f;
         
         [Header("Debug")]
         [SerializeField] private bool debugMode = false;
@@ -145,6 +151,42 @@ namespace MiniTimeline.Core
         /// </summary>
         public BindingContext BindingContext => bindingContext;
         
+        /// <summary>
+        /// Whether to auto-create an empty project on Start if no project is loaded
+        /// </summary>
+        public bool AutoCreateEmptyProject
+        {
+            get => autoCreateEmptyProject;
+            set => autoCreateEmptyProject = value;
+        }
+        
+        /// <summary>
+        /// Default name for auto-created projects
+        /// </summary>
+        public string DefaultProjectName
+        {
+            get => defaultProjectName;
+            set => defaultProjectName = value;
+        }
+        
+        /// <summary>
+        /// Default length for auto-created projects
+        /// </summary>
+        public float DefaultProjectLength
+        {
+            get => defaultProjectLength;
+            set => defaultProjectLength = Mathf.Max(0.1f, value);
+        }
+        
+        /// <summary>
+        /// Default frame rate for auto-created projects
+        /// </summary>
+        public float DefaultFrameRate
+        {
+            get => defaultFrameRate;
+            set => defaultFrameRate = Mathf.Max(1f, value);
+        }
+        
         #endregion
         
         #region Unity Lifecycle
@@ -156,6 +198,12 @@ namespace MiniTimeline.Core
         
         private void Start()
         {
+            // Auto-create empty project if enabled and no project is loaded
+            if (autoCreateEmptyProject && project == null)
+            {
+                CreateDefaultEmptyProject();
+            }
+            
             if (playOnAwake && project != null)
             {
                 Play();
@@ -338,6 +386,26 @@ namespace MiniTimeline.Core
             isDirty = true;
         }
         
+        /// <summary>
+        /// Create a default empty project with configured settings
+        /// </summary>
+        public void CreateDefaultEmptyProject()
+        {
+            var emptyProject = new MiniTimelineProject
+            {
+                name = defaultProjectName,
+                version = 1,
+                length = defaultProjectLength,
+                frameRate = defaultFrameRate,
+                tracks = new System.Collections.Generic.List<TrackData>()
+            };
+            
+            SetProject(emptyProject);
+            
+            if (debugMode)
+                Debug.Log($"[MiniTimelineDirector] Auto-created empty project '{emptyProject.name}' with length {emptyProject.length}s");
+        }
+        
         #endregion
         
         #region Track Management
@@ -468,7 +536,7 @@ namespace MiniTimeline.Core
         /// <returns>Created track or null if type not supported</returns>
         private IMiniTrack CreateTrack(TrackData data)
         {
-            return MiniTimeline.Serialization.TrackFactory.CreateTrack(data);
+            return Serialization.TrackFactory.CreateTrack(data);
         }
         
         #endregion

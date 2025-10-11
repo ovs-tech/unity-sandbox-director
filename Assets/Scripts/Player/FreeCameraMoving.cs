@@ -85,7 +85,6 @@ public class FreeCameraMoving : MonoBehaviour
         // Initialize input actions
         if (inputActions == null)
         {
-            Debug.LogError("Input Actions asset is not assigned!");
             return;
         }
         
@@ -101,19 +100,17 @@ public class FreeCameraMoving : MonoBehaviour
         
         // Create vertical movement action if it doesn't exist
         var actionMap = inputActions.FindActionMap("Player");
-        if (actionMap != null)
-        {
-            verticalMoveAction = actionMap.FindAction("VerticalMove");
-            if (verticalMoveAction == null)
+            if (actionMap != null)
             {
-                // If VerticalMove doesn't exist, we'll handle it differently
-                Debug.Log("VerticalMove action not found, using alternative input method");
+                verticalMoveAction = actionMap.FindAction("VerticalMove");
+                if (verticalMoveAction == null)
+                {
+                    // If VerticalMove doesn't exist, we'll handle it differently
+                }
             }
-        }
         
         if (moveAction == null || lookAction == null)
         {
-            Debug.LogError("Move and Look input actions not found! Make sure they exist in the Player action map.");
             return;
         }
     }
@@ -468,7 +465,6 @@ public class FreeCameraMoving : MonoBehaviour
             // Reset free camera to initial position and rotation
             transform.position = initialPosition;
             transform.rotation = initialRotation;
-            Debug.Log("Free camera reset to initial position");
         }
         else if (cameraMode == CameraMode.Orbit)
         {
@@ -477,7 +473,6 @@ public class FreeCameraMoving : MonoBehaviour
             currentDistance = initialDistance;
             horizontalAngle = initialHorizontalAngle;
             verticalAngle = initialVerticalAngle;
-            Debug.Log("Orbit camera reset to initial position");
         }
         // None mode: Reset is not available
     }
@@ -499,7 +494,6 @@ public class FreeCameraMoving : MonoBehaviour
                 else
                 {
                     SetCameraMode(CameraMode.None);
-                    Debug.LogWarning("Skipping Orbit mode: No target assigned!");
                 }
                 break;
             case CameraMode.Orbit:
@@ -527,7 +521,7 @@ public class FreeCameraMoving : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         
-        Debug.Log($"Camera mode switched to: {mode}");
+        
     }
     
     /// <summary>

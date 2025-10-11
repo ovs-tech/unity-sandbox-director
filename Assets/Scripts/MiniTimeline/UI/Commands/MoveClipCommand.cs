@@ -1,6 +1,5 @@
 using Core.Behaviors.Command;
 using MiniTimeline.Core;
-using UnityEngine;
 
 namespace MiniTimeline.UI.Commands
 {

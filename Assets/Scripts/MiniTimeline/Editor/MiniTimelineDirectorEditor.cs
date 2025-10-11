@@ -24,6 +24,10 @@ namespace MiniTimeline.Editor
         private SerializedProperty loopProp;
         private SerializedProperty playOnAwakeProp;
         private SerializedProperty debugModeProp;
+        private SerializedProperty autoCreateEmptyProjectProp;
+        private SerializedProperty defaultProjectNameProp;
+        private SerializedProperty defaultProjectLengthProp;
+        private SerializedProperty defaultFrameRateProp;
         
         // Project management
         private string newProjectName = "New Timeline Project";
@@ -60,6 +64,10 @@ namespace MiniTimeline.Editor
             loopProp = serializedObject.FindProperty("loop");
             playOnAwakeProp = serializedObject.FindProperty("playOnAwake");
             debugModeProp = serializedObject.FindProperty("debugMode");
+            autoCreateEmptyProjectProp = serializedObject.FindProperty("autoCreateEmptyProject");
+            defaultProjectNameProp = serializedObject.FindProperty("defaultProjectName");
+            defaultProjectLengthProp = serializedObject.FindProperty("defaultProjectLength");
+            defaultFrameRateProp = serializedObject.FindProperty("defaultFrameRate");
             
             // Setup event handlers for play mode updates
             if (Application.isPlaying)
@@ -196,6 +204,22 @@ namespace MiniTimeline.Editor
                 EditorGUILayout.PropertyField(loopProp, new GUIContent("Loop", "Whether the timeline should loop when it reaches the end"));
                 EditorGUILayout.PropertyField(playOnAwakeProp, new GUIContent("Play on Awake", "Start playing automatically when the component awakes"));
                 EditorGUILayout.PropertyField(debugModeProp, new GUIContent("Debug Mode", "Enable debug logging for timeline operations"));
+                
+                EditorGUILayout.Space(10);
+                
+                // Auto-create project settings
+                EditorGUILayout.LabelField("Auto-Create Settings", EditorStyles.boldLabel);
+                EditorGUILayout.PropertyField(autoCreateEmptyProjectProp, new GUIContent("Auto Create Empty Project", "Automatically create an empty project on Start if no project is loaded"));
+                
+                // Show auto-create project settings only if enabled
+                if (autoCreateEmptyProjectProp.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.PropertyField(defaultProjectNameProp, new GUIContent("Default Project Name", "Name for the auto-created project"));
+                    EditorGUILayout.PropertyField(defaultProjectLengthProp, new GUIContent("Default Length (s)", "Length of the auto-created project in seconds"));
+                    EditorGUILayout.PropertyField(defaultFrameRateProp, new GUIContent("Default Frame Rate", "Frame rate for the auto-created project"));
+                    EditorGUI.indentLevel--;
+                }
                 
                 EditorGUILayout.EndVertical();
             }

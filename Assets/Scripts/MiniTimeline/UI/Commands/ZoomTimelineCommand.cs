@@ -1,5 +1,4 @@
 using Core.Behaviors.Command;
-using MiniTimeline.Core;
 
 namespace MiniTimeline.UI.Commands
 {

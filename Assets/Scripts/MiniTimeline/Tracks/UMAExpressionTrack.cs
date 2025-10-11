@@ -1,6 +1,5 @@
 using UnityEngine;
 using MiniTimeline.Core;
-using UMA.CharacterSystem;
 using UMA.PoseTools;
 
 namespace MiniTimeline.Tracks

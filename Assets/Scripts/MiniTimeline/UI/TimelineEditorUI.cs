@@ -712,7 +712,7 @@ namespace MiniTimeline.UI
                 bool enabled = formData.ContainsKey("enabled") ? Convert.ToBoolean(formData["enabled"]) : true;
 
                 // Generate unique ID for the track
-                string trackId = System.Guid.NewGuid().ToString();
+                string trackId = Guid.NewGuid().ToString();
 
                 // Determine track order (place at the end)
                 int trackOrder = director.Project.tracks.Count > 0 ? director.Project.tracks.Max(t => t.order) + 1 : 0;
@@ -1282,7 +1282,7 @@ namespace MiniTimeline.UI
                 }
 
                 // For now, save to persistent data path (in a real game you'd want file browser)
-                string filePath = System.IO.Path.Combine(UnityEngine.Application.persistentDataPath, filename);
+                string filePath = System.IO.Path.Combine(Application.persistentDataPath, filename);
 
                 // Save the project (automatically updates from runtime tracks)
                 bool success = ProjectSerializer.SaveToFile(director.Project, director, filePath);
@@ -1422,7 +1422,7 @@ namespace MiniTimeline.UI
                 }
 
                 // For now, load from persistent data path
-                string filePath = System.IO.Path.Combine(UnityEngine.Application.persistentDataPath, filename);
+                string filePath = System.IO.Path.Combine(Application.persistentDataPath, filename);
 
                 // Load the project
                 var loadedProject = ProjectSerializer.LoadFromFile(filePath);
@@ -1496,7 +1496,7 @@ namespace MiniTimeline.UI
         {
             try
             {
-                string persistentPath = UnityEngine.Application.persistentDataPath;
+                string persistentPath = Application.persistentDataPath;
                 if (System.IO.Directory.Exists(persistentPath))
                 {
                     return System.IO.Directory.GetFiles(persistentPath, "*.json")
@@ -1519,10 +1519,10 @@ namespace MiniTimeline.UI
         {
             if (files.Length == 0)
             {
-                return $"No project files found in:\n{UnityEngine.Application.persistentDataPath}\n\nTip: Save a project first, or manually place .json files in this directory.";
+                return $"No project files found in:\n{Application.persistentDataPath}\n\nTip: Save a project first, or manually place .json files in this directory.";
             }
 
-            var display = $"Found {files.Length} project file(s) in:\n{UnityEngine.Application.persistentDataPath}\n\n";
+            var display = $"Found {files.Length} project file(s) in:\n{Application.persistentDataPath}\n\n";
             display += "Use the dropdown above to select a file, or enter a filename manually.";
 
             return display;

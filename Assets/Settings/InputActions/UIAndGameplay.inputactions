@@ -2163,7 +2163,7 @@
                     "name": "Preview",
                     "type": "Button",
                     "id": "5e6f7890-1234-5678-ef01-567890123456",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -2203,6 +2203,60 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "ToggleMove",
+                    "type": "Button",
+                    "id": "a24d8391-bbd2-425b-aaa1-8c3643bb837b",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ToggleRotate",
+                    "type": "Button",
+                    "id": "3322aa0c-3359-4da1-a847-c17af3c82d07",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ToggleSpace",
+                    "type": "Button",
+                    "id": "6919c1e3-a37f-47a9-b506-5968f88376b5",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ToggleScale",
+                    "type": "Button",
+                    "id": "911c0020-d3ab-46ee-a2f2-a4d2b8cbb9f0",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "SnapFine",
+                    "type": "Button",
+                    "id": "a6aed53c-03d0-44fd-8188-ec71b492f0c1",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "SnapCoarse",
+                    "type": "Button",
+                    "id": "e4dfbfd9-29d3-4159-baa9-5f516bf28bd2",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -2324,6 +2378,72 @@
                     "processors": "",
                     "groups": ";MobileTouch",
                     "action": "TouchPosition",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "64456d00-c19d-4869-a968-e299d19173a5",
+                    "path": "<Keyboard>/m",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ToggleMove",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "29e1484e-6eaf-48d9-bd6f-8d7c7322a7ed",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ToggleRotate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "812931a1-9f36-4504-9fb4-920f71c82714",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ToggleSpace",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a51851a1-e9e0-4936-ba28-8e7078857007",
+                    "path": "<Keyboard>/f",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "SnapFine",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d392000a-b609-4892-914f-4e87cdb8d5b6",
+                    "path": "<Keyboard>/c",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "SnapCoarse",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f1251e3b-6096-4d44-9a0b-53f747ded9af",
+                    "path": "<Keyboard>/s",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ToggleScale",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

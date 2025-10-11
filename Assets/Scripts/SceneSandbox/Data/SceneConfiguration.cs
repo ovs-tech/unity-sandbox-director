@@ -20,7 +20,7 @@ namespace SceneSandbox.Data
         
         public PlacedObjectData()
         {
-            id = System.Guid.NewGuid().ToString();
+            id = Guid.NewGuid().ToString();
             position = Vector3.zero;
             rotation = Vector3.zero;
             scale = Vector3.one;

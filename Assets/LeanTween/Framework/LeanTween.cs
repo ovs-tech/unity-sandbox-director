@@ -366,7 +366,7 @@ public class LeanTween : MonoBehaviour {
     }
 
     public void Update(){
-        LeanTween.update();
+        update();
     }
 
     #if UNITY_5_4_OR_NEWER
@@ -820,7 +820,7 @@ public class LeanTween : MonoBehaviour {
         {
             for (int i = 0; i <= tweenMaxSearch; i++)
             {
-                if (Mathf.Equals(tweens[i].direction, 0f))
+                if (Equals(tweens[i].direction, 0f))
                     return true;
             }
             return false;
@@ -828,7 +828,7 @@ public class LeanTween : MonoBehaviour {
         Transform trans = gameObject.transform;
         for (int i = 0; i <= tweenMaxSearch; i++)
         {
-            if (Mathf.Equals(tweens[i].direction, 0f) && tweens[i].trans == trans)
+            if (Equals(tweens[i].direction, 0f) && tweens[i].trans == trans)
                 return true;
         }
         return false;
@@ -856,7 +856,7 @@ public class LeanTween : MonoBehaviour {
         int backCounter = uniqueId >> 16;
         if (backId < 0 || backId >= maxTweens) return false;
         // Debug.Log("tweens[backId].counter:"+tweens[backId].counter+" backCounter:"+backCounter +" toggle:"+tweens[backId].toggle);
-        if (tweens[backId].counter == backCounter && Mathf.Equals(tweens[i].direction, 0f))
+        if (tweens[backId].counter == backCounter && Equals(tweens[i].direction, 0f))
         {
             return true;
         }
@@ -2801,7 +2801,7 @@ public class LeanTween : MonoBehaviour {
             return;
             }
             #else
-            if(goListeners[ point ] == caller && System.Object.Equals( eventListeners[ point ], callback)){  
+            if(goListeners[ point ] == caller && Equals( eventListeners[ point ], callback)){  
                 // Debug.Log("This event is already being listened for.");
                 return;
             }
@@ -2839,7 +2839,7 @@ public class LeanTween : MonoBehaviour {
             #if UNITY_FLASH
             if(goListeners[ point ] == caller && System.Object.ReferenceEquals( eventListeners[ point ], callback) ){
             #else
-            if(goListeners[ point ] == caller && System.Object.Equals( eventListeners[ point ], callback) ){
+            if(goListeners[ point ] == caller && Equals( eventListeners[ point ], callback) ){
             #endif
                 eventListeners[ point ] = null;
                 goListeners[ point ] = null;
@@ -3225,7 +3225,7 @@ public class LTSpline {
         }
 
         this.pts = new Vector3[pts.Length];
-        System.Array.Copy(pts, this.pts, pts.Length);
+        Array.Copy(pts, this.pts, pts.Length);
 
         numSections = pts.Length - 3;
 
@@ -4016,7 +4016,7 @@ public class LTGUI {
         if(rect!=null){
             destroy(rect.id);
         }
-        if(rect.type==LTGUI.Element_Type.Label && rect.style!=null){
+        if(rect.type== Element_Type.Label && rect.style!=null){
             if(rect.style.normal.textColor.a<=0f){
                 Debug.LogWarning("Your GUI normal color has an alpha of zero, and will not be rendered.");
             }

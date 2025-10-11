@@ -313,6 +313,7 @@ namespace Core.UI.FormSubmit
             sliderRect.anchorMax = new Vector2(1, 0.6f);
             sliderRect.sizeDelta = Vector2.zero;
             sliderRect.anchoredPosition = Vector2.zero;
+            sliderRect.localScale = new Vector3(1, 0.3f, 1);
             
             slider = sliderObj.AddComponent<Slider>();
             

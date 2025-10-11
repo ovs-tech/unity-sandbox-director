@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using DentedPixel;
 
 namespace DentedPixel.LTExamples
 {
@@ -331,7 +330,7 @@ namespace DentedPixel.LTExamples
             // should be able to retrieve a point
             LTBezierPath roundCircPath = new LTBezierPath(roundCirc);
             float ratioPoint = roundCircPath.ratioAtPoint(new Vector3(-25f, 25f, 0f));
-            LeanTest.expect(Mathf.Equals(ratioPoint, 0.25f), "BEZIER RATIO POINT");
+            LeanTest.expect(Equals(ratioPoint, 0.25f), "BEZIER RATIO POINT");
 
             // Spline should end at exact end position not just 99% close to it
             Vector3[] roundSpline = new Vector3[] { new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), new Vector3(2f, 0f, 0f), new Vector3(0.9f, 2f, 0f), new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f) };

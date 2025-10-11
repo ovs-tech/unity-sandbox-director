@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Collections;
 using SceneSandbox.Core;
 
 namespace SceneSandbox.Input
@@ -215,7 +214,7 @@ namespace SceneSandbox.Input
 
             if (hitObject != null)
             {
-                var draggableItem = hitObject.GetComponent<DraggableItem>();
+                var draggableItem = hitObject.GetComponent<TransformableItem>();
                 if (draggableItem != null && draggableItem.CanDrag)
                 {
                     _draggedObject = hitObject;
@@ -351,7 +350,7 @@ namespace SceneSandbox.Input
             // we should start our indicator system too
             if (!_isDragging && _draggedObject != null)
             {
-                var draggableItem = _draggedObject.GetComponent<DraggableItem>();
+                var draggableItem = _draggedObject.GetComponent<TransformableItem>();
                 if (draggableItem != null && draggableItem.IsDragging)
                 {
                     _isDragging = true;
@@ -365,7 +364,7 @@ namespace SceneSandbox.Input
             if (_draggedObject == null) return;
 
             // Ensure the object has a DraggableItem component and can be dragged
-            var draggableItem = _draggedObject.GetComponent<DraggableItem>();
+            var draggableItem = _draggedObject.GetComponent<TransformableItem>();
             if (draggableItem == null || !draggableItem.CanDrag)
             {
                 _draggedObject = null;
@@ -394,7 +393,7 @@ namespace SceneSandbox.Input
             {
                 if (hitObject != null)
                 {
-                    var draggableItem = hitObject.GetComponent<DraggableItem>();
+                    var draggableItem = hitObject.GetComponent<TransformableItem>();
                 }
                 else if (_hoveredObject != null)
                 {
@@ -418,7 +417,7 @@ namespace SceneSandbox.Input
             {
 
                 // Check if the hit object has a DraggableItem component
-                var draggableItem = hit.collider.GetComponent<DraggableItem>();
+                var draggableItem = hit.collider.GetComponent<TransformableItem>();
 
                 return hit.collider.gameObject;
             }
@@ -481,7 +480,7 @@ namespace SceneSandbox.Input
             var hitObject = GetObjectAtScreenPosition(_currentPosition);
             if (hitObject != null)
             {
-                var draggableItem = hitObject.GetComponent<DraggableItem>();
+                var draggableItem = hitObject.GetComponent<TransformableItem>();
                 if (draggableItem != null)
                 {
                     // Trigger selection

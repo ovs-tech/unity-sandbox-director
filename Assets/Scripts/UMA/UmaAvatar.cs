@@ -1,5 +1,4 @@
 using UnityEngine;
-using UMA;
 using UMA.CharacterSystem;
 using System.Collections.Generic;
 

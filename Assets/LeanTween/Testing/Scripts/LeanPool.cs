@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 /**
@@ -25,7 +24,7 @@ namespace DentedPixel
 
             for (int i = 0; i < array.Length; i++)
             {
-                GameObject go = GameObject.Instantiate(prefab, parent);
+                GameObject go = Object.Instantiate(prefab, parent);
                 go.SetActive(false);
 
                 array[i] = go;

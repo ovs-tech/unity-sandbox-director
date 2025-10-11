@@ -459,7 +459,7 @@ namespace SceneSandbox.UI
             {
                 required = true,
                 placeholder = "Enter scene name...",
-                defaultValue = $"Scene_{System.DateTime.Now:yyyyMMdd_HHmmss}"
+                defaultValue = $"Scene_{DateTime.Now:yyyyMMdd_HHmmss}"
             });
             
             // Optional description
@@ -1025,7 +1025,7 @@ namespace SceneSandbox.UI
             }
             
             // Generate default name with timestamp
-            return $"Project_{System.DateTime.Now:yyyyMMdd_HHmmss}";
+            return $"Project_{DateTime.Now:yyyyMMdd_HHmmss}";
         }
         
         /// <summary>
