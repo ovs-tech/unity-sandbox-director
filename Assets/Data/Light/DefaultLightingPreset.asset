@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 12367da21ba6348ddb4354f4bec9f441, type: 3}
-  m_Name: Default Lighting Preset
+  m_Name: DefaultLightingPreset
   m_EditorClassIdentifier: Assembly-CSharp::LightingPreset
   AmbientColor:
     serializedVersion: 2

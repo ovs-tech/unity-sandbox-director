@@ -396,7 +396,7 @@ namespace Core.UI.FormSubmit
             submitTextRect.anchorMax = Vector2.one;
             submitTextRect.sizeDelta = Vector2.zero;
             
-            var submitTextMesh = UICreationHelper.CreateStandardTextMesh(submitTextObj, "Create", 14f, Color.white);
+            var submitTextMesh = UICreationHelper.CreateStandardTextMesh(submitTextObj, "OK", 14f, Color.white);
             submitTextMesh.alignment = TextAlignmentOptions.Center;
         }
         

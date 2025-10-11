@@ -66,7 +66,21 @@ MonoBehaviour:
     snapOffset: {x: 0, y: 0, z: 0}
     category: Prop
     tags: []
-  cameras: []
+  cameras:
+  - id: camera
+    displayName: Camera
+    objectType: 2
+    prefab: {fileID: 6190135191795154413, guid: e5d223147dc0343edadb48ebce8b268a, type: 3}
+    icon: {fileID: 0}
+    iconColor: {r: 1, g: 1, b: 1, a: 1}
+    canRotate: 1
+    canScale: 1
+    defaultScale: {x: 1, y: 1, z: 1}
+    snapOffset: {x: 0, y: 1, z: 0}
+    category: Camera
+    tags:
+    - camera
+    - ui
   lights:
   - id: area-light
     displayName: Area Light

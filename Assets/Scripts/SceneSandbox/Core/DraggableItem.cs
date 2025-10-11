@@ -77,11 +77,11 @@ namespace SceneSandbox.Core
             var eventSystem = UnityEngine.EventSystems.EventSystem.current;
             if (eventSystem == null)
             {
-                Debug.LogWarning($"[DraggableItem] No EventSystem found in scene! EventSystem drag handlers will not work.");
+                
             }
             else
             {
-                Debug.Log($"[DraggableItem] EventSystem found: {eventSystem.name}");
+                
             }
         }
 
@@ -92,7 +92,7 @@ namespace SceneSandbox.Core
             // Ensure camera has PhysicsRaycaster for EventSystem 3D interaction
             if (_camera != null && _camera.GetComponent<UnityEngine.EventSystems.PhysicsRaycaster>() == null)
             {
-                Debug.Log($"[DraggableItem] Adding PhysicsRaycaster to camera {_camera.name}");
+                
                 _camera.gameObject.AddComponent<UnityEngine.EventSystems.PhysicsRaycaster>();
             }
 
@@ -127,15 +127,15 @@ namespace SceneSandbox.Core
 
         public void OnBeginDrag(PointerEventData eventData)
         {
-            Debug.Log($"[DraggableItem] OnBeginDrag called for {gameObject.name}, CanDrag: {_canDrag}, IsSelected: {_isSelected}");
+            
             
             if (!_canDrag) 
             {
-                Debug.Log($"[DraggableItem] OnBeginDrag cancelled - CanDrag is false");
+                
                 return;
             }
 
-            Debug.Log($"[DraggableItem] OnBeginDrag proceeding with StartDrag");
+            
             StartDrag(eventData.position);
         }
 
@@ -155,12 +155,12 @@ namespace SceneSandbox.Core
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            Debug.Log($"[DraggableItem] OnPointerClick called for {gameObject.name}");
+            
             OnItemClicked?.Invoke(this);
 
             if (eventData.clickCount == 2)
             {
-                Debug.Log($"[DraggableItem] Double-click detected");
+                
                 OnItemSelected?.Invoke(this);
             }
         }
@@ -170,15 +170,15 @@ namespace SceneSandbox.Core
         /// </summary>
         public void StartDrag(Vector2 screenPosition)
         {
-            Debug.Log($"[DraggableItem] StartDrag called for {gameObject.name} at position {screenPosition}, CanDrag: {_canDrag}, IsDragging: {_isDragging}");
+            
             
             if (!_canDrag || _isDragging) 
             {
-                Debug.Log($"[DraggableItem] StartDrag cancelled - CanDrag: {_canDrag}, IsDragging: {_isDragging}");
+                
                 return;
             }
 
-            Debug.Log($"[DraggableItem] StartDrag proceeding with drag initialization");
+            
 
             _isDragging = true;
             _originalPosition = transform.position;
@@ -208,7 +208,7 @@ namespace SceneSandbox.Core
             var inputHandler = FindFirstObjectByType<SandboxInputHandler>();
             if (inputHandler != null)
             {
-                Debug.Log($"[DraggableItem] Notifying SandboxInputHandler about drag start");
+                
                 inputHandler.ManualStartDrag(gameObject, screenPosition);
             }
         }
@@ -300,7 +300,7 @@ namespace SceneSandbox.Core
         /// </summary>
         public void SetSelectedState(bool isSelected)
         {
-            Debug.Log($"[DraggableItem] SetSelectedState called for {gameObject.name}: {isSelected}");
+            
 
             // Store the selection state regardless of current drag state
             _isSelected = isSelected;
@@ -422,26 +422,25 @@ namespace SceneSandbox.Core
         {
             if (_camera == null)
             {
-                Debug.LogError("[DraggableItem] Camera is null - cannot test EventSystem detection");
+                
                 return;
             }
 
             var eventSystem = UnityEngine.EventSystems.EventSystem.current;
             if (eventSystem == null)
             {
-                Debug.LogError("[DraggableItem] No EventSystem found");
+                
                 return;
             }
 
             var physicsRaycaster = _camera.GetComponent<UnityEngine.EventSystems.PhysicsRaycaster>();
             if (physicsRaycaster == null)
             {
-                Debug.LogError("[DraggableItem] Camera missing PhysicsRaycaster component");
+                
                 return;
             }
 
-            Debug.Log($"[DraggableItem] EventSystem setup looks correct for {gameObject.name}");
-            Debug.Log($"[DraggableItem] Collider: {_collider != null}, CanDrag: {_canDrag}, IsSelected: {_isSelected}");
+            
         }
     }
 }
