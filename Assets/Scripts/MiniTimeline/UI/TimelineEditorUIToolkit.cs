@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.UIElements;
 using MiniTimeline.Core;
 using MiniTimeline.Serialization;
 using MiniTimeline.UI.Commands;
@@ -11,32 +11,18 @@ using Core.UI.Core.Helpers;
 using Core.Behaviors.Command;
 using MiniTimeline.UI.FormDefinitions;
 using Core.UI.FormSubmit.Fields;
+using BindingContextCore = MiniTimeline.Core.BindingContext;
 
 namespace MiniTimeline.UI
 {
     /// <summary>
-    /// Main in-game timeline editor UI
+    /// Main in-game timeline editor UI using UI Toolkit
     /// </summary>
-    public class TimelineEditorUI : MonoBehaviour, ITimelineEditorUI
+    public class TimelineEditorUIToolkit : MonoBehaviour, ITimelineEditorUI
     {
-        [Header("UI References")]
-        [SerializeField] private Canvas editorCanvas;
-        [SerializeField] private RectTransform timelineContainer;
-        [SerializeField] private RectTransform rulerContainer;
-        [SerializeField] private RectTransform tracksContainer;
-        [SerializeField] private ScrollRect timelineScrollRect;
-        [SerializeField] private Button addTrackButton;
-        [SerializeField] private Button bindingManagerButton;
-        [SerializeField] private Button saveButton;
-        [SerializeField] private Button loadButton;
-        [SerializeField] private Button playButton;
-        [SerializeField] private Button pauseButton;
-        [SerializeField] private Button stopButton;
-        [SerializeField] private Button undoButton;
-        [SerializeField] private Button redoButton;
-
-        [SerializeField] private Slider timeSlider;
-        [SerializeField] private Text timeText;
+        [Header("UI Document")]
+        [SerializeField] private UIDocument uiDocument;
+        [SerializeField] private string rootElementName = "timeline-editor";
 
         [Header("Editor Settings")]
         [SerializeField] private float pixelsPerSecond = 100f;
@@ -45,11 +31,17 @@ namespace MiniTimeline.UI
         [SerializeField] private float snapThreshold = 0.1f;
         [SerializeField] private bool enableFrameSnap = true;
 
-        [Header("Prefabs")]
-        [SerializeField] private GameObject trackUIPrefab;
-        [SerializeField] private GameObject clipUIPrefab;
-        [SerializeField] private GameObject rulerMarkerPrefab;
-        [SerializeField] private GameObject contextMenuPrefab;
+        [Header("USS Classes")]
+        [SerializeField] private string timelineContainerClass = "timeline-container";
+        [SerializeField] private string rulerContainerClass = "ruler-container";
+        [SerializeField] private string tracksContainerClass = "tracks-container";
+        [SerializeField] private string controlsContainerClass = "controls-container";
+
+        [Header("UI Templates")]
+        [SerializeField] private VisualTreeAsset trackTemplate;
+        [SerializeField] private StyleSheet trackStyleSheet;
+        [SerializeField] private VisualTreeAsset clipTemplate;
+        [SerializeField] private StyleSheet clipStyleSheet;
 
         [Header("Debug")]
         [SerializeField] bool isDebug;
@@ -57,8 +49,31 @@ namespace MiniTimeline.UI
         // Core references
         [SerializeField] private MiniTimelineDirector director;
         private TimelineCommandManager commandManager;
-        private TimelineContextMenu contextMenu;
-        private FormSubmitPanel formSubmitPanel;
+
+        // UI Toolkit Elements
+        private VisualElement rootElement;
+        private VisualElement timelineContainer;
+        private VisualElement rulerContainer;
+        private VisualElement tracksContainer;
+        private ScrollView timelineScrollView;
+        private VisualElement playheadElement;
+        
+        // Controls
+        private Button addTrackButton;
+        private Button bindingManagerButton;
+        private Button saveButton;
+        private Button loadButton;
+        private Button playButton;
+        private Button pauseButton;
+        private Button stopButton;
+        private Button undoButton;
+        private Button redoButton;
+        
+        private Slider timeSlider;
+        private Label timeLabel;
+        private Slider zoomSlider;
+        private Label zoomLabel;
+        private Label statusLabel;
 
         // UI State
         private float currentZoom = 1f;
@@ -66,18 +81,18 @@ namespace MiniTimeline.UI
         private bool isPlayheadDragging = false;
 
         // Selection and editing
-        private List<ClipUI> selectedClips = new List<ClipUI>();
-        private TimelineRuler ruler;
+        private List<ClipUIToolkit> selectedClips = new List<ClipUIToolkit>();
+        private TimelineRulerToolkit ruler;
 
         // Performance optimization
-        private readonly List<TrackUI> trackUIs = new List<TrackUI>();
-        private readonly Dictionary<string, ClipUI> clipUILookup = new Dictionary<string, ClipUI>();
+        private readonly List<TrackUIToolkit> trackUIs = new List<TrackUIToolkit>();
+        private readonly Dictionary<string, ClipUIToolkit> clipUILookup = new Dictionary<string, ClipUIToolkit>();
 
         #region Events
 
         public event Action<float> OnTimeChanged;
-        public event Action<List<ClipUI>> OnSelectionChanged;
-        public event Action<ClipUI> OnClipContextMenu;
+        public event Action<List<ClipUIToolkit>> OnSelectionChanged;
+        public event Action<ClipUIToolkit> OnClipContextMenu;
 
         #endregion
 
@@ -86,10 +101,14 @@ namespace MiniTimeline.UI
         public float PixelsPerSecond => pixelsPerSecond * currentZoom;
         public float CurrentZoom => currentZoom;
         public MiniTimelineDirector Director => director;
-        public IReadOnlyList<ClipUI> SelectedClips => selectedClips;
+        public IReadOnlyList<ClipUIToolkit> SelectedClips => selectedClips;
         public bool EnableFrameSnap => enableFrameSnap;
-        public GameObject ClipUIPrefab => clipUIPrefab;
-        public GameObject ContextMenuPrefab => contextMenuPrefab;
+        public VisualElement TimelineContainer => timelineContainer;
+        public VisualElement TracksContainer => tracksContainer;
+        
+        // Template access for child components
+        public VisualTreeAsset ClipTemplate => clipTemplate;
+        public StyleSheet ClipStyleSheet => clipStyleSheet;
 
         #endregion
 
@@ -97,7 +116,7 @@ namespace MiniTimeline.UI
 
         private void Awake()
         {
-            // Initialize UI creation helper to prevent TextMeshPro threading issues
+            // Initialize UI creation helper to prevent threading issues
             UICreationHelper.Initialize(this);
 
             // Initialize command manager
@@ -107,7 +126,7 @@ namespace MiniTimeline.UI
             SetupCommandManagerEvents();
 
             // Initialize UI components
-            InitializeUI();
+            InitializeUIToolkit();
         }
 
         private void OnDestroy()
@@ -121,7 +140,8 @@ namespace MiniTimeline.UI
                 commandManager.OnStacksChanged -= OnCommandStacksChanged;
             }
 
-            // InputActionReference cleanup is handled by Unity
+            // Cleanup UI Toolkit event registrations
+            CleanupUIEvents();
         }
 
         private void Start()
@@ -135,10 +155,6 @@ namespace MiniTimeline.UI
                 BindToDirector();
             }
         }
-
-        // Note: HandleButtonReleaseDetection and HandleLongPress methods removed
-        // Button release detection now handled in OnClickPerformed using float value changes
-        // Long press handling now uses coroutine-based timer instead of Update loop
 
         #endregion
 
@@ -192,65 +208,56 @@ namespace MiniTimeline.UI
             if (commandManager == null) return;
 
             if (undoButton != null)
-                undoButton.interactable = commandManager.CanUndo;
+                undoButton.SetEnabled(commandManager.CanUndo);
 
             if (redoButton != null)
-                redoButton.interactable = commandManager.CanRedo;
+                redoButton.SetEnabled(commandManager.CanRedo);
         }
 
         #endregion
 
-        #region UI Initialization
+        #region UI Toolkit Initialization
 
-        private void InitializeUI()
+        private void InitializeUIToolkit()
         {
-            // Setup playback controls
-            if (playButton != null)
-                playButton.onClick.AddListener(() => director?.Play());
-
-            if (pauseButton != null)
-                pauseButton.onClick.AddListener(() => director?.Pause());
-
-            if (stopButton != null)
-                stopButton.onClick.AddListener(() => director?.Stop());
-
-            // Setup undo/redo controls
-            if (undoButton != null)
-                undoButton.onClick.AddListener(() => commandManager?.Undo());
-
-            if (redoButton != null)
-                redoButton.onClick.AddListener(() => commandManager?.Redo());
-
-            // Setup add track button
-            if (addTrackButton != null)
-                addTrackButton.onClick.AddListener(ShowAddTrackForm);
-
-            // Setup binding manager button
-            if (bindingManagerButton != null)
-                bindingManagerButton.onClick.AddListener(ShowBindingManagerForm);
-
-            // Setup save/load buttons
-            if (saveButton != null)
-                saveButton.onClick.AddListener(ShowSaveProjectForm);
-
-            if (loadButton != null)
-                loadButton.onClick.AddListener(ShowLoadProjectForm);
-
-            if (timeSlider != null)
+            // Load templates if not assigned
+            // LoadTemplatesIfNeeded();
+            
+            // Get or create UI Document
+            if (uiDocument == null)
             {
-                timeSlider.onValueChanged.AddListener(OnTimeSliderChanged);
+                uiDocument = GetComponent<UIDocument>();
             }
+
+            if (uiDocument == null)
+            {
+                Debug.LogError("UIDocument component not found. Please add a UIDocument component to this GameObject.");
+                return;
+            }
+
+            // Get root element
+            rootElement = uiDocument.rootVisualElement;
+            if (!string.IsNullOrEmpty(rootElementName))
+            {
+                rootElement = rootElement.Q(rootElementName);
+                if (rootElement == null)
+                {
+                    Debug.LogError($"Root element '{rootElementName}' not found in UI Document.");
+                    return;
+                }
+            }
+
+            // Setup UI element hierarchy
+            SetupUIHierarchy();
+
+            // Query UI elements
+            QueryUIElements();
+
+            // Setup event handlers
+            SetupUIEvents();
 
             // Initialize ruler
-            ruler = GetComponentInChildren<TimelineRuler>();
-            if (ruler == null && rulerContainer != null)
-            {
-                var rulerGO = new GameObject("Ruler", typeof(TimelineRuler));
-                rulerGO.transform.SetParent(rulerContainer, false);
-                ruler = rulerGO.GetComponent<TimelineRuler>();
-            }
-
-            ruler?.Initialize(this);
+            InitializeRuler();
 
             // Setup initial zoom and layout
             UpdateTimelineLayout();
@@ -258,19 +265,274 @@ namespace MiniTimeline.UI
             // Initialize button states
             UpdateUndoRedoButtonStates();
 
-            // Initialize context menu as prefab
-            if (contextMenu == null && contextMenuPrefab != null)
+            // Initialize context menu
+            InitializeContextMenu();
+        }
+
+        // private void LoadTemplatesIfNeeded()
+        // {
+        //     // Load track template if not assigned
+        //     if (trackTemplate == null)
+        //     {
+        //         trackTemplate = Resources.Load<VisualTreeAsset>("UI/TrackUIToolkit");
+        //         if (trackTemplate == null && isDebug)
+        //         {
+        //             Debug.LogWarning("TrackUIToolkit template not found in Resources/UI/. Using fallback creation.");
+        //         }
+        //     }
+            
+        //     if (trackStyleSheet == null)
+        //     {
+        //         trackStyleSheet = Resources.Load<StyleSheet>("UI/TrackUIToolkit");
+        //         if (trackStyleSheet == null && isDebug)
+        //         {
+        //             Debug.LogWarning("TrackUIToolkit stylesheet not found in Resources/UI/. Using default styling.");
+        //         }
+        //     }
+            
+        //     // Load clip template if not assigned
+        //     if (clipTemplate == null)
+        //     {
+        //         clipTemplate = Resources.Load<VisualTreeAsset>("UI/ClipUIToolkit");
+        //         if (clipTemplate == null && isDebug)
+        //         {
+        //             Debug.LogWarning("ClipUIToolkit template not found in Resources/UI/. Using fallback creation.");
+        //         }
+        //     }
+            
+        //     if (clipStyleSheet == null)
+        //     {
+        //         clipStyleSheet = Resources.Load<StyleSheet>("UI/ClipUIToolkit");
+        //         if (clipStyleSheet == null && isDebug)
+        //         {
+        //             Debug.LogWarning("ClipUIToolkit stylesheet not found in Resources/UI/. Using default styling.");
+        //         }
+        //     }
+        // }
+
+        private void SetupUIHierarchy()
+        {
+            // Create main containers if they don't exist
+            if (timelineContainer == null)
             {
-                var contextMenuGO = Instantiate(contextMenuPrefab, editorCanvas.transform);
-                contextMenu = contextMenuGO.GetComponent<TimelineContextMenu>();
+                timelineContainer = rootElement.Q(className: timelineContainerClass);
+                if (timelineContainer == null)
+                {
+                    timelineContainer = new VisualElement();
+                    timelineContainer.AddToClassList(timelineContainerClass);
+                    timelineContainer.name = "timeline-container";
+                    rootElement.Add(timelineContainer);
+                }
             }
 
-            contextMenu?.Initialize(this);
-            // Listen to context menu open/close to disable/enable timeline interaction
-            if (contextMenu != null)
+            if (rulerContainer == null)
             {
-                contextMenu.OnMenuClosed += EnableTimelineInteraction;
+                rulerContainer = rootElement.Q(className: rulerContainerClass);
+                if (rulerContainer == null)
+                {
+                    rulerContainer = new VisualElement();
+                    rulerContainer.AddToClassList(rulerContainerClass);
+                    rulerContainer.name = "ruler-container";
+                    timelineContainer.Add(rulerContainer);
+                }
             }
+
+            if (tracksContainer == null)
+            {
+                tracksContainer = rootElement.Q(className: tracksContainerClass);
+                if (tracksContainer == null)
+                {
+                    tracksContainer = new VisualElement();
+                    tracksContainer.AddToClassList(tracksContainerClass);
+                    tracksContainer.name = "tracks-container";
+                    timelineContainer.Add(tracksContainer);
+                }
+            }
+
+            // Create scroll view for timeline
+            if (timelineScrollView == null)
+            {
+                timelineScrollView = rootElement.Q<ScrollView>("timeline-scroll");
+                if (timelineScrollView == null)
+                {
+                    timelineScrollView = new ScrollView();
+                    timelineScrollView.name = "timeline-scroll";
+                    timelineScrollView.mode = ScrollViewMode.Horizontal;
+                    timelineScrollView.Add(timelineContainer);
+                    rootElement.Add(timelineScrollView);
+                }
+            }
+        }
+
+        private void QueryUIElements()
+        {
+            // Query control buttons
+            addTrackButton = rootElement.Q<Button>("add-track-button");
+            bindingManagerButton = rootElement.Q<Button>("binding-manager-button");
+            saveButton = rootElement.Q<Button>("save-button");
+            loadButton = rootElement.Q<Button>("load-button");
+            playButton = rootElement.Q<Button>("play-button");
+            pauseButton = rootElement.Q<Button>("pause-button");
+            stopButton = rootElement.Q<Button>("stop-button");
+            undoButton = rootElement.Q<Button>("undo-button");
+            redoButton = rootElement.Q<Button>("redo-button");
+
+            // Query time controls
+            timeSlider = rootElement.Q<Slider>("time-slider");
+            timeLabel = rootElement.Q<Label>("time-label");
+            
+            // Query zoom controls
+            zoomSlider = rootElement.Q<Slider>("zoom-slider");
+            zoomLabel = rootElement.Q<Label>("zoom-label");
+            
+            // Query status label
+            statusLabel = rootElement.Q<Label>("status-text");
+            
+            // Query playhead
+            playheadElement = rootElement.Q("playhead");
+        }
+
+        private void SetupUIEvents()
+        {
+            // Setup playback controls
+            if (playButton != null)
+                playButton.clicked += () => director?.Play();
+
+            if (pauseButton != null)
+                pauseButton.clicked += () => director?.Pause();
+
+            if (stopButton != null)
+                stopButton.clicked += () => director?.Stop();
+
+            // Setup undo/redo controls
+            if (undoButton != null)
+                undoButton.clicked += () => commandManager?.Undo();
+
+            if (redoButton != null)
+                redoButton.clicked += () => commandManager?.Redo();
+
+            // Setup add track button
+            if (addTrackButton != null)
+                addTrackButton.clicked += ShowAddTrackForm;
+
+            // Setup binding manager button
+            if (bindingManagerButton != null)
+                bindingManagerButton.clicked += ShowBindingManagerForm;
+
+            // Setup save/load buttons
+            if (saveButton != null)
+                saveButton.clicked += ShowSaveProjectForm;
+
+            if (loadButton != null)
+                loadButton.clicked += ShowLoadProjectForm;
+
+            // Setup time slider
+            if (timeSlider != null)
+            {
+                timeSlider.RegisterValueChangedCallback(OnTimeSliderChanged);
+            }
+
+            // Setup zoom slider
+            if (zoomSlider != null)
+            {
+                zoomSlider.value = currentZoom;
+                zoomSlider.RegisterValueChangedCallback(OnZoomSliderChanged);
+            }
+
+            // Setup timeline interaction events
+            SetupTimelineEvents();
+        }
+
+        private void SetupTimelineEvents()
+        {
+            if (timelineContainer != null)
+            {
+                // Handle mouse events for timeline interaction
+                timelineContainer.RegisterCallback<MouseDownEvent>(OnTimelineMouseDown);
+                timelineContainer.RegisterCallback<MouseMoveEvent>(OnTimelineMouseMove);
+                timelineContainer.RegisterCallback<MouseUpEvent>(OnTimelineMouseUp);
+                timelineContainer.RegisterCallback<WheelEvent>(OnTimelineWheel);
+            }
+        }
+
+        private void CleanupUIEvents()
+        {
+            // Cleanup UI Toolkit event registrations
+            if (timelineContainer != null)
+            {
+                timelineContainer.UnregisterCallback<MouseDownEvent>(OnTimelineMouseDown);
+                timelineContainer.UnregisterCallback<MouseMoveEvent>(OnTimelineMouseMove);
+                timelineContainer.UnregisterCallback<MouseUpEvent>(OnTimelineMouseUp);
+                timelineContainer.UnregisterCallback<WheelEvent>(OnTimelineWheel);
+            }
+
+            if (timeSlider != null)
+            {
+                timeSlider.UnregisterValueChangedCallback(OnTimeSliderChanged);
+            }
+
+            if (zoomSlider != null)
+            {
+                zoomSlider.UnregisterValueChangedCallback(OnZoomSliderChanged);
+            }
+        }
+
+        private void InitializeRuler()
+        {
+            // Create ruler if it doesn't exist
+            if (ruler == null && rulerContainer != null)
+            {
+                ruler = new TimelineRulerToolkit();
+                ruler.Initialize(this, rulerContainer);
+            }
+        }
+
+        private void InitializeContextMenu()
+        {
+            // TODO: Implement context menu for UI Toolkit
+            // This would be a VisualElement-based context menu instead of a prefab
+        }
+
+        #endregion
+
+        #region Timeline Event Handlers
+
+        private void OnTimelineMouseDown(MouseDownEvent evt)
+        {
+            Vector2 localPos = evt.localMousePosition;
+
+            if (IsRulerHit(localPos))
+            {
+                OnRulerTouched(localPos);
+                evt.StopPropagation();
+            }
+        }
+
+        private void OnTimelineMouseMove(MouseMoveEvent evt)
+        {
+            if (isPlayheadDragging)
+            {
+                Vector2 localPos = evt.localMousePosition;
+                ScrubToPosition(localPos.x);
+            }
+        }
+
+        private void OnTimelineMouseUp(MouseUpEvent evt)
+        {
+            if (isPlayheadDragging)
+            {
+                isPlayheadDragging = false;
+                EnableTimelineInteraction();
+            }
+        }
+
+        private void OnTimelineWheel(WheelEvent evt)
+        {
+            // Handle zoom with wheel
+            float zoomDelta = -evt.delta.y * 0.001f;
+            float newZoom = currentZoom + zoomDelta;
+            SetZoom(newZoom);
+            evt.StopPropagation();
         }
 
         #endregion
@@ -348,8 +610,6 @@ namespace MiniTimeline.UI
                 return;
             }
 
-
-
             // Update timeline dimensions
             timelineWidth = director.Length * PixelsPerSecond;
             UpdateTimelineLayout();
@@ -357,42 +617,23 @@ namespace MiniTimeline.UI
             // Build track UIs
             foreach (var track in director.Tracks)
             {
-                var clips = track.GetClips().ToList();
-
                 CreateTrackUI(track);
             }
 
             // Update ruler
             ruler?.Rebuild(director.Length, director.Project.frameRate);
-
-
         }
 
         private void CreateTrackUI(IMiniTrack track)
         {
-            if (trackUIPrefab == null)
-            {
-                return;
-            }
-
             if (tracksContainer == null)
             {
                 return;
             }
 
-            var trackGO = Instantiate(trackUIPrefab, tracksContainer);
-            var trackUI = trackGO.GetComponent<TrackUI>();
-
-            if (trackUI != null)
-            {
-                trackUI.Initialize(this, track);
-                trackUIs.Add(trackUI);
-                // Check if clips were created
-                var clipUIs = trackUI.GetComponentsInChildren<ClipUI>();
-            }
-            else
-            {
-            }
+            var trackUI = new TrackUIToolkit();
+            trackUI.Initialize(this, track, trackTemplate, trackStyleSheet);
+            trackUIs.Add(trackUI);
         }
 
         private void ClearTimelineUI()
@@ -400,19 +641,15 @@ namespace MiniTimeline.UI
             // Clear track UIs
             foreach (var trackUI in trackUIs)
             {
-                if (trackUI != null)
-                    DestroyImmediate(trackUI.gameObject);
+                trackUI?.Dispose();
             }
             trackUIs.Clear();
             clipUILookup.Clear();
             selectedClips.Clear();
+
+            // Clear tracks container
+            tracksContainer?.Clear();
         }
-
-        #endregion
-
-        #region Gesture Handling
-
-
 
         #endregion
 
@@ -436,12 +673,10 @@ namespace MiniTimeline.UI
             {
                 timelineWidth = director.Length * PixelsPerSecond;
 
-                // Update timeline container size
+                // Update timeline container size using UI Toolkit layout
                 if (timelineContainer != null)
                 {
-                    var sizeDelta = timelineContainer.sizeDelta;
-                    sizeDelta.x = timelineWidth;
-                    timelineContainer.sizeDelta = sizeDelta;
+                    timelineContainer.style.width = timelineWidth;
                 }
             }
         }
@@ -453,15 +688,10 @@ namespace MiniTimeline.UI
         private Vector2 ScreenToTimelineLocal(Vector2 screenPos)
         {
             // Convert screen position to timeline container's local space
-            Vector2 localPos;
-            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                timelineContainer, screenPos, editorCanvas.worldCamera, out localPos))
+            if (timelineContainer != null)
             {
-
-                return localPos;
+                return timelineContainer.WorldToLocal(screenPos);
             }
-
-
             return Vector2.zero;
         }
 
@@ -495,17 +725,8 @@ namespace MiniTimeline.UI
         {
             if (ruler == null || rulerContainer == null) return false;
 
-            RectTransform rulerRect = rulerContainer;
-            Vector2 rulerLocalPos;
-            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(rulerRect,
-                RectTransformUtility.WorldToScreenPoint(editorCanvas.worldCamera, timelineContainer.TransformPoint(localPos)),
-                editorCanvas.worldCamera, out rulerLocalPos))
-            {
-                Rect rulerBounds = rulerRect.rect;
-                return rulerBounds.Contains(rulerLocalPos);
-            }
-
-            return false;
+            Rect rulerBounds = rulerContainer.contentRect;
+            return rulerBounds.Contains(localPos);
         }
 
         #endregion
@@ -552,12 +773,9 @@ namespace MiniTimeline.UI
 
         #endregion
 
-        #region Clip Interaction Methods - Now handled by ClipUI directly
+        #region Clip Interaction Methods
 
-        // Most clip interaction methods moved to ClipUI itself
-        // Only keep methods that TimelineEditorUI needs to manage selection
-
-        public void HandleClipSelection(ClipUI clipUI)
+        public void HandleClipSelection(ClipUIToolkit clipUI)
         {
             if (!selectedClips.Contains(clipUI))
             {
@@ -567,6 +785,13 @@ namespace MiniTimeline.UI
                 clipUI.SetSelected(true);
                 OnSelectionChanged?.Invoke(selectedClips);
             }
+        }
+
+        public void HandleClipContextMenu(ClipUIToolkit clipUI)
+        {
+            // TODO: Implement clip context menu
+            Debug.Log($"Clip context menu requested for clip: {clipUI}");
+            OnClipContextMenu?.Invoke(clipUI);
         }
 
         private void ClearSelection()
@@ -583,6 +808,7 @@ namespace MiniTimeline.UI
         {
             isPlayheadDragging = true;
             ScrubToPosition(localPos.x);
+            DisableTimelineInteraction();
         }
 
         private void ScrubToPosition(float xPosition)
@@ -598,20 +824,20 @@ namespace MiniTimeline.UI
 
         private void DisableTimelineInteraction()
         {
-            // Disable scroll rect
-            SetScrollRectEnabled(false);
+            // Disable scroll view
+            SetScrollViewEnabled(false);
         }
 
         private void EnableTimelineInteraction()
         {
-            // Enable scroll rect
-            SetScrollRectEnabled(true);
+            // Enable scroll view
+            SetScrollViewEnabled(true);
         }
 
         /// <summary>
         /// Called when any clip starts being interacted with (drag/resize)
         /// </summary>
-        public void OnClipStartInteraction(ClipUI clipUI)
+        public void OnClipStartInteraction(ClipUIToolkit clipUI)
         {
             DisableTimelineInteraction();
         }
@@ -619,34 +845,65 @@ namespace MiniTimeline.UI
         /// <summary>
         /// Called when any clip ends being interacted with (drag/resize)
         /// </summary>
-        public void OnClipEndInteraction(ClipUI clipUI)
+        public void OnClipEndInteraction(ClipUIToolkit clipUI)
         {
             EnableTimelineInteraction();
         }
 
         private void UpdateTimeDisplay(float time)
         {
-            if (timeText != null)
+            if (timeLabel != null)
             {
-                timeText.text = FormatTime(time);
+                timeLabel.text = FormatTime(time);
             }
 
             if (timeSlider != null && director != null)
             {
                 timeSlider.value = time / director.Length;
             }
+
+            // Update playhead position
+            UpdatePlayheadPosition(time);
+        }
+
+        private void UpdatePlayheadPosition(float time)
+        {
+            if (playheadElement != null)
+            {
+                float position = TimeToPosition(time);
+                playheadElement.style.left = position;
+            }
         }
 
         private void UpdatePlaybackControls(PlaybackState state)
         {
-            // TODO: Update button states based on playback state
+            // Update button states based on playback state
+            if (playButton != null)
+                playButton.SetEnabled(state != PlaybackState.Playing);
+            
+            if (pauseButton != null)
+                pauseButton.SetEnabled(state == PlaybackState.Playing);
+            
+            if (stopButton != null)
+                stopButton.SetEnabled(state != PlaybackState.Stopped);
         }
 
-        private void OnTimeSliderChanged(float normalizedTime)
+        private void OnTimeSliderChanged(ChangeEvent<float> evt)
         {
             if (director != null && !isPlayheadDragging)
             {
-                director.Seek(normalizedTime * director.Length);
+                director.Seek(evt.newValue * director.Length);
+            }
+        }
+
+        private void OnZoomSliderChanged(ChangeEvent<float> evt)
+        {
+            SetZoom(evt.newValue);
+            
+            // Update zoom label
+            if (zoomLabel != null)
+            {
+                zoomLabel.text = $"{evt.newValue * 100:F0}%";
             }
         }
 
@@ -659,21 +916,17 @@ namespace MiniTimeline.UI
             return $"{minutes:00}:{seconds:00}:{frames:00}";
         }
 
-        private void SetScrollRectEnabled(bool enabled)
+        private void SetScrollViewEnabled(bool enabled)
         {
-            if (timelineScrollRect != null)
+            if (timelineScrollView != null)
             {
-                // Instead of disabling the entire ScrollRect (which can cause issues),
-                // just disable its interaction components
-                timelineScrollRect.horizontal = enabled;
-                timelineScrollRect.vertical = enabled;
-
+                timelineScrollView.SetEnabled(enabled);
             }
         }
 
         #endregion
 
-        #region Add Track Methods
+        #region Form Methods - Reusing from original implementation
 
         /// <summary>
         /// Show form for adding a new track to the timeline
@@ -689,8 +942,8 @@ namespace MiniTimeline.UI
             // Get form field definitions from TrackFormDefinitions
             var fieldDefinitions = TrackFormDefinitions.GetCreateTrackFields();
 
-            // Show the form using FormSubmitPanel singleton
-            FormSubmitPanel.Instance.Show(
+            // Show the form using FormSubmitPanelUIToolkit singleton
+            FormSubmitPanelUIToolkit.Instance.Show(
                 "Add New Track",
                 fieldDefinitions,
                 OnAddTrackFormSubmitted,
@@ -749,10 +1002,6 @@ namespace MiniTimeline.UI
             Debug.Log("Add track cancelled");
         }
 
-        #endregion
-
-        #region Binding Manager Methods
-
         /// <summary>
         /// Show the main binding manager form
         /// </summary>
@@ -797,7 +1046,7 @@ namespace MiniTimeline.UI
                 new FormFieldDefinition
                 {
                     name = "newBindingObject",
-                    type = "text",  // Using text for now since objectfield might not be implemented
+                    type = "text",
                     label = "Target Object Name",
                     required = false,
                     placeholder = "Enter GameObject name in scene...",
@@ -832,7 +1081,7 @@ namespace MiniTimeline.UI
             };
 
             // Show the binding manager form
-            FormSubmitPanel.Instance.Show(
+            FormSubmitPanelUIToolkit.Instance.Show(
                 "Scene Binding Manager",
                 fieldDefinitions,
                 OnBindingManagerFormSubmitted,
@@ -844,7 +1093,7 @@ namespace MiniTimeline.UI
         /// <summary>
         /// Format the current bindings for display in the info field
         /// </summary>
-        private string FormatBindingsForDisplay(BindingContext bindingContext)
+        private string FormatBindingsForDisplay(BindingContextCore bindingContext)
         {
             if (bindingContext == null)
             {
@@ -1092,7 +1341,7 @@ namespace MiniTimeline.UI
         /// <summary>
         /// Ensure the binding key is unique by appending numbers if needed
         /// </summary>
-        private string EnsureUniqueBindingKey(BindingContext bindingContext, string baseKey)
+        private string EnsureUniqueBindingKey(BindingContextCore bindingContext, string baseKey)
         {
             if (string.IsNullOrEmpty(baseKey)) return null;
 
@@ -1196,10 +1445,6 @@ namespace MiniTimeline.UI
             }
         }
 
-        #endregion
-
-        #region Save/Load Project Methods
-
         /// <summary>
         /// Show the save project form
         /// </summary>
@@ -1251,7 +1496,7 @@ namespace MiniTimeline.UI
             };
 
             // Show the save form
-            FormSubmitPanel.Instance.Show(
+            FormSubmitPanelUIToolkit.Instance.Show(
                 "Save Timeline Project",
                 fieldDefinitions,
                 OnSaveProjectFormSubmitted,
@@ -1372,7 +1617,7 @@ namespace MiniTimeline.UI
             };
 
             // Show the load form
-            FormSubmitPanel.Instance.Show(
+            FormSubmitPanelUIToolkit.Instance.Show(
                 "Load Timeline Project",
                 fieldDefinitions,
                 OnLoadProjectFormSubmitted,
@@ -1527,6 +1772,24 @@ namespace MiniTimeline.UI
             display += "Use the dropdown above to select a file, or enter a filename manually.";
 
             return display;
+        }
+
+        /// <summary>
+        /// Select a track in the timeline
+        /// </summary>
+        public void SelectTrack(IMiniTrack track)
+        {
+            // TODO: Implement track selection logic
+            Debug.Log($"Track selected: {track.Id}");
+        }
+
+        /// <summary>
+        /// Show context menu for a track at the specified screen position
+        /// </summary>
+        public void ShowTrackContextMenu(IMiniTrack track, Vector2 screenPosition)
+        {
+            // TODO: Implement track context menu
+            Debug.Log($"Show context menu for track: {track.Id} at position: {screenPosition}");
         }
 
         #endregion

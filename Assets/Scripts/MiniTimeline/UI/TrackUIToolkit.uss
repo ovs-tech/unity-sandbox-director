@@ -1,0 +1,357 @@
+/* Track UI Toolkit Styles */
+
+/* Track Root Container */
+.track {
+    flex-direction: row;
+    height: 60px;
+    min-height: 40px;
+    max-height: 120px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(35, 35, 35);
+    background-color: rgb(45, 45, 45);
+    position: relative;
+}
+
+.track:hover {
+    background-color: rgb(48, 48, 48);
+}
+
+.track.selected {
+    background-color: rgb(55, 55, 65);
+    border-bottom-color: rgb(100, 150, 255);
+    border-bottom-width: 2px;
+}
+
+.track.disabled {
+    opacity: 0.5;
+    background-color: rgb(35, 35, 35);
+}
+
+/* Track Header */
+.track-header {
+    width: 200px;
+    min-width: 150px;
+    max-width: 300px;
+    background-color: rgb(50, 50, 50);
+    border-right-width: 1px;
+    border-right-color: rgb(35, 35, 35);
+    flex-direction: column;
+    padding: 5px;
+    justify-content: space-between;
+}
+
+.track-header:hover {
+    background-color: rgb(55, 55, 55);
+}
+
+/* Track Controls */
+.track-controls {
+    flex-direction: row;
+    height: 20px;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.track-enabled-toggle {
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+}
+
+.track-enabled-toggle .unity-toggle__checkmark {
+    background-color: rgb(80, 160, 80);
+    border-radius: 2px;
+    border-width: 1px;
+    border-color: rgb(60, 140, 60);
+}
+
+.track-enabled-toggle:checked .unity-toggle__checkmark {
+    background-color: rgb(100, 180, 100);
+    border-color: rgb(80, 160, 80);
+}
+
+.track-button {
+    width: 20px;
+    height: 16px;
+    margin-left: 2px;
+    margin-right: 2px;
+    background-color: rgb(60, 60, 60);
+    border-color: rgb(80, 80, 80);
+    border-width: 1px;
+    border-radius: 2px;
+    color: rgb(180, 180, 180);
+    font-size: 10px;
+    padding: 0;
+    -unity-text-align: middle-center;
+}
+
+.track-button:hover {
+    background-color: rgb(70, 70, 70);
+    border-color: rgb(100, 100, 100);
+}
+
+.track-button:active {
+    background-color: rgb(50, 50, 50);
+}
+
+.track-mute-button.active {
+    background-color: rgb(160, 80, 80);
+    border-color: rgb(180, 100, 100);
+    color: white;
+}
+
+.track-solo-button.active {
+    background-color: rgb(160, 160, 80);
+    border-color: rgb(180, 180, 100);
+    color: white;
+}
+
+.track-menu-button {
+    margin-left: auto;
+    font-size: 12px;
+}
+
+/* Track Info */
+.track-info {
+    flex-grow: 1;
+    justify-content: center;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.track-title {
+    color: rgb(220, 220, 220);
+    font-size: 12px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.track-bind-key {
+    color: rgb(150, 150, 150);
+    font-size: 10px;
+    -unity-text-align: middle-left;
+    margin-bottom: 1px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.track-type {
+    color: rgb(120, 120, 120);
+    font-size: 9px;
+    -unity-text-align: middle-left;
+    text-transform: uppercase;
+}
+
+/* Track Menu */
+.track-menu {
+    height: 20px;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+/* Track Content */
+.track-content {
+    flex-grow: 1;
+    position: relative;
+    background-color: rgb(42, 42, 42);
+    overflow: hidden;
+}
+
+.track-content:hover {
+    background-color: rgb(45, 45, 45);
+}
+
+/* Track Timeline */
+.track-timeline {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+/* Track Grid */
+.track-grid {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0.1;
+    pointer-events: none;
+}
+
+.track-grid .grid-line {
+    position: absolute;
+    width: 1px;
+    height: 100%;
+    background-color: rgb(150, 150, 150);
+}
+
+/* Clips Container */
+.clips-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+}
+
+/* Track Lanes */
+.track-lanes {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    pointer-events: none;
+}
+
+.track-lane {
+    flex-grow: 1;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(100, 100, 100, 0.1);
+}
+
+.track-lane:last-child {
+    border-bottom-width: 0;
+}
+
+/* Track Resize Handle */
+.track-resize-handle {
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background-color: transparent;
+    cursor: resize-vertical;
+}
+
+.track-resize-handle:hover {
+    background-color: rgba(100, 150, 255, 0.3);
+}
+
+/* Track Type Specific Styling */
+.track.anim .track-title::before {
+    content: "🎭 ";
+    font-size: 10px;
+}
+
+.track.audio .track-title::before {
+    content: "🔊 ";
+    font-size: 10px;
+}
+
+.track.camera .track-title::before {
+    content: "📷 ";
+    font-size: 10px;
+}
+
+.track.custom .track-title::before {
+    content: "⚙️ ";
+    font-size: 10px;
+}
+
+/* Track States */
+.track.muted {
+    opacity: 0.6;
+}
+
+.track.muted .track-content {
+    background-color: rgb(35, 35, 35);
+}
+
+.track.solo .track-content {
+    box-shadow: inset 0 0 0 2px rgb(160, 160, 80);
+}
+
+.track.recording {
+    box-shadow: inset 0 0 0 2px rgb(255, 100, 100);
+}
+
+.track.recording .track-header {
+    background-color: rgb(80, 40, 40);
+}
+
+/* Drag and Drop States */
+.track.drag-over {
+    background-color: rgba(100, 150, 255, 0.2);
+    border-color: rgb(100, 150, 255);
+}
+
+.track.drag-target {
+    box-shadow: inset 0 0 0 2px rgba(100, 150, 255, 0.8);
+}
+
+/* Focus and Selection States */
+.track:focus {
+    outline: none;
+    box-shadow: inset 0 0 0 1px rgb(100, 150, 255);
+}
+
+.track.multi-selected {
+    background-color: rgba(100, 150, 255, 0.1);
+    border-left-width: 3px;
+    border-left-color: rgb(100, 150, 255);
+}
+
+/* Compact Mode */
+.track.compact {
+    height: 40px;
+}
+
+.track.compact .track-header {
+    width: 120px;
+}
+
+.track.compact .track-title {
+    font-size: 11px;
+}
+
+.track.compact .track-bind-key,
+.track.compact .track-type {
+    display: none;
+}
+
+.track.compact .track-controls {
+    height: 16px;
+}
+
+.track.compact .track-button {
+    width: 16px;
+    height: 14px;
+    font-size: 9px;
+}
+
+/* Expanded Mode */
+.track.expanded {
+    height: 120px;
+}
+
+.track.expanded .track-lanes {
+    opacity: 1;
+}
+
+.track.expanded .track-lane {
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(100, 100, 100, 0.2);
+}
+
+/* Animation States */
+.track {
+    transition-property: height, background-color, opacity;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-out;
+}
+
+.track-header {
+    transition-property: background-color, width;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-out;
+}
+
+.track-content {
+    transition-property: background-color;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-out;
+}

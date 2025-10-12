@@ -1,6 +1,7 @@
 using System.Linq;
 using Core.Behaviors.Command;
 using MiniTimeline.Core;
+using MiniTimeline.UI;
 using UnityEngine;
 
 namespace MiniTimeline.UI.Commands
@@ -13,10 +14,10 @@ namespace MiniTimeline.UI.Commands
     {
         private readonly MiniTimelineDirector director;
         private readonly TrackData trackData;
-        private readonly TimelineEditorUI editorUI;
+        private readonly ITimelineEditorUI editorUI;
         private IMiniTrack createdTrack;
 
-        public AddTrackCommand(MiniTimelineDirector timelineDirector, TrackData data, TimelineEditorUI editor)
+        public AddTrackCommand(MiniTimelineDirector timelineDirector, TrackData data, ITimelineEditorUI editor)
             : base($"Add {data.type} Track")
         {
             director = timelineDirector;
