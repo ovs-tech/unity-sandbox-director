@@ -3,6 +3,7 @@ using UnityEngine;
 using MiniTimeline.Core;
 using UMA.PoseTools;
 using Core.UI.FormSubmit;
+using Core.UI.FormSubmit.Fields;
 
 namespace MiniTimeline.UI.FormDefinitions
 {
