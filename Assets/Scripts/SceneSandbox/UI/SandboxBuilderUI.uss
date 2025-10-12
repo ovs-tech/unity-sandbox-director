@@ -1,0 +1,115 @@
+/* General Panel Styling */
+.panel {
+    background-color: rgba(30, 35, 40, 0.9);
+    border-color: rgba(100, 100, 100, 0.5);
+    border-width: 1px;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.panel-header {
+    -unity-font-style: bold;
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: rgb(220, 220, 220);
+}
+
+/* Floating Panels */
+.floating-panel {
+    position: absolute;
+    width: 280px;
+    min-height: 200px;
+    max-height: 80%;
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+.floating-panel.left {
+    left: 10px;
+    top: 10px;
+}
+
+.floating-panel.right {
+    right: 10px;
+    top: 10px;
+}
+
+/* Bottom Controls Bar */
+.bottom-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background-color: rgba(20, 25, 30, 0.95);
+    border-top-width: 2px;
+    border-top-color: rgba(120, 120, 120, 0.7);
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+}
+
+.bottom-bar-section {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.bottom-bar-section.center {
+    flex-grow: 1;
+}
+
+.bottom-bar-section.right {
+    justify-content: flex-end;
+}
+
+/* Mode Buttons (Build, Inspect) */
+.mode-button {
+    width: 70px;
+    height: 50px;
+    font-size: 14px;
+    -unity-font-style: bold;
+    margin: 0 5px;
+    background-color: rgba(60, 65, 70, 1);
+}
+
+.mode-button:hover {
+    background-color: rgba(80, 85, 90, 1);
+}
+
+.mode-button:active {
+    background-color: rgba(50, 55, 60, 1);
+}
+
+/* Info Labels */
+.info-label {
+    font-size: 12px;
+    color: rgb(180, 180, 180);
+    margin: 0 15px;
+}
+
+/* Action Buttons (Project, Scene, Preview) */
+.bottom-bar .right Button {
+    margin-left: 10px;
+    padding: 8px 15px;
+}
+
+/* Dialog Container */
+.dialog-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0,0,0,0.6);
+}
+
+.dialog-panel {
+    width: 400px;
+    min-height: 150px;
+    background-color: rgba(40, 45, 50, 1);
+    padding: 20px;
+    border-radius: 10px;
+}

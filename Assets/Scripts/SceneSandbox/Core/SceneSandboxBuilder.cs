@@ -595,6 +595,12 @@ namespace SceneSandbox.Core
             return SandboxProjectSerializer.GetProjectsInDirectory(_defaultProjectSavePath, "*.sbproj");
         }
 
+        public List<string> GetAvailableScenes()
+        {
+            if (_currentProject == null) return new List<string>();
+            return SandboxProjectSerializer.GetAvailableScenes(GetDefaultProjectSavePath());
+        }
+
         /// <summary>
         /// Get project information for display in UI
         /// </summary>

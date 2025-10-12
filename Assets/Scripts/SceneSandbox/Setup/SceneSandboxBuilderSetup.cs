@@ -32,7 +32,7 @@ namespace SceneSandbox.Setup
         private Core.SceneSandboxBuilder sandboxBuilder;
         private SandboxInputHandler inputHandler;
         private ObjectPalette objectPalette;
-        private SandboxBuilderUI builderUI;
+        private SandboxBuilderUIToolkit builderUI;
         
         private void Start()
         {
@@ -117,16 +117,14 @@ namespace SceneSandbox.Setup
             if (sandboxBuilderUIPrefab != null)
             {
                 GameObject uiObject = Instantiate(sandboxBuilderUIPrefab, uiCanvas);
-                builderUI = uiObject.GetComponent<SandboxBuilderUI>();
-                // Note: SandboxBuilderUI expects references to be assigned in inspector
+                uiObject.AddComponent<SandboxBuilderUIToolkitSetup>();
             }
             else
             {
                 // Create basic builder UI
                 GameObject uiObject = new GameObject("SandboxBuilderUI");
                 uiObject.transform.SetParent(uiCanvas);
-                builderUI = uiObject.AddComponent<SandboxBuilderUI>();
-                // Note: SandboxBuilderUI expects references to be assigned in inspector
+                uiObject.AddComponent<SandboxBuilderUIToolkitSetup>();
             }
         }
         

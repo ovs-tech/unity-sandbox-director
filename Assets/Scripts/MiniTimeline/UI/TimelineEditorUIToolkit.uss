@@ -1,0 +1,420 @@
+/* Timeline Editor UI Toolkit Styles */
+
+/* Root Timeline Editor Container */
+.timeline-editor {
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(45, 45, 45);
+}
+
+/* Controls Container */
+.controls-container {
+    flex-direction: row;
+    height: 40px;
+    background-color: rgb(60, 60, 60);
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(35, 35, 35);
+    padding-left: 5px;
+    padding-right: 5px;
+    align-items: center;
+}
+
+/* Control Buttons */
+.control-button {
+    height: 30px;
+    margin-left: 2px;
+    margin-right: 2px;
+    background-color: rgb(70, 70, 70);
+    border-color: rgb(85, 85, 85);
+    border-width: 1px;
+    border-radius: 3px;
+    color: rgb(200, 200, 200);
+    -unity-font-style: normal;
+    font-size: 12px;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.control-button:hover {
+    background-color: rgb(80, 80, 80);
+    border-color: rgb(100, 100, 100);
+}
+
+.control-button:active {
+    background-color: rgb(60, 60, 60);
+}
+
+.control-button:disabled {
+    background-color: rgb(50, 50, 50);
+    color: rgb(120, 120, 120);
+    border-color: rgb(70, 70, 70);
+}
+
+/* Playback Controls */
+.playback-controls {
+    flex-direction: row;
+    margin-right: 10px;
+}
+
+/* Time Controls */
+.time-controls {
+    flex-direction: row;
+    flex-grow: 1;
+    align-items: center;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.time-slider {
+    flex-grow: 1;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.time-label {
+    width: 80px;
+    color: rgb(200, 200, 200);
+    font-size: 12px;
+    -unity-text-align: middle-center;
+}
+
+/* Timeline Container */
+.timeline-container {
+    flex-grow: 1;
+    background-color: rgb(40, 40, 40);
+    position: relative;
+}
+
+/* Timeline Scroll View */
+#timeline-scroll {
+    flex-grow: 1;
+}
+
+/* Ruler Container */
+.ruler-container {
+    height: 30px;
+    background-color: rgb(55, 55, 55);
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(30, 30, 30);
+    flex-direction: row;
+    position: relative;
+}
+
+/* Ruler */
+.ruler {
+    width: 100%;
+    height: 100%;
+    flex-direction: row;
+    position: relative;
+}
+
+.ruler-marker {
+    position: absolute;
+    height: 100%;
+    border-left-width: 1px;
+    border-left-color: rgb(100, 100, 100);
+    justify-content: flex-end;
+    align-items: flex-start;
+}
+
+.ruler-label {
+    color: rgb(180, 180, 180);
+    font-size: 10px;
+    margin-left: 2px;
+    margin-top: 2px;
+    -unity-font-style: normal;
+}
+
+/* Tracks Container */
+.tracks-container {
+    flex-grow: 1;
+    background-color: rgb(42, 42, 42);
+    flex-direction: column;
+}
+
+/* Track */
+.track {
+    height: 60px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(35, 35, 35);
+    flex-direction: row;
+    background-color: rgb(45, 45, 45);
+    position: relative;
+}
+
+.track:hover {
+    background-color: rgb(48, 48, 48);
+}
+
+/* Track Header */
+.track-header {
+    width: 150px;
+    background-color: rgb(50, 50, 50);
+    border-right-width: 1px;
+    border-right-color: rgb(35, 35, 35);
+    padding: 5px;
+    justify-content: center;
+}
+
+.track-title {
+    color: rgb(200, 200, 200);
+    font-size: 12px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+}
+
+.track-bind-key {
+    color: rgb(150, 150, 150);
+    font-size: 10px;
+    -unity-text-align: middle-left;
+}
+
+/* Track Content */
+.track-content {
+    flex-grow: 1;
+    position: relative;
+    background-color: rgb(42, 42, 42);
+}
+
+/* Clip */
+.clip {
+    position: absolute;
+    height: 40px;
+    top: 10px;
+    background-color: rgb(80, 120, 160);
+    border-color: rgb(60, 100, 140);
+    border-width: 1px;
+    border-radius: 3px;
+    justify-content: center;
+    align-items: center;
+}
+
+.clip:hover {
+    background-color: rgb(90, 130, 170);
+    border-color: rgb(70, 110, 150);
+}
+
+.clip.selected {
+    background-color: rgb(100, 140, 180);
+    border-color: rgb(120, 160, 200);
+    border-width: 2px;
+}
+
+.clip-label {
+    color: white;
+    font-size: 11px;
+    -unity-text-align: middle-center;
+    margin: 2px;
+}
+
+/* Clip Types */
+.clip.anim {
+    background-color: rgb(80, 160, 80);
+    border-color: rgb(60, 140, 60);
+}
+
+.clip.audio {
+    background-color: rgb(160, 80, 80);
+    border-color: rgb(140, 60, 60);
+}
+
+.clip.camera {
+    background-color: rgb(160, 160, 80);
+    border-color: rgb(140, 140, 60);
+}
+
+.clip.custom {
+    background-color: rgb(160, 80, 160);
+    border-color: rgb(140, 60, 140);
+}
+
+/* Playhead */
+.playhead {
+    position: absolute;
+    width: 2px;
+    height: 100%;
+    background-color: rgb(255, 100, 100);
+    z-index: 1000;
+}
+
+/* Context Menu */
+.context-menu {
+    position: absolute;
+    background-color: rgb(60, 60, 60);
+    border-color: rgb(100, 100, 100);
+    border-width: 1px;
+    border-radius: 3px;
+    padding: 5px;
+    min-width: 120px;
+}
+
+.context-menu-item {
+    height: 25px;
+    padding-left: 8px;
+    padding-right: 8px;
+    justify-content: center;
+    align-items: flex-start;
+    color: rgb(200, 200, 200);
+    font-size: 12px;
+}
+
+.context-menu-item:hover {
+    background-color: rgb(80, 80, 80);
+}
+
+.context-menu-separator {
+    height: 1px;
+    background-color: rgb(80, 80, 80);
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+/* Scrollbars */
+.unity-scroller {
+    background-color: rgb(35, 35, 35);
+}
+
+.unity-scroller .unity-slider {
+    background-color: rgb(50, 50, 50);
+}
+
+.unity-scroller .unity-slider .unity-dragger {
+    background-color: rgb(100, 100, 100);
+    border-radius: 5px;
+}
+
+.unity-scroller .unity-slider .unity-dragger:hover {
+    background-color: rgb(120, 120, 120);
+}
+
+/* Timeline Grid */
+.timeline-grid {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0.1;
+}
+
+.grid-line {
+    position: absolute;
+    background-color: rgb(150, 150, 150);
+    width: 1px;
+    height: 100%;
+}
+
+/* Selection Rectangle */
+.selection-rectangle {
+    position: absolute;
+    border-color: rgb(100, 150, 255);
+    border-width: 1px;
+    background-color: rgba(100, 150, 255, 0.2);
+}
+
+/* Drag Preview */
+.drag-preview {
+    position: absolute;
+    opacity: 0.7;
+    border-style: dashed;
+    border-width: 1px;
+    border-color: rgb(200, 200, 200);
+}
+
+/* Resize Handles */
+.resize-handle {
+    position: absolute;
+    width: 6px;
+    height: 100%;
+    background-color: transparent;
+    cursor: resize-horizontal;
+}
+
+.resize-handle.left {
+    left: -3px;
+}
+
+.resize-handle.right {
+    right: -3px;
+}
+
+.resize-handle:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Status Bar */
+.status-bar {
+    height: 20px;
+    background-color: rgb(35, 35, 35);
+    border-top-width: 1px;
+    border-top-color: rgb(25, 25, 25);
+    flex-direction: row;
+    align-items: center;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.status-text {
+    color: rgb(180, 180, 180);
+    font-size: 11px;
+}
+
+/* Zoom Controls */
+.zoom-controls {
+    flex-direction: row;
+    align-items: center;
+}
+
+.zoom-slider {
+    width: 100px;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+/* Loading Indicator */
+.loading-indicator {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    border-width: 3px;
+    border-color: rgb(100, 150, 255);
+    border-top-color: transparent;
+}
+
+/* Error Messages */
+.error-message {
+    background-color: rgb(120, 40, 40);
+    border-color: rgb(160, 60, 60);
+    border-width: 1px;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 3px;
+}
+
+.error-text {
+    color: rgb(255, 200, 200);
+    font-size: 12px;
+}
+
+/* Success Messages */
+.success-message {
+    background-color: rgb(40, 120, 40);
+    border-color: rgb(60, 160, 60);
+    border-width: 1px;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 3px;
+}
+
+.success-text {
+    color: rgb(200, 255, 200);
+    font-size: 12px;
+}

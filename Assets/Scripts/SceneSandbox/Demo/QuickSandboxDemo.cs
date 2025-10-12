@@ -156,12 +156,12 @@ namespace SceneSandbox.Demo
             return palette;
         }
         
-        private SandboxBuilderUI CreateSandboxBuilderUI(Transform canvasTransform)
+        private SandboxBuilderUIToolkit CreateSandboxBuilderUI(Transform canvasTransform)
         {
             var uiGO = new GameObject("Sandbox Builder UI");
             uiGO.transform.SetParent(canvasTransform, false);
             
-            var builderUI = uiGO.AddComponent<SandboxBuilderUI>();
+            var builderUI = uiGO.AddComponent<SandboxBuilderUIToolkit>();
             
             return builderUI;
         }
@@ -254,7 +254,7 @@ namespace SceneSandbox.Demo
         /// <summary>
         /// Link the sandbox builder to UI components using reflection
         /// </summary>
-        private void LinkSandboxBuilderToUI(Core.SceneSandboxBuilder sandboxBuilder, ObjectPalette objectPalette, SandboxBuilderUI builderUI)
+        private void LinkSandboxBuilderToUI(Core.SceneSandboxBuilder sandboxBuilder, ObjectPalette objectPalette, SandboxBuilderUIToolkit builderUI)
         {
             // Link sandbox builder to object palette
             var sandboxBuilderField = typeof(ObjectPalette).GetField("_sandboxBuilder", 
@@ -265,7 +265,7 @@ namespace SceneSandbox.Demo
             }
             
             // Link sandbox builder to builder UI
-            var builderField = typeof(SandboxBuilderUI).GetField("_sandboxBuilder", 
+            var builderField = typeof(SandboxBuilderUIToolkit).GetField("_sandboxBuilder",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (builderField != null)
             {

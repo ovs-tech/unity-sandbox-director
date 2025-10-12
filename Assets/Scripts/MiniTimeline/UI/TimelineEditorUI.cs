@@ -17,7 +17,7 @@ namespace MiniTimeline.UI
     /// <summary>
     /// Main in-game timeline editor UI
     /// </summary>
-    public class TimelineEditorUI : MonoBehaviour
+    public class TimelineEditorUI : MonoBehaviour, ITimelineEditorUI
     {
         [Header("UI References")]
         [SerializeField] private Canvas editorCanvas;

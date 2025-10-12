@@ -1,0 +1,64 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="sandbox-builder-ui" style="flex-grow: 1;">
+
+        <!-- Main Content Area for Panels -->
+        <ui:VisualElement name="panels-container" style="position: absolute; top: 10px; left: 10px; right: 10px; bottom: 90px; flex-direction: row; justify-content: space-between; align-items: stretch; pointer-events: none;">
+
+            <!-- Left Panel: Object Palette (Now a floating panel, toggled) -->
+            <ui:VisualElement name="object-palette" class="panel floating-panel left" style="display: none; pointer-events: auto;">
+                <ui:Label text="Object Catalog" class="panel-header" />
+                <ui:DropdownField name="type-filter" label="Type" />
+                <ui:DropdownField name="category-filter" label="Category" />
+                <ui:TextField name="search-field" label="Search" />
+                <ui:ScrollView name="object-palette-scroll-view" />
+            </ui:VisualElement>
+
+            <!-- Right Panel: Properties (Now a floating panel, toggled) -->
+            <ui:VisualElement name="properties-panel" class="panel floating-panel right" style="display: none; pointer-events: auto;">
+                <ui:Label text="Properties" class="panel-header" />
+                <ui:ScrollView>
+                    <ui:VisualElement name="object-controls">
+                        <ui:Button name="delete-object-button" text="Delete Selected" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="transform-controls" />
+                    <ui:VisualElement name="grid-controls">
+                        <ui:Toggle name="snap-to-grid-toggle" label="Snap to Grid" />
+                        <ui:Slider name="grid-size-slider" label="Grid Size" low-value="0.1" high-value="10.0" />
+                        <ui:Label name="grid-size-text" text="1.0" />
+                    </ui:VisualElement>
+                </ui:ScrollView>
+            </ui:VisualElement>
+
+        </ui:VisualElement>
+
+        <!-- Bottom Controls Bar -->
+        <ui:VisualElement name="bottom-bar" class="bottom-bar">
+            <!-- Left Section: Mode Toggles -->
+            <ui:VisualElement name="mode-controls" class="bottom-bar-section">
+                <ui:Button name="build-mode-button" text="Build" tooltip="Toggle Object Catalog" class="mode-button" />
+                <ui:Button name="inspect-button" text="Inspect" tooltip="Toggle Properties Panel" class="mode-button" />
+            </ui:VisualElement>
+
+            <!-- Center Section: Project/Scene Info & Controls -->
+            <ui:VisualElement name="info-controls" class="bottom-bar-section center">
+                 <ui:Label name="current-project-text" class="info-label" />
+                 <ui:Label name="scene-name-text" class="info-label" />
+                 <ui:Label name="object-count-text" class="info-label" />
+            </ui:VisualElement>
+
+            <!-- Right Section: Main Actions & Preview -->
+            <ui:VisualElement name="action-controls" class="bottom-bar-section right">
+                <ui:Button name="project-button" text="Project" />
+                <ui:Button name="scene-button" text="Scene" />
+                <ui:Button name="preview-button" text="Preview" />
+                <ui:Button name="stop-preview-button" text="Stop Preview" style="display:none;" />
+                <ui:Label name="preview-status-text" class="info-label" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- Dialog Container -->
+        <ui:VisualElement name="dialog-container" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; justify-content: center; align-items: center; display: none; background-color: rgba(0,0,0,0.5); pointer-events: auto;">
+             <!-- Dialogs will be added here by the script -->
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

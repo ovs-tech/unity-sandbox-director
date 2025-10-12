@@ -248,6 +248,21 @@ namespace SceneSandbox.Serialization
         /// <param name="directoryPath">Directory to scan</param>
         /// <param name="searchPattern">File pattern to search for</param>
         /// <returns>List of project metadata</returns>
+        public static List<string> GetAvailableScenes(string projectPath)
+        {
+            var scenes = new List<string>();
+            var scenesDir = Path.Combine(Path.GetDirectoryName(projectPath), "Scenes");
+
+            if (!Directory.Exists(scenesDir)) return scenes;
+
+            var sceneFiles = Directory.GetFiles(scenesDir, "*.json");
+            foreach (var file in sceneFiles)
+            {
+                scenes.Add(Path.GetFileNameWithoutExtension(file));
+            }
+            return scenes;
+        }
+
         public static List<SandboxProjectMetadata> GetProjectsInDirectory(string directoryPath, string searchPattern = "*.sbproj")
         {
             var projects = new List<SandboxProjectMetadata>();

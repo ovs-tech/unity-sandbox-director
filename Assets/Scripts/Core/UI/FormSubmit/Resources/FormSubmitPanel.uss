@@ -1,0 +1,272 @@
+/* Form Submit Panel Styles */
+
+.form-background {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+}
+
+.form-container {
+    width: 480px;
+    height: 320px;
+    min-height: 300px;
+    max-height: 80%;
+    background-color: rgba(51, 51, 51, 0.95);
+    border-radius: 8px;
+    flex-direction: column;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Header Styles */
+.form-header {
+    height: 50px;
+    flex-direction: row;
+    align-items: center;
+    padding-left: 15px;
+    padding-right: 15px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(0, 0, 0, 0.2);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.form-title {
+    font-size: 18px;
+    color: rgb(255, 255, 255);
+    flex-grow: 1;
+    -unity-font-style: bold;
+}
+
+.form-close-button {
+    width: 30px;
+    height: 30px;
+    font-size: 20px;
+    color: rgb(255, 255, 255);
+    background-color: rgba(204, 51, 51, 0.8);
+    border-radius: 4px;
+    border-width: 0;
+}
+
+.form-close-button:hover {
+    background-color: rgba(204, 51, 51, 1);
+}
+
+.form-close-button:active {
+    background-color: rgba(153, 38, 38, 1);
+}
+
+/* Content Area Styles */
+.form-scroll-view {
+    flex-grow: 1;
+    margin: 0;
+    padding: 0;
+}
+
+.form-fields-container {
+    padding: 10px;
+    flex-direction: column;
+}
+
+/* Footer Styles */
+.form-footer {
+    height: 50px;
+    flex-direction: row;
+    align-items: center;
+    padding-left: 15px;
+    padding-right: 15px;
+    border-top-width: 1px;
+    border-top-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(0, 0, 0, 0.2);
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.form-cancel-button {
+    flex-grow: 1;
+    height: 35px;
+    margin-right: 10px;
+    background-color: rgba(128, 128, 128, 0.8);
+    color: rgb(255, 255, 255);
+    border-radius: 4px;
+    border-width: 0;
+}
+
+.form-cancel-button:hover {
+    background-color: rgba(128, 128, 128, 1);
+}
+
+.form-cancel-button:active {
+    background-color: rgba(96, 96, 96, 1);
+}
+
+.form-submit-button {
+    flex-grow: 1;
+    height: 35px;
+    background-color: rgba(51, 153, 204, 0.8);
+    color: rgb(255, 255, 255);
+    border-radius: 4px;
+    border-width: 0;
+}
+
+.form-submit-button:hover {
+    background-color: rgba(51, 153, 204, 1);
+}
+
+.form-submit-button:active {
+    background-color: rgba(38, 115, 153, 1);
+}
+
+/* Field Container Styles */
+.field-container {
+    margin-bottom: 10px;
+    flex-direction: column;
+}
+
+.field-label {
+    color: rgb(255, 255, 255);
+    font-size: 14px;
+    margin-bottom: 5px;
+    -unity-font-style: normal;
+}
+
+.field-input {
+    height: 30px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    border-width: 1px;
+    border-radius: 4px;
+    color: rgb(255, 255, 255);
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.field-input:focus {
+    border-color: rgba(51, 153, 204, 0.8);
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.field-textarea {
+    min-height: 80px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    border-width: 1px;
+    border-radius: 4px;
+    color: rgb(255, 255, 255);
+    padding: 8px;
+}
+
+.field-textarea:focus {
+    border-color: rgba(51, 153, 204, 0.8);
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.field-toggle {
+    margin-right: 10px;
+}
+
+.field-slider {
+    height: 20px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.field-color-button {
+    height: 30px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    border-width: 1px;
+    border-radius: 4px;
+    color: rgb(255, 255, 255);
+}
+
+.field-color-button:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.field-button {
+    height: 35px;
+    background-color: rgba(51, 153, 204, 0.8);
+    color: rgb(255, 255, 255);
+    border-radius: 4px;
+    border-width: 0;
+    margin-top: 5px;
+}
+
+.field-button:hover {
+    background-color: rgba(51, 153, 204, 1);
+}
+
+.field-button:active {
+    background-color: rgba(38, 115, 153, 1);
+}
+
+.field-info {
+    height: 30px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+    border-width: 1px;
+    border-radius: 4px;
+    color: rgba(255, 255, 255, 0.7);
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .form-container {
+        width: 90%;
+        height: 90%;
+    }
+}
+
+/* Dark theme variants */
+.unity-theme--dark .field-input {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: rgb(255, 255, 255);
+}
+
+.unity-theme--dark .field-textarea {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: rgb(255, 255, 255);
+}
+
+/* Light theme variants */
+.unity-theme--light .form-container {
+    background-color: rgba(245, 245, 245, 0.95);
+}
+
+.unity-theme--light .form-title {
+    color: rgb(33, 33, 33);
+}
+
+.unity-theme--light .field-label {
+    color: rgb(33, 33, 33);
+}
+
+.unity-theme--light .field-input {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.2);
+    color: rgb(33, 33, 33);
+}
+
+.unity-theme--light .field-textarea {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.2);
+    color: rgb(33, 33, 33);
+}
+
+.unity-theme--light .field-info {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: rgba(33, 33, 33, 0.7);
+}
