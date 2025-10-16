@@ -42,14 +42,14 @@ namespace Core.UI.FormSubmit
             {
                 GameObject uiDocumentObj = new GameObject("FormSubmitUIDocument");
                 uiDocument = uiDocumentObj.AddComponent<UIDocument>();
-                
+
                 // Create a basic panel setup
                 var panelSettings = ScriptableObject.CreateInstance<PanelSettings>();
                 panelSettings.targetTexture = null; // Screen space
                 panelSettings.scaleMode = PanelScaleMode.ConstantPixelSize;
                 panelSettings.screenMatchMode = PanelScreenMatchMode.MatchWidthOrHeight;
                 panelSettings.sortingOrder = 1000;
-                
+
                 uiDocument.panelSettings = panelSettings;
             }
 
@@ -66,7 +66,7 @@ namespace Core.UI.FormSubmit
 
         [Header("UI Document")]
         [SerializeField] private UIDocument uiDocument;
-        
+
         [Header("Visual Assets")]
         [SerializeField] private VisualTreeAsset formPanelTemplate;
         [SerializeField] private StyleSheet formPanelStyleSheet;
@@ -165,6 +165,8 @@ namespace Core.UI.FormSubmit
         {
             // Get or create root element
             rootElement = uiDocument.rootVisualElement;
+            uiDocument.position = Position.Absolute;
+            uiDocument.worldSpaceSizeMode = UIDocument.WorldSpaceSizeMode.Dynamic;
             if (rootElement == null)
             {
                 rootElement = new VisualElement();
@@ -183,161 +185,9 @@ namespace Core.UI.FormSubmit
                 formPanelTemplate.CloneTree(rootElement);
                 SetupUIReferences();
             }
-            else
-            {
-                CreateUIFromCode();
-            }
 
             // Ensure we have all required elements
             ValidateUIElements();
-        }
-
-        private void CreateUIFromCode()
-        {
-            // Create main background panel
-            backgroundPanel = new VisualElement();
-            backgroundPanel.name = "background-panel";
-            backgroundPanel.AddToClassList("form-background");
-            backgroundPanel.style.position = Position.Absolute;
-            backgroundPanel.style.left = 0;
-            backgroundPanel.style.top = 0;
-            backgroundPanel.style.right = 0;
-            backgroundPanel.style.bottom = 0;
-            backgroundPanel.style.backgroundColor = new Color(0f, 0f, 0f, 0.7f);
-            backgroundPanel.style.alignItems = Align.Center;
-            backgroundPanel.style.justifyContent = Justify.Center;
-
-            // Create form container
-            formContainer = new VisualElement();
-            formContainer.name = "form-container";
-            formContainer.AddToClassList("form-container");
-            formContainer.style.width = 400;
-            formContainer.style.height = 500;
-            formContainer.style.backgroundColor = new Color(0.2f, 0.2f, 0.2f, 0.95f);
-            formContainer.style.borderTopLeftRadius = 8;
-            formContainer.style.borderTopRightRadius = 8;
-            formContainer.style.borderBottomLeftRadius = 8;
-            formContainer.style.borderBottomRightRadius = 8;
-            formContainer.style.flexDirection = FlexDirection.Column;
-
-            // Create header
-            CreateHeader();
-
-            // Create scrollable content area
-            CreateScrollableContent();
-
-            // Create footer
-            CreateFooter();
-
-            // Add to hierarchy
-            backgroundPanel.Add(formContainer);
-            rootElement.Add(backgroundPanel);
-        }
-
-        private void CreateHeader()
-        {
-            var header = new VisualElement();
-            header.name = "header";
-            header.AddToClassList("form-header");
-            header.style.height = 50;
-            header.style.flexDirection = FlexDirection.Row;
-            header.style.alignItems = Align.Center;
-            header.style.paddingLeft = 15;
-            header.style.paddingRight = 15;
-
-            // Title text
-            titleText = new Label("Create Clip");
-            titleText.name = "title-text";
-            titleText.AddToClassList("form-title");
-            titleText.style.fontSize = 18;
-            titleText.style.color = Color.white;
-            titleText.style.flexGrow = 1;
-
-            // Close button
-            closeButton = new Button();
-            closeButton.name = "close-button";
-            closeButton.AddToClassList("form-close-button");
-            closeButton.text = "×";
-            closeButton.style.width = 30;
-            closeButton.style.height = 30;
-            closeButton.style.fontSize = 20;
-            closeButton.style.color = Color.white;
-            closeButton.style.backgroundColor = new Color(0.8f, 0.2f, 0.2f, 0.8f);
-            closeButton.style.borderTopLeftRadius = 4;
-            closeButton.style.borderTopRightRadius = 4;
-            closeButton.style.borderBottomLeftRadius = 4;
-            closeButton.style.borderBottomRightRadius = 4;
-
-            header.Add(titleText);
-            header.Add(closeButton);
-            formContainer.Add(header);
-        }
-
-        private void CreateScrollableContent()
-        {
-            // Create scroll view
-            scrollView = new ScrollView();
-            scrollView.name = "scroll-view";
-            scrollView.AddToClassList("form-scroll-view");
-            scrollView.style.flexGrow = 1;
-            scrollView.mode = ScrollViewMode.Vertical;
-
-            // Create fields container
-            fieldsContainer = new VisualElement();
-            fieldsContainer.name = "fields-container";
-            fieldsContainer.AddToClassList("form-fields-container");
-            fieldsContainer.style.paddingTop = 10;
-            fieldsContainer.style.paddingBottom = 10;
-            fieldsContainer.style.paddingLeft = 10;
-            fieldsContainer.style.paddingRight = 10;
-
-            scrollView.Add(fieldsContainer);
-            formContainer.Add(scrollView);
-        }
-
-        private void CreateFooter()
-        {
-            var footer = new VisualElement();
-            footer.name = "footer";
-            footer.AddToClassList("form-footer");
-            footer.style.height = 50;
-            footer.style.flexDirection = FlexDirection.Row;
-            footer.style.alignItems = Align.Center;
-            footer.style.paddingLeft = 15;
-            footer.style.paddingRight = 15;
-
-            // Cancel button
-            cancelButton = new Button();
-            cancelButton.name = "cancel-button";
-            cancelButton.AddToClassList("form-cancel-button");
-            cancelButton.text = "Cancel";
-            cancelButton.style.flexGrow = 1;
-            cancelButton.style.height = 35;
-            cancelButton.style.marginRight = 10;
-            cancelButton.style.backgroundColor = new Color(0.5f, 0.5f, 0.5f, 0.8f);
-            cancelButton.style.color = Color.white;
-            cancelButton.style.borderTopLeftRadius = 4;
-            cancelButton.style.borderTopRightRadius = 4;
-            cancelButton.style.borderBottomLeftRadius = 4;
-            cancelButton.style.borderBottomRightRadius = 4;
-
-            // Submit button
-            submitButton = new Button();
-            submitButton.name = "submit-button";
-            submitButton.AddToClassList("form-submit-button");
-            submitButton.text = "OK";
-            submitButton.style.flexGrow = 1;
-            submitButton.style.height = 35;
-            submitButton.style.backgroundColor = new Color(0.2f, 0.6f, 0.8f, 0.8f);
-            submitButton.style.color = Color.white;
-            submitButton.style.borderTopLeftRadius = 4;
-            submitButton.style.borderTopRightRadius = 4;
-            submitButton.style.borderBottomLeftRadius = 4;
-            submitButton.style.borderBottomRightRadius = 4;
-
-            footer.Add(cancelButton);
-            footer.Add(submitButton);
-            formContainer.Add(footer);
         }
 
         private void SetupUIReferences()
@@ -665,7 +515,7 @@ namespace Core.UI.FormSubmit
             label.style.marginBottom = 5;
 
             var dropdownField = new DropdownField();
-            
+
             // Get options from field definition
             if (fieldDef.options != null && fieldDef.options.ContainsKey("items"))
             {
@@ -731,7 +581,7 @@ namespace Core.UI.FormSubmit
             label.style.marginBottom = 5;
 
             var slider = new Slider();
-            
+
             // Set min/max from options
             if (fieldDef.options != null)
             {
