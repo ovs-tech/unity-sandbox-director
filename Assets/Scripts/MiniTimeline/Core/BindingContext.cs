@@ -324,9 +324,12 @@ namespace MiniTimeline.Core
         public void AutoBind(string prefix = "")
         {
             var bindables = DiscoverAll();
+
+            Debug.Log($"[BindingContext] Auto-binding {bindables.Length} objects with prefix '{prefix}'");
             
             foreach (var bindable in bindables)
             {
+                Debug.Log($"[BindingContext] Found bindable object: {bindable.name} with tags [{bindable.tag}]");
                 var key = string.IsNullOrEmpty(prefix) ? bindable.name : $"{prefix}{bindable.name}";
                 bindings[key] = bindable;
             }

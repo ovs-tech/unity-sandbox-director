@@ -1,9 +1,4 @@
 /* Form Submit Panel Styles */
-.form-submit-panel-root {
-    position: absolute;
-    left: 0px;
-    top: 0px;
-}
 
 .form-background {
     position: absolute;
@@ -44,7 +39,7 @@
 }
 
 .form-title {
-    font-size: 18px;
+    font-size: 14px;
     color: rgb(255, 255, 255);
     flex-grow: 1;
     -unity-font-style: bold;
@@ -136,21 +131,19 @@
 }
 
 .field-label {
-    color: rgb(255, 255, 255);
-    font-size: 14px;
+    color: rgba(255, 255, 255, 1);
+    font-size: 12px;
     margin-bottom: 5px;
     -unity-font-style: normal;
 }
 
 .field-input {
-    height: 30px;
-    background-color: rgba(255, 255, 255, 0.1);
+    height: 40px;
+    font-size: 10px;
     border-color: rgba(255, 255, 255, 0.3);
     border-width: 1px;
     border-radius: 4px;
-    color: rgb(255, 255, 255);
-    padding-left: 8px;
-    padding-right: 8px;
+    color: rgba(0, 0, 0, 1);
 }
 
 .field-input:focus {
