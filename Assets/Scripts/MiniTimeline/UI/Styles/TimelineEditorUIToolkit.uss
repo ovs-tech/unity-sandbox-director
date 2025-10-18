@@ -1,5 +1,7 @@
 /* Timeline Editor UI Toolkit Styles */
 
+@import "project://database/Assets/Scripts/Core/UI/Core/Styles/common.uss";
+
 /* Root Timeline Editor Container */
 .timeline-editor {
     flex-direction: column;
@@ -23,6 +25,7 @@
 /* Control Buttons */
 .control-button {
     height: 30px;
+    width: 30px;
     margin-left: 2px;
     margin-right: 2px;
     background-color: rgb(70, 70, 70);
@@ -30,10 +33,6 @@
     border-width: 1px;
     border-radius: 3px;
     color: rgb(200, 200, 200);
-    -unity-font-style: normal;
-    font-size: 12px;
-    padding-left: 8px;
-    padding-right: 8px;
 }
 
 .control-button:hover {
@@ -94,6 +93,7 @@
 /* Ruler Container */
 .ruler-container {
     height: 30px;
+    margin-left: 200px
     background-color: rgb(55, 55, 55);
     border-bottom-width: 1px;
     border-bottom-color: rgb(30, 30, 30);
@@ -133,141 +133,14 @@
     flex-direction: column;
 }
 
-/* Track */
-.track {
-    height: 60px;
-    border-bottom-width: 1px;
-    border-bottom-color: rgb(35, 35, 35);
-    flex-direction: row;
-    background-color: rgb(45, 45, 45);
-    position: relative;
-}
-
-.track:hover {
-    background-color: rgb(48, 48, 48);
-}
-
-/* Track Header */
-.track-header {
-    width: 150px;
-    background-color: rgb(50, 50, 50);
-    border-right-width: 1px;
-    border-right-color: rgb(35, 35, 35);
-    padding: 5px;
-    justify-content: center;
-}
-
-.track-title {
-    color: rgb(200, 200, 200);
-    font-size: 12px;
-    -unity-font-style: bold;
-    -unity-text-align: middle-left;
-}
-
-.track-bind-key {
-    color: rgb(150, 150, 150);
-    font-size: 10px;
-    -unity-text-align: middle-left;
-}
-
-/* Track Content */
-.track-content {
-    flex-grow: 1;
-    position: relative;
-    background-color: rgb(42, 42, 42);
-}
-
-/* Clip */
-.clip {
-    position: absolute;
-    height: 40px;
-    top: 10px;
-    background-color: rgb(80, 120, 160);
-    border-color: rgb(60, 100, 140);
-    border-width: 1px;
-    border-radius: 3px;
-    justify-content: center;
-    align-items: center;
-}
-
-.clip:hover {
-    background-color: rgb(90, 130, 170);
-    border-color: rgb(70, 110, 150);
-}
-
-.clip.selected {
-    background-color: rgb(100, 140, 180);
-    border-color: rgb(120, 160, 200);
-    border-width: 2px;
-}
-
-.clip-label {
-    color: white;
-    font-size: 11px;
-    -unity-text-align: middle-center;
-    margin: 2px;
-}
-
-/* Clip Types */
-.clip.anim {
-    background-color: rgb(80, 160, 80);
-    border-color: rgb(60, 140, 60);
-}
-
-.clip.audio {
-    background-color: rgb(160, 80, 80);
-    border-color: rgb(140, 60, 60);
-}
-
-.clip.camera {
-    background-color: rgb(160, 160, 80);
-    border-color: rgb(140, 140, 60);
-}
-
-.clip.custom {
-    background-color: rgb(160, 80, 160);
-    border-color: rgb(140, 60, 140);
-}
-
 /* Playhead */
 .playhead {
     position: absolute;
     width: 2px;
     height: 100%;
+    margin-left: 200px;
     background-color: rgb(255, 100, 100);
     z-index: 1000;
-}
-
-/* Context Menu */
-.context-menu {
-    position: absolute;
-    background-color: rgb(60, 60, 60);
-    border-color: rgb(100, 100, 100);
-    border-width: 1px;
-    border-radius: 3px;
-    padding: 5px;
-    min-width: 120px;
-}
-
-.context-menu-item {
-    height: 25px;
-    padding-left: 8px;
-    padding-right: 8px;
-    justify-content: center;
-    align-items: flex-start;
-    color: rgb(200, 200, 200);
-    font-size: 12px;
-}
-
-.context-menu-item:hover {
-    background-color: rgb(80, 80, 80);
-}
-
-.context-menu-separator {
-    height: 1px;
-    background-color: rgb(80, 80, 80);
-    margin-top: 2px;
-    margin-bottom: 2px;
 }
 
 /* Scrollbars */
@@ -343,7 +216,7 @@
 
 /* Status Bar */
 .status-bar {
-    height: 20px;
+    height: 35px;
     background-color: rgb(35, 35, 35);
     border-top-width: 1px;
     border-top-color: rgb(25, 25, 25);
@@ -366,6 +239,7 @@
 
 .zoom-slider {
     width: 100px;
+    height: 35px;
     margin-left: 5px;
     margin-right: 5px;
 }

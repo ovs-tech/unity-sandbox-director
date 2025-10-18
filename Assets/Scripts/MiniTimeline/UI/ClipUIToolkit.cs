@@ -51,6 +51,7 @@ namespace MiniTimeline.UI
         private bool isHovered;
         private bool isDragging;
         private bool isResizing;
+        private bool isMouseDown;
         private ResizeHandle activeResizeHandle = ResizeHandle.None;
         
         // Long press detection
@@ -67,6 +68,8 @@ namespace MiniTimeline.UI
         private float resizeDragStartTime;
         private float resizeDragStartDuration;
         private float resizeStartMouseX;
+        private float currentResizeNewStart;
+        private float currentResizeNewDuration;
         
         // Layout
         private readonly float minClipWidth = 10f;
@@ -459,6 +462,8 @@ namespace MiniTimeline.UI
 
         private void OnClipMouseDown(MouseDownEvent evt)
         {
+            // Debug.Log($"[ClipUI] MouseDown on clip {clip?.Id}, button: {evt.button}");
+            
             if (evt.button == 0) // Left mouse button
             {
                 // Start long press detection
@@ -468,19 +473,30 @@ namespace MiniTimeline.UI
                 var resizeHandle = GetResizeHandleAtPosition(evt.localMousePosition);
                 if (resizeHandle != ResizeHandle.None && isSelected)
                 {
+                    // Debug.Log($"[ClipUI] Starting resize with handle: {resizeHandle}");
                     // Stop long press detection for resize handles
                     StopLongPressDetection();
                     // Start resize operation
                     HandleResizeStart(resizeHandle, evt.localMousePosition);
+                    
+                    // Capture mouse to continue receiving events during resize
+                    clipElement?.CaptureMouse();
                     evt.StopPropagation();
                     return;
                 }
+                
+                // Debug.Log($"[ClipUI] Preparing for drag, selected: {isSelected}");
                 
                 // Handle clip selection
                 HandleClipClick();
                 
                 dragStartPosition = evt.localMousePosition;
                 isDragging = false; // Will be set to true if mouse moves
+                isMouseDown = true;
+                
+                // Capture mouse to continue receiving events during drag
+                clipElement?.CaptureMouse();
+                // Debug.Log($"[ClipUI] Mouse captured: {(clipElement?.panel != null)}");
                 
                 // Notify interaction start
                 OnStartInteraction?.Invoke(this);
@@ -496,14 +512,18 @@ namespace MiniTimeline.UI
 
         private void OnClipMouseMove(MouseMoveEvent evt)
         {
+            // Debug.Log($"[ClipUI] MouseMove: isMouseDown={isMouseDown}, isDragging={isDragging}, isResizing={isResizing}");
+            
             // Check if we should cancel long press due to movement
             if (isLongPressing && !IsWithinLongPressThreshold(evt.mousePosition))
             {
                 StopLongPressDetection();
             }
             
-            if (!isDragging && Vector2.Distance(evt.localMousePosition, dragStartPosition) > 5f)
+            // Only check for drag start if mouse is down and not already dragging/resizing
+            if (isMouseDown && !isDragging && !isResizing && Vector2.Distance(evt.localMousePosition, dragStartPosition) > 5f)
             {
+                // Debug.Log($"[ClipUI] Starting drag, distance: {Vector2.Distance(evt.localMousePosition, dragStartPosition)}");
                 // Stop long press when drag begins
                 StopLongPressDetection();
                 
@@ -514,16 +534,27 @@ namespace MiniTimeline.UI
             
             if (isDragging)
             {
-                HandleDrag(evt.localMousePosition);
+                HandleDrag(evt.mousePosition);
             }
             else if (isResizing)
             {
-                HandleResize(evt.localMousePosition);
+                HandleResize(evt.mousePosition);
             }
         }
 
         private void OnClipMouseUp(MouseUpEvent evt)
         {
+            // Debug.Log($"[ClipUI] MouseUp: isDragging={isDragging}, isResizing={isResizing}");
+            
+            // Release mouse capture
+            if (clipElement?.panel != null)
+            {
+                clipElement.ReleaseMouse();
+            }
+            
+            // Reset mouse down state
+            isMouseDown = false;
+            
             // If long press was triggered, prevent normal click handling
             if (longPressTriggered)
             {
@@ -598,7 +629,7 @@ namespace MiniTimeline.UI
             longPressTriggered = true;
             isLongPressing = false;
             
-            Debug.Log($"Long press detected on clip: {clip?.Id}");
+            // Debug.Log($"Long press detected on clip: {clip?.Id}");
             
             // Trigger the long press event
             OnClipLongPressed?.Invoke(this, longPressStartPosition);
@@ -631,7 +662,7 @@ namespace MiniTimeline.UI
         /// </summary>
         private void ShowClipContextMenu(Vector2 screenPosition, bool fromLongPress = false)
         {
-            Debug.Log($"Showing context menu for clip: {clip?.Id} (long press: {fromLongPress})");
+            // Debug.Log($"Showing context menu for clip: {clip?.Id} (long press: {fromLongPress})");
             
             // Create form fields for clip actions
             var formFields = CreateClipActionFields();
@@ -709,7 +740,7 @@ namespace MiniTimeline.UI
         /// </summary>
         private void OnClipActionCancelled()
         {
-            Debug.Log("Clip action cancelled");
+            // Debug.Log("Clip action cancelled");
         }
         
         /// <summary>
@@ -765,7 +796,7 @@ namespace MiniTimeline.UI
                     "⚠️ Delete Clip",
                     fields,
                     onSubmit: OnDeleteClipSubmitted,
-                    onCancel: () => Debug.Log("Delete clip cancelled"),
+                    onCancel: () => { /* Debug.Log("Delete clip cancelled"); */ },
                     editorUI?.transform
                 );
             }
@@ -778,7 +809,7 @@ namespace MiniTimeline.UI
                 string confirmation = formData["confirm"].ToString();
                 if (confirmation == "DELETE")
                 {
-                    Debug.Log("Clip deletion confirmed");
+                    // Debug.Log("Clip deletion confirmed");
                     // TODO: Execute clip deletion command
                 }
                 else
@@ -794,25 +825,25 @@ namespace MiniTimeline.UI
         
         private void DuplicateClip()
         {
-            Debug.Log($"Duplicating clip: {clip?.Id}");
+            // Debug.Log($"Duplicating clip: {clip?.Id}");
             // TODO: Implement clip duplication
         }
         
         private void SplitClipAtPlayhead()
         {
-            Debug.Log($"Splitting clip at playhead: {clip?.Id}");
+            // Debug.Log($"Splitting clip at playhead: {clip?.Id}");
             // TODO: Implement clip splitting
         }
         
         private void CutClip()
         {
-            Debug.Log($"Cutting clip: {clip?.Id}");
+            // Debug.Log($"Cutting clip: {clip?.Id}");
             // TODO: Implement cut to clipboard
         }
         
         private void CopyClip()
         {
-            Debug.Log($"Copying clip: {clip?.Id}");
+            // Debug.Log($"Copying clip: {clip?.Id}");
             // TODO: Implement copy to clipboard
         }
         
@@ -844,7 +875,7 @@ namespace MiniTimeline.UI
                     "Clip Properties",
                     fields,
                     onSubmit: OnClipPropertiesSubmitted,
-                    onCancel: () => Debug.Log("Clip properties cancelled"),
+                    onCancel: () => { /* Debug.Log("Clip properties cancelled"); */ },
                     editorUI?.transform
                 );
             }
@@ -860,7 +891,7 @@ namespace MiniTimeline.UI
                     float newStart = Convert.ToSingle(formData["start"]);
                     float newDuration = Convert.ToSingle(formData["duration"]);
                     
-                    Debug.Log($"Updating clip properties: {newName}, Start: {newStart}, Duration: {newDuration}");
+                    // Debug.Log($"Updating clip properties: {newName}, Start: {newStart}, Duration: {newDuration}");
                     // TODO: Apply clip property changes through command system
                 }
             }
@@ -953,9 +984,19 @@ namespace MiniTimeline.UI
             }
         }
         
-        private void HandleDrag(Vector2 localPos)
+        private void HandleDrag(Vector2 mousePosition)
         {
-            if (!isDragging || editorUI == null) return;
+            if (!isDragging || editorUI == null || clipElement == null) return;
+            
+            // Convert mouse position to clips container local space
+            var clipsContainer = clipElement.parent;
+            if (clipsContainer == null)
+            {
+                Debug.LogWarning("[ClipUI] Clips container is null, cannot drag");
+                return;
+            }
+            
+            Vector2 localPos = clipsContainer.WorldToLocal(mousePosition);
             
             // Calculate new position based on drag
             float targetX = localPos.x - clipDragOffset;
@@ -963,11 +1004,13 @@ namespace MiniTimeline.UI
             newStartTime = editorUI.SnapTimePublic(newStartTime);
             newStartTime = Mathf.Max(0f, newStartTime);
             
+            // Debug.Log($"[ClipUI] Dragging: mousePos={mousePosition}, localPos={localPos}, targetX={targetX}, newTime={newStartTime}");
+            
             // Update visual position
             UpdateClipVisualTiming(newStartTime, clip.Duration);
             
             // Notify drag event
-            OnClipDragged?.Invoke(this, localPos);
+            OnClipDragged?.Invoke(this, mousePosition);
         }
         
         private void HandleDragEnd()
@@ -990,7 +1033,7 @@ namespace MiniTimeline.UI
                 if (Mathf.Abs(finalStartTime - dragStartTime) > 0.001f)
                 {
                     // TODO: Create move command through the timeline editor
-                    Debug.Log($"Clip moved from {dragStartTime} to {finalStartTime}");
+                    // Debug.Log($"Clip moved from {dragStartTime} to {finalStartTime}");
                 }
                 else
                 {
@@ -1007,59 +1050,89 @@ namespace MiniTimeline.UI
         {
             if (!isSelected || clipElement == null) 
             {
+                // Debug.Log($"[ClipUI] GetResizeHandleAtPosition: not selected or no element");
                 return ResizeHandle.None;
             }
             
-            // Get the clip's local rect for bounds checking
-            Rect clipRect = clipElement.localBound;
+            // Get the clip's content rect for bounds checking
+            Rect clipRect = clipElement.contentRect;
+            float clipWidth = clipRect.width;
             
-            // Check left resize handle
-            if (clipResizeLeft != null && clipResizeLeft.style.display == DisplayStyle.Flex)
+            // Debug.Log($"[ClipUI] GetResizeHandleAtPosition: localPos={localPosition}, clipRect={clipRect}, clipWidth={clipWidth}");
+            
+            // Define edge zones - larger hit area for better UX
+            float edgeZoneWidth = 15f; // Pixels from edge
+            
+            // Check left edge
+            if (localPosition.x >= clipRect.xMin && localPosition.x <= clipRect.xMin + edgeZoneWidth)
             {
-                float handleWidth = 20f; // Generous hit area for touch
-                Rect leftHandleRect = new Rect(clipRect.xMin, clipRect.yMin, handleWidth, clipRect.height);
-                
-                if (leftHandleRect.Contains(localPosition))
-                {
-                    return ResizeHandle.Left;
-                }
+                // Debug.Log($"[ClipUI] Detected LEFT resize handle at x={localPosition.x}");
+                return ResizeHandle.Left;
             }
             
-            // Check right resize handle
-            if (clipResizeRight != null && clipResizeRight.style.display == DisplayStyle.Flex)
+            // Check right edge
+            if (localPosition.x >= clipRect.xMax - edgeZoneWidth && localPosition.x <= clipRect.xMax)
             {
-                float handleWidth = 20f; // Generous hit area for touch
-                Rect rightHandleRect = new Rect(clipRect.xMax - handleWidth, clipRect.yMin, handleWidth, clipRect.height);
-                
-                if (rightHandleRect.Contains(localPosition))
-                {
-                    return ResizeHandle.Right;
-                }
+                // Debug.Log($"[ClipUI] Detected RIGHT resize handle at x={localPosition.x}");
+                return ResizeHandle.Right;
             }
             
+            // Debug.Log($"[ClipUI] No resize handle detected at position");
             return ResizeHandle.None;
         }
         
         private void HandleResizeStart(ResizeHandle handle, Vector2 localPos)
         {
-            if (!isSelected) return;
+            if (!isSelected || clipElement == null) return;
             
-            isResizing = true;
-            activeResizeHandle = handle;
-            resizeDragStartTime = clip.Start;
-            resizeDragStartDuration = clip.Duration;
-            resizeStartMouseX = localPos.x;
-            
-            // Visual feedback
-            clipElement?.AddToClassList("resizing");
+            try
+            {
+                // Convert local position to clips container space
+                var clipsContainer = clipElement.parent;
+                if (clipsContainer == null)
+                {
+                    Debug.LogWarning("[ClipUI] Cannot start resize: clips container is null");
+                    return;
+                }
+                
+                Vector2 containerLocalPos = clipsContainer.WorldToLocal(clipElement.LocalToWorld(localPos));
+                
+                isResizing = true;
+                activeResizeHandle = handle;
+                resizeDragStartTime = clip.Start;
+                resizeDragStartDuration = clip.Duration;
+                resizeStartMouseX = containerLocalPos.x;
+                
+                // Debug.Log($"[ClipUI] Resize started: handle={handle}, startTime={resizeDragStartTime}, duration={resizeDragStartDuration}, mouseX={resizeStartMouseX}");
+                
+                // Visual feedback
+                clipElement?.AddToClassList("resizing");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[ClipUI] Error in HandleResizeStart: {ex.Message}\n{ex.StackTrace}");
+                isResizing = false;
+                activeResizeHandle = ResizeHandle.None;
+            }
         }
         
-        private void HandleResize(Vector2 localPos)
+        private void HandleResize(Vector2 mousePosition)
         {
-            if (!isResizing || editorUI == null) return;
+            if (!isResizing || editorUI == null || clipElement == null) return;
+            
+            // Debug.Log($"[ClipUI] HandleResize: handle={activeResizeHandle}, mousePos={mousePosition}");
+            
+            // Convert mouse position to clips container local space
+            var clipsContainer = clipElement.parent;
+            if (clipsContainer == null) return;
+            
+            Vector2 localPos = clipsContainer.WorldToLocal(mousePosition);
+            // Debug.Log($"[ClipUI] HandleResize localPos: {localPos}, resizeStartMouseX: {resizeStartMouseX}");
             
             float mouseDelta = localPos.x - resizeStartMouseX;
             float timeDelta = editorUI.PositionToTimePublic(mouseDelta);
+            
+            // Debug.Log($"[ClipUI] HandleResize mouseDelta: {mouseDelta}, timeDelta: {timeDelta}");
             
             if (activeResizeHandle == ResizeHandle.Left)
             {
@@ -1071,6 +1144,13 @@ namespace MiniTimeline.UI
                 newStart = editorUI.SnapTimePublic(newStart);
                 newDuration = Mathf.Max(0.1f, originalEnd - newStart);
                 
+                // Debug.Log($"[ClipUI] Resizing LEFT: newStart={newStart}, newDuration={newDuration}");
+                
+                // Store for command execution on mouse up
+                currentResizeNewStart = newStart;
+                currentResizeNewDuration = newDuration;
+                
+                // Update visual only (don't modify clip data yet)
                 UpdateClipVisualStart(newStart, newDuration);
             }
             else if (activeResizeHandle == ResizeHandle.Right)
@@ -1082,10 +1162,17 @@ namespace MiniTimeline.UI
                 endTime = editorUI.SnapTimePublic(endTime);
                 newDuration = Mathf.Max(0.1f, endTime - resizeDragStartTime);
                 
+                // Debug.Log($"[ClipUI] Resizing RIGHT: newDuration={newDuration}");
+                
+                // Store for command execution on mouse up
+                currentResizeNewStart = resizeDragStartTime;
+                currentResizeNewDuration = newDuration;
+                
+                // Update visual only (don't modify clip data yet)
                 UpdateClipVisualDuration(resizeDragStartTime, newDuration);
             }
             
-            OnClipResized?.Invoke(this, 0, 0);
+                OnClipResized?.Invoke(this, 0, 0);
         }
         
         private void HandleResizeEnd()
@@ -1093,14 +1180,38 @@ namespace MiniTimeline.UI
             if (!isResizing) return;
             
             isResizing = false;
+            ResizeHandle endedHandle = activeResizeHandle;
             activeResizeHandle = ResizeHandle.None;
             
             // Remove visual feedback
             clipElement?.RemoveFromClassList("resizing");
             
-            // TODO: Create resize command if there was significant change
-            Debug.Log($"Clip resize completed: {clip.Start} - {clip.Duration}");
+            // Check if there was a significant change
+            bool hasChanged = Mathf.Abs(currentResizeNewStart - resizeDragStartTime) > 0.01f ||
+                            Mathf.Abs(currentResizeNewDuration - resizeDragStartDuration) > 0.01f;
+            
+            if (hasChanged && editorUI != null && parentTrack != null)
+            {
+                // Create and execute resize command for undo/redo support
+                var resizeCommand = new ResizeClipCommand(
+                    clip,
+                    resizeDragStartTime,
+                    resizeDragStartDuration,
+                    currentResizeNewStart,
+                    currentResizeNewDuration,
+                    parentTrack as ITrackUI
+                );
+                
+                editorUI.ExecuteCommand(resizeCommand);
+                
+                // Debug.Log($"[ClipUI] Resize command executed: {resizeDragStartTime},{resizeDragStartDuration} → {currentResizeNewStart},{currentResizeNewDuration}");
+            }
+            else
+            {
+                // Debug.Log($"[ClipUI] Clip resize completed without significant change");
+            }
         }
+        
         
         #endregion
         
@@ -1149,13 +1260,35 @@ namespace MiniTimeline.UI
 
         private void OnResizeLeftMouseDown(MouseDownEvent evt)
         {
-            // TODO: Handle left resize
+            // Debug.Log($"[ClipUI] OnResizeLeftMouseDown called on {clip?.Id}");
+            
+            if (evt.button != 0) return; // Only left mouse button
+            
+            // Capture mouse on clipElement (where MouseMove/MouseUp are registered)
+            clipElement.CaptureMouse();
+            // Debug.Log($"[ClipUI] Mouse captured for LEFT resize: {clipElement.HasMouseCapture()}");
+            
+            // Start resize operation using the proper handler
+            HandleResizeStart(ResizeHandle.Left, evt.localMousePosition);
+            
+            // Stop propagation so clip doesn't also receive the event
             evt.StopPropagation();
         }
 
         private void OnResizeRightMouseDown(MouseDownEvent evt)
         {
-            // TODO: Handle right resize
+            // Debug.Log($"[ClipUI] OnResizeRightMouseDown called on {clip?.Id}");
+            
+            if (evt.button != 0) return; // Only left mouse button
+            
+            // Capture mouse on clipElement (where MouseMove/MouseUp are registered)
+            clipElement.CaptureMouse();
+            // Debug.Log($"[ClipUI] Mouse captured for RIGHT resize: {clipElement.HasMouseCapture()}");
+            
+            // Start resize operation using the proper handler
+            HandleResizeStart(ResizeHandle.Right, evt.localMousePosition);
+            
+            // Stop propagation so clip doesn't also receive the event
             evt.StopPropagation();
         }
 

@@ -13,10 +13,10 @@ namespace MiniTimeline.UI.Commands
         private readonly float oldDuration;
         private readonly float newStartTime;
         private readonly float newDuration;
-        private readonly TrackUI trackUI;
+        private readonly ITrackUI trackUI;
 
         public ResizeClipCommand(IMiniClip clipToResize, float oldStart, float oldDur,
-                               float newStart, float newDur, TrackUI track)
+                               float newStart, float newDur, ITrackUI track)
             : base($"Resize {clipToResize.Id}")
         {
             clip = clipToResize;
@@ -32,8 +32,7 @@ namespace MiniTimeline.UI.Commands
             SetClipTiming(newStartTime, newDuration);
 
             // Update UI
-            var clipUI = trackUI?.GetClipUI(clip.Id);
-            clipUI?.UpdateLayout();
+            trackUI?.RebuildClipUIs();
         }
 
         protected override void UndoInternal()
@@ -41,8 +40,7 @@ namespace MiniTimeline.UI.Commands
             SetClipTiming(oldStartTime, oldDuration);
 
             // Update UI
-            var clipUI = trackUI?.GetClipUI(clip.Id);
-            clipUI?.UpdateLayout();
+            trackUI?.RebuildClipUIs();
         }
 
         public override bool CanMergeWith(ITimelineCommand other)

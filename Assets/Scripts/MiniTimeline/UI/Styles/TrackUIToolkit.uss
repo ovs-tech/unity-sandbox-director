@@ -3,13 +3,15 @@
 /* Track Root Container */
 .track {
     flex-direction: row;
-    height: 60px;
-    min-height: 40px;
-    max-height: 120px;
+    /* allow the track to grow/shrink based on its children (content-driven height) */
+    height: auto;
+    min-height: 60px;
+    width: 100%;
     border-bottom-width: 1px;
     border-bottom-color: rgb(35, 35, 35);
     background-color: rgb(45, 45, 45);
     position: relative;
+    align-items: stretch;
 }
 
 .track:hover {
@@ -30,14 +32,17 @@
 /* Track Header */
 .track-header {
     width: 200px;
+    height: auto;
     min-width: 150px;
     max-width: 300px;
     background-color: rgb(50, 50, 50);
     border-right-width: 1px;
     border-right-color: rgb(35, 35, 35);
     flex-direction: column;
-    padding: 5px;
-    justify-content: space-between;
+    justify-content: flex-start;
+    flex-shrink: 0;
+    position: relative; /* added position relative for absolute children */
+    align-items: stretch;
 }
 
 .track-header:hover {
@@ -47,9 +52,12 @@
 /* Track Controls */
 .track-controls {
     flex-direction: row;
-    height: 20px;
+    min-height: 20px;
     justify-content: flex-start;
     align-items: center;
+    flex-shrink: 0;
+    margin-top: 3px;
+    margin-bottom: 3px;
 }
 
 .track-enabled-toggle {
@@ -113,45 +121,81 @@
 
 /* Track Info */
 .track-info {
+    flex-direction: column;
     flex-grow: 1;
-    justify-content: center;
-    padding-left: 5px;
-    padding-right: 5px;
+    flex-shrink: 1;
+    justify-content: flex-start;
 }
 
 .track-title {
     color: rgb(220, 220, 220);
-    font-size: 12px;
+    font-size: 10px;
     -unity-font-style: bold;
     -unity-text-align: middle-left;
     margin-bottom: 2px;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
+    flex-shrink: 0;
+    display: block;
+    width: 100%;
 }
 
 .track-bind-key {
     color: rgb(150, 150, 150);
-    font-size: 10px;
+    font-size: 8px;
     -unity-text-align: middle-left;
     margin-bottom: 1px;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
+    flex-shrink: 0;
+    display: block;
+    width: 100%;
 }
 
 .track-type {
     color: rgb(120, 120, 120);
-    font-size: 9px;
+    font-size: 8px;
     -unity-text-align: middle-left;
     text-transform: uppercase;
+    flex-shrink: 0;
+    display: block;
+    width: 100%;
+}
+
+/* Sub-row that groups bind-key and type on a single line */
+.track-subinfo {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.track-subinfo .track-bind-key {
+    width: auto;
+    flex: 1 1 auto;
+    margin-bottom: 0;
+}
+
+.track-subinfo .track-type {
+    width: auto;
+    flex: 0 0 auto;
+    margin-left: 8px;
 }
 
 /* Track Menu */
 .track-menu {
-    height: 20px;
+    min-height: 20px;
+    flex-direction: row;
     justify-content: flex-end;
     align-items: center;
+    margin-top: 0;
+    flex-shrink: 0;
+    position: absolute; /* position absolute for bottom-right placement */
+    right: 8px; /* updated right positioning */
+    bottom: 8px; /* updated bottom positioning */
+    z-index: 5; /* added z-index for stacking context */
 }
 
 /* Track Content */
@@ -210,6 +254,7 @@
     flex-grow: 1;
     border-bottom-width: 1px;
     border-bottom-color: rgba(100, 100, 100, 0.1);
+    pointer-events: none;
 }
 
 .track-lane:last-child {
@@ -229,27 +274,6 @@
 
 .track-resize-handle:hover {
     background-color: rgba(100, 150, 255, 0.3);
-}
-
-/* Track Type Specific Styling */
-.track.anim .track-title::before {
-    content: "🎭 ";
-    font-size: 10px;
-}
-
-.track.audio .track-title::before {
-    content: "🔊 ";
-    font-size: 10px;
-}
-
-.track.camera .track-title::before {
-    content: "📷 ";
-    font-size: 10px;
-}
-
-.track.custom .track-title::before {
-    content: "⚙️ ";
-    font-size: 10px;
 }
 
 /* Track States */
@@ -335,23 +359,4 @@
 .track.expanded .track-lane {
     border-bottom-width: 1px;
     border-bottom-color: rgba(100, 100, 100, 0.2);
-}
-
-/* Animation States */
-.track {
-    transition-property: height, background-color, opacity;
-    transition-duration: 0.2s;
-    transition-timing-function: ease-out;
-}
-
-.track-header {
-    transition-property: background-color, width;
-    transition-duration: 0.2s;
-    transition-timing-function: ease-out;
-}
-
-.track-content {
-    transition-property: background-color;
-    transition-duration: 0.2s;
-    transition-timing-function: ease-out;
 }

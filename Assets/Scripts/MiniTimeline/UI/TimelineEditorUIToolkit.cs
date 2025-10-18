@@ -42,6 +42,8 @@ namespace MiniTimeline.UI
         [SerializeField] private StyleSheet trackStyleSheet;
         [SerializeField] private VisualTreeAsset clipTemplate;
         [SerializeField] private StyleSheet clipStyleSheet;
+        [SerializeField] private VisualTreeAsset rulerTemplate;
+        [SerializeField] private StyleSheet rulerStyleSheet;
 
         [Header("Debug")]
         [SerializeField] bool isDebug;
@@ -100,6 +102,7 @@ namespace MiniTimeline.UI
 
         public float PixelsPerSecond => pixelsPerSecond * currentZoom;
         public float CurrentZoom => currentZoom;
+        public float TimelineWidth => timelineWidth;
         public MiniTimelineDirector Director => director;
         public IReadOnlyList<ClipUIToolkit> SelectedClips => selectedClips;
         public bool EnableFrameSnap => enableFrameSnap;
@@ -109,6 +112,8 @@ namespace MiniTimeline.UI
         // Template access for child components
         public VisualTreeAsset ClipTemplate => clipTemplate;
         public StyleSheet ClipStyleSheet => clipStyleSheet;
+        public VisualTreeAsset RulerTemplate => rulerTemplate;
+        public StyleSheet RulerStyleSheet => rulerStyleSheet;
 
         #endregion
 
@@ -483,7 +488,7 @@ namespace MiniTimeline.UI
             if (ruler == null && rulerContainer != null)
             {
                 ruler = new TimelineRulerToolkit();
-                ruler.Initialize(this, rulerContainer);
+                ruler.Initialize(this, rulerContainer, rulerTemplate, rulerStyleSheet);
             }
         }
 
@@ -601,6 +606,7 @@ namespace MiniTimeline.UI
 
         #region Timeline UI Building
 
+        [ContextMenu("Build Timeline UI")]
         public void BuildTimelineUI()
         {
             ClearTimelineUI();
@@ -634,6 +640,9 @@ namespace MiniTimeline.UI
             var trackUI = new TrackUIToolkit();
             trackUI.Initialize(this, track, trackTemplate, trackStyleSheet);
             trackUIs.Add(trackUI);
+            
+            // Add the track element to the tracks container
+            tracksContainer.Add(trackUI.TrackElement);
         }
 
         private void ClearTimelineUI()
@@ -672,8 +681,20 @@ namespace MiniTimeline.UI
             if (director?.Project != null)
             {
                 timelineWidth = director.Length * PixelsPerSecond;
+                
+                // Ensure minimum width for the timeline
+                timelineWidth = Mathf.Max(timelineWidth, 1000f);
 
                 // Update timeline container size using UI Toolkit layout
+                if (timelineContainer != null)
+                {
+                    timelineContainer.style.width = timelineWidth;
+                }
+            }
+            else
+            {
+                // Set a default width when no project is loaded
+                timelineWidth = 1000f;
                 if (timelineContainer != null)
                 {
                     timelineContainer.style.width = timelineWidth;
@@ -742,7 +763,7 @@ namespace MiniTimeline.UI
         }
 
         /// <summary>
-        /// Undo the last command
+        /// Undo the last 
         /// </summary>
         public void Undo()
         {
@@ -986,7 +1007,7 @@ namespace MiniTimeline.UI
                 var addTrackCommand = new AddTrackCommand(director, trackData, this);
                 ExecuteCommand(addTrackCommand);
 
-                Debug.Log($"Added new {TrackUIHelper.GetTrackDisplayName(trackType)} track: {trackName}");
+                // Debug.Log($"Added new {TrackUIHelper.GetTrackDisplayName(trackType)} track: {trackName}");
             }
             catch (System.Exception ex)
             {
@@ -999,7 +1020,7 @@ namespace MiniTimeline.UI
         /// </summary>
         private void OnAddTrackFormCancelled()
         {
-            Debug.Log("Add track cancelled");
+            // Debug.Log("Add track cancelled");
         }
 
         /// <summary>
@@ -1013,7 +1034,7 @@ namespace MiniTimeline.UI
                 return;
             }
 
-            Debug.Log("Opening main binding manager form");
+            // Debug.Log("Opening main binding manager form");
 
             // Get current BindingContext
             var bindingContext = director.BindingContext;
@@ -1133,11 +1154,11 @@ namespace MiniTimeline.UI
         {
             try
             {
-                Debug.Log("Main binding manager form submitted with data:");
-                foreach (var kvp in formData)
-                {
-                    Debug.Log($"  {kvp.Key}: {kvp.Value}");
-                }
+                // Debug.Log("Main binding manager form submitted with data:");
+                //foreach (var kvp in formData)
+                //{
+                //    Debug.Log($"  {kvp.Key}: {kvp.Value}");
+                //}
 
                 // Check if this is an auto-detect action
                 if (formData.ContainsKey("autoDetectObjects") && formData["autoDetectObjects"].ToString() == "autoDetectBindings")
@@ -1163,7 +1184,7 @@ namespace MiniTimeline.UI
                         {
                             AddBinding(newKey, targetObject);
                             bindingsChanged = true;
-                            Debug.Log($"Added new binding: {newKey} → {targetObject.name}");
+                            // Debug.Log($"Added new binding: {newKey} → {targetObject.name}");
                         }
                         else
                         {
@@ -1180,13 +1201,13 @@ namespace MiniTimeline.UI
                     {
                         RemoveBinding(removeKey);
                         bindingsChanged = true;
-                        Debug.Log($"Removed binding: {removeKey}");
+                        // Debug.Log($"Removed binding: {removeKey}");
                     }
                 }
 
                 if (bindingsChanged)
                 {
-                    Debug.Log("Scene bindings updated successfully");
+                    // Debug.Log("Scene bindings updated successfully");
                 }
             }
             catch (System.Exception ex)
@@ -1200,7 +1221,7 @@ namespace MiniTimeline.UI
         /// </summary>
         private void OnBindingManagerFormCancelled()
         {
-            Debug.Log("Binding manager cancelled");
+            // Debug.Log("Binding manager cancelled");
         }
 
         /// <summary>
@@ -1239,7 +1260,7 @@ namespace MiniTimeline.UI
             if (bindingContext != null)
             {
                 bindingContext.Unbind(key);
-                Debug.Log($"Removed binding: {key}");
+                // Debug.Log($"Removed binding: {key}");
             }
             else
             {
@@ -1314,11 +1335,11 @@ namespace MiniTimeline.UI
         {
             try
             {
-                Debug.Log("Save project form submitted with data:");
-                foreach (var kvp in formData)
-                {
-                    Debug.Log($"  {kvp.Key}: {kvp.Value}");
-                }
+                // Debug.Log("Save project form submitted with data:");
+                //foreach (var kvp in formData)
+                //{
+                //    Debug.Log($"  {kvp.Key}: {kvp.Value}");
+                //}
 
                 string filename = formData.ContainsKey("filename") ? formData["filename"].ToString() : "timeline_project";
                 bool prettyPrint = formData.ContainsKey("prettyPrint") ? Convert.ToBoolean(formData["prettyPrint"]) : true;
@@ -1337,7 +1358,7 @@ namespace MiniTimeline.UI
 
                 if (success)
                 {
-                    Debug.Log($"Project saved successfully to: {filePath}");
+                    // Debug.Log($"Project saved successfully to: {filePath}");
                 }
                 else
                 {
@@ -1355,7 +1376,7 @@ namespace MiniTimeline.UI
         /// </summary>
         private void OnSaveProjectFormCancelled()
         {
-            Debug.Log("Save project cancelled");
+            // Debug.Log("Save project cancelled");
         }
 
         /// <summary>
@@ -1363,7 +1384,7 @@ namespace MiniTimeline.UI
         /// </summary>
         private void ShowLoadProjectForm()
         {
-            Debug.Log("Opening load project form");
+            // Debug.Log("Opening load project form");
 
             // Get list of available project files in persistent data path
             string[] projectFiles = GetAvailableProjectFiles();
@@ -1435,11 +1456,11 @@ namespace MiniTimeline.UI
         {
             try
             {
-                Debug.Log("Load project form submitted with data:");
-                foreach (var kvp in formData)
-                {
-                    Debug.Log($"  {kvp.Key}: {kvp.Value}");
-                }
+                // Debug.Log("Load project form submitted with data:");
+                //foreach (var kvp in formData)
+                //{
+                //    Debug.Log($"  {kvp.Key}: {kvp.Value}");
+                //}
 
                 // Try to get filename from dropdown first, then manual entry
                 string filename = "";
@@ -1447,7 +1468,7 @@ namespace MiniTimeline.UI
                 if (formData.ContainsKey("availableFiles") && !string.IsNullOrEmpty(formData["availableFiles"]?.ToString()))
                 {
                     filename = formData["availableFiles"].ToString();
-                    Debug.Log($"Using selected file from dropdown: {filename}");
+                    // Debug.Log($"Using selected file from dropdown: {filename}");
                 }
                 else if (formData.ContainsKey("filename") && !string.IsNullOrEmpty(formData["filename"]?.ToString()))
                 {

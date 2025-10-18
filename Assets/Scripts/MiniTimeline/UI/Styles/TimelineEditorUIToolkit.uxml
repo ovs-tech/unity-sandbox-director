@@ -1,0 +1,43 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Scripts/MiniTimeline/UI/Styles/TimelineEditorUIToolkit.uss?fileID=7433441132597879392&amp;guid=387ede72813e343f59859c3e1038bda0&amp;type=3#TimelineEditorUIToolkit" />
+    <ui:VisualElement name="timeline-editor" class="timeline-editor">
+        <ui:VisualElement name="controls-container" class="controls-container">
+            <ui:VisualElement name="playback-controls" class="playback-controls">
+                <ui:Button text="\uf04b" name="play-button" enable-rich-text="true" emoji-fallback-support="true" double-click-selects-word="false" triple-click-selects-line="false" parse-escape-sequences="true" class="control-button fa-solid" />
+                <ui:Button text="\uf04c" name="pause-button" parse-escape-sequences="true" class="control-button fa-solid" />
+                <ui:Button text="\uf04d" name="stop-button" parse-escape-sequences="true" class="control-button fa-solid" />
+            </ui:VisualElement>
+            <ui:VisualElement name="time-controls" class="time-controls">
+                <ui:Label text="00:00:00" name="time-label" class="time-label" />
+                <ui:Slider picking-mode="Ignore" value="0" high-value="1" name="time-slider" class="time-slider" />
+            </ui:VisualElement>
+            <ui:VisualElement name="edit-controls" class="playback-controls">
+                <ui:Button text="\uf2ea" name="undo-button" parse-escape-sequences="true" class="control-button fa-solid" />
+                <ui:Button text="\uf2f9" name="redo-button" parse-escape-sequences="true" class="control-button fa-solid" />
+            </ui:VisualElement>
+            <ui:VisualElement name="track-controls" class="playback-controls">
+                <ui:Button text="\uf0fe" name="add-track-button" parse-escape-sequences="true" class="control-button fa-solid" />
+                <ui:Button text="\uf70b" name="binding-manager-button" parse-escape-sequences="true" class="control-button fa-solid" />
+            </ui:VisualElement>
+            <ui:VisualElement name="project-controls" class="playback-controls">
+                <ui:Button text="\uf093" name="save-button" parse-escape-sequences="true" class="control-button fa-solid" />
+                <ui:Button text="\uf019" name="load-button" parse-escape-sequences="true" class="control-button fa-solid" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:ScrollView name="timeline-scroll" mode="Horizontal" class="timeline-scroll">
+            <ui:VisualElement name="timeline-container" class="timeline-container">
+                <ui:VisualElement name="ruler-container" class="ruler-container" />
+                <ui:VisualElement name="tracks-container" class="tracks-container" />
+                <ui:VisualElement name="playhead" class="playhead" style="left: 0;" />
+            </ui:VisualElement>
+        </ui:ScrollView>
+        <ui:VisualElement name="status-bar" class="status-bar">
+            <ui:Label text="Ready" name="status-text" class="status-text" />
+            <ui:VisualElement name="zoom-controls" class="zoom-controls" style="margin-left: auto;">
+                <ui:Label text="Zoom:" class="status-text" />
+                <ui:Slider picking-mode="Ignore" value="1" high-value="5" low-value="0.1" name="zoom-slider" class="zoom-slider" />
+                <ui:Label text="100%" name="zoom-label" class="status-text" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

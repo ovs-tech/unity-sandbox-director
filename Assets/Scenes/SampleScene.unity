@@ -239,6 +239,8 @@ MonoBehaviour:
   trackStyleSheet: {fileID: 7433441132597879392, guid: e6fdb4a10f7c64fa98798f201db686f4, type: 3}
   clipTemplate: {fileID: 9197481963319205126, guid: b210696a67dbc4884852b941f6beb9f1, type: 3}
   clipStyleSheet: {fileID: 7433441132597879392, guid: d3ec1ec3c88ca4e0aadc6bf7055f5416, type: 3}
+  rulerTemplate: {fileID: 9197481963319205126, guid: 8fe7f7e8cd6a54e23b82f4d56f802b8c, type: 3}
+  rulerStyleSheet: {fileID: 7433441132597879392, guid: 0b0b70bab876b43089c1c058fd42975a, type: 3}
   isDebug: 0
   director: {fileID: 398228398}
 --- !u!114 &226857683

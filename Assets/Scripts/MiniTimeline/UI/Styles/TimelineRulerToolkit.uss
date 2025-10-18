@@ -1,0 +1,132 @@
+/* Timeline Ruler UI Toolkit Styles */
+
+@import "project://database/Assets/Scripts/Core/UI/Core/Styles/common.uss";
+
+/* Root Ruler Container */
+.ruler {
+    flex-direction: row;
+    height: 30px;
+    background-color: rgb(50, 50, 50);
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(35, 35, 35);
+    position: relative;
+    overflow: visible;
+}
+
+/* Individual Time Markers */
+.ruler-marker {
+    position: absolute;
+    height: 100%;
+    width: 1px;
+    background-color: rgb(100, 100, 100);
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+/* Major time markers (every 5 seconds) */
+.ruler-marker.major {
+    background-color: rgb(150, 150, 150);
+    width: 2px;
+}
+
+/* Minor time markers (every second) */
+.ruler-marker.minor {
+    background-color: rgb(80, 80, 80);
+    height: 60%;
+    top: 40%;
+}
+
+/* Time Labels */
+.ruler-label {
+    position: absolute;
+    font-size: 10px;
+    color: rgb(200, 200, 200);
+    -unity-text-align: upper-left;
+    padding-left: 3px;
+    padding-top: 2px;
+    background-color: rgba(0, 0, 0, 0);
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* Ruler background grid */
+.ruler::before {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: url('project://database/Assets/Scripts/MiniTimeline/UI/Textures/ruler-grid.png');
+    background-repeat: repeat-x;
+    opacity: 0.3;
+}
+
+/* Hover effects for interactivity */
+.ruler:hover {
+    background-color: rgb(55, 55, 55);
+}
+
+/* Selected state for ruler */
+.ruler.selected {
+    background-color: rgb(70, 100, 130);
+    border-bottom-color: rgb(90, 130, 170);
+}
+
+/* Current time indicator line */
+.ruler-current-time {
+    position: absolute;
+    width: 2px;
+    height: 100%;
+    background-color: rgb(255, 100, 100);
+    z-index: 100;
+    pointer-events: none;
+}
+
+/* Ruler measurement units */
+.ruler-unit-seconds .ruler-label {
+    color: rgb(200, 200, 200);
+}
+
+.ruler-unit-frames .ruler-label {
+    color: rgb(150, 200, 150);
+}
+
+.ruler-unit-samples .ruler-label {
+    color: rgb(200, 150, 200);
+}
+
+/* Zoom level specific styles */
+.ruler.zoom-low .ruler-marker.minor {
+    display: none;
+}
+
+.ruler.zoom-high .ruler-marker {
+    width: 1px;
+}
+
+.ruler.zoom-high .ruler-marker.major {
+    width: 3px;
+}
+
+/* Playhead interaction area */
+.ruler-playhead-area {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    cursor: text;
+}
+
+/* Snap guidelines */
+.ruler-snap-guide {
+    position: absolute;
+    width: 1px;
+    height: 100%;
+    background-color: rgba(255, 255, 0, 0.7);
+    pointer-events: none;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.1s;
+}
+
+.ruler-snap-guide.visible {
+    opacity: 1;
+}

@@ -1025,7 +1025,7 @@ namespace MiniTimeline.UI
                 if (startChanged || durationChanged)
                 {
                     var command = new ResizeClipCommand(clip, resizeDragStartTime, resizeDragStartDuration,
-                                                      currentStartTime, currentDuration, parentTrack);
+                                                      currentStartTime, currentDuration, parentTrack as ITrackUI);
                     timelineEditor.ExecuteCommand(command);
                 }
                 else
