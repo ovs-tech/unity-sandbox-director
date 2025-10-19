@@ -1,5 +1,6 @@
-/* Form Submit Panel Styles */
+/* Form Submit Panel Styles - reorganized and consolidated */
 
+/* Background overlay */
 .form-background {
     position: absolute;
     left: 0;
@@ -9,50 +10,59 @@
     background-color: rgba(0, 0, 0, 0.7);
     align-items: center;
     justify-content: center;
-    flex-grow: 1;
+    display: flex;
 }
 
+/* Main container */
 .form-container {
-    width: 320px;
-    height: 240px;
+    width: 400px;
+    max-width: 96%;
+    height: auto;
     min-height: 200px;
     max-height: 80%;
     background-color: rgba(51, 51, 51, 0.95);
     border-radius: 8px;
     flex-direction: column;
+    display: flex;
     border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
 }
 
-/* Header Styles */
+/* Header */
 .form-header {
-    height: 50px;
+    height: 52px;
+    display: flex;
     flex-direction: row;
     align-items: center;
-    padding-left: 15px;
-    padding-right: 15px;
+    padding: 0 14px;
+    gap: 8px;
     border-bottom-width: 1px;
-    border-bottom-color: rgba(255, 255, 255, 0.2);
-    background-color: rgba(0, 0, 0, 0.2);
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+    background-color: rgba(0, 0, 0, 0.18);
 }
 
 .form-title {
-    font-size: 14px;
+    font-size: 13px;
     color: rgb(255, 255, 255);
     flex-grow: 1;
     -unity-font-style: bold;
 }
 
+/* Close button in header */
 .form-close-button {
-    width: 30px;
-    height: 30px;
-    font-size: 20px;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+    font-size: 14px;
     color: rgb(255, 255, 255);
-    background-color: rgba(204, 51, 51, 0.8);
-    border-radius: 4px;
+    background-color: rgba(204, 51, 51, 0.9);
+    border-radius: 6px;
     border-width: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .form-close-button:hover {
@@ -63,40 +73,59 @@
     background-color: rgba(153, 38, 38, 1);
 }
 
-/* Content Area Styles */
+/* Content area */
 .form-scroll-view {
-    flex-grow: 1;
+    flex: 1 1 auto;
     margin: 0;
     padding: 0;
+    display: block;
+    min-height: 0; /* allow flex child to shrink properly */
 }
 
 .form-fields-container {
-    padding: 10px;
+    padding: 12px;
+    display: flex;
     flex-direction: column;
+    gap: 10px;
 }
 
-/* Footer Styles */
+/* Footer */
 .form-footer {
-    height: 50px;
+    display: flex;
     flex-direction: row;
     align-items: center;
-    padding-left: 15px;
-    padding-right: 15px;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 10px 14px;
     border-top-width: 1px;
-    border-top-color: rgba(255, 255, 255, 0.2);
-    background-color: rgba(0, 0, 0, 0.2);
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
+    border-top-color: rgba(255, 255, 255, 0.06);
+    background-color: rgba(0, 0, 0, 0.12);
 }
 
-.form-cancel-button {
-    flex-grow: 1;
-    height: 35px;
-    margin-right: 10px;
-    background-color: rgba(128, 128, 128, 0.8);
-    color: rgb(255, 255, 255);
-    border-radius: 4px;
+.form-header,
+.form-footer {
+    flex-shrink: 0; /* prevent header/footer from collapsing */
+}
+
+/* Buttons */
+.form-cancel-button,
+.form-submit-button {
+    height: 38px;
+    padding: 0 14px;
+    border-radius: 6px;
     border-width: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+}
+
+/* Make cancel expand to fill leftover space while submit stays fixed */
+.form-cancel-button {
+    background-color: rgba(128, 128, 128, 0.9);
+    color: rgb(255, 255, 255);
+    flex: 1 1 auto;
+    min-width: 84px;
 }
 
 .form-cancel-button:hover {
@@ -108,12 +137,10 @@
 }
 
 .form-submit-button {
-    flex-grow: 1;
-    height: 35px;
-    background-color: rgba(51, 153, 204, 0.8);
+    background-color: rgba(51, 153, 204, 0.95);
     color: rgb(255, 255, 255);
-    border-radius: 4px;
-    border-width: 0;
+    flex: 0 0 auto;
+    min-width: 96px; /* slightly larger fixed action button */
 }
 
 .form-submit-button:hover {
@@ -124,147 +151,103 @@
     background-color: rgba(38, 115, 153, 1);
 }
 
-/* Field Container Styles */
+/* Accessibility focus outline */
+.form-close-button:focus,
+.form-cancel-button:focus,
+.form-submit-button:focus {
+    outline: 2px solid rgba(51, 153, 204, 0.9);
+    outline-offset: 2px;
+}
+
+/* Field types */
 .field-container {
     margin-bottom: 10px;
+    display: flex;
     flex-direction: column;
 }
 
 .field-label {
     color: rgba(255, 255, 255, 1);
-    font-size: 12px;
-    margin-bottom: 5px;
+    font-size: 11px;
+    margin-bottom: 6px;
     -unity-font-style: normal;
 }
 
 .field-input {
     height: 40px;
-    font-size: 10px;
-    border-color: rgba(255, 255, 255, 0.3);
+    font-size: 12px;
+    border-color: rgba(255, 255, 255, 0.12);
     border-width: 1px;
-    border-radius: 4px;
-    color: rgba(0, 0, 0, 1);
+    border-radius: 6px;
+    color: rgb(255, 255, 255);
+    padding: 6px 8px;
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+/* Prevent title from overflowing */
+.form-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .field-input:focus {
-    border-color: rgba(51, 153, 204, 0.8);
-    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(51, 153, 204, 0.9);
+    background-color: rgba(255, 255, 255, 0.06);
 }
 
 .field-textarea {
-    min-height: 80px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.3);
+    min-height: 84px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.12);
     border-width: 1px;
-    border-radius: 4px;
+    border-radius: 6px;
     color: rgb(255, 255, 255);
-    padding: 8px;
+    padding: 10px;
 }
 
 .field-textarea:focus {
-    border-color: rgba(51, 153, 204, 0.8);
-    background-color: rgba(255, 255, 255, 0.15);
-}
-
-.field-toggle {
-    margin-right: 10px;
-}
-
-.field-slider {
-    height: 20px;
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
-
-.field-color-button {
-    height: 30px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.3);
-    border-width: 1px;
-    border-radius: 4px;
-    color: rgb(255, 255, 255);
-}
-
-.field-color-button:hover {
-    background-color: rgba(255, 255, 255, 0.15);
-}
-
-.field-button {
-    height: 35px;
-    background-color: rgba(51, 153, 204, 0.8);
-    color: rgb(255, 255, 255);
-    border-radius: 4px;
-    border-width: 0;
-    margin-top: 5px;
-}
-
-.field-button:hover {
-    background-color: rgba(51, 153, 204, 1);
-}
-
-.field-button:active {
-    background-color: rgba(38, 115, 153, 1);
-}
-
-.field-info {
-    height: 30px;
-    background-color: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.2);
-    border-width: 1px;
-    border-radius: 4px;
-    color: rgba(255, 255, 255, 0.7);
-    padding-left: 8px;
-    padding-right: 8px;
+    border-color: rgba(51, 153, 204, 0.9);
+    background-color: rgba(255, 255, 255, 0.06);
 }
 
 /* Responsive adjustments */
-@media (max-width: 480px) {
+@media (max-width: 520px) {
     .form-container {
-        width: 90%;
-        height: 90%;
+        width: 92%;
+        height: 92%;
+    }
+
+    .form-footer {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .form-cancel-button,
+    .form-submit-button {
+        width: 100%;
+        min-width: 0;
     }
 }
 
-/* Dark theme variants */
-.unity-theme--dark .field-input {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.3);
-    color: rgb(255, 255, 255);
-}
-
-.unity-theme--dark .field-textarea {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.3);
-    color: rgb(255, 255, 255);
-}
-
-/* Light theme variants */
+/* Theme variants */
 .unity-theme--light .form-container {
-    background-color: rgba(245, 245, 245, 0.95);
+    background-color: rgba(245, 245, 245, 0.98);
+    border-color: rgba(0,0,0,0.06);
 }
 
 .unity-theme--light .form-title {
-    color: rgb(33, 33, 33);
+    color: rgb(33,33,33);
 }
 
 .unity-theme--light .field-label {
-    color: rgb(33, 33, 33);
+    color: rgb(33,33,33);
 }
 
-.unity-theme--light .field-input {
-    background-color: rgba(255, 255, 255, 0.9);
-    border-color: rgba(0, 0, 0, 0.2);
-    color: rgb(33, 33, 33);
-}
-
+.unity-theme--light .field-input,
 .unity-theme--light .field-textarea {
-    background-color: rgba(255, 255, 255, 0.9);
-    border-color: rgba(0, 0, 0, 0.2);
-    color: rgb(33, 33, 33);
-}
-
-.unity-theme--light .field-info {
-    background-color: rgba(0, 0, 0, 0.05);
-    border-color: rgba(0, 0, 0, 0.1);
-    color: rgba(33, 33, 33, 0.7);
+    background-color: rgba(255,255,255,0.95);
+    border-color: rgba(0,0,0,0.08);
+    color: rgb(33,33,33);
 }

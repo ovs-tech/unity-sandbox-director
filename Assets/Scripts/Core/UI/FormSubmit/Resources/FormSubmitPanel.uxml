@@ -1,24 +1,18 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <ui:VisualElement name="background-panel" class="form-background" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.7); align-items: center; justify-content: center;">
-        <ui:VisualElement name="form-container" class="form-container" style="width: 400px; height: 500px; background-color: rgba(51, 51, 51, 0.95); border-top-left-radius: 8px; border-bottom-left-radius: 8px; border-top-right-radius: 8px; border-bottom-right-radius: 8px; flex-direction: column;">
-            
-            <!-- Header -->
-            <ui:VisualElement name="header" class="form-header" style="height: 50px; flex-direction: row; align-items: center; padding-left: 15px; padding-right: 15px; border-bottom-width: 1px; border-bottom-color: rgba(255, 255, 255, 0.2);">
-                <ui:Label name="title-text" text="Create Clip" class="form-title" style="font-size: 18px; color: rgb(255, 255, 255); flex-grow: 1;" />
-                <ui:Button name="close-button" text="×" class="form-close-button" style="width: 30px; height: 30px; font-size: 20px; color: rgb(255, 255, 255); background-color: rgba(204, 51, 51, 0.8); border-top-left-radius: 4px; border-bottom-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0;" />
+    <Style src="project://database/Assets/Scripts/Core/UI/FormSubmit/Resources/FormSubmitPanel.uss?fileID=7433441132597879392&amp;guid=e1bb14b374c3247f88754d36fbc69607&amp;type=3#FormSubmitPanel" />
+    <ui:VisualElement name="background-panel" class="form-background">
+        <ui:VisualElement name="form-container" class="form-container">
+            <ui:VisualElement name="header" class="form-header">
+                <ui:Label name="title-text" text="Create Clip" class="form-title" />
+                <ui:Button name="close-button" text="\uf00d" parse-escape-sequences="true" class="form-close-button button button__icon button--danger fa-solid" />
             </ui:VisualElement>
-            
-            <!-- Content Area -->
-            <ui:ScrollView name="scroll-view" class="form-scroll-view" mode="Vertical" style="flex-grow: 1;">
-                <ui:VisualElement name="fields-container" class="form-fields-container" style="padding-left: 10px; padding-right: 10px; padding-top: 10px; padding-bottom: 10px;" />
+            <ui:ScrollView name="scroll-view" mode="Vertical" class="form-scroll-view">
+                <ui:VisualElement name="fields-container" class="form-fields-container" />
             </ui:ScrollView>
-            
-            <!-- Footer -->
-            <ui:VisualElement name="footer" class="form-footer" style="height: 50px; flex-direction: row; align-items: center; padding-left: 15px; padding-right: 15px; border-top-width: 1px; border-top-color: rgba(255, 255, 255, 0.2);">
-                <ui:Button name="cancel-button" text="Cancel" class="form-cancel-button" style="flex-grow: 1; height: 35px; margin-right: 10px; background-color: rgba(128, 128, 128, 0.8); color: rgb(255, 255, 255); border-top-left-radius: 4px; border-bottom-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0;" />
-                <ui:Button name="submit-button" text="OK" class="form-submit-button" style="flex-grow: 1; height: 35px; background-color: rgba(51, 153, 204, 0.8); color: rgb(255, 255, 255); border-top-left-radius: 4px; border-bottom-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0;" />
+            <ui:VisualElement name="footer" class="form-footer">
+                <ui:Button name="cancel-button" text="Cancel" class="form-cancel-button button button--secondary" />
+                <ui:Button name="submit-button" text="OK" class="form-submit-button button button--success" />
             </ui:VisualElement>
-            
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

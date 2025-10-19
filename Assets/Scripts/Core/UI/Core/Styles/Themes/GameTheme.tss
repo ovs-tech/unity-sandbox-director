@@ -1,0 +1,200 @@
+@import url("unity-theme://default");
+
+/* @import url("Assets/Scripts/Core/UI/Core/Styles/Tokens.uss");
+@import url("/Assets/Scripts/Core/UI/Core/Styles/Components/Panel.uss");
+@import url("/Assets/Scripts/Core/UI/Core/Styles/Components/Button.uss");
+@import url("/Assets/Scripts/Core/UI/Core/Styles/Components/Icons.uss"); */
+
+:root {
+    /* Primary Colors */
+    --color-primary: #4f46e5;
+    --color-primary-hover: #4338ca;
+    --color-secondary: #06b6d4;
+
+    /* Status Colors */
+    --color-success: #22c55e;
+    --color-warning: #facc15;
+    --color-danger: #ef4444;
+    --color-info: #3b82f6;
+
+    /* Neutral Colors */
+    --color-bg: #ffffff;
+    --color-bg-alt: #f9fafb;
+    --color-text: #111827;
+    --color-text-muted: #6b7280;
+    --color-border: #e5e7eb;
+
+    --font-family: 'Inter', sans-serif;
+
+    --font-size-xs: 12px;
+    --font-size-sm: 14px;
+    --font-size-md: 16px;
+    --font-size-lg: 18px;
+    --font-size-xl: 24px;
+
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-bold: 700;
+
+    --line-height: 1.5;
+
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+
+    --container-width: 1200px;
+
+    --border-width: 1px;
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+    --border-radius-full: 50%;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.15);
+
+    --transition: 0.3s ease;
+}
+
+/* Dùng FontAsset (TextCore) — kéo thả trong Inspector */
+.fa-solid {
+    -unity-font-definition: url("/Assets/Resources/Fonts/fontawesome/Font Awesome 7 Free-Solid-900 SDF.asset");
+    font-size: 10px;
+    -unity-font-style: normal;
+    -unity-text-align: middle-center;
+}
+
+.fa-regular {
+    -unity-font-definition: url("/Assets/Resources/Fonts/fontawesome/Font Awesome 7 Free-Regular-400 SDF.asset");
+    font-size: 10px;
+    -unity-font-style: normal;
+    -unity-text-align: middle-center;
+}
+
+.fa-brands {
+    -unity-font-definition: url("/Assets/Resources/Fonts/fontawesome/Font Awesome 7 Brands-Regular-400 SDF.asset");
+    font-size: 10px;
+    -unity-font-style: normal;
+    -unity-text-align: middle-center;
+}
+
+
+/* Button theme */
+.button {
+    -unity-font-style: normal;
+    font-size: var(--font-size-sm);
+    color: var(--color-bg);
+    background-color: var(--color-primary); /* primary blue */
+    unity-background-image-tint-color: var(--color-primary);
+    padding: var(--space-sm) var(--space-md);
+    -unity-text-align: middle-center;
+    unity-font-style: normal;
+    -unity-transition-property: background-color, color, opacity;
+    -unity-transition-duration: var(--transition);
+}
+
+.button:hover {
+    background-color: var(--color-primary-hover); /* darker on hover */
+    unity-background-image-tint-color: var(--color-primary-hover);
+}
+
+.button:active {
+    background-color: var(--color-primary-hover);
+    unity-background-image-tint-color: var(--color-primary-hover);
+}
+
+.button:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.button--secondary {
+    background-color: transparent;
+    unity-background-image-tint-color: transparent;
+    border-width: var(--border-width);
+    border-color: var(--color-border); /* light border */
+    color: var(--color-primary); /* primary text */
+}
+
+.button__icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    -unity-content-align: middle-center;
+}
+
+/* Button variants */
+.button--primary {
+    /* explicit primary — same as base but kept for clarity & tokens */
+    background-color: var(--color-primary);
+    unity-background-image-tint-color: var(--color-primary);
+    color: var(--color-bg);
+}
+
+.button--success {
+    background-color: var(--color-success); /* green */
+    unity-background-image-tint-color: var(--color-success);
+    color: var(--color-bg);
+}
+
+.button--danger {
+    background-color: var(--color-danger); /* red */
+    unity-background-image-tint-color: var(--color-danger);
+    color: var(--color-bg);
+}
+
+.button--warning {
+    background-color: var(--color-warning); /* orange */
+    unity-background-image-tint-color: var(--color-warning);
+    color: var(--color-bg);
+}
+
+.button--ghost {
+    background-color: transparent;
+    unity-background-image-tint-color: transparent;
+    color: var(--color-primary); /* using primary color for ghost text */
+    border-width: 0;
+}
+
+/* Hover/active states for variants (uses color darkening) */
+.button--success:hover { background-color: var(--color-success); unity-background-image-tint-color: var(--color-success); }
+.button--success:active { background-color: var(--color-success); unity-background-image-tint-color: var(--color-success); }
+
+.button--danger:hover { background-color: var(--color-danger); unity-background-image-tint-color: var(--color-danger); }
+.button--danger:active { background-color: var(--color-danger); unity-background-image-tint-color: var(--color-danger); }
+
+.button--warning:hover { background-color: var(--color-warning); unity-background-image-tint-color: var(--color-warning); }
+.button--warning:active { background-color: var(--color-warning); unity-background-image-tint-color: var(--color-warning); }
+
+.button--ghost:hover { background-color: rgba(79,70,229,0.06); unity-background-image-tint-color: rgba(79,70,229,0.06); }
+.button--ghost:active { background-color: rgba(79,70,229,0.12); unity-background-image-tint-color: rgba(79,70,229,0.12); }
+
+
+/* Panel - a generic container used across UI for card/panel backgrounds */
+.panel {
+    background-color: var(--color-bg);
+    border-width: var(--border-width);
+    border-color: var(--color-border); /* subtle border */
+    border-radius: var(--border-radius-md);
+    padding: var(--space-md);
+    color: var(--color-text); /* default panel text color */
+    -unity-transition-property: background-color, opacity;
+    -unity-transition-duration: var(--transition);
+}
+
+.panel--elevated {
+    /* Slightly stronger visual elevation variant */
+    border-color: rgba(2,6,23,0.06);
+    /* unity-box-shadow is supported in newer Unity versions; if unavailable it will be ignored */
+    unity-box-shadow: var(--shadow-lg);
+}
+
+.panel__header {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--space-sm);
+    color: var(--color-text);
+}
