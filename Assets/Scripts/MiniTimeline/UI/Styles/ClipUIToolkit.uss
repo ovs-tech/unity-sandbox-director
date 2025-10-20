@@ -1,0 +1,481 @@
+/* Clip UI Toolkit Styles */
+
+/* Clip Root Container */
+.clip {
+    position: absolute;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    min-width: 20px;
+    min-height: 40px;
+    background-color: rgb(80, 120, 160);
+    border-color: rgb(60, 100, 140);
+    border-width: 1px;
+    border-radius: 4px;
+    overflow: hidden;
+    flex-direction: column;
+}
+
+.clip:hover {
+    background-color: rgb(90, 130, 170);
+    border-color: rgb(70, 110, 150);
+}
+
+.clip.selected {
+    background-color: rgb(100, 140, 180);
+    border-color: rgb(120, 160, 200);
+    border-width: 2px;
+    box-shadow: 0 0 0 1px rgba(120, 160, 200, 0.5);
+}
+
+.clip.multi-selected {
+    border-color: rgb(255, 200, 100);
+    box-shadow: 0 0 0 1px rgba(255, 200, 100, 0.5);
+}
+
+.clip.disabled {
+    opacity: 0.5;
+    background-color: rgb(60, 60, 60);
+    border-color: rgb(80, 80, 80);
+}
+
+/* Clip Header */
+.clip-header {
+    height: 18px;
+    flex-direction: row;
+    align-items: center;
+    padding-left: 4px;
+    padding-right: 4px;
+    padding-top: 2px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Clip Icon */
+.clip-icon {
+    width: 14px;
+    height: 14px;
+    justify-content: center;
+    align-items: center;
+    margin-right: 3px;
+}
+
+.clip-type-icon {
+    font-size: 10px;
+    color: white;
+    -unity-text-align: middle-center;
+}
+
+/* Clip Title */
+.clip-title {
+    flex-grow: 1;
+    color: white;
+    font-size: 11px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 2px;
+}
+
+/* Clip Status */
+.clip-status {
+    flex-direction: row;
+    height: 14px;
+    align-items: center;
+}
+
+.clip-status-icon {
+    width: 10px;
+    height: 10px;
+    margin-left: 1px;
+    border-radius: 2px;
+    background-color: rgba(255, 255, 255, 0.2);
+    display: none;
+}
+
+.clip-status-icon.active {
+    display: flex;
+}
+
+.clip-lock-icon.active {
+    background-color: rgb(255, 200, 100);
+}
+
+.clip-mute-icon.active {
+    background-color: rgb(255, 100, 100);
+}
+
+/* Clip Content */
+.clip-content {
+    flex-grow: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Clip Preview */
+.clip-preview {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+}
+
+/* Clip Markers */
+.clip-markers {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.clip-marker {
+    position: absolute;
+    width: 2px;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.clip-start-marker {
+    left: 0;
+}
+
+.clip-end-marker {
+    right: 0;
+}
+
+/* Clip Info Overlay */
+.clip-info {
+    position: absolute;
+    bottom: 2px;
+    left: 4px;
+    right: 4px;
+    height: 16px;
+    justify-content: space-between;
+    flex-direction: row;
+    align-items: center;
+}
+
+.clip-duration {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 9px;
+    -unity-text-align: middle-left;
+}
+
+.clip-details {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 8px;
+    -unity-text-align: middle-right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 60px;
+}
+
+/* Clip Resize Handles */
+.clip-resize-handles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.clip-resize-handle {
+    position: absolute;
+    width: 16px; /* Wider for easier grabbing */
+    height: 100%;
+    background-color: rgba(255, 100, 100, 0.6); /* Red-ish for visibility */
+    pointer-events: auto;
+    z-index: 10; /* Above clip content */
+}
+
+.clip-resize-left {
+    left: 0;
+}
+
+.clip-resize-right {
+    right: 0;
+}
+
+.clip-resize-handle:hover {
+    background-color: rgba(255, 150, 50, 0.9);
+    width: 20px;
+}
+
+.clip.selected .clip-resize-handle {
+    background-color: rgba(255, 200, 100, 0.8); /* More opaque when selected */
+}
+
+.clip.selected .clip-resize-handle:hover {
+    background-color: rgba(255, 220, 100, 1.0);
+}
+
+/* Clip Selection Border */
+.clip-selection-border {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-width: 0;
+    border-color: transparent;
+    pointer-events: none;
+    border-radius: 4px;
+}
+
+.clip.selected .clip-selection-border {
+    border-width: 2px;
+    border-color: rgb(120, 160, 200);
+    box-shadow: 0 0 8px rgba(120, 160, 200, 0.4);
+}
+
+/* Clip Context Menu Trigger */
+.clip-context-trigger {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: auto;
+}
+
+/* Clip Type Specific Styling */
+.clip.anim {
+    background-color: rgb(80, 160, 80);
+    border-color: rgb(60, 140, 60);
+}
+
+.clip.anim:hover {
+    background-color: rgb(90, 170, 90);
+    border-color: rgb(70, 150, 70);
+}
+
+.clip.anim.selected {
+    background-color: rgb(100, 180, 100);
+    border-color: rgb(120, 200, 120);
+}
+
+.clip.anim .clip-type-icon {
+    /* Unity USS doesn't support content property */
+}
+
+.clip.audio {
+    background-color: rgb(160, 80, 80);
+    border-color: rgb(140, 60, 60);
+}
+
+.clip.audio:hover {
+    background-color: rgb(170, 90, 90);
+    border-color: rgb(150, 70, 70);
+}
+
+.clip.audio.selected {
+    background-color: rgb(180, 100, 100);
+    border-color: rgb(200, 120, 120);
+}
+
+.clip.audio .clip-type-icon {
+    /* Unity USS doesn't support content property */
+}
+
+.clip.camera {
+    background-color: rgb(160, 160, 80);
+    border-color: rgb(140, 140, 60);
+}
+
+.clip.camera:hover {
+    background-color: rgb(170, 170, 90);
+    border-color: rgb(150, 150, 70);
+}
+
+.clip.camera.selected {
+    background-color: rgb(180, 180, 100);
+    border-color: rgb(200, 200, 120);
+}
+
+.clip.camera .clip-type-icon {
+    /* Unity USS doesn't support content property */
+}
+
+.clip.custom {
+    background-color: rgb(160, 80, 160);
+    border-color: rgb(140, 60, 140);
+}
+
+.clip.custom:hover {
+    background-color: rgb(170, 90, 170);
+    border-color: rgb(150, 70, 150);
+}
+
+.clip.custom.selected {
+    background-color: rgb(180, 100, 180);
+    border-color: rgb(200, 120, 200);
+}
+
+.clip.custom .clip-type-icon {
+    /* Unity USS doesn't support content property */
+}
+
+/* Clip States */
+.clip.locked {
+    opacity: 0.8;
+}
+
+.clip.locked .clip-resize-handle {
+    pointer-events: none;
+}
+
+.clip.muted {
+    opacity: 0.6;
+}
+
+.clip.solo {
+    box-shadow: inset 0 0 0 2px rgb(255, 255, 100);
+}
+
+.clip.playing {
+    box-shadow: 0 0 10px rgba(100, 255, 100, 0.6);
+}
+
+.clip.error {
+    background-color: rgb(160, 40, 40);
+    border-color: rgb(180, 60, 60);
+}
+
+.clip.error .clip-title {
+    color: rgb(255, 200, 200);
+}
+
+/* Drag and Drop States */
+.clip.dragging {
+    opacity: 0.8;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.clip.drag-target {
+    background-color: rgba(100, 150, 255, 0.3);
+    border-color: rgb(100, 150, 255);
+    border-style: dashed;
+}
+
+.clip.drop-preview {
+    opacity: 0.5;
+    background-color: rgba(100, 150, 255, 0.2);
+    border-style: dashed;
+}
+
+/* Size Variants */
+.clip.small {
+    height: 30px;
+}
+
+.clip.small .clip-header {
+    height: 14px;
+}
+
+.clip.small .clip-title {
+    font-size: 10px;
+}
+
+.clip.small .clip-type-icon {
+    font-size: 8px;
+}
+
+.clip.large {
+    height: 60px;
+}
+
+.clip.large .clip-header {
+    height: 24px;
+}
+
+.clip.large .clip-title {
+    font-size: 12px;
+}
+
+.clip.large .clip-type-icon {
+    font-size: 12px;
+}
+
+/* Preview Content for Different Clip Types */
+.clip.audio .clip-preview {
+    background-image: url('resource://waveform-pattern');
+    background-repeat: repeat-x;
+    background-size: auto 100%;
+    opacity: 0.3;
+}
+
+.clip.anim .clip-preview {
+    background: linear-gradient(45deg, transparent 45%, rgba(255,255,255,0.1) 50%, transparent 55%);
+    background-size: 8px 8px;
+    animation: slide 2s linear infinite;
+}
+
+/* Keyframe Indicators */
+.clip.has-keyframes::after {
+    /* Unity USS doesn't support content property or ::after pseudo-elements fully */
+    position: absolute;
+    bottom: 1px;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    background-color: rgb(255, 200, 100);
+    border-radius: 2px;
+}
+
+/* Focus States */
+.clip:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(100, 150, 255, 0.8);
+}
+
+/* Animation Transitions */
+.clip {
+    transition-property: transform, background-color, border-color, opacity;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
+}
+
+.clip-header {
+    transition-property: background-color;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
+}
+
+/* Clip Looping Indicator */
+.clip.looping {
+    background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 8px,
+        rgba(255, 255, 255, 0.1) 8px,
+        rgba(255, 255, 255, 0.1) 12px
+    );
+}
+
+/* Clip Blend Modes */
+.clip.blend-add {
+    mix-blend-mode: screen;
+}
+
+.clip.blend-multiply {
+    mix-blend-mode: multiply;
+}
+
+.clip.blend-overlay {
+    mix-blend-mode: overlay;
+}
+
+/* Responsive Sizing */
+@media (max-width: 800px) {
+    .clip {
+        min-width: 15px;
+    }
+    
+    .clip-title {
+        font-size: 10px;
+    }
+    
+    .clip-details {
+        display: none;
+    }
+}

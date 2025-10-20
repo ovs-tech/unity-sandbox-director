@@ -1,6 +1,7 @@
 using System.Linq;
 using Core.Behaviors.Command;
 using MiniTimeline.Core;
+using MiniTimeline.UI;
 using UnityEngine;
 
 namespace MiniTimeline.UI.Commands
@@ -13,10 +14,10 @@ namespace MiniTimeline.UI.Commands
     {
         private readonly MiniTimelineDirector director;
         private readonly TrackData trackData;
-        private readonly TimelineEditorUI editorUI;
+        private readonly ITimelineEditorUI editorUI;
         private IMiniTrack createdTrack;
 
-        public AddTrackCommand(MiniTimelineDirector timelineDirector, TrackData data, TimelineEditorUI editor)
+        public AddTrackCommand(MiniTimelineDirector timelineDirector, TrackData data, ITimelineEditorUI editor)
             : base($"Add {data.type} Track")
         {
             director = timelineDirector;
@@ -45,7 +46,7 @@ namespace MiniTimeline.UI.Commands
                 
                 if (createdTrack != null)
                 {
-                    Debug.Log($"Successfully created and added {trackData.type} track with ID: {trackData.id}");
+                    // Successfully created and added the track (informational log removed)
                 }
                 else
                 {
@@ -54,8 +55,6 @@ namespace MiniTimeline.UI.Commands
                 
                 // Trigger UI rebuild if available
                 editorUI?.BuildTimelineUI();
-
-                Debug.Log($"Add track complete. Project tracks: {director.Project.tracks.Count}, Runtime tracks: {director.Tracks.Count}");
             }
             catch (System.Exception ex)
             {
@@ -81,7 +80,7 @@ namespace MiniTimeline.UI.Commands
                 if (buildTracksMethod != null)
                 {
                     buildTracksMethod.Invoke(director, null);
-                    Debug.Log("Successfully called BuildTracks() via reflection");
+                    // Informational log removed for successful reflection call
                 }
                 else
                 {
@@ -91,7 +90,7 @@ namespace MiniTimeline.UI.Commands
                     {
                         director.Seek(director.Time);
                     }
-                    Debug.Log("Used fallback track rebuild method");
+                    // Informational fallback log removed
                 }
             }
             catch (System.Exception ex)
@@ -128,7 +127,7 @@ namespace MiniTimeline.UI.Commands
                     // Trigger UI rebuild
                     editorUI?.BuildTimelineUI();
                     
-                    Debug.Log($"Successfully removed {trackData.type} track with ID: {trackData.id}. Project tracks: {director.Project.tracks.Count}, Runtime tracks: {director.Tracks.Count}");
+                    // Successfully removed the track (informational log removed)
                 }
                 else
                 {

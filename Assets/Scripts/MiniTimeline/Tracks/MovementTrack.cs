@@ -29,13 +29,13 @@ namespace MiniTimeline.Tracks
         
         protected override void OnPrepare()
         {
-            // Debug.Log($"[MovementTrack] OnPrepare called for track '{Id}', target object: {targetObject}");
+            Debug.Log($"[MovementTrack] OnPrepare called for track '{Id}', bind key: '{BindKey}', target object: {targetObject}");
             
             if(targetObject is Camera camera)
             {
                 targetCamera = camera;
                 cameraTransform = camera.transform;
-                // Debug.Log($"[MovementTrack] Target is Camera: {camera.name}");
+                Debug.Log($"[MovementTrack] Target is Camera: {camera.name}");
             }
             else if (targetObject is GameObject go)
             {
@@ -43,28 +43,29 @@ namespace MiniTimeline.Tracks
                 if (targetCamera != null)
                 {
                     cameraTransform = targetCamera.transform;
-                    // Debug.Log($"[MovementTrack] Target is GameObject: {go.name}, Camera found: {targetCamera != null}");
+                    Debug.Log($"[MovementTrack] Target is GameObject: {go.name}, Camera found: {targetCamera != null}");
                 }
             }
             else
             {
-                // Debug.LogError($"[MovementTrack] Target object for track '{Id}' is not a Camera or GameObject with Camera");
+                Debug.LogError($"[MovementTrack] Target object for track '{Id}' is not a Camera or GameObject with Camera");
                 return;
             }
             
             if (targetCamera == null)
             {
-                // Debug.LogError($"[MovementTrack] No Camera found for track '{Id}'");
+                Debug.LogError($"[MovementTrack] No Camera found for track '{Id}'");
                 return;
             }
             
-            // Debug.Log($"[MovementTrack] Prepared track '{Id}' with {clips.Count} clips");
+            Debug.Log($"[MovementTrack] Prepared track '{Id}' with {clips.Count} clips, target camera: {targetCamera.name}");
         }
         
         protected override void OnEvaluate(float time, bool scrub)
         {
             if (targetCamera == null || cameraTransform == null) 
             {
+                Debug.LogWarning($"[MovementTrack] Cannot evaluate - targetCamera or cameraTransform is null for track '{Id}'");
                 return;
             }
             
@@ -72,19 +73,24 @@ namespace MiniTimeline.Tracks
             tempActiveClips.Clear();
             tempActiveClips.AddRange(GetActiveClips(time));
             
+            Debug.Log($"[MovementTrack] Evaluating at time {time:F3}, found {tempActiveClips.Count} active clips, scrub: {scrub}");
+            
             if (tempActiveClips.Count == 0)
             {
                 // No active clips - maintain current state
+                Debug.Log($"[MovementTrack] No active clips at time {time:F3}");
                 return;
             }
             else if (tempActiveClips.Count == 1)
             {
                 // Single clip - apply directly
+                Debug.Log($"[MovementTrack] Applying single clip: {tempActiveClips[0].Id} at time {time:F3}");
                 ApplySingleClip(tempActiveClips[0], time);
             }
             else
             {
                 // Multiple clips - blend them
+                Debug.Log($"[MovementTrack] Blending {tempActiveClips.Count} clips at time {time:F3}");
                 BlendMultipleClips(tempActiveClips, time);
             }
             
@@ -95,7 +101,7 @@ namespace MiniTimeline.Tracks
         {
             currentClip = null;
             nextClip = null;
-            // Debug.Log($"[MovementTrack] Cleaned up track '{Id}'");
+            Debug.Log($"[MovementTrack] Cleaned up track '{Id}'");
         }
         
         #endregion
@@ -110,6 +116,9 @@ namespace MiniTimeline.Tracks
             // Calculate local time within the clip
             float localTime = time - clip.Start;
             float normalizedTime = Mathf.Clamp01(localTime / clip.Duration);
+            
+            Debug.Log($"[MovementTrack] Applying clip '{clip.Id}': localTime={localTime:F3}, normalizedTime={normalizedTime:F3}, " +
+                     $"hasPosition={clip.hasPosition}, hasRotation={clip.hasRotation}, hasFOV={clip.hasFieldOfView}");
             
             // Apply camera properties
             ApplyCameraProperties(clip, normalizedTime, 1f);
@@ -145,6 +154,8 @@ namespace MiniTimeline.Tracks
                     Vector3 currentPos = cameraTransform.position;
                     targetPos = Vector3.Lerp(currentPos, targetPos, weight);
                 }
+                
+                Debug.Log($"[MovementTrack] Setting position: {targetPos} (weight: {weight:F2})");
                 cameraTransform.position = targetPos;
             }
             
@@ -157,6 +168,8 @@ namespace MiniTimeline.Tracks
                     Quaternion currentRot = cameraTransform.rotation;
                     targetRot = Quaternion.Lerp(currentRot, targetRot, weight);
                 }
+                
+                Debug.Log($"[MovementTrack] Setting rotation: {targetRot.eulerAngles} (weight: {weight:F2})");
                 cameraTransform.rotation = targetRot;
             }
             
@@ -169,6 +182,8 @@ namespace MiniTimeline.Tracks
                     float currentFOV = targetCamera.fieldOfView;
                     targetFOV = Mathf.Lerp(currentFOV, targetFOV, weight);
                 }
+                
+                Debug.Log($"[MovementTrack] Setting field of view: {targetFOV:F1} (weight: {weight:F2})");
                 targetCamera.fieldOfView = targetFOV;
             }
         }
@@ -262,6 +277,7 @@ namespace MiniTimeline.Tracks
             };
             
             clips.Add(clip);
+            Debug.Log($"[MovementTrack] Added position clip '{clip.Id}' to track '{Id}': start={start:F2}, duration={duration:F2}, from={startPos} to={endPos}");
             return clip;
         }
         
@@ -287,6 +303,7 @@ namespace MiniTimeline.Tracks
             };
             
             clips.Add(clip);
+            Debug.Log($"[MovementTrack] Added rotation clip '{clip.Id}' to track '{Id}': start={start:F2}, duration={duration:F2}, from={startRot.eulerAngles} to={endRot.eulerAngles}");
             return clip;
         }
         
@@ -312,6 +329,7 @@ namespace MiniTimeline.Tracks
             };
             
             clips.Add(clip);
+            Debug.Log($"[MovementTrack] Added field of view clip '{clip.Id}' to track '{Id}': start={start:F2}, duration={duration:F2}, from={startFOV:F1} to={endFOV:F1}");
             return clip;
         }
         
@@ -325,8 +343,11 @@ namespace MiniTimeline.Tracks
             if (clip != null)
             {
                 clips.Remove(clip);
+                Debug.Log($"[MovementTrack] Removed clip '{clipId}' from track '{Id}'");
                 return true;
             }
+            
+            Debug.LogWarning($"[MovementTrack] Clip '{clipId}' not found in track '{Id}' for removal");
             return false;
         }
         

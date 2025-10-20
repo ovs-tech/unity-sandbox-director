@@ -11,9 +11,9 @@ namespace MiniTimeline.UI.Commands
     {
         private readonly IMiniTrack track;
         private readonly IMiniClip clipInstance;
-        private readonly TrackUI trackUI;
+        private readonly ITrackUI trackUI;
 
-        public CreateClipCommand(IMiniTrack targetTrack, IMiniClip clip, TrackUI trackInterface)
+        public CreateClipCommand(IMiniTrack targetTrack, IMiniClip clip, ITrackUI trackInterface)
             : base($"Create Clip")
         {
             track = targetTrack;

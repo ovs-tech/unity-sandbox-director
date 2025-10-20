@@ -22,7 +22,7 @@ namespace SceneSandbox.UI
         [SerializeField] private GameObject _previewPanel;
         [SerializeField] private Transform _panelPos;
         
-        // Properties panel will be handled by FormSubmitPanel dynamically
+        // Properties panel will be handled by FormSubmitPanelUIToolkit dynamically
         
         [Header("Scene Controls")]
         [SerializeField] private Button _newSceneButton;
@@ -47,7 +47,7 @@ namespace SceneSandbox.UI
         [SerializeField] private TextMeshProUGUI _gridSizeText;
         
         [Header("Properties Panel")]
-        // Properties panel fields removed - now handled dynamically by FormSubmitPanel
+        // Properties panel fields removed - now handled dynamically by FormSubmitPanelUIToolkit
         [SerializeField] private Transform _positionInputs;
         [SerializeField] private Transform _rotationInputs;
         [SerializeField] private Transform _scaleInputs;
@@ -150,7 +150,7 @@ namespace SceneSandbox.UI
             if (_gridSizeSlider != null)
                 _gridSizeSlider.onValueChanged.AddListener(OnGridSizeChanged);
             
-            // Properties panel now handled by FormSubmitPanel
+            // Properties panel now handled by FormSubmitPanelUIToolkit
             
             SetupTransformInputs();
         }
@@ -253,7 +253,7 @@ namespace SceneSandbox.UI
                 }
                 else
                 {
-                    FormSubmitPanel.Instance.CloseForm();
+                    FormSubmitPanelUIToolkit.Instance.CloseForm();
                     _isPropertiesPanelShowing = false;
                 }
             }
@@ -273,7 +273,7 @@ namespace SceneSandbox.UI
         }
         
         /// <summary>
-        /// Show or hide the object properties using FormSubmitPanel
+        /// Show or hide the object properties using FormSubmitPanelUIToolkit
         /// </summary>
         public void SetPropertiesVisible(bool visible)
         {
@@ -283,7 +283,7 @@ namespace SceneSandbox.UI
             }
             else if (!visible && _isPropertiesPanelShowing)
             {
-                FormSubmitPanel.Instance.CloseForm();
+                FormSubmitPanelUIToolkit.Instance.CloseForm();
                 _isPropertiesPanelShowing = false;
             }
         }
@@ -299,7 +299,7 @@ namespace SceneSandbox.UI
         }
         
         /// <summary>
-        /// Show object properties panel using FormSubmitPanel
+        /// Show object properties panel using FormSubmitPanelUIToolkit
         /// </summary>
         private void ShowObjectPropertiesPanel()
         {
@@ -368,7 +368,7 @@ namespace SceneSandbox.UI
             
             _isPropertiesPanelShowing = true;
             
-            FormSubmitPanel.Instance.Show(
+            FormSubmitPanelUIToolkit.Instance.Show(
                 $"Properties: {_selectedObject.name}",
                 fieldDefinitions,
                 (formData) => {
@@ -449,7 +449,7 @@ namespace SceneSandbox.UI
         }
         
         /// <summary>
-        /// Show new scene creation dialog using FormSubmitPanel
+        /// Show new scene creation dialog using FormSubmitPanelUIToolkit
         /// </summary>
         private void ShowNewSceneDialog()
         {
@@ -470,7 +470,7 @@ namespace SceneSandbox.UI
                 placeholder = "Enter scene description..."
             });
 
-            FormSubmitPanel.Instance.Show(
+            FormSubmitPanelUIToolkit.Instance.Show(
                 "Create New Scene",
                 fieldDefinitions,
                 (formData) =>
@@ -536,7 +536,7 @@ namespace SceneSandbox.UI
         }
         
         /// <summary>
-        /// Show new project creation dialog using FormSubmitPanel
+        /// Show new project creation dialog using FormSubmitPanelUIToolkit
         /// </summary>
         private void ShowNewProjectDialog()
         {
@@ -580,7 +580,7 @@ namespace SceneSandbox.UI
                 }
             });
             
-            FormSubmitPanel.Instance.Show(
+            FormSubmitPanelUIToolkit.Instance.Show(
                 "Create New Project",
                 fieldDefinitions,
                 (formData) => {
@@ -623,7 +623,7 @@ namespace SceneSandbox.UI
         }
         
         /// <summary>
-        /// Show save project dialog using FormSubmitPanel
+        /// Show save project dialog using FormSubmitPanelUIToolkit
         /// </summary>
         private void ShowSaveProjectDialog()
         {
@@ -655,7 +655,7 @@ namespace SceneSandbox.UI
                 tooltip = "Custom file name for the project"
             });
             
-            FormSubmitPanel.Instance.Show(
+            FormSubmitPanelUIToolkit.Instance.Show(
                 "Save Project",
                 fieldDefinitions,
                 (formData) => {
@@ -864,7 +864,7 @@ namespace SceneSandbox.UI
                 _objectPalette.gameObject.SetActive(_isPaletteVisible);
             }
             
-            // Properties panel is now handled by FormSubmitPanel dynamically
+            // Properties panel is now handled by FormSubmitPanelUIToolkit dynamically
             // No static panel to toggle
         }
         
@@ -920,7 +920,7 @@ namespace SceneSandbox.UI
         {
             bool hasSelection = _selectedObject != null;
             
-            // Object info is now displayed in FormSubmitPanel when properties are shown
+            // Object info is now displayed in FormSubmitPanelUIToolkit when properties are shown
             // Static UI elements removed in favor of dynamic form-based editing
             
             // Update transform inputs if they exist
@@ -1103,7 +1103,7 @@ namespace SceneSandbox.UI
                 });
             }
             
-            FormSubmitPanel.Instance.Show(
+            FormSubmitPanelUIToolkit.Instance.Show(
                 "Load Project",
                 fieldDefinitions,
                 (formData) => {
@@ -1139,7 +1139,7 @@ namespace SceneSandbox.UI
         }
         
         /// <summary>
-        /// Show a confirmation dialog using FormSubmitPanel
+        /// Show a confirmation dialog using FormSubmitPanelUIToolkit
         /// </summary>
         private bool ShowConfirmationDialog(string title, string message)
         {
@@ -1157,7 +1157,7 @@ namespace SceneSandbox.UI
         }
         
         /// <summary>
-        /// Show a confirmation dialog with callbacks using FormSubmitPanel
+        /// Show a confirmation dialog with callbacks using FormSubmitPanelUIToolkit
         /// </summary>
         private void ShowConfirmationDialogAsync(string title, string message, System.Action onConfirm, System.Action onCancel)
         {
@@ -1180,7 +1180,7 @@ namespace SceneSandbox.UI
                 options = new Dictionary<string, object> { ["action"] = "cancel" }
             });
             
-            FormSubmitPanel.Instance.Show(
+            FormSubmitPanelUIToolkit.Instance.Show(
                 title,
                 fieldDefinitions,
                 (formData) => {
@@ -1205,7 +1205,7 @@ namespace SceneSandbox.UI
         }
         
         /// <summary>
-        /// Show a message dialog using FormSubmitPanel
+        /// Show a message dialog using FormSubmitPanelUIToolkit
         /// </summary>
         private void ShowMessageDialog(string title, string message)
         {
@@ -1217,7 +1217,7 @@ namespace SceneSandbox.UI
                 defaultValue = message
             });
             
-            FormSubmitPanel.Instance.Show(
+            FormSubmitPanelUIToolkit.Instance.Show(
                 title,
                 fieldDefinitions,
                 (formData) => {
@@ -1285,7 +1285,7 @@ namespace SceneSandbox.UI
             CreateSceneControlsPanel();
             CreateMobileControlsPanel();
             
-            // Properties panel is now handled dynamically by FormSubmitPanel
+            // Properties panel is now handled dynamically by FormSubmitPanelUIToolkit
         }
         
         private void CreateSceneControlsPanel()
@@ -1378,7 +1378,7 @@ namespace SceneSandbox.UI
             _previewStatusText = CreateText(infoRowGO.transform, "EDIT MODE");
         }
         
-        // Properties panel functionality moved to FormSubmitPanel-based ShowObjectPropertiesPanel method
+        // Properties panel functionality moved to FormSubmitPanelUIToolkit-based ShowObjectPropertiesPanel method
         
         private void CreateMobileControlsPanel()
         {

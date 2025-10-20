@@ -1,0 +1,18 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Scripts/Core/UI/FormSubmit/Resources/FormSubmitPanel.uss?fileID=7433441132597879392&amp;guid=e1bb14b374c3247f88754d36fbc69607&amp;type=3#FormSubmitPanel" />
+    <ui:VisualElement name="background-panel" class="form-background">
+        <ui:VisualElement name="form-container" class="form-container">
+            <ui:VisualElement name="header" class="form-header">
+                <ui:Label name="title-text" text="Create Clip" class="form-title" />
+                <ui:Button name="close-button" text="\uf00d" parse-escape-sequences="true" class="form-close-button button button__icon button--danger fa-solid" />
+            </ui:VisualElement>
+            <ui:ScrollView name="scroll-view" mode="Vertical" class="form-scroll-view">
+                <ui:VisualElement name="fields-container" class="form-fields-container" />
+            </ui:ScrollView>
+            <ui:VisualElement name="footer" class="form-footer">
+                <ui:Button name="cancel-button" text="Cancel" class="form-cancel-button button button--secondary" />
+                <ui:Button name="submit-button" text="OK" class="form-submit-button button button--success" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

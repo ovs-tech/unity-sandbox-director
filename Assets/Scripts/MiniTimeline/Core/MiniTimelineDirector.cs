@@ -218,16 +218,23 @@ namespace MiniTimeline.Core
                 float deltaTime = UnityEngine.Time.deltaTime * playbackSpeed;
                 float newTime = currentTime + deltaTime;
                 
+                if (debugMode && UnityEngine.Time.frameCount % 30 == 0) // Log every 30 frames to avoid spam
+                    Debug.Log($"[MiniTimelineDirector] Update - deltaTime: {deltaTime:F4}, currentTime: {currentTime:F3}, newTime: {newTime:F3}, length: {length:F3}");
+                
                 // Handle looping or stopping at end
                 if (newTime >= length)
                 {
                     if (loop)
                     {
                         newTime = newTime % length;
+                        if (debugMode)
+                            Debug.Log($"[MiniTimelineDirector] Looped to time {newTime:F3}");
                     }
                     else
                     {
                         newTime = length;
+                        if (debugMode)
+                            Debug.Log($"[MiniTimelineDirector] Reached end, stopping at time {newTime:F3}");
                         Stop();
                     }
                 }
@@ -298,10 +305,6 @@ namespace MiniTimeline.Core
         public void Seek(float time)
         {
             Time = time;
-            Evaluate(true); // Force evaluation for scrubbing
-            
-            if (debugMode)
-                Debug.Log($"[MiniTimelineDirector] Seeked to time {currentTime:F2}");
         }
         
         /// <summary>
@@ -462,11 +465,21 @@ namespace MiniTimeline.Core
         /// <param name="scrub">Whether this is a scrub operation</param>
         private void Evaluate(bool scrub)
         {
-            if (project == null || tracks.Count == 0) return;
+            if (debugMode)
+                Debug.Log($"[MiniTimelineDirector] Starting evaluation at time {currentTime:F3}, scrub: {scrub}, project: {(project != null ? project.name : "null")}, tracks: {tracks.Count}");
+            
+            if (project == null || tracks.Count == 0)
+            {
+                if (debugMode)
+                    Debug.LogWarning($"[MiniTimelineDirector] Cannot evaluate - project: {(project != null ? "loaded" : "null")}, track count: {tracks.Count}");
+                return;
+            }
             
             // Rebuild tracks if dirty
             if (isDirty)
             {
+                if (debugMode)
+                    Debug.Log("[MiniTimelineDirector] Tracks are dirty, rebuilding...");
                 BuildTracks();
                 isDirty = false;
             }
@@ -476,17 +489,34 @@ namespace MiniTimeline.Core
             tempTrackList.AddRange(tracks.Where(t => t.Enabled));
             tempTrackList.Sort((a, b) => a.Order.CompareTo(b.Order));
             
+            if (debugMode)
+                Debug.Log($"[MiniTimelineDirector] Evaluating {tempTrackList.Count} enabled tracks out of {tracks.Count} total tracks");
+            
+            int successCount = 0;
+            int errorCount = 0;
+            
             foreach (var track in tempTrackList)
             {
                 try
                 {
+                    if (debugMode)
+                        Debug.Log($"[MiniTimelineDirector] Evaluating track '{track.Id}' (Order: {track.Order}, Type: {track.GetType().Name})");
+                    
                     track.Evaluate(currentTime, scrub);
+                    successCount++;
+                    
+                    if (debugMode)
+                        Debug.Log($"[MiniTimelineDirector] Successfully evaluated track '{track.Id}'");
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"[MiniTimelineDirector] Error evaluating track '{track.Id}': {e.Message}");
+                    errorCount++;
+                    Debug.LogError($"[MiniTimelineDirector] Error evaluating track '{track.Id}': {e.Message}\nStackTrace: {e.StackTrace}");
                 }
             }
+            
+            if (debugMode)
+                Debug.Log($"[MiniTimelineDirector] Evaluation complete - Success: {successCount}, Errors: {errorCount}");
             
             tempTrackList.Clear();
         }
@@ -500,33 +530,75 @@ namespace MiniTimeline.Core
         /// </summary>
         private void BuildTracks()
         {
-            if (project == null) return;
+            if (project == null)
+            {
+                if (debugMode)
+                    Debug.LogWarning("[MiniTimelineDirector] Cannot build tracks - no project loaded");
+                return;
+            }
+            
+            if (debugMode)
+                Debug.Log($"[MiniTimelineDirector] Building tracks from project '{project.name}' with {project.tracks.Count} track definitions");
             
             // Clear existing tracks
             foreach (var track in tracks)
             {
+                if (debugMode)
+                    Debug.Log($"[MiniTimelineDirector] Cleaning up existing track '{track.Id}'");
                 track.OnProjectClosed();
             }
             tracks.Clear();
             trackLookup.Clear();
             
+            int successCount = 0;
+            int failureCount = 0;
+            
             // Create tracks from project data
             foreach (var trackData in project.tracks)
             {
+                if (debugMode)
+                    Debug.Log($"[MiniTimelineDirector] Creating track '{trackData.id}' of type '{trackData.type}'");
+                
                 var track = CreateTrack(trackData);
                 if (track != null)
                 {
                     tracks.Add(track);
                     trackLookup[track.Id] = track;
                     
-                    // Bind and prepare track
-                    track.Bind(bindingContext);
-                    track.Prepare();
+                    try
+                    {
+                        // Bind and prepare track
+                        if (debugMode)
+                            Debug.Log($"[MiniTimelineDirector] Binding track '{track.Id}' with bind key '{track.BindKey}'");
+                        track.Bind(bindingContext);
+                        
+                        if (debugMode)
+                            Debug.Log($"[MiniTimelineDirector] Preparing track '{track.Id}'");
+                        track.Prepare();
+                        
+                        successCount++;
+                        if (debugMode)
+                            Debug.Log($"[MiniTimelineDirector] Successfully created and prepared track '{track.Id}'");
+                    }
+                    catch (Exception e)
+                    {
+                        failureCount++;
+                        Debug.LogError($"[MiniTimelineDirector] Failed to bind/prepare track '{track.Id}': {e.Message}\nStackTrace: {e.StackTrace}");
+                        
+                        // Remove failed track
+                        tracks.Remove(track);
+                        trackLookup.Remove(track.Id);
+                    }
+                }
+                else
+                {
+                    failureCount++;
+                    Debug.LogError($"[MiniTimelineDirector] Failed to create track '{trackData.id}' of type '{trackData.type}'");
                 }
             }
             
             if (debugMode)
-                Debug.Log($"[MiniTimelineDirector] Built {tracks.Count} tracks");
+                Debug.Log($"[MiniTimelineDirector] Track building complete - Success: {successCount}, Failures: {failureCount}, Total tracks: {tracks.Count}");
         }
         
         /// <summary>

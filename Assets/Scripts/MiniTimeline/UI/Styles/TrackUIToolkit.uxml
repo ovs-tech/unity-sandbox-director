@@ -1,0 +1,32 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Scripts/MiniTimeline/UI/TrackUIToolkit.uss?fileID=7433441132597879392&amp;guid=e6fdb4a10f7c64fa98798f201db686f4&amp;type=3#TrackUIToolkit" />
+    <ui:VisualElement name="track-root" class="track">
+        <ui:VisualElement name="track-header" class="track-header">
+            <ui:VisualElement name="track-info" class="track-info">
+                <ui:Label name="track-title" text="Track Name" class="track-title" />
+                <ui:VisualElement name="track-subinfo" class="track-subinfo">
+                    <ui:Label name="track-bind-key" text="binding-key" class="track-bind-key" />
+                    <ui:Label name="track-type" text="anim" class="track-type" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="track-controls" class="track-controls">
+                <ui:Toggle name="track-enabled" value="true" class="track-enabled-toggle" />
+                <ui:Button name="track-mute" text="M" class="track-button track-mute-button" />
+                <ui:Button name="track-solo" text="S" class="track-button track-solo-button" />
+                <ui:Button name="track-menu-button" text="⋮" class="track-button track-menu-button" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="track-content" class="track-content">
+            <ui:VisualElement name="track-timeline" class="track-timeline">
+                <ui:VisualElement name="track-grid" class="track-grid" />
+                <ui:VisualElement name="clips-container" class="clips-container" />
+                <ui:VisualElement name="track-lanes" class="track-lanes">
+                    <ui:VisualElement name="lane-1" class="track-lane" />
+                    <ui:VisualElement name="lane-2" class="track-lane" />
+                    <ui:VisualElement name="lane-3" class="track-lane" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="track-resize-handle" class="track-resize-handle" />
+    </ui:VisualElement>
+</ui:UXML>

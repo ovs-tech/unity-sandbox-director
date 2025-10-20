@@ -36,6 +36,10 @@ namespace MiniTimeline.Editor
         private string lastLoadedPath = "";
         private string lastSavedPath = "";
         
+        // Binding management
+        private string newBindingKey = "";
+        private UnityEngine.Object newBindingObject = null;
+        
         // Foldouts
         private bool showTimelineSettings = true;
         private bool showProjectManagement = true;
@@ -359,30 +363,103 @@ namespace MiniTimeline.Editor
                     {
                         EditorGUILayout.LabelField($"Active Bindings ({bindingKeys.Count}):", EditorStyles.boldLabel);
                         
+                        var keysToRemove = new System.Collections.Generic.List<string>();
+                        var bindingsToAdd = new System.Collections.Generic.List<(string oldKey, string newKey, UnityEngine.Object obj)>();
+                        
                         foreach (var key in bindingKeys)
                         {
                             EditorGUILayout.BeginHorizontal();
-                            EditorGUILayout.LabelField($"{key}:", GUILayout.Width(100));
                             
-                            if (director.BindingContext.TryResolve(key, out UnityEngine.Object obj))
+                            // Editable binding key
+                            EditorGUILayout.LabelField("Key:", GUILayout.Width(30));
+                            var newKey = EditorGUILayout.TextField(key, GUILayout.Width(120));
+                            
+                            // Object field
+                            UnityEngine.Object currentObj = null;
+                            director.BindingContext.TryResolve(key, out currentObj);
+                            
+                            var newObj = EditorGUILayout.ObjectField(currentObj, typeof(UnityEngine.Object), true);
+                            
+                            // Remove button
+                            if (GUILayout.Button("×", GUILayout.Width(20)))
                             {
-                                if (obj != null)
-                                {
-                                    EditorGUILayout.ObjectField(obj, typeof(UnityEngine.Object), true);
-                                }
-                                else
-                                {
-                                    EditorGUILayout.LabelField("null", EditorStyles.miniLabel);
-                                }
-                            }
-                            else
-                            {
-                                EditorGUILayout.LabelField("unresolved", EditorStyles.miniLabel);
+                                keysToRemove.Add(key);
                             }
                             
                             EditorGUILayout.EndHorizontal();
+                            
+                            // Handle key changes
+                            if (newKey != key && !string.IsNullOrEmpty(newKey))
+                            {
+                                bindingsToAdd.Add((key, newKey, newObj ?? currentObj));
+                                keysToRemove.Add(key);
+                            }
+                            // Handle object changes
+                            else if (newObj != currentObj)
+                            {
+                                director.BindingContext.Bind(key, newObj);
+                            }
+                        }
+                        
+                        // Apply changes
+                        foreach (var keyToRemove in keysToRemove)
+                        {
+                            director.BindingContext.Unbind(keyToRemove);
+                        }
+                        
+                        foreach (var (oldKey, newKey, obj) in bindingsToAdd)
+                        {
+                            if (!bindingKeys.Contains(newKey)) // Avoid duplicate keys
+                            {
+                                director.BindingContext.Bind(newKey, obj);
+                            }
                         }
                     }
+                    
+                    // Auto-binding section
+                    EditorGUILayout.Space(10);
+                    EditorGUILayout.LabelField("Auto Binding:", EditorStyles.boldLabel);
+                    
+                    EditorGUILayout.BeginHorizontal();
+                    if (GUILayout.Button("Auto-Bind Scene Objects", buttonStyle))
+                    {
+                        AutoBindSceneObjects();
+                    }
+                    if (GUILayout.Button("Clear All Bindings", buttonStyle))
+                    {
+                        if (EditorUtility.DisplayDialog("Clear Bindings", "Are you sure you want to clear all bindings?", "Yes", "Cancel"))
+                        {
+                            ClearAllBindings();
+                        }
+                    }
+                    EditorGUILayout.EndHorizontal();
+                    
+                    // Add new binding section
+                    EditorGUILayout.Space(10);
+                    EditorGUILayout.LabelField("Add New Binding:", EditorStyles.boldLabel);
+                    
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Key:", GUILayout.Width(30));
+                    newBindingKey = EditorGUILayout.TextField(newBindingKey, GUILayout.Width(120));
+                    newBindingObject = EditorGUILayout.ObjectField(newBindingObject, typeof(UnityEngine.Object), true);
+                    
+                    EditorGUI.BeginDisabledGroup(string.IsNullOrEmpty(newBindingKey) || newBindingObject == null);
+                    if (GUILayout.Button("Add", GUILayout.Width(50)))
+                    {
+                        if (!bindingKeys.Contains(newBindingKey))
+                        {
+                            director.BindingContext.Bind(newBindingKey, newBindingObject);
+                            newBindingKey = "";
+                            newBindingObject = null;
+                        }
+                        else
+                        {
+                            EditorUtility.DisplayDialog("Duplicate Key", $"Binding key '{newBindingKey}' already exists.", "OK");
+                        }
+                    }
+                    EditorGUI.EndDisabledGroup();
+                    
+                    EditorGUILayout.EndHorizontal();
                 }
                 else
                 {
@@ -480,8 +557,43 @@ namespace MiniTimeline.Editor
                         
                         // Track details
                         EditorGUILayout.BeginHorizontal();
-                        EditorGUILayout.LabelField("Bind Key:", track.BindKey ?? "None", EditorStyles.miniLabel);
-                        EditorGUILayout.LabelField("Order:", track.Order.ToString(), EditorStyles.miniLabel);
+                        
+                        // Binding key selector
+                        EditorGUILayout.LabelField("Bind Key:", GUILayout.Width(60));
+                        
+                        var availableKeys = new System.Collections.Generic.List<string> { "None" };
+                        if (director.BindingContext != null)
+                        {
+                            availableKeys.AddRange(director.BindingContext.GetKeys());
+                        }
+                        
+                        var currentBindKey = track.BindKey ?? "None";
+                        var currentIndex = availableKeys.IndexOf(currentBindKey);
+                        if (currentIndex == -1)
+                        {
+                            // If current bind key is not in available keys, add it to show
+                            availableKeys.Add(currentBindKey);
+                            currentIndex = availableKeys.Count - 1;
+                        }
+                        
+                        var newIndex = EditorGUILayout.Popup(currentIndex, availableKeys.ToArray(), GUILayout.Width(100));
+                        if (newIndex != currentIndex && newIndex >= 0 && newIndex < availableKeys.Count)
+                        {
+                            var newBindKey = availableKeys[newIndex];
+                            if (newBindKey == "None")
+                            {
+                                newBindKey = null;
+                            }
+                            
+                            // Update track bind key (this would need to be implemented in the track system)
+                            if (track.GetType().GetProperty("BindKey")?.CanWrite == true)
+                            {
+                                track.GetType().GetProperty("BindKey").SetValue(track, newBindKey);
+                                Debug.Log($"[MiniTimelineDirectorEditor] Updated track '{track.Id}' bind key to '{newBindKey ?? "None"}'");
+                            }
+                        }
+                        
+                        EditorGUILayout.LabelField("Order:", track.Order.ToString(), EditorStyles.miniLabel, GUILayout.Width(60));
                         EditorGUILayout.EndHorizontal();
                         
                         // Clip count
@@ -681,6 +793,68 @@ namespace MiniTimeline.Editor
                 director.CloseProject();
                 Debug.Log("[MiniTimelineDirectorEditor] Project closed");
             }
+        }
+        
+        #endregion
+        
+        #region Binding Management Methods
+        
+        private void AutoBindSceneObjects()
+        {
+            if (director.BindingContext == null)
+            {
+                EditorUtility.DisplayDialog("No Binding Context", "Binding context is null.", "OK");
+                return;
+            }
+            
+            var bindingsAdded = 0;
+            
+            // Find all GameObjects in the scene and bind them by name
+            var allGameObjects = FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+            foreach (var go in allGameObjects)
+            {
+                // Only bind root objects or objects with specific components
+                if (go.transform.parent == null || 
+                    go.GetComponent<Animator>() != null ||
+                    go.GetComponent<Camera>() != null ||
+                    go.GetComponent<Light>() != null ||
+                    go.GetComponent<AudioSource>() != null)
+                {
+                    var key = go.name;
+                    
+                    // Avoid duplicate keys
+                    var counter = 1;
+                    var originalKey = key;
+                    while (director.BindingContext.GetKeys().Contains(key))
+                    {
+                        key = $"{originalKey}_{counter}";
+                        counter++;
+                    }
+                    
+                    director.BindingContext.Bind(key, go);
+                    bindingsAdded++;
+                }
+            }
+            
+            Debug.Log($"[MiniTimelineDirectorEditor] Auto-bound {bindingsAdded} scene objects");
+            EditorUtility.DisplayDialog("Auto-Binding Complete", $"Successfully auto-bound {bindingsAdded} scene objects.", "OK");
+        }
+        
+        private void ClearAllBindings()
+        {
+            if (director.BindingContext == null)
+            {
+                EditorUtility.DisplayDialog("No Binding Context", "Binding context is null.", "OK");
+                return;
+            }
+            
+            var keys = director.BindingContext.GetKeys().ToList();
+            foreach (var key in keys)
+            {
+                director.BindingContext.Unbind(key);
+            }
+            
+            Debug.Log($"[MiniTimelineDirectorEditor] Cleared {keys.Count} bindings");
         }
         
         #endregion
