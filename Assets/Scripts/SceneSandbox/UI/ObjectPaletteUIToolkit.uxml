@@ -1,0 +1,30 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:VisualElement name="palette-container" class="panel palette-panel" style="flex-grow: 1;">
+        
+        <!-- Title -->
+        <ui:Label text="Object Palette" class="panel__header" />
+        
+        <!-- Filters Container -->
+        <ui:VisualElement name="filters-container" class="filters-container">
+            
+            <!-- Type Filter -->
+            <ui:DropdownField label="Type" name="type-filter" index="0" />
+            
+            <!-- Category Filter -->
+            <ui:DropdownField label="Category" name="category-filter" index="0" />
+            
+            <!-- Search Field -->
+            <ui:TextField label="Search" name="search-field" placeholder="Search objects..." style="margin-top: 4px;" />
+            
+            <!-- Refresh Button -->
+            <ui:Button text="Refresh" name="refresh-button" class="button button--secondary" style="margin-top: 4px;" />
+            
+        </ui:VisualElement>
+        
+        <!-- Items Scroll View -->
+        <ui:ScrollView name="items-scroll-view" mode="Vertical" style="flex-grow: 1;">
+            <ui:VisualElement name="items-container" class="items-container" style="flex-direction: row; flex-wrap: wrap; padding: 4px;" />
+        </ui:ScrollView>
+        
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,0 +1,13 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:VisualElement name="palette-item" class="palette-item" style="width: 100px; height: 120px; margin-right: 8px; margin-bottom: 8px;">
+        
+        <!-- Icon Container -->
+        <ui:VisualElement name="icon-container" style="flex-grow: 1; justify-content: center; align-items: center;">
+            <ui:VisualElement name="icon" class="palette-item__icon" style="width: 64px; height: 64px;" />
+        </ui:VisualElement>
+        
+        <!-- Name Label -->
+        <ui:Label name="name-label" class="palette-item__name" text="Object Name" style="height: 30px;" />
+        
+    </ui:VisualElement>
+</ui:UXML>

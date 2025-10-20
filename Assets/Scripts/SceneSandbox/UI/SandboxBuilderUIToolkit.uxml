@@ -1,0 +1,90 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:VisualElement name="main-container" class="main-container" style="flex-grow: 1; flex-direction: row;">
+        
+        <!-- Left Panel - Object Palette -->
+        <ui:VisualElement name="left-panel" class="panel left-panel" style="width: 300px;">
+            <ui:Label text="Object Palette" name="palette-title" class="panel__header" />
+            <ui:VisualElement name="palette-container" style="flex-grow: 1;" />
+        </ui:VisualElement>
+        
+        <!-- Center Panel - Scene Viewport and Controls -->
+        <ui:VisualElement name="center-panel" class="center-panel" style="flex-grow: 1;">
+            
+            <!-- Scene Controls Panel -->
+            <ui:VisualElement name="scene-controls-panel" class="panel controls-panel">
+                <ui:Label text="Scene Builder" class="panel__header" />
+                
+                <!-- Project Controls Row -->
+                <ui:VisualElement name="project-controls-row" class="project-controls-row" style="flex-direction: row; margin-top: 8px;">
+                    <ui:TextField name="project-name-input" label="Project Name" style="flex-grow: 1; margin-right: 4px;" />
+                    <ui:Button text="New" name="new-project-button" class="button button--secondary" />
+                    <ui:Button text="Save" name="save-project-button" class="button button--primary" />
+                    <ui:Button text="Load" name="load-project-button" class="button button--secondary" />
+                </ui:VisualElement>
+                
+                <!-- Scene Controls Row -->
+                <ui:VisualElement name="scene-controls-row" class="scene-controls-row" style="flex-direction: row; margin-top: 8px;">
+                    <ui:Button text="New Scene" name="new-scene-button" class="button button--secondary" />
+                    <ui:Button text="Save Scene" name="save-scene-button" class="button button--primary" />
+                    <ui:Button text="Load Scene" name="load-scene-button" class="button button--secondary" />
+                    <ui:Button text="Clear" name="clear-scene-button" class="button button--danger" />
+                </ui:VisualElement>
+                
+                <!-- Preview Controls Row -->
+                <ui:VisualElement name="preview-controls-row" class="preview-controls-row" style="flex-direction: row; margin-top: 8px;">
+                    <ui:Button text="Preview" name="preview-button" class="button button--success" />
+                    <ui:Button text="Stop Preview" name="stop-preview-button" class="button button--warning" />
+                </ui:VisualElement>
+                
+                <!-- Current Project Label -->
+                <ui:Label text="No project loaded" name="current-project-text" style="margin-top: 8px; font-size: 12px;" />
+            </ui:VisualElement>
+            
+            <!-- Scene Info Panel -->
+            <ui:VisualElement name="scene-info-panel" class="panel" style="margin-top: 8px;">
+                <ui:VisualElement name="scene-info-row" class="scene-info-row" style="flex-direction: row; justify-content: space-between;">
+                    <ui:Label text="Scene: None" name="scene-name-text" style="font-size: 12px;" />
+                    <ui:Label text="Objects: 0" name="object-count-text" style="font-size: 12px;" />
+                    <ui:Label text="Edit Mode" name="preview-status-text" style="font-size: 12px; color: rgb(34, 197, 94);" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            
+            <!-- Viewport Area (transparent, lets 3D scene show through) -->
+            <ui:VisualElement name="viewport-area" class="viewport-area" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);" picking-mode="Ignore" />
+            
+        </ui:VisualElement>
+        
+        <!-- Right Panel - Object Controls -->
+        <ui:VisualElement name="right-panel" class="panel right-panel" style="width: 300px;">
+            
+            <!-- Object Controls -->
+            <ui:VisualElement name="object-controls-panel" class="object-controls-panel">
+                <ui:Label text="Object Controls" class="panel__header" />
+                
+                <ui:Button text="Delete Selected" name="delete-object-button" class="button button--danger" style="margin-top: 8px;" />
+                
+                <!-- Grid Settings -->
+                <ui:Label text="Grid Settings" style="margin-top: 16px; font-size: 14px; -unity-font-style: bold;" />
+                
+                <ui:Toggle label="Snap to Grid" name="snap-to-grid-toggle" style="margin-top: 8px;" />
+                
+                <ui:VisualElement style="margin-top: 8px;">
+                    <ui:Label text="Grid Size: 1.0" name="grid-size-text" style="font-size: 12px; margin-bottom: 4px;" />
+                    <ui:Slider label="Grid Size" name="grid-size-slider" low-value="0.1" high-value="5" value="1" show-input-field="false" />
+                </ui:VisualElement>
+                
+            </ui:VisualElement>
+            
+        </ui:VisualElement>
+        
+    </ui:VisualElement>
+    
+    <!-- Mobile Controls Panel (hidden by default, shown on mobile) -->
+    <ui:VisualElement name="mobile-controls-panel" class="mobile-controls" style="position: absolute; bottom: 0; left: 0; right: 0; height: 60px; display: none;">
+        <ui:VisualElement name="mobile-button-row" style="flex-direction: row; justify-content: space-around; align-items: center; flex-grow: 1;">
+            <ui:Button text="Palette" name="mobile-palette-toggle" class="button button--secondary" />
+            <ui:Button text="Properties" name="mobile-properties-toggle" class="button button--secondary" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+    
+</ui:UXML>
