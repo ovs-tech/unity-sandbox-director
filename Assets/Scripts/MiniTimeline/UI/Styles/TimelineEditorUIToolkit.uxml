@@ -32,9 +32,17 @@
             </ui:VisualElement>
         </ui:ScrollView>
         <ui:VisualElement name="status-bar" class="status-bar">
-            <ui:Label text="Ready" name="status-text" class="status-text" />
+            <ui:Label text="Ready" name="status-text" class="status-text">
+                <Bindings>
+                    <UnityEngine.Localization.LocalizedString property="text" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="Id(521691590656)" />
+                </Bindings>
+            </ui:Label>
             <ui:VisualElement name="zoom-controls" class="zoom-controls" style="margin-left: auto;">
-                <ui:Label text="Zoom:" class="status-text" />
+                <ui:Label text="Zoom:" class="status-text">
+                    <Bindings>
+                        <UnityEngine.Localization.LocalizedString property="text" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="Id(825833156608)" />
+                    </Bindings>
+                </ui:Label>
                 <ui:Slider picking-mode="Ignore" value="1" high-value="5" low-value="0.1" name="zoom-slider" class="zoom-slider" />
                 <ui:Label text="100%" name="zoom-label" class="status-text" />
             </ui:VisualElement>
