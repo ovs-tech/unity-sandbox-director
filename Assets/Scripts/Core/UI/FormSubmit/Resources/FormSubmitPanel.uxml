@@ -10,8 +10,16 @@
                 <ui:VisualElement name="fields-container" class="form-fields-container" />
             </ui:ScrollView>
             <ui:VisualElement name="footer" class="form-footer">
-                <ui:Button name="cancel-button" text="Cancel" class="form-cancel-button button button--secondary" />
-                <ui:Button name="submit-button" text="OK" class="form-submit-button button button--success" />
+                <ui:Button name="cancel-button" text="Cancel" class="form-cancel-button button button--secondary">
+                    <Bindings>
+                        <UnityEngine.Localization.LocalizedString property="text" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="form.cancel" />
+                    </Bindings>
+                </ui:Button>
+                <ui:Button name="submit-button" text="OK" class="form-submit-button button button--success">
+                    <Bindings>
+                        <UnityEngine.Localization.LocalizedString property="text" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="form.submit" />
+                    </Bindings>
+                </ui:Button>
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>

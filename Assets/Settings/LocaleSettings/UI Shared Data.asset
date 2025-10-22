@@ -16,11 +16,75 @@ MonoBehaviour:
   m_TableCollectionNameGuidString: 224f44bb68ac0fc409cf2bd015746ae1
   m_Entries:
   - m_Id: 521691590656
-    m_Key: timeline-editor-ui-toolkit.ready
+    m_Key: timeline.status.ready
     m_Metadata:
       m_Items: []
   - m_Id: 825833156608
-    m_Key: timeline-editor-ui-toolkit.zoom
+    m_Key: timeline.zoom.label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156609
+    m_Key: form.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156610
+    m_Key: form.cancel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156611
+    m_Key: form.submit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156612
+    m_Key: timeline.play.tooltip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156613
+    m_Key: timeline.pause.tooltip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156614
+    m_Key: timeline.stop.tooltip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156615
+    m_Key: timeline.undo.tooltip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156616
+    m_Key: timeline.redo.tooltip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156617
+    m_Key: timeline.addTrack.tooltip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156618
+    m_Key: timeline.bindingManager.tooltip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156619
+    m_Key: timeline.save.tooltip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156620
+    m_Key: timeline.load.tooltip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156621
+    m_Key: form.addTrack.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156622
+    m_Key: form.bindingManager.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156623
+    m_Key: form.saveProject.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156624
+    m_Key: form.loadProject.title
     m_Metadata:
       m_Items: []
   m_Metadata:

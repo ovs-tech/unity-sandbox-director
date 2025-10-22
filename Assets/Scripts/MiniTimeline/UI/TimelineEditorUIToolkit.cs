@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.Localization;
 using MiniTimeline.Core;
 using MiniTimeline.Serialization;
 using MiniTimeline.UI.Commands;
@@ -952,7 +953,7 @@ namespace MiniTimeline.UI
         /// <summary>
         /// Show form for adding a new track to the timeline
         /// </summary>
-        private void ShowAddTrackForm()
+        private async void ShowAddTrackForm()
         {
             if (director?.Project == null)
             {
@@ -963,9 +964,13 @@ namespace MiniTimeline.UI
             // Get form field definitions from TrackFormDefinitions
             var fieldDefinitions = TrackFormDefinitions.GetCreateTrackFields();
 
+            // Get localized title
+            var titleHandle = new LocalizedString("UI", "form.addTrack.title").GetLocalizedStringAsync();
+            await titleHandle.Task;
+
             // Show the form using FormSubmitPanelUIToolkit singleton
             FormSubmitPanelUIToolkit.Instance.Show(
-                "Add New Track",
+                titleHandle.Result,
                 fieldDefinitions,
                 OnAddTrackFormSubmitted,
                 OnAddTrackFormCancelled,
@@ -1026,7 +1031,7 @@ namespace MiniTimeline.UI
         /// <summary>
         /// Show the main binding manager form
         /// </summary>
-        private void ShowBindingManagerForm()
+        private async void ShowBindingManagerForm()
         {
             if (director?.BindingContext == null)
             {
@@ -1101,9 +1106,13 @@ namespace MiniTimeline.UI
                 }
             };
 
+            // Get localized title
+            var titleHandle = new LocalizedString("UI", "form.bindingManager.title").GetLocalizedStringAsync();
+            await titleHandle.Task;
+
             // Show the binding manager form
             FormSubmitPanelUIToolkit.Instance.Show(
-                "Scene Binding Manager",
+                titleHandle.Result,
                 fieldDefinitions,
                 OnBindingManagerFormSubmitted,
                 OnBindingManagerFormCancelled,
@@ -1271,7 +1280,7 @@ namespace MiniTimeline.UI
         /// <summary>
         /// Show the save project form
         /// </summary>
-        private void ShowSaveProjectForm()
+        private async void ShowSaveProjectForm()
         {
             if (director?.Project == null)
             {
@@ -1318,9 +1327,13 @@ namespace MiniTimeline.UI
                 }
             };
 
+            // Get localized title
+            var titleHandle = new LocalizedString("UI", "form.saveProject.title").GetLocalizedStringAsync();
+            await titleHandle.Task;
+
             // Show the save form
             FormSubmitPanelUIToolkit.Instance.Show(
-                "Save Timeline Project",
+                titleHandle.Result,
                 fieldDefinitions,
                 OnSaveProjectFormSubmitted,
                 OnSaveProjectFormCancelled,
@@ -1382,7 +1395,7 @@ namespace MiniTimeline.UI
         /// <summary>
         /// Show the load project form
         /// </summary>
-        private void ShowLoadProjectForm()
+        private async void ShowLoadProjectForm()
         {
             // Debug.Log("Opening load project form");
 
@@ -1439,9 +1452,13 @@ namespace MiniTimeline.UI
                 }
             };
 
+            // Get localized title
+            var titleHandle = new LocalizedString("UI", "form.loadProject.title").GetLocalizedStringAsync();
+            await titleHandle.Task;
+
             // Show the load form
             FormSubmitPanelUIToolkit.Instance.Show(
-                "Load Timeline Project",
+                titleHandle.Result,
                 fieldDefinitions,
                 OnLoadProjectFormSubmitted,
                 OnLoadProjectFormCancelled,

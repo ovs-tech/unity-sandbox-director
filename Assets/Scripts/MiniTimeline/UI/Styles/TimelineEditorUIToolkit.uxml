@@ -3,25 +3,61 @@
     <ui:VisualElement name="timeline-editor" class="timeline-editor">
         <ui:VisualElement name="controls-container" class="controls-container">
             <ui:VisualElement name="playback-controls" class="playback-controls">
-                <ui:Button text="\uf04b" name="play-button" enable-rich-text="true" emoji-fallback-support="true" double-click-selects-word="false" triple-click-selects-line="false" parse-escape-sequences="true" class="control-button fa-solid" />
-                <ui:Button text="\uf04c" name="pause-button" parse-escape-sequences="true" class="control-button fa-solid" />
-                <ui:Button text="\uf04d" name="stop-button" parse-escape-sequences="true" class="control-button fa-solid" />
+                <ui:Button text="\uf04b" name="play-button" enable-rich-text="true" emoji-fallback-support="true" double-click-selects-word="false" triple-click-selects-line="false" parse-escape-sequences="true" class="control-button fa-solid">
+                    <Bindings>
+                        <UnityEngine.Localization.LocalizedString property="tooltip" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="timeline.play.tooltip" />
+                    </Bindings>
+                </ui:Button>
+                <ui:Button text="\uf04c" name="pause-button" parse-escape-sequences="true" class="control-button fa-solid">
+                    <Bindings>
+                        <UnityEngine.Localization.LocalizedString property="tooltip" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="timeline.pause.tooltip" />
+                    </Bindings>
+                </ui:Button>
+                <ui:Button text="\uf04d" name="stop-button" parse-escape-sequences="true" class="control-button fa-solid">
+                    <Bindings>
+                        <UnityEngine.Localization.LocalizedString property="tooltip" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="timeline.stop.tooltip" />
+                    </Bindings>
+                </ui:Button>
             </ui:VisualElement>
             <ui:VisualElement name="time-controls" class="time-controls">
                 <ui:Label text="00:00:00" name="time-label" class="time-label" />
                 <ui:Slider picking-mode="Ignore" value="0" high-value="1" name="time-slider" class="time-slider" />
             </ui:VisualElement>
             <ui:VisualElement name="edit-controls" class="playback-controls">
-                <ui:Button text="\uf2ea" name="undo-button" parse-escape-sequences="true" class="control-button fa-solid" />
-                <ui:Button text="\uf2f9" name="redo-button" parse-escape-sequences="true" class="control-button fa-solid" />
+                <ui:Button text="\uf2ea" name="undo-button" parse-escape-sequences="true" class="control-button fa-solid">
+                    <Bindings>
+                        <UnityEngine.Localization.LocalizedString property="tooltip" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="timeline.undo.tooltip" />
+                    </Bindings>
+                </ui:Button>
+                <ui:Button text="\uf2f9" name="redo-button" parse-escape-sequences="true" class="control-button fa-solid">
+                    <Bindings>
+                        <UnityEngine.Localization.LocalizedString property="tooltip" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="timeline.redo.tooltip" />
+                    </Bindings>
+                </ui:Button>
             </ui:VisualElement>
             <ui:VisualElement name="track-controls" class="playback-controls">
-                <ui:Button text="\uf0fe" name="add-track-button" parse-escape-sequences="true" class="control-button fa-solid" />
-                <ui:Button text="\uf70b" name="binding-manager-button" parse-escape-sequences="true" class="control-button fa-solid" />
+                <ui:Button text="\uf0fe" name="add-track-button" parse-escape-sequences="true" class="control-button fa-solid">
+                    <Bindings>
+                        <UnityEngine.Localization.LocalizedString property="tooltip" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="timeline.addTrack.tooltip" />
+                    </Bindings>
+                </ui:Button>
+                <ui:Button text="\uf70b" name="binding-manager-button" parse-escape-sequences="true" class="control-button fa-solid">
+                    <Bindings>
+                        <UnityEngine.Localization.LocalizedString property="tooltip" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="timeline.bindingManager.tooltip" />
+                    </Bindings>
+                </ui:Button>
             </ui:VisualElement>
             <ui:VisualElement name="project-controls" class="playback-controls">
-                <ui:Button text="\uf093" name="save-button" parse-escape-sequences="true" class="control-button fa-solid" />
-                <ui:Button text="\uf019" name="load-button" parse-escape-sequences="true" class="control-button fa-solid" />
+                <ui:Button text="\uf093" name="save-button" parse-escape-sequences="true" class="control-button fa-solid">
+                    <Bindings>
+                        <UnityEngine.Localization.LocalizedString property="tooltip" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="timeline.save.tooltip" />
+                    </Bindings>
+                </ui:Button>
+                <ui:Button text="\uf019" name="load-button" parse-escape-sequences="true" class="control-button fa-solid">
+                    <Bindings>
+                        <UnityEngine.Localization.LocalizedString property="tooltip" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="timeline.load.tooltip" />
+                    </Bindings>
+                </ui:Button>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:ScrollView name="timeline-scroll" mode="Horizontal" class="timeline-scroll">
@@ -34,13 +70,13 @@
         <ui:VisualElement name="status-bar" class="status-bar">
             <ui:Label text="Ready" name="status-text" class="status-text">
                 <Bindings>
-                    <UnityEngine.Localization.LocalizedString property="text" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="Id(521691590656)" />
+                    <UnityEngine.Localization.LocalizedString property="text" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="timeline.status.ready" />
                 </Bindings>
             </ui:Label>
             <ui:VisualElement name="zoom-controls" class="zoom-controls" style="margin-left: auto;">
                 <ui:Label text="Zoom:" class="status-text">
                     <Bindings>
-                        <UnityEngine.Localization.LocalizedString property="text" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="Id(825833156608)" />
+                        <UnityEngine.Localization.LocalizedString property="text" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="timeline.zoom.label" />
                     </Bindings>
                 </ui:Label>
                 <ui:Slider picking-mode="Ignore" value="1" high-value="5" low-value="0.1" name="zoom-slider" class="zoom-slider" />

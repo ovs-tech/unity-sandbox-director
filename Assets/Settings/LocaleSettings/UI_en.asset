@@ -26,6 +26,70 @@ MonoBehaviour:
     m_Localized: 'Zoom:'
     m_Metadata:
       m_Items: []
+  - m_Id: 825833156609
+    m_Localized: 'Form'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156610
+    m_Localized: 'Cancel'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156611
+    m_Localized: 'Submit'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156612
+    m_Localized: 'Play'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156613
+    m_Localized: 'Pause'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156614
+    m_Localized: 'Stop'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156615
+    m_Localized: 'Undo'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156616
+    m_Localized: 'Redo'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156617
+    m_Localized: 'Add Track'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156618
+    m_Localized: 'Binding Manager'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156619
+    m_Localized: 'Save Project'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156620
+    m_Localized: 'Load Project'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156621
+    m_Localized: 'Add New Track'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156622
+    m_Localized: 'Scene Binding Manager'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156623
+    m_Localized: 'Save Timeline Project'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156624
+    m_Localized: 'Load Timeline Project'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
