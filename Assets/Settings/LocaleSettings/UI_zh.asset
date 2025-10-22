@@ -17,7 +17,79 @@ MonoBehaviour:
   m_SharedData: {fileID: 11400000, guid: 224f44bb68ac0fc409cf2bd015746ae1, type: 2}
   m_Metadata:
     m_Items: []
-  m_TableData: []
+  m_TableData:
+  - m_Id: 521691590656
+    m_Localized: '准备好'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156608
+    m_Localized: '缩放:'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156609
+    m_Localized: '形式'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156610
+    m_Localized: '取消'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156611
+    m_Localized: '提交'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156612
+    m_Localized: '玩'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156613
+    m_Localized: '暂停'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156614
+    m_Localized: '停止'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156615
+    m_Localized: '撤消'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156616
+    m_Localized: '重做'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156617
+    m_Localized: '添加轨道'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156618
+    m_Localized: '绑定管理器'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156619
+    m_Localized: '保存项目'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156620
+    m_Localized: '加载项目'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156621
+    m_Localized: '添加新轨道'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156622
+    m_Localized: '场景绑定管理器'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156623
+    m_Localized: '保存时间轴项目'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156624
+    m_Localized: '加载时间轴项目'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

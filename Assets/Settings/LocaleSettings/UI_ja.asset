@@ -17,7 +17,79 @@ MonoBehaviour:
   m_SharedData: {fileID: 11400000, guid: 224f44bb68ac0fc409cf2bd015746ae1, type: 2}
   m_Metadata:
     m_Items: []
-  m_TableData: []
+  m_TableData:
+  - m_Id: 521691590656
+    m_Localized: '準備完了'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156608
+    m_Localized: 'ズーム:'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156609
+    m_Localized: 'フォーム'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156610
+    m_Localized: 'キャンセル'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156611
+    m_Localized: '送信'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156612
+    m_Localized: '再生'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156613
+    m_Localized: '一時停止'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156614
+    m_Localized: '停止'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156615
+    m_Localized: '元に戻す'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156616
+    m_Localized: 'やり直し'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156617
+    m_Localized: 'トラックを追加'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156618
+    m_Localized: 'バインディングマネージャー'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156619
+    m_Localized: 'プロジェクトを保存'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156620
+    m_Localized: 'プロジェクトを読み込む'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156621
+    m_Localized: '新しいトラックを追加'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156622
+    m_Localized: 'シーンバインディングマネージャー'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156623
+    m_Localized: 'タイムラインプロジェクトを保存'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156624
+    m_Localized: 'タイムラインプロジェクトを読み込む'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -19,11 +19,75 @@ MonoBehaviour:
     m_Items: []
   m_TableData:
   - m_Id: 521691590656
-    m_Localized: "S\u1EB5n s\xE0ng"
+    m_Localized: 'Sẵn sàng'
     m_Metadata:
       m_Items: []
   - m_Id: 825833156608
-    m_Localized: "Ph\xF3ng to:"
+    m_Localized: 'Thu phóng:'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156609
+    m_Localized: 'Biểu mẫu'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156610
+    m_Localized: 'Hủy'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156611
+    m_Localized: 'Gửi'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156612
+    m_Localized: 'Phát'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156613
+    m_Localized: 'Tạm dừng'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156614
+    m_Localized: 'Dừng'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156615
+    m_Localized: 'Hoàn tác'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156616
+    m_Localized: 'Làm lại'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156617
+    m_Localized: 'Thêm rãnh'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156618
+    m_Localized: 'Trình quản lý ràng buộc'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156619
+    m_Localized: 'Lưu dự án'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156620
+    m_Localized: 'Tải dự án'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156621
+    m_Localized: 'Thêm rãnh mới'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156622
+    m_Localized: 'Trình quản lý ràng buộc cảnh'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156623
+    m_Localized: 'Lưu dự án dòng thời gian'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156624
+    m_Localized: 'Tải dự án dòng thời gian'
     m_Metadata:
       m_Items: []
   references:
