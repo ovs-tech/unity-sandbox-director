@@ -22,6 +22,12 @@ namespace SceneSandbox.UI
         [SerializeField] private VisualTreeAsset _mainUITemplate;
         [SerializeField] private StyleSheet _mainUIStyleSheet;
         
+        [Header("Palette Resources")]
+        [SerializeField] private SceneObjectLibrary _objectLibrary;
+        [SerializeField] private VisualTreeAsset _paletteTemplate;
+        [SerializeField] private VisualTreeAsset _itemTemplate;
+        [SerializeField] private StyleSheet _paletteStyleSheet;
+        
         [Header("References")]
         [SerializeField] private ObjectPaletteUIToolkit _objectPalette;
         [SerializeField] private Transform _panelPos;
@@ -94,6 +100,24 @@ namespace SceneSandbox.UI
                 _sandboxBuilder = FindFirstObjectByType<SceneSandboxBuilder>();
             }
             
+            // Initialize object palette if not assigned
+            if (_objectPalette == null)
+            {
+                _objectPalette = FindFirstObjectByType<ObjectPaletteUIToolkit>();
+                
+                if (_objectPalette == null)
+                {
+                    Debug.LogWarning("SandboxBuilderUIToolkit: ObjectPaletteUIToolkit not found in scene. Creating new instance.");
+                    CreateObjectPalette();
+                }
+            }
+            
+            // Setup palette integration
+            if (_objectPalette != null)
+            {
+                SetupPaletteIntegration();
+            }
+            
             if (_sandboxBuilder != null)
             {
                 BindSandboxEvents();
@@ -117,16 +141,9 @@ namespace SceneSandbox.UI
             }
             
             // Create root element
-            if (_uiDocument.rootVisualElement == null || _mainUITemplate != null)
+            if (_uiDocument.rootVisualElement == null && _mainUITemplate != null)
             {
-                if (_mainUITemplate != null)
-                {
-                    _mainUITemplate.CloneTree(_uiDocument.rootVisualElement);
-                }
-                else
-                {
-                    CreateUIFromCode();
-                }
+                _mainUITemplate.CloneTree(_uiDocument.rootVisualElement);
             }
             
             _rootElement = _uiDocument.rootVisualElement;
@@ -139,222 +156,6 @@ namespace SceneSandbox.UI
             
             // Query all UI elements
             QueryUIElements();
-        }
-        
-        private void CreateUIFromCode()
-        {
-            var root = _uiDocument.rootVisualElement;
-            root.Clear();
-            
-            // Main container
-            _mainContainer = new VisualElement();
-            _mainContainer.name = "main-container";
-            _mainContainer.AddToClassList("main-container");
-            _mainContainer.style.flexDirection = FlexDirection.Row;
-            _mainContainer.style.flexGrow = 1;
-            root.Add(_mainContainer);
-            
-            // Create three-panel layout
-            CreateLeftPanel();
-            CreateCenterPanel();
-            CreateRightPanel();
-            
-            // Create mobile controls if needed
-            if (Application.isMobilePlatform)
-            {
-                CreateMobileControlsPanel();
-            }
-        }
-        
-        private void CreateLeftPanel()
-        {
-            _leftPanel = new VisualElement();
-            _leftPanel.name = "left-panel";
-            _leftPanel.AddToClassList("panel");
-            _leftPanel.AddToClassList("left-panel");
-            _leftPanel.style.width = 300;
-            _mainContainer.Add(_leftPanel);
-            
-            // Object palette will be added here by ObjectPaletteUIToolkit
-            var paletteContainer = new VisualElement();
-            paletteContainer.name = "palette-container";
-            paletteContainer.style.flexGrow = 1;
-            _leftPanel.Add(paletteContainer);
-        }
-        
-        private void CreateCenterPanel()
-        {
-            _centerPanel = new VisualElement();
-            _centerPanel.name = "center-panel";
-            _centerPanel.AddToClassList("center-panel");
-            _centerPanel.style.flexGrow = 1;
-            _mainContainer.Add(_centerPanel);
-            
-            // Scene controls at top
-            CreateSceneControlsPanel();
-            
-            // Scene info
-            CreateSceneInfoPanel();
-            
-            // Main viewport area (3D scene shows through here)
-            var viewportArea = new VisualElement();
-            viewportArea.name = "viewport-area";
-            viewportArea.style.flexGrow = 1;
-            viewportArea.pickingMode = PickingMode.Ignore; // Let scene camera handle input
-            _centerPanel.Add(viewportArea);
-        }
-        
-        private void CreateRightPanel()
-        {
-            _rightPanel = new VisualElement();
-            _rightPanel.name = "right-panel";
-            _rightPanel.AddToClassList("panel");
-            _rightPanel.AddToClassList("right-panel");
-            _rightPanel.style.width = 300;
-            _mainContainer.Add(_rightPanel);
-            
-            // Object controls
-            CreateObjectControlsPanel();
-        }
-        
-        private void CreateSceneControlsPanel()
-        {
-            _sceneControlsPanel = new VisualElement();
-            _sceneControlsPanel.name = "scene-controls-panel";
-            _sceneControlsPanel.AddToClassList("panel");
-            _sceneControlsPanel.AddToClassList("controls-panel");
-            _centerPanel.Add(_sceneControlsPanel);
-            
-            // Title
-            var title = new Label("Scene Builder");
-            title.AddToClassList("panel__header");
-            _sceneControlsPanel.Add(title);
-            
-            // Project controls row
-            var projectRow = CreateHorizontalGroup("project-controls-row");
-            _sceneControlsPanel.Add(projectRow);
-            
-            _projectNameInput = new TextField("Project Name");
-            _projectNameInput.style.flexGrow = 1;
-            projectRow.Add(_projectNameInput);
-            
-            _newProjectButton = CreateButton("New", "button--secondary");
-            projectRow.Add(_newProjectButton);
-            
-            _saveProjectButton = CreateButton("Save", "button--primary");
-            projectRow.Add(_saveProjectButton);
-            
-            _loadProjectButton = CreateButton("Load", "button--secondary");
-            projectRow.Add(_loadProjectButton);
-            
-            // Scene controls row
-            var sceneRow = CreateHorizontalGroup("scene-controls-row");
-            _sceneControlsPanel.Add(sceneRow);
-            
-            _newSceneButton = CreateButton("New Scene", "button--secondary");
-            sceneRow.Add(_newSceneButton);
-            
-            _saveSceneButton = CreateButton("Save Scene", "button--primary");
-            sceneRow.Add(_saveSceneButton);
-            
-            _loadSceneButton = CreateButton("Load Scene", "button--secondary");
-            sceneRow.Add(_loadSceneButton);
-            
-            _clearSceneButton = CreateButton("Clear", "button--danger");
-            sceneRow.Add(_clearSceneButton);
-            
-            // Preview controls
-            var previewRow = CreateHorizontalGroup("preview-controls-row");
-            _sceneControlsPanel.Add(previewRow);
-            
-            _previewButton = CreateButton("Preview", "button--success");
-            previewRow.Add(_previewButton);
-            
-            _stopPreviewButton = CreateButton("Stop Preview", "button--warning");
-            previewRow.Add(_stopPreviewButton);
-            
-            _currentProjectText = new Label("No project loaded");
-            _currentProjectText.style.marginTop = 8;
-            _sceneControlsPanel.Add(_currentProjectText);
-        }
-        
-        private void CreateSceneInfoPanel()
-        {
-            var infoPanel = new VisualElement();
-            infoPanel.name = "scene-info-panel";
-            infoPanel.AddToClassList("panel");
-            infoPanel.style.marginTop = 8;
-            _centerPanel.Add(infoPanel);
-            
-            var infoRow = CreateHorizontalGroup("scene-info-row");
-            infoPanel.Add(infoRow);
-            
-            _sceneNameText = new Label("Scene: None");
-            infoRow.Add(_sceneNameText);
-            
-            _objectCountText = new Label("Objects: 0");
-            infoRow.Add(_objectCountText);
-            
-            _previewStatusText = new Label("Edit Mode");
-            infoRow.Add(_previewStatusText);
-        }
-        
-        private void CreateObjectControlsPanel()
-        {
-            _objectControlsPanel = new VisualElement();
-            _objectControlsPanel.name = "object-controls-panel";
-            _objectControlsPanel.AddToClassList("panel");
-            _rightPanel.Add(_objectControlsPanel);
-            
-            var title = new Label("Object Controls");
-            title.AddToClassList("panel__header");
-            _objectControlsPanel.Add(title);
-            
-            _deleteObjectButton = CreateButton("Delete Selected", "button--danger");
-            _objectControlsPanel.Add(_deleteObjectButton);
-            
-            // Grid settings
-            var gridTitle = new Label("Grid Settings");
-            gridTitle.style.marginTop = 16;
-            gridTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
-            _objectControlsPanel.Add(gridTitle);
-            
-            _snapToGridToggle = new Toggle("Snap to Grid");
-            _objectControlsPanel.Add(_snapToGridToggle);
-            
-            var sliderContainer = new VisualElement();
-            sliderContainer.style.marginTop = 8;
-            _objectControlsPanel.Add(sliderContainer);
-            
-            _gridSizeText = new Label("Grid Size: 1.0");
-            sliderContainer.Add(_gridSizeText);
-            
-            _gridSizeSlider = new Slider("Grid Size", 0.1f, 5.0f);
-            _gridSizeSlider.value = 1.0f;
-            sliderContainer.Add(_gridSizeSlider);
-        }
-        
-        private void CreateMobileControlsPanel()
-        {
-            _mobileControlsPanel = new VisualElement();
-            _mobileControlsPanel.name = "mobile-controls-panel";
-            _mobileControlsPanel.AddToClassList("mobile-controls");
-            _mobileControlsPanel.style.position = Position.Absolute;
-            _mobileControlsPanel.style.bottom = 0;
-            _mobileControlsPanel.style.left = 0;
-            _mobileControlsPanel.style.right = 0;
-            _mobileControlsPanel.style.height = 60;
-            _rootElement.Add(_mobileControlsPanel);
-            
-            var buttonRow = CreateHorizontalGroup("mobile-button-row");
-            buttonRow.style.justifyContent = Justify.SpaceAround;
-            _mobileControlsPanel.Add(buttonRow);
-            
-            _mobilePaletteToggle = CreateButton("Palette", "button--secondary");
-            buttonRow.Add(_mobilePaletteToggle);
-            
-            _mobilePropertiesToggle = CreateButton("Properties", "button--secondary");
-            buttonRow.Add(_mobilePropertiesToggle);
         }
         
         private void QueryUIElements()
@@ -467,6 +268,178 @@ namespace SceneSandbox.UI
             }
         }
         
+        private void CreateObjectPalette()
+        {
+            // Create a new GameObject for the palette
+            GameObject paletteGO = new GameObject("ObjectPaletteUIToolkit");
+            paletteGO.transform.SetParent(transform);
+            
+            // Add the ObjectPaletteUIToolkit component
+            _objectPalette = paletteGO.AddComponent<ObjectPaletteUIToolkit>();
+            
+            // Assign palette resources
+            AssignPaletteResources();
+            
+            Debug.Log("SandboxBuilderUIToolkit: Created new ObjectPaletteUIToolkit instance.");
+        }
+        
+        private void AssignPaletteResources()
+        {
+            if (_objectPalette == null) return;
+            
+            // Use reflection to set private serialized fields
+            var paletteType = typeof(ObjectPaletteUIToolkit);
+            
+            // Set object library
+            if (_objectLibrary != null)
+            {
+                var objectLibraryField = paletteType.GetField("_objectLibrary", 
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (objectLibraryField != null)
+                {
+                    objectLibraryField.SetValue(_objectPalette, _objectLibrary);
+                    Debug.Log("SandboxBuilderUIToolkit: Assigned ObjectLibrary to palette.");
+                }
+            }
+            
+            // Set palette template
+            if (_paletteTemplate != null)
+            {
+                var paletteTemplateField = paletteType.GetField("_paletteTemplate", 
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (paletteTemplateField != null)
+                {
+                    paletteTemplateField.SetValue(_objectPalette, _paletteTemplate);
+                    Debug.Log("SandboxBuilderUIToolkit: Assigned PaletteTemplate to palette.");
+                }
+            }
+            
+            // Set item template
+            if (_itemTemplate != null)
+            {
+                var itemTemplateField = paletteType.GetField("_itemTemplate", 
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (itemTemplateField != null)
+                {
+                    itemTemplateField.SetValue(_objectPalette, _itemTemplate);
+                    Debug.Log("SandboxBuilderUIToolkit: Assigned ItemTemplate to palette.");
+                }
+            }
+            
+            // Set palette stylesheet
+            if (_paletteStyleSheet != null)
+            {
+                var paletteStyleSheetField = paletteType.GetField("_paletteStyleSheet", 
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (paletteStyleSheetField != null)
+                {
+                    paletteStyleSheetField.SetValue(_objectPalette, _paletteStyleSheet);
+                    Debug.Log("SandboxBuilderUIToolkit: Assigned StyleSheet to palette.");
+                }
+            }
+            
+            // Set sandbox builder reference
+            if (_sandboxBuilder != null)
+            {
+                var sandboxBuilderField = paletteType.GetField("_sandboxBuilder", 
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (sandboxBuilderField != null)
+                {
+                    sandboxBuilderField.SetValue(_objectPalette, _sandboxBuilder);
+                    Debug.Log("SandboxBuilderUIToolkit: Assigned SandboxBuilder to palette.");
+                }
+            }
+        }
+        
+        private void SetupPaletteIntegration()
+        {
+            if (_objectPalette == null) return;
+            
+            // Ensure palette has all required resources
+            AssignPaletteResources();
+            
+            // Subscribe to palette events
+            _objectPalette.OnObjectSelected += OnPaletteObjectSelected;
+            _objectPalette.OnObjectDraggedToScene += OnPaletteObjectDraggedToScene;
+            
+            // Attach palette UI to the palette-container in the main UI
+            AttachPaletteToContainer();
+            
+            Debug.Log("SandboxBuilderUIToolkit: Palette integration setup complete.");
+        }
+        
+        private void AttachPaletteToContainer()
+        {
+            if (_objectPalette == null || _rootElement == null) return;
+            
+            // Find the palette container in the main UI
+            var paletteContainer = _rootElement.Q<VisualElement>("palette-container");
+            
+            if (paletteContainer == null)
+            {
+                Debug.LogWarning("SandboxBuilderUIToolkit: palette-container not found in UXML. Cannot attach palette UI.");
+                return;
+            }
+            
+            // Get the palette's UI root element
+            // The palette manages its own UIDocument, so we need to get its root and move it
+            var paletteUIDocument = _objectPalette.GetComponent<UIDocument>();
+            
+            if (paletteUIDocument == null)
+            {
+                Debug.LogWarning("SandboxBuilderUIToolkit: ObjectPalette has no UIDocument. Cannot attach UI.");
+                return;
+            }
+            
+            // Wait for palette to initialize, then move its root element to our container
+            // We need to do this after the palette has created its UI
+            StartCoroutine(AttachPaletteUICoroutine(paletteContainer, paletteUIDocument));
+        }
+        
+        private System.Collections.IEnumerator AttachPaletteUICoroutine(VisualElement paletteContainer, UIDocument paletteUIDocument)
+        {
+            // Wait for one frame to ensure palette UI is initialized
+            yield return null;
+            
+            // Get the palette's root container
+            var paletteRoot = paletteUIDocument.rootVisualElement.Q<VisualElement>("palette-container");
+            
+            if (paletteRoot == null)
+            {
+                Debug.LogWarning("SandboxBuilderUIToolkit: Could not find palette-container in ObjectPalette UI.");
+                yield break;
+            }
+            
+            // Clear the palette container in our main UI
+            paletteContainer.Clear();
+            
+            // Remove palette root from its current parent
+            paletteRoot.RemoveFromHierarchy();
+            
+            // Add it to our main UI's palette container
+            paletteContainer.Add(paletteRoot);
+            
+            // Ensure it takes up full space
+            paletteRoot.style.flexGrow = 1;
+            
+            // Disable the palette's own UIDocument to avoid rendering conflicts
+            paletteUIDocument.enabled = false;
+            
+            Debug.Log("SandboxBuilderUIToolkit: Successfully attached palette UI to palette-container.");
+        }
+        
+        private void OnPaletteObjectSelected(SceneObjectData objectData)
+        {
+            Debug.Log($"SandboxBuilderUIToolkit: Object selected from palette: {objectData.displayName}");
+            // Additional logic when an object is selected from palette
+        }
+        
+        private void OnPaletteObjectDraggedToScene(SceneObjectData objectData, Vector2 screenPosition)
+        {
+            Debug.Log($"SandboxBuilderUIToolkit: Object dragged to scene: {objectData.displayName}");
+            // The ObjectPalette already handles placement, but we can add additional logic here
+        }
+        
         private void BindSandboxEvents()
         {
             if (_sandboxBuilder == null) return;
@@ -481,6 +454,27 @@ namespace SceneSandbox.UI
         }
         
         #region Public Interface
+        
+        /// <summary>
+        /// Set the object palette reference
+        /// </summary>
+        public void SetObjectPalette(ObjectPaletteUIToolkit palette)
+        {
+            // Unsubscribe from old palette if exists
+            if (_objectPalette != null)
+            {
+                _objectPalette.OnObjectSelected -= OnPaletteObjectSelected;
+                _objectPalette.OnObjectDraggedToScene -= OnPaletteObjectDraggedToScene;
+            }
+            
+            _objectPalette = palette;
+            
+            // Subscribe to new palette
+            if (_objectPalette != null)
+            {
+                SetupPaletteIntegration();
+            }
+        }
         
         public void TogglePalette()
         {
@@ -905,6 +899,9 @@ namespace SceneSandbox.UI
             {
                 _leftPanel.style.display = _isPaletteVisible ? DisplayStyle.Flex : DisplayStyle.None;
             }
+            
+            // The palette UI is now integrated into our UIDocument, so we don't need to
+            // control the palette GameObject's active state separately
         }
         
         private void UpdateSceneInfo()
@@ -1037,6 +1034,7 @@ namespace SceneSandbox.UI
         
         private void OnDestroy()
         {
+            // Unsubscribe from sandbox builder events
             if (_sandboxBuilder != null)
             {
                 _sandboxBuilder.OnSceneLoaded -= OnSceneLoaded;
@@ -1046,6 +1044,13 @@ namespace SceneSandbox.UI
                 _sandboxBuilder.OnObjectSelected -= OnObjectSelected;
                 _sandboxBuilder.OnSceneCleared -= OnSceneCleared;
                 _sandboxBuilder.OnPreviewStateChanged -= OnPreviewStateChanged;
+            }
+            
+            // Unsubscribe from palette events
+            if (_objectPalette != null)
+            {
+                _objectPalette.OnObjectSelected -= OnPaletteObjectSelected;
+                _objectPalette.OnObjectDraggedToScene -= OnPaletteObjectDraggedToScene;
             }
         }
     }

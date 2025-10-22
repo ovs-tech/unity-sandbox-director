@@ -196,6 +196,7 @@ namespace SceneSandbox.UI
             
             // Capture pointer for drag operation
             _rootElement.CapturePointer(evt.pointerId);
+            evt.StopPropagation(); // Prevent parent elements from receiving the event
         }
         
         private void OnPointerMove(PointerMoveEvent evt)
@@ -207,14 +208,22 @@ namespace SceneSandbox.UI
             if (!_isDragging && dragDistance > 5f)
             {
                 _isDragging = true;
+                
+                // Convert local position to panel position
+                Vector2 panelPosition = _rootElement.LocalToWorld(evt.localPosition);
+                
                 CreateDragPreview(evt.position);
-                OnItemDragStarted?.Invoke(this, evt.position);
+                OnItemDragStarted?.Invoke(this, panelPosition);
             }
             
             if (_isDragging)
             {
+                // Convert local position to panel position for drag updates
+                Vector2 panelPosition = _rootElement.LocalToWorld(evt.localPosition);
+                
                 UpdateDragPreview(evt.position);
-                OnItemDragMoved?.Invoke(this, evt.position);
+                OnItemDragMoved?.Invoke(this, panelPosition);
+                evt.StopPropagation(); // Prevent parent elements from receiving the event
             }
         }
         
@@ -222,8 +231,12 @@ namespace SceneSandbox.UI
         {
             if (_isDragging)
             {
+                // Convert local position to panel position
+                Vector2 panelPosition = _rootElement.LocalToWorld(evt.localPosition);
+                
                 DestroyDragPreview();
-                OnItemDragEnded?.Invoke(this, evt.position);
+                OnItemDragEnded?.Invoke(this, panelPosition);
+                evt.StopPropagation(); // Prevent parent elements from receiving the event
             }
             
             _isDragging = false;
@@ -260,16 +273,26 @@ namespace SceneSandbox.UI
             // Create a clone of this item for drag preview
             _dragPreview = new VisualElement();
             _dragPreview.name = "drag-preview";
+            _dragPreview.AddToClassList("palette-item-drag-preview");
             _dragPreview.style.position = Position.Absolute;
             _dragPreview.style.width = _rootElement.resolvedStyle.width;
             _dragPreview.style.height = _rootElement.resolvedStyle.height;
+            _dragPreview.pickingMode = PickingMode.Ignore; // Prevent blocking pointer events
             
-            // Copy visual appearance
-            _dragPreview.style.backgroundColor = _rootElement.resolvedStyle.backgroundColor;
+            // Copy visual appearance with more prominent styling
+            _dragPreview.style.backgroundColor = new Color(0.2f, 0.2f, 0.2f, 0.9f);
             _dragPreview.style.borderTopLeftRadius = _rootElement.resolvedStyle.borderTopLeftRadius;
             _dragPreview.style.borderTopRightRadius = _rootElement.resolvedStyle.borderTopRightRadius;
             _dragPreview.style.borderBottomLeftRadius = _rootElement.resolvedStyle.borderBottomLeftRadius;
             _dragPreview.style.borderBottomRightRadius = _rootElement.resolvedStyle.borderBottomRightRadius;
+            _dragPreview.style.borderTopWidth = 2;
+            _dragPreview.style.borderBottomWidth = 2;
+            _dragPreview.style.borderLeftWidth = 2;
+            _dragPreview.style.borderRightWidth = 2;
+            _dragPreview.style.borderTopColor = new Color(0.3f, 0.6f, 1f, 1f); // Blue border
+            _dragPreview.style.borderBottomColor = new Color(0.3f, 0.6f, 1f, 1f);
+            _dragPreview.style.borderLeftColor = new Color(0.3f, 0.6f, 1f, 1f);
+            _dragPreview.style.borderRightColor = new Color(0.3f, 0.6f, 1f, 1f);
             
             // Add icon clone
             if (_iconElement != null)
@@ -279,6 +302,7 @@ namespace SceneSandbox.UI
                 iconClone.style.height = 64;
                 iconClone.style.marginTop = 10;
                 iconClone.style.alignSelf = Align.Center;
+                iconClone.pickingMode = PickingMode.Ignore;
                 
                 if (_objectData.icon != null)
                 {
@@ -300,6 +324,7 @@ namespace SceneSandbox.UI
                 nameClone.style.unityTextAlign = TextAnchor.MiddleCenter;
                 nameClone.style.fontSize = 12;
                 nameClone.style.color = Color.white;
+                nameClone.pickingMode = PickingMode.Ignore;
                 _dragPreview.Add(nameClone);
             }
             

@@ -60,8 +60,10 @@ namespace SceneSandbox.UI
         
         private void Awake()
         {
+            Debug.Log("ObjectPaletteUIToolkit: Awake() called");
             InitializeUI();
             SetupUI();
+            Debug.Log("ObjectPaletteUIToolkit: Awake() completed");
         }
         
         private void Start()
@@ -69,6 +71,37 @@ namespace SceneSandbox.UI
             if (_objectLibrary != null)
             {
                 RefreshPalette();
+            }
+            else
+            {
+                Debug.LogWarning("ObjectPaletteUIToolkit: No object library assigned. Palette will be empty until library is set.");
+            }
+        }
+        
+        private void OnDestroy()
+        {
+            // Clean up all palette items
+            ClearPalette();
+            
+            // Unregister event callbacks
+            if (_typeFilter != null)
+            {
+                _typeFilter.UnregisterValueChangedCallback(evt => OnTypeFilterChanged(evt.newValue));
+            }
+            
+            if (_categoryFilter != null)
+            {
+                _categoryFilter.UnregisterValueChangedCallback(evt => OnCategoryFilterChanged(evt.newValue));
+            }
+            
+            if (_searchField != null)
+            {
+                _searchField.UnregisterValueChangedCallback(evt => OnSearchTextChanged(evt.newValue));
+            }
+            
+            if (_refreshButton != null)
+            {
+                _refreshButton.clicked -= RefreshPalette;
             }
         }
         
@@ -81,6 +114,7 @@ namespace SceneSandbox.UI
                 if (_uiDocument == null)
                 {
                     _uiDocument = gameObject.AddComponent<UIDocument>();
+                    Debug.Log("ObjectPaletteUIToolkit: UIDocument component was missing, created new one.");
                 }
             }
             
@@ -88,13 +122,21 @@ namespace SceneSandbox.UI
             if (_paletteTemplate != null)
             {
                 _paletteTemplate.CloneTree(_uiDocument.rootVisualElement);
+                Debug.Log("ObjectPaletteUIToolkit: UI created from template.");
             }
             else
             {
                 CreatePaletteFromCode();
+                Debug.Log("ObjectPaletteUIToolkit: UI created from code (no template assigned).");
             }
             
             _rootElement = _uiDocument.rootVisualElement;
+            
+            if (_rootElement == null)
+            {
+                Debug.LogError("ObjectPaletteUIToolkit: Failed to create root visual element!");
+                return;
+            }
             
             // Apply stylesheet
             if (_paletteStyleSheet != null && !_rootElement.styleSheets.Contains(_paletteStyleSheet))
@@ -170,36 +212,79 @@ namespace SceneSandbox.UI
         
         private void QueryUIElements()
         {
+            Debug.Log("[FILTER] QueryUIElements() - Searching for UI elements...");
+            
             _paletteContainer = _rootElement.Q<VisualElement>("palette-container");
+            Debug.Log($"[FILTER] palette-container: {(_paletteContainer != null ? "Found" : "NOT FOUND")}");
+            
             _typeFilter = _rootElement.Q<DropdownField>("type-filter");
+            Debug.Log($"[FILTER] type-filter: {(_typeFilter != null ? "Found" : "NOT FOUND")}");
+            
             _categoryFilter = _rootElement.Q<DropdownField>("category-filter");
+            Debug.Log($"[FILTER] category-filter: {(_categoryFilter != null ? "Found" : "NOT FOUND")}");
+            
             _searchField = _rootElement.Q<TextField>("search-field");
+            Debug.Log($"[FILTER] search-field: {(_searchField != null ? "Found" : "NOT FOUND")}");
+            
             _refreshButton = _rootElement.Q<Button>("refresh-button");
+            Debug.Log($"[FILTER] refresh-button: {(_refreshButton != null ? "Found" : "NOT FOUND")}");
+            
             _itemsScrollView = _rootElement.Q<ScrollView>("items-scroll-view");
+            Debug.Log($"[FILTER] items-scroll-view: {(_itemsScrollView != null ? "Found" : "NOT FOUND")}");
+            
             _itemsContainer = _rootElement.Q<VisualElement>("items-container");
+            Debug.Log($"[FILTER] items-container: {(_itemsContainer != null ? "Found" : "NOT FOUND")}");
         }
         
         private void SetupUI()
         {
+            Debug.Log("[FILTER] SetupUI() - Registering event callbacks...");
+            
             // Setup type filter
             if (_typeFilter != null)
             {
                 _typeFilter.RegisterValueChangedCallback(evt => OnTypeFilterChanged(evt.newValue));
+                Debug.Log("[FILTER] ✅ Type filter callback registered");
+            }
+            else
+            {
+                Debug.LogWarning("[FILTER] ❌ Type filter not found in UI - cannot register callback!");
             }
             
             // Setup category filter
             if (_categoryFilter != null)
             {
                 _categoryFilter.RegisterValueChangedCallback(evt => OnCategoryFilterChanged(evt.newValue));
+                Debug.Log("[FILTER] ✅ Category filter callback registered");
+            }
+            else
+            {
+                Debug.LogWarning("[FILTER] ❌ Category filter not found in UI - cannot register callback!");
             }
             
             // Setup search field
             if (_searchField != null)
             {
                 _searchField.RegisterValueChangedCallback(evt => OnSearchTextChanged(evt.newValue));
+                Debug.Log("[FILTER] ✅ Search field callback registered");
+            }
+            else
+            {
+                Debug.LogWarning("[FILTER] ❌ Search field not found in UI - cannot register callback!");
             }
             
-            // Refresh button already set up in CreatePaletteFromCode
+            // Setup refresh button (for UXML-defined buttons)
+            if (_refreshButton != null)
+            {
+                _refreshButton.clicked += RefreshPalette;
+                Debug.Log("[FILTER] ✅ Refresh button callback registered");
+            }
+            else
+            {
+                Debug.LogWarning("[FILTER] ❌ Refresh button not found in UI - cannot register callback!");
+            }
+            
+            Debug.Log("[FILTER] SetupUI() completed");
         }
         
         /// <summary>
@@ -207,13 +292,32 @@ namespace SceneSandbox.UI
         /// </summary>
         public void RefreshPalette()
         {
-            if (_objectLibrary == null) return;
+            Debug.Log($"[FILTER] RefreshPalette() called - Type: {_currentTypeFilter}, Category: '{_currentCategoryFilter}', Search: '{_currentSearchText}'");
+            
+            if (_objectLibrary == null)
+            {
+                Debug.LogWarning("ObjectPaletteUIToolkit: Cannot refresh palette - object library is null.");
+                return;
+            }
             
             ClearPalette();
             UpdateCategoryFilter();
             
             var filteredObjects = GetFilteredObjects();
+            
+            Debug.Log($"[FILTER] Found {filteredObjects.Count} objects after filtering");
+            
+            if (filteredObjects.Count == 0)
+            {
+                Debug.LogWarning($"[FILTER] No objects match current filters (Type: {_currentTypeFilter}, Category: {_currentCategoryFilter}, Search: '{_currentSearchText}')");
+            }
+            else
+            {
+                Debug.Log($"[FILTER] Objects to display: {string.Join(", ", filteredObjects.Select(o => o.displayName))}");
+            }
+            
             CreatePaletteItems(filteredObjects);
+            Debug.Log($"[FILTER] RefreshPalette() completed - Created {_paletteItems.Count} palette items");
         }
         
         /// <summary>
@@ -303,7 +407,17 @@ namespace SceneSandbox.UI
         
         private void UpdateCategoryFilter()
         {
-            if (_categoryFilter == null || _objectLibrary == null) return;
+            if (_categoryFilter == null)
+            {
+                Debug.LogWarning("ObjectPaletteUIToolkit: Category filter is null, cannot update categories.");
+                return;
+            }
+            
+            if (_objectLibrary == null)
+            {
+                Debug.LogWarning("ObjectPaletteUIToolkit: Object library is null, cannot update categories.");
+                return;
+            }
             
             var categories = new List<string> { "All" };
             categories.AddRange(_objectLibrary.GetCategories());
@@ -321,27 +435,35 @@ namespace SceneSandbox.UI
             if (_objectLibrary == null) return new List<SceneObjectData>();
             
             var allObjects = _objectLibrary.GetAllObjects();
+            Debug.Log($"[FILTER] Total objects in library: {allObjects.Count}");
+            
             var filteredObjects = allObjects.AsEnumerable();
             
             // Filter by type
             if (_currentTypeFilter != (SceneObjectType)(-1))
             {
+                int beforeCount = filteredObjects.Count();
                 filteredObjects = filteredObjects.Where(obj => obj.objectType == _currentTypeFilter);
+                Debug.Log($"[FILTER] After type filter ({_currentTypeFilter}): {beforeCount} -> {filteredObjects.Count()}");
             }
             
             // Filter by category
             if (_currentCategoryFilter != "All")
             {
+                int beforeCount = filteredObjects.Count();
                 filteredObjects = filteredObjects.Where(obj => obj.category == _currentCategoryFilter);
+                Debug.Log($"[FILTER] After category filter ('{_currentCategoryFilter}'): {beforeCount} -> {filteredObjects.Count()}");
             }
             
             // Filter by search text
             if (!string.IsNullOrEmpty(_currentSearchText))
             {
+                int beforeCount = filteredObjects.Count();
                 string searchLower = _currentSearchText.ToLower();
                 filteredObjects = filteredObjects.Where(obj => 
                     obj.displayName.ToLower().Contains(searchLower) ||
                     (obj.tags != null && obj.tags.Any(tag => tag.ToLower().Contains(searchLower))));
+                Debug.Log($"[FILTER] After search filter ('{_currentSearchText}'): {beforeCount} -> {filteredObjects.Count()}");
             }
             
             return filteredObjects.ToList();
@@ -349,34 +471,84 @@ namespace SceneSandbox.UI
         
         private void CreatePaletteItems(List<SceneObjectData> objects)
         {
-            if (_itemsContainer == null) return;
+            if (_itemsContainer == null) 
+            {
+                Debug.LogWarning("ObjectPaletteUIToolkit: Items container is null, cannot create palette items.");
+                return;
+            }
             
             foreach (var objectData in objects)
             {
                 CreatePaletteItem(objectData);
             }
+            
+            // Update layout after all items are created
+            UpdateLayout();
         }
         
         private void CreatePaletteItem(SceneObjectData objectData)
         {
+            if (objectData == null)
+            {
+                Debug.LogWarning("ObjectPaletteUIToolkit: Attempted to create palette item with null object data.");
+                return;
+            }
+            
+            // Create palette item
             var paletteItem = new ObjectPaletteItemUIToolkit();
-            paletteItem.Initialize(objectData, this, _itemTemplate, _itemSize);
             
-            // Bind events
-            paletteItem.OnItemSelected += SelectItem;
-            paletteItem.OnItemDragStarted += OnItemDragStarted;
-            paletteItem.OnItemDragMoved += OnItemDragMoved;
-            paletteItem.OnItemDragEnded += OnItemDragEnded;
+            try
+            {
+                paletteItem.Initialize(objectData, this, _itemTemplate, _itemSize);
+                
+                // Verify initialization succeeded
+                if (paletteItem.RootElement == null)
+                {
+                    Debug.LogError($"ObjectPaletteUIToolkit: Failed to initialize palette item for '{objectData.displayName}' - RootElement is null.");
+                    return;
+                }
+                
+                // Bind events
+                paletteItem.OnItemSelected += SelectItem;
+                paletteItem.OnItemDragStarted += OnItemDragStarted;
+                paletteItem.OnItemDragMoved += OnItemDragMoved;
+                paletteItem.OnItemDragEnded += OnItemDragEnded;
+                
+                // Add to container
+                _itemsContainer.Add(paletteItem.RootElement);
+                _paletteItems.Add(paletteItem);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"ObjectPaletteUIToolkit: Exception while creating palette item for '{objectData.displayName}': {ex.Message}");
+                paletteItem?.Dispose();
+            }
+        }
+        
+        private void UpdateLayout()
+        {
+            if (_itemsContainer == null) return;
             
-            // Add to container
-            _itemsContainer.Add(paletteItem.RootElement);
-            _paletteItems.Add(paletteItem);
+            // Configure flexbox layout for items container
+            _itemsContainer.style.flexDirection = FlexDirection.Row;
+            _itemsContainer.style.flexWrap = Wrap.Wrap;
+            _itemsContainer.style.justifyContent = Justify.FlexStart;
+            _itemsContainer.style.alignItems = Align.FlexStart;
+            _itemsContainer.style.paddingLeft = 4;
+            _itemsContainer.style.paddingRight = 4;
+            _itemsContainer.style.paddingTop = 4;
+            _itemsContainer.style.paddingBottom = 4;
+            
+            // Force layout update
+            _itemsContainer.MarkDirtyRepaint();
         }
         
         #region Event Handlers
         
         private void OnTypeFilterChanged(string value)
         {
+            Debug.Log($"[FILTER] Type filter changed to: '{value}'");
+            
             if (value == "All Types")
             {
                 _currentTypeFilter = (SceneObjectType)(-1);
@@ -384,6 +556,11 @@ namespace SceneSandbox.UI
             else if (System.Enum.TryParse<SceneObjectType>(value, out var type))
             {
                 _currentTypeFilter = type;
+                Debug.Log($"[FILTER] Parsed type: {type}");
+            }
+            else
+            {
+                Debug.LogWarning($"[FILTER] Failed to parse type: '{value}'");
             }
             
             RefreshPalette();
@@ -391,71 +568,214 @@ namespace SceneSandbox.UI
         
         private void OnCategoryFilterChanged(string value)
         {
+            Debug.Log($"[FILTER] Category filter changed to: '{value}'");
             _currentCategoryFilter = value;
             RefreshPalette();
         }
         
         private void OnSearchTextChanged(string searchText)
         {
+            Debug.Log($"[FILTER] Search text changed to: '{searchText}'");
             _currentSearchText = searchText;
             RefreshPalette();
         }
         
         private void OnItemDragStarted(ObjectPaletteItemUIToolkit item, Vector2 screenPosition)
         {
+            Debug.Log($"[DRAG] Drag started for '{item.ObjectData.displayName}' at panel position {screenPosition}");
             // Optional: Provide feedback when dragging starts
         }
         
         private void OnItemDragMoved(ObjectPaletteItemUIToolkit item, Vector2 screenPosition)
         {
-            // Optional: Update drag feedback
+            // Update drag feedback based on whether position is valid
+            Vector2 actualScreenPosition = PanelToScreenPosition(screenPosition);
+            bool isOverUI = IsPositionOverUI(screenPosition);
+            bool isValidPlacement = IsScreenPositionOverScene(actualScreenPosition) && !isOverUI;
+            
+            // Could add visual feedback here (e.g., change cursor, highlight ground plane)
+            // Debug.Log($"[DRAG] Drag moved - Valid placement: {isValidPlacement}");
         }
         
         private void OnItemDragEnded(ObjectPaletteItemUIToolkit item, Vector2 screenPosition)
         {
-            // Check if dropped on scene area
-            if (IsScreenPositionOverScene(screenPosition))
+            Debug.Log($"[DRAG] ========== DRAG ENDED ==========");
+            Debug.Log($"[DRAG] Object: '{item.ObjectData.displayName}' (ID: {item.ObjectData.id})");
+            Debug.Log($"[DRAG] Panel position: {screenPosition}");
+            
+            // Convert panel-local position to screen position
+            Vector2 actualScreenPosition = PanelToScreenPosition(screenPosition);
+            Debug.Log($"[DRAG] Screen position (after conversion): {actualScreenPosition}");
+            
+            // Check if we're over the scene (not over UI)
+            bool isOverUI = IsPositionOverUI(screenPosition);
+            bool isOverScene = IsScreenPositionOverScene(actualScreenPosition) && !isOverUI;
+            
+            Debug.Log($"[DRAG] Is over UI? {isOverUI}");
+            Debug.Log($"[DRAG] Is over scene viewport? {isOverScene}");
+            
+            // Only place if over scene area
+            if (!isOverScene)
             {
-                Vector3 worldPosition = ScreenToWorldPosition(screenPosition);
-                
-                if (_sandboxBuilder != null)
-                {
-                    _sandboxBuilder.PlaceObject(item.ObjectData.id, worldPosition);
-                }
-                
-                OnObjectDraggedToScene?.Invoke(item.ObjectData, screenPosition);
+                Debug.LogWarning($"[DRAG] ❌ Cannot place - not over scene area (over UI: {isOverUI})");
+                return;
             }
+            
+            // Check if sandbox builder is assigned
+            if (_sandboxBuilder == null)
+            {
+                Debug.LogError("[DRAG] ❌ SandboxBuilder is NULL! Cannot place object.");
+                Debug.LogError("[DRAG] Make sure SceneSandboxBuilder exists in the scene and is assigned to ObjectPalette!");
+                return;
+            }
+            
+            Debug.Log($"[DRAG] SandboxBuilder found: {_sandboxBuilder.name}");
+            
+            // Convert to world position
+            Vector3 worldPosition = ScreenToWorldPosition(actualScreenPosition);
+            Debug.Log($"[DRAG] World position: {worldPosition}");
+            
+            // Try to place the object
+            Debug.Log($"[DRAG] ✅ Placing object in SceneSandboxBuilder...");
+            try
+            {
+                _sandboxBuilder.PlaceObject(item.ObjectData.id, worldPosition);
+                Debug.Log($"[DRAG] ✅ Successfully placed '{item.ObjectData.displayName}' at {worldPosition}");
+                OnObjectDraggedToScene?.Invoke(item.ObjectData, actualScreenPosition);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[DRAG] ❌ Exception in PlaceObject: {ex.Message}");
+                Debug.LogError($"[DRAG] Stack trace: {ex.StackTrace}");
+            }
+            
+            Debug.Log($"[DRAG] ========== END DRAG ==========");
         }
         
         #endregion
         
         #region Helper Methods
         
+        private Vector2 PanelToScreenPosition(Vector2 panelPosition)
+        {
+            // UI Toolkit panel coordinates need to be converted to screen coordinates
+            // Panel origin (0,0) is typically top-left of the panel
+            // Screen origin (0,0) is bottom-left of the screen
+            
+            if (_rootElement == null || _rootElement.panel == null)
+            {
+                Debug.LogWarning("[DRAG] Cannot convert position - root element or panel is null");
+                return panelPosition;
+            }
+            
+            // Get the panel's reference resolution and actual screen size
+            var panelSettings = _rootElement.panel;
+            
+            // In UI Toolkit, the coordinates are already in screen-like space
+            // but we need to account for the panel's coordinate system
+            // For most cases, panel position IS screen position, but Y is inverted
+            
+            float screenHeight = Screen.height;
+            Vector2 screenPos = new Vector2(panelPosition.x, screenHeight - panelPosition.y);
+            
+            Debug.Log($"[DRAG] Coordinate conversion: Panel({panelPosition.x}, {panelPosition.y}) -> Screen({screenPos.x}, {screenPos.y}) [Screen height: {screenHeight}]");
+            
+            return screenPos;
+        }
+        
+        private bool IsPositionOverUI(Vector2 panelPosition)
+        {
+            if (_rootElement == null || _rootElement.panel == null)
+            {
+                return false;
+            }
+            
+            // Check if position is over any UI element (except the palette items themselves)
+            var pickedElement = _rootElement.panel.Pick(panelPosition);
+            
+            if (pickedElement == null)
+            {
+                Debug.Log($"[DRAG] Position {panelPosition} is NOT over any UI element");
+                return false;
+            }
+            
+            // Check if picked element is part of the palette items container
+            // If it's a palette item, we consider it "not over UI" for placement purposes
+            bool isOverPaletteItems = IsElementInHierarchy(pickedElement, _itemsContainer);
+            
+            if (isOverPaletteItems)
+            {
+                Debug.Log($"[DRAG] Position is over palette items (allowed for dragging)");
+                return false; // Allow drag from palette
+            }
+            
+            // Position is over some other UI element
+            Debug.Log($"[DRAG] Position is over UI element: {pickedElement.name} (blocking placement)");
+            return true;
+        }
+        
+        private bool IsElementInHierarchy(VisualElement element, VisualElement container)
+        {
+            if (element == null || container == null)
+                return false;
+            
+            var current = element;
+            while (current != null)
+            {
+                if (current == container)
+                    return true;
+                current = current.parent;
+            }
+            
+            return false;
+        }
+        
         private bool IsScreenPositionOverScene(Vector2 screenPosition)
         {
             Camera sceneCamera = Camera.main ?? FindFirstObjectByType<Camera>();
-            if (sceneCamera == null) return false;
+            if (sceneCamera == null)
+            {
+                Debug.LogWarning("[DRAG] No camera found for scene detection");
+                return false;
+            }
+            
+            Debug.Log($"[DRAG] Using camera: {sceneCamera.name}");
             
             Vector2 viewportPosition = sceneCamera.ScreenToViewportPoint(screenPosition);
             
-            return viewportPosition.x >= 0 && viewportPosition.x <= 1 &&
-                   viewportPosition.y >= 0 && viewportPosition.y <= 1;
+            Debug.Log($"[DRAG] Viewport position: {viewportPosition} (valid range: 0-1)");
+            
+            bool isOverScene = viewportPosition.x >= 0 && viewportPosition.x <= 1 &&
+                               viewportPosition.y >= 0 && viewportPosition.y <= 1;
+            
+            return isOverScene;
         }
         
         private Vector3 ScreenToWorldPosition(Vector2 screenPosition)
         {
             Camera sceneCamera = Camera.main ?? FindFirstObjectByType<Camera>();
-            if (sceneCamera == null) return Vector3.zero;
+            if (sceneCamera == null)
+            {
+                Debug.LogWarning("[DRAG] No camera found for world position conversion");
+                return Vector3.zero;
+            }
             
             Ray ray = sceneCamera.ScreenPointToRay(screenPosition);
+            Debug.Log($"[DRAG] Ray origin: {ray.origin}, direction: {ray.direction}");
+            
             Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
             
             if (groundPlane.Raycast(ray, out float distance))
             {
-                return ray.GetPoint(distance);
+                Vector3 worldPos = ray.GetPoint(distance);
+                Debug.Log($"[DRAG] ✅ Raycast hit ground at distance {distance}, world position: {worldPos}");
+                return worldPos;
             }
             
-            return ray.GetPoint(10f);
+            // Fallback to a position in front of the camera
+            Vector3 fallbackPos = ray.GetPoint(10f);
+            Debug.LogWarning($"[DRAG] ⚠️ Ground plane raycast MISSED, using fallback position {fallbackPos}");
+            return fallbackPos;
         }
         
         #endregion

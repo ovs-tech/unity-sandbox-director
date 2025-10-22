@@ -4,26 +4,22 @@
 .main-container {
     flex-direction: row;
     flex-grow: 1;
-    background-color: rgba(0, 0, 0, 0.1);
 }
 
 /* Panel Styles */
 .left-panel,
 .right-panel {
-    background-color: rgba(30, 30, 30, 0.95);
-    border-right-width: 1px;
-    border-left-width: 1px;
-    border-color: rgba(60, 60, 60, 1);
-    padding: 8px;
+    padding: 12px;
+    margin: 8px
 }
 
 .left-panel {
-    min-width: 250px;
+    min-width: 200px;
     max-width: 400px;
 }
 
 .right-panel {
-    min-width: 250px;
+    min-width: 200px;
     max-width: 400px;
 }
 
@@ -34,12 +30,8 @@
 
 /* Controls Panel */
 .controls-panel {
-    background-color: rgba(30, 30, 30, 0.9);
     padding: 12px;
     margin: 8px;
-    border-radius: 8px;
-    border-width: 1px;
-    border-color: rgba(60, 60, 60, 1);
 }
 
 /* Palette Panel */
@@ -102,6 +94,11 @@
 }
 
 /* Scene Info */
+.scene-info-panel {
+    padding: 12px;
+    margin: 8px;
+}
+
 .scene-info-row {
     flex-direction: row;
     justify-content: space-between;
@@ -112,20 +109,6 @@
 .scene-info-row Label {
     font-size: 12px;
     color: rgba(200, 200, 200, 1);
-}
-
-/* Button Overrides */
-.controls-panel Button {
-    margin: 4px 2px;
-    padding: 8px 12px;
-    min-width: 80px;
-}
-
-/* Input Fields */
-.controls-panel TextField,
-.controls-panel DropdownField {
-    margin-top: 4px;
-    margin-bottom: 4px;
 }
 
 /* Viewport Area */
@@ -142,6 +125,11 @@
     justify-content: space-between;
     margin-top: 8px;
     flex-wrap: wrap;
+}
+
+.project-name-input {
+    flex-grow: 1;
+    margin-right: 4px;
 }
 
 /* Filters Container */
