@@ -229,19 +229,43 @@ namespace SceneSandbox.Core
         /// </summary>
         public GameObject PlaceObject(string objectDataId, Vector3 position, bool autoSelect = true)
         {
-            if (_objectLibrary == null) return null;
+            Debug.Log($"[PLACE] PlaceObject called - ID: {objectDataId}, Position: {position}");
+            
+            if (_objectLibrary == null)
+            {
+                Debug.LogError("[PLACE] ❌ ObjectLibrary is NULL!");
+                return null;
+            }
 
+            Debug.Log($"[PLACE] Getting object data from library...");
             var objectData = _objectLibrary.GetObjectById(objectDataId);
-            if (objectData == null || objectData.prefab == null) return null;
+            
+            if (objectData == null)
+            {
+                Debug.LogError($"[PLACE] ❌ Object data not found for ID: {objectDataId}");
+                return null;
+            }
+            
+            if (objectData.prefab == null)
+            {
+                Debug.LogError($"[PLACE] ❌ Prefab is NULL for object: {objectData.displayName}");
+                return null;
+            }
+            
+            Debug.Log($"[PLACE] Found object: {objectData.displayName}, Prefab: {objectData.prefab.name}");
 
             // Instantiate the object
+            Debug.Log($"[PLACE] Instantiating prefab... StageArea: {(_stageArea != null ? _stageArea.name : "NULL")}");
             GameObject newObject = Instantiate(objectData.prefab, _stageArea);
             newObject.name = objectData.displayName;
+            Debug.Log($"[PLACE] ✅ Instantiated: {newObject.name}");
 
             // Apply placement settings
             Vector3 finalPosition = _snapToGrid ? SnapToGrid(position) : position;
+            Debug.Log($"[PLACE] Getting surface position for: {finalPosition}");
             finalPosition = GetSurfacePosition(finalPosition);
             newObject.transform.position = finalPosition;
+            Debug.Log($"[PLACE] Final position: {finalPosition}");
 
             // Apply scale - preserve prefab scale if defaultScale is zero
             Vector3 targetScale = objectData.defaultScale;
@@ -250,22 +274,29 @@ namespace SceneSandbox.Core
                 targetScale = objectData.prefab.transform.localScale;
             }
             newObject.transform.localScale = targetScale;
+            Debug.Log($"[PLACE] Scale applied: {targetScale}");
 
             // Add draggable component if not present
+            Debug.Log($"[PLACE] Adding TransformableItem component...");
             var draggable = newObject.GetComponent<TransformableItem>();
             if (draggable == null)
             {
                 draggable = newObject.AddComponent<TransformableItem>();
             }
+            Debug.Log($"[PLACE] TransformableItem ready");
 
             // Set up draggable item
+            Debug.Log($"[PLACE] Setting up draggable data...");
             string placedObjectId = System.Guid.NewGuid().ToString();
             draggable.SetObjectData(objectDataId, placedObjectId);
+            Debug.Log($"[PLACE] PlacedObjectId: {placedObjectId}");
 
             // Bind draggable events
+            Debug.Log($"[PLACE] Binding draggable events...");
             BindDraggableEvents(draggable);
 
             // Add to scene configuration
+            Debug.Log($"[PLACE] Creating PlacedObjectData...");
             var placedObjectData = new Data.PlacedObjectData(objectDataId, finalPosition)
             {
                 id = placedObjectId,
@@ -274,20 +305,28 @@ namespace SceneSandbox.Core
                 customName = objectData.displayName
             };
 
+            Debug.Log($"[PLACE] Adding to scene configuration... CurrentScene: {(_currentScene != null ? _currentScene.sceneName : "NULL")}");
             if (_currentScene != null)
             {
                 _currentScene.AddPlacedObject(placedObjectData);
+                Debug.Log($"[PLACE] Added to scene configuration");
             }
+            
+            Debug.Log($"[PLACE] Adding to _placedObjects dictionary...");
             _placedObjects[placedObjectId] = newObject;
+            Debug.Log($"[PLACE] Dictionary now has {_placedObjects.Count} objects");
 
             // Select the object if requested
             if (autoSelect)
             {
+                Debug.Log($"[PLACE] Selecting object...");
                 SelectObject(newObject);
             }
 
+            Debug.Log($"[PLACE] Invoking OnObjectPlaced event...");
             OnObjectPlaced?.Invoke(newObject);
 
+            Debug.Log($"[PLACE] ✅✅✅ PlaceObject completed successfully!");
             return newObject;
         }
 
@@ -469,6 +508,81 @@ namespace SceneSandbox.Core
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Handle drag start from UI - shows drop indicator at screen position
+        /// </summary>
+        public void HandleDragFromUI(string objectDataId, Vector2 screenPosition)
+        {
+            if (_objectLibrary == null) return;
+
+            var objectData = _objectLibrary.GetObjectById(objectDataId);
+            if (objectData == null || objectData.prefab == null) return;
+
+            // Convert screen position to world position
+            Vector3 worldPosition = GetWorldPositionFromScreen(screenPosition);
+
+            // Show drop indicator at the calculated position
+            _isDraggingObject = true;
+            _dragPreviewPosition = worldPosition;
+            ShowDropIndicator(worldPosition);
+        }
+
+        /// <summary>
+        /// Handle drag move from UI - updates drop indicator position
+        /// </summary>
+        public void HandleDragMoveFromUI(Vector2 screenPosition)
+        {
+            if (!_isDraggingObject) return;
+
+            // Convert screen position to world position
+            Vector3 worldPosition = GetWorldPositionFromScreen(screenPosition);
+
+            // Update drop indicator position
+            _dragPreviewPosition = worldPosition;
+            UpdateDropIndicator(worldPosition);
+        }
+
+        /// <summary>
+        /// Handle drag end from UI - places object at screen position
+        /// </summary>
+        public GameObject HandleDropFromUI(string objectDataId, Vector2 screenPosition)
+        {
+            Debug.Log($"[BUILDER] HandleDropFromUI called - ID: {objectDataId}, ScreenPos: {screenPosition}");
+            
+            // Hide drop indicator
+            HideDropIndicator();
+            _isDraggingObject = false;
+
+            // Convert screen position to world position
+            Debug.Log($"[BUILDER] Converting screen to world position...");
+            Vector3 worldPosition = GetWorldPositionFromScreen(screenPosition);
+            Debug.Log($"[BUILDER] World position: {worldPosition}");
+
+            // Check if position is within scene bounds
+            Debug.Log($"[BUILDER] Checking if position is in scene bounds...");
+            if (!IsPositionInSceneBounds(worldPosition))
+            {
+                Debug.LogWarning($"[BUILDER] ❌ Position {worldPosition} is outside scene bounds!");
+                return null;
+            }
+            Debug.Log($"[BUILDER] ✅ Position is within scene bounds");
+
+            // Place the object at the calculated world position
+            Debug.Log($"[BUILDER] Calling PlaceObject...");
+            GameObject result = PlaceObject(objectDataId, worldPosition, autoSelect: true);
+            Debug.Log($"[BUILDER] PlaceObject returned: {(result != null ? result.name : "NULL")}");
+            return result;
+        }
+
+        /// <summary>
+        /// Cancel drag operation from UI
+        /// </summary>
+        public void CancelDragFromUI()
+        {
+            HideDropIndicator();
+            _isDraggingObject = false;
         }
 
         #endregion
@@ -1288,9 +1402,18 @@ namespace SceneSandbox.Core
             Vector3 center = _stageArea != null ? _stageArea.position : transform.position;
             Vector3 localPos = position - center;
 
-            return Mathf.Abs(localPos.x) <= _sceneBounds.x / 2f &&
+            Debug.Log($"[BOUNDS] Position: {position}, Center: {center}, LocalPos: {localPos}");
+            Debug.Log($"[BOUNDS] SceneBounds: {_sceneBounds} (half-extents: {_sceneBounds / 2f})");
+            Debug.Log($"[BOUNDS] Check X: {Mathf.Abs(localPos.x)} <= {_sceneBounds.x / 2f} = {Mathf.Abs(localPos.x) <= _sceneBounds.x / 2f}");
+            Debug.Log($"[BOUNDS] Check Y: {Mathf.Abs(localPos.y)} <= {_sceneBounds.y / 2f} = {Mathf.Abs(localPos.y) <= _sceneBounds.y / 2f}");
+            Debug.Log($"[BOUNDS] Check Z: {Mathf.Abs(localPos.z)} <= {_sceneBounds.z / 2f} = {Mathf.Abs(localPos.z) <= _sceneBounds.z / 2f}");
+
+            bool result = Mathf.Abs(localPos.x) <= _sceneBounds.x / 2f &&
                    Mathf.Abs(localPos.y) <= _sceneBounds.y / 2f &&
                    Mathf.Abs(localPos.z) <= _sceneBounds.z / 2f;
+            
+            Debug.Log($"[BOUNDS] Result: {result}");
+            return result;
         }
 
         /// <summary>

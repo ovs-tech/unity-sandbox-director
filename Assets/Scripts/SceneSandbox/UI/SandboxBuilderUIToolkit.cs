@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.InputSystem;
 using SceneSandbox.Core;
 using SceneSandbox.Data;
 using Core.UI.FormSubmit;
@@ -27,6 +28,9 @@ namespace SceneSandbox.UI
         [SerializeField] private VisualTreeAsset _paletteTemplate;
         [SerializeField] private VisualTreeAsset _itemTemplate;
         [SerializeField] private StyleSheet _paletteStyleSheet;
+        
+        [Header("Input System")]
+        [SerializeField] private InputActionAsset _inputActions;
         
         [Header("References")]
         [SerializeField] private ObjectPaletteUIToolkit _objectPalette;
@@ -98,6 +102,13 @@ namespace SceneSandbox.UI
             if (_sandboxBuilder == null)
             {
                 _sandboxBuilder = FindFirstObjectByType<SceneSandboxBuilder>();
+            }
+            
+            // Get ObjectLibrary from SandboxBuilder if not assigned
+            if (_objectLibrary == null && _sandboxBuilder != null)
+            {
+                _objectLibrary = _sandboxBuilder.ObjectLibrary;
+                Debug.Log("SandboxBuilderUIToolkit: Got ObjectLibrary from SandboxBuilder.");
             }
             
             // Initialize object palette if not assigned
@@ -348,6 +359,26 @@ namespace SceneSandbox.UI
                     sandboxBuilderField.SetValue(_objectPalette, _sandboxBuilder);
                     Debug.Log("SandboxBuilderUIToolkit: Assigned SandboxBuilder to palette.");
                 }
+            }
+            
+            // Set input actions reference
+            if (_inputActions != null)
+            {
+                var inputActionsField = paletteType.GetField("_inputActions", 
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (inputActionsField != null)
+                {
+                    inputActionsField.SetValue(_objectPalette, _inputActions);
+                    Debug.Log("SandboxBuilderUIToolkit: Assigned InputActions to palette.");
+                }
+                else
+                {
+                    Debug.LogWarning("SandboxBuilderUIToolkit: Could not find _inputActions field in ObjectPaletteUIToolkit.");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("SandboxBuilderUIToolkit: InputActions not assigned, palette will use fallback input.");
             }
         }
         

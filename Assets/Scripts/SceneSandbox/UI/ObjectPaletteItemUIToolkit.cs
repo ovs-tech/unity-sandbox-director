@@ -1,40 +1,70 @@
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.InputSystem;
 using SceneSandbox.Data;
 
 namespace SceneSandbox.UI
 {
     /// <summary>
-    /// UI component representing an object in the object palette using UI Toolkit
-    /// Supports dragging to place objects in the scene
+    /// UI component representing an object in the object palette using UI Toolkit.
+    /// Handles visual representation, user interactions, and drag-and-drop operations.
     /// </summary>
     public class ObjectPaletteItemUIToolkit
     {
-        // Visual Elements
+        #region Constants
+        
+        private const float DRAG_THRESHOLD = 5f;
+        private const float DRAG_PREVIEW_OPACITY = 0.7f;
+        private const float ICON_SIZE = 64f;
+        private const float NAME_LABEL_HEIGHT = 30f;
+        private const float ITEM_MARGIN = 8f;
+        
+        #endregion
+        
+        #region Visual Elements
+        
         private VisualElement _rootElement;
         private VisualElement _iconContainer;
         private VisualElement _iconElement;
         private Label _nameLabel;
+        private VisualElement _dragPreview;
         
-        // Data
+        #endregion
+        
+        #region Data
+        
         private SceneObjectData _objectData;
         private ObjectPaletteUIToolkit _parentPalette;
+        private InputAction _pointAction; // Mouse/pointer position from InputActions
         
-        // Drag state
+        #endregion
+        
+        #region Drag State
+        
         private bool _isDragging;
         private Vector2 _dragStartPosition;
-        private VisualElement _dragPreview;
-        private float _dragOpacity = 0.7f;
+        private int _capturedPointerId;
         
-        // Events
+        #endregion
+        
+        #region Events
+        
         public System.Action<ObjectPaletteItemUIToolkit> OnItemSelected;
         public System.Action<ObjectPaletteItemUIToolkit, Vector2> OnItemDragStarted;
         public System.Action<ObjectPaletteItemUIToolkit, Vector2> OnItemDragMoved;
         public System.Action<ObjectPaletteItemUIToolkit, Vector2> OnItemDragEnded;
         
-        // Properties
+        #endregion
+        
+        #region Properties
+        
         public SceneObjectData ObjectData => _objectData;
         public VisualElement RootElement => _rootElement;
+        public bool IsDragging => _isDragging;
+        
+        #endregion
+        
+        #region Initialization
         
         /// <summary>
         /// Initialize the palette item with object data
@@ -71,60 +101,118 @@ namespace SceneSandbox.UI
         private void CreateUIFromCode(Vector2 itemSize)
         {
             // Root container
-            _rootElement = new VisualElement();
-            _rootElement.name = "palette-item";
-            _rootElement.AddToClassList("palette-item");
-            _rootElement.style.width = itemSize.x;
-            _rootElement.style.height = itemSize.y;
-            _rootElement.style.marginRight = 8;
-            _rootElement.style.marginBottom = 8;
-            _rootElement.style.backgroundColor = new Color(0.2f, 0.2f, 0.2f, 1f);
-            _rootElement.style.borderTopLeftRadius = 4;
-            _rootElement.style.borderTopRightRadius = 4;
-            _rootElement.style.borderBottomLeftRadius = 4;
-            _rootElement.style.borderBottomRightRadius = 4;
-            _rootElement.style.borderTopWidth = 1;
-            _rootElement.style.borderBottomWidth = 1;
-            _rootElement.style.borderLeftWidth = 1;
-            _rootElement.style.borderRightWidth = 1;
-            _rootElement.style.borderTopColor = new Color(0.3f, 0.3f, 0.3f, 1f);
-            _rootElement.style.borderBottomColor = new Color(0.3f, 0.3f, 0.3f, 1f);
-            _rootElement.style.borderLeftColor = new Color(0.3f, 0.3f, 0.3f, 1f);
-            _rootElement.style.borderRightColor = new Color(0.3f, 0.3f, 0.3f, 1f);
+            _rootElement = CreateRootElement(itemSize);
             
-            // Icon container (top 70%)
-            _iconContainer = new VisualElement();
-            _iconContainer.name = "icon-container";
-            _iconContainer.style.flexGrow = 1;
-            _iconContainer.style.justifyContent = Justify.Center;
-            _iconContainer.style.alignItems = Align.Center;
+            // Icon container with icon
+            _iconContainer = CreateIconContainer();
+            _iconElement = CreateIconElement();
+            _iconContainer.Add(_iconElement);
             _rootElement.Add(_iconContainer);
             
-            // Icon element
-            _iconElement = new VisualElement();
-            _iconElement.name = "icon";
-            _iconElement.AddToClassList("palette-item__icon");
-            _iconElement.style.width = 64;
-            _iconElement.style.height = 64;
-            _iconElement.style.backgroundColor = new Color(0.4f, 0.4f, 0.8f, 1f);
-            _iconElement.style.borderTopLeftRadius = 4;
-            _iconElement.style.borderTopRightRadius = 4;
-            _iconElement.style.borderBottomLeftRadius = 4;
-            _iconElement.style.borderBottomRightRadius = 4;
-            _iconContainer.Add(_iconElement);
-            
-            // Name label (bottom 25%)
-            _nameLabel = new Label();
-            _nameLabel.name = "name-label";
-            _nameLabel.AddToClassList("palette-item__name");
-            _nameLabel.style.height = 30;
-            _nameLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
-            _nameLabel.style.fontSize = 12;
-            _nameLabel.style.color = Color.white;
-            _nameLabel.style.overflow = Overflow.Hidden;
-            _nameLabel.style.textOverflow = TextOverflow.Ellipsis;
-            _nameLabel.style.whiteSpace = WhiteSpace.NoWrap;
+            // Name label
+            _nameLabel = CreateNameLabel();
             _rootElement.Add(_nameLabel);
+        }
+        
+        private VisualElement CreateRootElement(Vector2 itemSize)
+        {
+            var root = new VisualElement
+            {
+                name = "palette-item"
+            };
+            
+            root.AddToClassList("palette-item");
+            
+            // Size
+            root.style.width = itemSize.x;
+            root.style.height = itemSize.y;
+            root.style.marginRight = ITEM_MARGIN;
+            root.style.marginBottom = ITEM_MARGIN;
+            
+            // Background and border
+            root.style.backgroundColor = new Color(0.2f, 0.2f, 0.2f, 1f);
+            SetBorderRadius(root, 4);
+            SetBorderWidth(root, 1);
+            SetBorderColor(root, new Color(0.3f, 0.3f, 0.3f, 1f));
+            
+            return root;
+        }
+        
+        private VisualElement CreateIconContainer()
+        {
+            var container = new VisualElement
+            {
+                name = "icon-container"
+            };
+            
+            container.style.flexGrow = 1;
+            container.style.justifyContent = Justify.Center;
+            container.style.alignItems = Align.Center;
+            
+            return container;
+        }
+        
+        private VisualElement CreateIconElement()
+        {
+            var icon = new VisualElement
+            {
+                name = "icon"
+            };
+            
+            icon.AddToClassList("palette-item__icon");
+            icon.style.width = ICON_SIZE;
+            icon.style.height = ICON_SIZE;
+            icon.style.backgroundColor = new Color(0.4f, 0.4f, 0.8f, 1f);
+            SetBorderRadius(icon, 4);
+            
+            return icon;
+        }
+        
+        private Label CreateNameLabel()
+        {
+            var label = new Label
+            {
+                name = "name-label"
+            };
+            
+            label.AddToClassList("palette-item__name");
+            label.style.height = NAME_LABEL_HEIGHT;
+            label.style.unityTextAlign = TextAnchor.MiddleCenter;
+            label.style.fontSize = 12;
+            label.style.color = Color.white;
+            label.style.overflow = Overflow.Hidden;
+            label.style.textOverflow = TextOverflow.Ellipsis;
+            label.style.whiteSpace = WhiteSpace.NoWrap;
+            
+            return label;
+        }
+        
+        #endregion
+        
+        #region UI Helper Methods
+        
+        private void SetBorderRadius(VisualElement element, float radius)
+        {
+            element.style.borderTopLeftRadius = radius;
+            element.style.borderTopRightRadius = radius;
+            element.style.borderBottomLeftRadius = radius;
+            element.style.borderBottomRightRadius = radius;
+        }
+        
+        private void SetBorderWidth(VisualElement element, float width)
+        {
+            element.style.borderTopWidth = width;
+            element.style.borderBottomWidth = width;
+            element.style.borderLeftWidth = width;
+            element.style.borderRightWidth = width;
+        }
+        
+        private void SetBorderColor(VisualElement element, Color color)
+        {
+            element.style.borderTopColor = color;
+            element.style.borderBottomColor = color;
+            element.style.borderLeftColor = color;
+            element.style.borderRightColor = color;
         }
         
         private void QueryUIElements()
@@ -165,7 +253,11 @@ namespace SceneSandbox.UI
         
         private void SetupInteractions()
         {
-            if (_rootElement == null) return;
+            if (_rootElement == null)
+            {
+                Debug.LogError($"[ITEM] Cannot setup interactions - rootElement is null for '{_objectData?.displayName}'");
+                return;
+            }
             
             // Click to select
             _rootElement.RegisterCallback<ClickEvent>(OnClick);
@@ -181,6 +273,10 @@ namespace SceneSandbox.UI
             _rootElement.RegisterCallback<MouseLeaveEvent>(OnMouseLeave);
         }
         
+        #endregion
+        
+        #region Event Handlers
+        
         private void OnClick(ClickEvent evt)
         {
             if (!_isDragging)
@@ -191,39 +287,35 @@ namespace SceneSandbox.UI
         
         private void OnPointerDown(PointerDownEvent evt)
         {
-            _dragStartPosition = evt.position;
-            _isDragging = false;
+            // Use localPosition instead of position for consistent coordinates
+            _dragStartPosition = evt.localPosition;
             
-            // Capture pointer for drag operation
+            _isDragging = false;
+            _capturedPointerId = evt.pointerId;
+            
             _rootElement.CapturePointer(evt.pointerId);
-            evt.StopPropagation(); // Prevent parent elements from receiving the event
+            evt.StopPropagation();
         }
         
         private void OnPointerMove(PointerMoveEvent evt)
         {
-            if (!_rootElement.HasPointerCapture(evt.pointerId)) return;
+            if (!_rootElement.HasPointerCapture(evt.pointerId))
+            {
+                return;
+            }
+            
+            // Use localPosition for consistent coordinates
+            Vector2 currentPosition = evt.localPosition;
             
             // Check if drag threshold exceeded
-            float dragDistance = Vector2.Distance(_dragStartPosition, evt.position);
-            if (!_isDragging && dragDistance > 5f)
+            if (!_isDragging && ShouldStartDrag(currentPosition))
             {
-                _isDragging = true;
-                
-                // Convert local position to panel position
-                Vector2 panelPosition = _rootElement.LocalToWorld(evt.localPosition);
-                
-                CreateDragPreview(evt.position);
-                OnItemDragStarted?.Invoke(this, panelPosition);
+                StartDrag(evt);
             }
             
             if (_isDragging)
             {
-                // Convert local position to panel position for drag updates
-                Vector2 panelPosition = _rootElement.LocalToWorld(evt.localPosition);
-                
-                UpdateDragPreview(evt.position);
-                OnItemDragMoved?.Invoke(this, panelPosition);
-                evt.StopPropagation(); // Prevent parent elements from receiving the event
+                ContinueDrag(evt);
             }
         }
         
@@ -231,12 +323,7 @@ namespace SceneSandbox.UI
         {
             if (_isDragging)
             {
-                // Convert local position to panel position
-                Vector2 panelPosition = _rootElement.LocalToWorld(evt.localPosition);
-                
-                DestroyDragPreview();
-                OnItemDragEnded?.Invoke(this, panelPosition);
-                evt.StopPropagation(); // Prevent parent elements from receiving the event
+                EndDrag(evt);
             }
             
             _isDragging = false;
@@ -247,8 +334,7 @@ namespace SceneSandbox.UI
         {
             if (_isDragging)
             {
-                DestroyDragPreview();
-                _isDragging = false;
+                CancelDrag();
             }
         }
         
@@ -268,83 +354,176 @@ namespace SceneSandbox.UI
             }
         }
         
-        private void CreateDragPreview(Vector2 screenPosition)
+        #endregion
+        
+        #region Drag Operations
+        
+        private bool ShouldStartDrag(Vector2 currentPosition)
         {
-            // Create a clone of this item for drag preview
-            _dragPreview = new VisualElement();
-            _dragPreview.name = "drag-preview";
-            _dragPreview.AddToClassList("palette-item-drag-preview");
-            _dragPreview.style.position = Position.Absolute;
-            _dragPreview.style.width = _rootElement.resolvedStyle.width;
-            _dragPreview.style.height = _rootElement.resolvedStyle.height;
-            _dragPreview.pickingMode = PickingMode.Ignore; // Prevent blocking pointer events
-            
-            // Copy visual appearance with more prominent styling
-            _dragPreview.style.backgroundColor = new Color(0.2f, 0.2f, 0.2f, 0.9f);
-            _dragPreview.style.borderTopLeftRadius = _rootElement.resolvedStyle.borderTopLeftRadius;
-            _dragPreview.style.borderTopRightRadius = _rootElement.resolvedStyle.borderTopRightRadius;
-            _dragPreview.style.borderBottomLeftRadius = _rootElement.resolvedStyle.borderBottomLeftRadius;
-            _dragPreview.style.borderBottomRightRadius = _rootElement.resolvedStyle.borderBottomRightRadius;
-            _dragPreview.style.borderTopWidth = 2;
-            _dragPreview.style.borderBottomWidth = 2;
-            _dragPreview.style.borderLeftWidth = 2;
-            _dragPreview.style.borderRightWidth = 2;
-            _dragPreview.style.borderTopColor = new Color(0.3f, 0.6f, 1f, 1f); // Blue border
-            _dragPreview.style.borderBottomColor = new Color(0.3f, 0.6f, 1f, 1f);
-            _dragPreview.style.borderLeftColor = new Color(0.3f, 0.6f, 1f, 1f);
-            _dragPreview.style.borderRightColor = new Color(0.3f, 0.6f, 1f, 1f);
-            
-            // Add icon clone
-            if (_iconElement != null)
-            {
-                var iconClone = new VisualElement();
-                iconClone.style.width = 64;
-                iconClone.style.height = 64;
-                iconClone.style.marginTop = 10;
-                iconClone.style.alignSelf = Align.Center;
-                iconClone.pickingMode = PickingMode.Ignore;
-                
-                if (_objectData.icon != null)
-                {
-                    iconClone.style.backgroundImage = new StyleBackground(_objectData.icon);
-                    iconClone.style.unityBackgroundImageTintColor = _objectData.iconColor;
-                }
-                else
-                {
-                    iconClone.style.backgroundColor = _objectData.iconColor;
-                }
-                
-                _dragPreview.Add(iconClone);
-            }
-            
-            // Add name clone
-            if (_nameLabel != null)
-            {
-                var nameClone = new Label(_nameLabel.text);
-                nameClone.style.unityTextAlign = TextAnchor.MiddleCenter;
-                nameClone.style.fontSize = 12;
-                nameClone.style.color = Color.white;
-                nameClone.pickingMode = PickingMode.Ignore;
-                _dragPreview.Add(nameClone);
-            }
-            
-            // Set opacity
-            _dragPreview.style.opacity = _dragOpacity;
-            
-            // Add to root (screen space)
-            var panelRoot = _rootElement.panel.visualTree;
-            panelRoot.Add(_dragPreview);
-            
-            UpdateDragPreview(screenPosition);
+            float dragDistance = Vector2.Distance(_dragStartPosition, currentPosition);
+            return dragDistance > DRAG_THRESHOLD;
         }
         
-        private void UpdateDragPreview(Vector2 screenPosition)
+        private void StartDrag(PointerMoveEvent evt)
+        {
+            _isDragging = true;
+            
+            // Get actual screen position using New Input System
+            Vector2 screenPosition = GetMouseScreenPosition();
+            
+            CreateDragPreview(evt.localPosition);
+            OnItemDragStarted?.Invoke(this, screenPosition);
+        }
+        
+        private void ContinueDrag(PointerMoveEvent evt)
+        {
+            // Get actual screen position using New Input System
+            Vector2 screenPosition = GetMouseScreenPosition();
+            
+            UpdateDragPreview(evt.localPosition);
+            OnItemDragMoved?.Invoke(this, screenPosition);
+            evt.StopPropagation();
+        }
+        
+        private void EndDrag(PointerUpEvent evt)
+        {
+            // Get actual screen position using New Input System
+            Vector2 screenPosition = GetMouseScreenPosition();
+            
+            DestroyDragPreview();
+            OnItemDragEnded?.Invoke(this, screenPosition);
+            evt.StopPropagation();
+        }
+        
+        private void CancelDrag()
+        {
+            DestroyDragPreview();
+            _isDragging = false;
+        }
+        
+        /// <summary>
+        /// Get mouse screen position using New Input System
+        /// </summary>
+        private Vector2 GetMouseScreenPosition()
+        {
+            // Try InputAction first (preferred)
+            if (_pointAction != null)
+            {
+                return _pointAction.ReadValue<Vector2>();
+            }
+            
+            // Fallback to Mouse.current
+            if (Mouse.current != null)
+            {
+                return Mouse.current.position.ReadValue();
+            }
+            
+            // Final fallback to legacy input
+            Debug.LogWarning("[ITEM] No Input System available, using legacy Input.mousePosition");
+            return UnityEngine.Input.mousePosition;
+        }
+        
+        #endregion
+        
+        #region Drag Preview
+        
+        private void CreateDragPreview(Vector2 localPosition)
+        {
+            _dragPreview = CreateDragPreviewElement();
+            
+            AddIconToDragPreview();
+            AddNameToDragPreview();
+            
+            AttachDragPreviewToPanel();
+            UpdateDragPreview(localPosition);
+        }
+        
+        private VisualElement CreateDragPreviewElement()
+        {
+            var preview = new VisualElement
+            {
+                name = "drag-preview",
+                pickingMode = PickingMode.Ignore
+            };
+            
+            preview.AddToClassList("palette-item-drag-preview");
+            
+            // Position and size
+            preview.style.position = Position.Absolute;
+            preview.style.width = _rootElement.resolvedStyle.width;
+            preview.style.height = _rootElement.resolvedStyle.height;
+            preview.style.opacity = DRAG_PREVIEW_OPACITY;
+            
+            // Visual styling
+            preview.style.backgroundColor = new Color(0.2f, 0.2f, 0.2f, 0.9f);
+            SetBorderRadius(preview, _rootElement.resolvedStyle.borderTopLeftRadius);
+            SetBorderWidth(preview, 2);
+            SetBorderColor(preview, new Color(0.3f, 0.6f, 1f, 1f)); // Blue highlight
+            
+            return preview;
+        }
+        
+        private void AddIconToDragPreview()
+        {
+            if (_iconElement == null) return;
+            
+            var iconClone = new VisualElement
+            {
+                pickingMode = PickingMode.Ignore
+            };
+            
+            iconClone.style.width = ICON_SIZE;
+            iconClone.style.height = ICON_SIZE;
+            iconClone.style.marginTop = 10;
+            iconClone.style.alignSelf = Align.Center;
+            
+            if (_objectData.icon != null)
+            {
+                iconClone.style.backgroundImage = new StyleBackground(_objectData.icon);
+                iconClone.style.unityBackgroundImageTintColor = _objectData.iconColor;
+            }
+            else
+            {
+                iconClone.style.backgroundColor = _objectData.iconColor;
+            }
+            
+            _dragPreview.Add(iconClone);
+        }
+        
+        private void AddNameToDragPreview()
+        {
+            if (_nameLabel == null) return;
+            
+            var nameClone = new Label(_nameLabel.text)
+            {
+                pickingMode = PickingMode.Ignore
+            };
+            
+            nameClone.style.unityTextAlign = TextAnchor.MiddleCenter;
+            nameClone.style.fontSize = 12;
+            nameClone.style.color = Color.white;
+            
+            _dragPreview.Add(nameClone);
+        }
+        
+        private void AttachDragPreviewToPanel()
+        {
+            var panelRoot = _rootElement.panel.visualTree;
+            panelRoot.Add(_dragPreview);
+        }
+        
+        private void UpdateDragPreview(Vector2 localPosition)
         {
             if (_dragPreview == null) return;
             
-            // Convert screen position to panel coordinates
-            _dragPreview.style.left = screenPosition.x - (_dragPreview.resolvedStyle.width / 2);
-            _dragPreview.style.top = screenPosition.y - (_dragPreview.resolvedStyle.height / 2);
+            // Convert local position to panel position for absolute positioning
+            Vector2 panelPosition = _rootElement.LocalToWorld(localPosition);
+            
+            float halfWidth = _dragPreview.resolvedStyle.width / 2;
+            float halfHeight = _dragPreview.resolvedStyle.height / 2;
+            
+            _dragPreview.style.left = panelPosition.x - halfWidth;
+            _dragPreview.style.top = panelPosition.y - halfHeight;
         }
         
         private void DestroyDragPreview()
@@ -356,6 +535,18 @@ namespace SceneSandbox.UI
             }
         }
         
+        #endregion
+        
+        #region Public Methods
+        
+        /// <summary>
+        /// Set the Point InputAction for reading mouse position
+        /// </summary>
+        public void SetPointAction(InputAction pointAction)
+        {
+            _pointAction = pointAction;
+        }
+        
         /// <summary>
         /// Set the selection state of this item
         /// </summary>
@@ -363,28 +554,14 @@ namespace SceneSandbox.UI
         {
             if (_rootElement == null) return;
             
-            if (selected)
-            {
-                _rootElement.style.borderTopColor = new Color(0.3f, 0.6f, 1f, 1f);
-                _rootElement.style.borderBottomColor = new Color(0.3f, 0.6f, 1f, 1f);
-                _rootElement.style.borderLeftColor = new Color(0.3f, 0.6f, 1f, 1f);
-                _rootElement.style.borderRightColor = new Color(0.3f, 0.6f, 1f, 1f);
-                _rootElement.style.borderTopWidth = 2;
-                _rootElement.style.borderBottomWidth = 2;
-                _rootElement.style.borderLeftWidth = 2;
-                _rootElement.style.borderRightWidth = 2;
-            }
-            else
-            {
-                _rootElement.style.borderTopColor = new Color(0.3f, 0.3f, 0.3f, 1f);
-                _rootElement.style.borderBottomColor = new Color(0.3f, 0.3f, 0.3f, 1f);
-                _rootElement.style.borderLeftColor = new Color(0.3f, 0.3f, 0.3f, 1f);
-                _rootElement.style.borderRightColor = new Color(0.3f, 0.3f, 0.3f, 1f);
-                _rootElement.style.borderTopWidth = 1;
-                _rootElement.style.borderBottomWidth = 1;
-                _rootElement.style.borderLeftWidth = 1;
-                _rootElement.style.borderRightWidth = 1;
-            }
+            var borderColor = selected 
+                ? new Color(0.3f, 0.6f, 1f, 1f)  // Blue when selected
+                : new Color(0.3f, 0.3f, 0.3f, 1f); // Gray when not selected
+            
+            var borderWidth = selected ? 2 : 1;
+            
+            SetBorderColor(_rootElement, borderColor);
+            SetBorderWidth(_rootElement, borderWidth);
         }
         
         /// <summary>
@@ -399,25 +576,40 @@ namespace SceneSandbox.UI
         }
         
         /// <summary>
-        /// Clean up resources
+        /// Clean up resources and unregister callbacks
         /// </summary>
         public void Dispose()
         {
-            if (_rootElement != null)
-            {
-                _rootElement.UnregisterCallback<ClickEvent>(OnClick);
-                _rootElement.UnregisterCallback<PointerDownEvent>(OnPointerDown);
-                _rootElement.UnregisterCallback<PointerMoveEvent>(OnPointerMove);
-                _rootElement.UnregisterCallback<PointerUpEvent>(OnPointerUp);
-                _rootElement.UnregisterCallback<PointerCaptureOutEvent>(OnPointerCaptureOut);
-                _rootElement.UnregisterCallback<MouseEnterEvent>(OnMouseEnter);
-                _rootElement.UnregisterCallback<MouseLeaveEvent>(OnMouseLeave);
-                
-                _rootElement.RemoveFromHierarchy();
-                _rootElement = null;
-            }
-            
+            UnregisterCallbacks();
+            RemoveFromHierarchy();
             DestroyDragPreview();
         }
+        
+        #endregion
+        
+        #region Cleanup
+        
+        private void UnregisterCallbacks()
+        {
+            if (_rootElement == null) return;
+            
+            _rootElement.UnregisterCallback<ClickEvent>(OnClick);
+            _rootElement.UnregisterCallback<PointerDownEvent>(OnPointerDown);
+            _rootElement.UnregisterCallback<PointerMoveEvent>(OnPointerMove);
+            _rootElement.UnregisterCallback<PointerUpEvent>(OnPointerUp);
+            _rootElement.UnregisterCallback<PointerCaptureOutEvent>(OnPointerCaptureOut);
+            _rootElement.UnregisterCallback<MouseEnterEvent>(OnMouseEnter);
+            _rootElement.UnregisterCallback<MouseLeaveEvent>(OnMouseLeave);
+        }
+        
+        private void RemoveFromHierarchy()
+        {
+            if (_rootElement == null) return;
+            
+            _rootElement.RemoveFromHierarchy();
+            _rootElement = null;
+        }
+        
+        #endregion
     }
 }

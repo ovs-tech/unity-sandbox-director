@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.InputSystem;
 using SceneSandbox.Data;
 
 namespace SceneSandbox.UI
@@ -27,6 +28,7 @@ namespace SceneSandbox.UI
         [Header("References")]
         [SerializeField] private Core.SceneSandboxBuilder _sandboxBuilder;
         [SerializeField] private SceneObjectLibrary _objectLibrary;
+        [SerializeField] private InputActionAsset _inputActions;
         
         // Visual Elements
         private VisualElement _rootElement;
@@ -37,6 +39,9 @@ namespace SceneSandbox.UI
         private Button _refreshButton;
         private ScrollView _itemsScrollView;
         private VisualElement _itemsContainer;
+        
+        // Input Actions
+        private InputAction _pointAction;
         
         // State
         private List<ObjectPaletteItemUIToolkit> _paletteItems = new List<ObjectPaletteItemUIToolkit>();
@@ -61,9 +66,34 @@ namespace SceneSandbox.UI
         private void Awake()
         {
             Debug.Log("ObjectPaletteUIToolkit: Awake() called");
+            InitializeInputActions();
             InitializeUI();
             SetupUI();
             Debug.Log("ObjectPaletteUIToolkit: Awake() completed");
+        }
+        
+        private void InitializeInputActions()
+        {
+            if (_inputActions != null)
+            {
+                var uiMap = _inputActions.FindActionMap("UI");
+                if (uiMap != null)
+                {
+                    _pointAction = uiMap.FindAction("Point");
+                    if (_pointAction != null)
+                    {
+                        Debug.Log("ObjectPaletteUIToolkit: Found UI/Point action");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("ObjectPaletteUIToolkit: UI/Point action not found");
+                    }
+                }
+            }
+            else
+            {
+                Debug.LogWarning("ObjectPaletteUIToolkit: InputActions not assigned, items will use fallback");
+            }
         }
         
         private void Start()
@@ -501,6 +531,12 @@ namespace SceneSandbox.UI
             {
                 paletteItem.Initialize(objectData, this, _itemTemplate, _itemSize);
                 
+                // Pass InputAction if available
+                if (_pointAction != null)
+                {
+                    paletteItem.SetPointAction(_pointAction);
+                }
+                
                 // Verify initialization succeeded
                 if (paletteItem.RootElement == null)
                 {
@@ -582,70 +618,74 @@ namespace SceneSandbox.UI
         
         private void OnItemDragStarted(ObjectPaletteItemUIToolkit item, Vector2 screenPosition)
         {
-            Debug.Log($"[DRAG] Drag started for '{item.ObjectData.displayName}' at panel position {screenPosition}");
-            // Optional: Provide feedback when dragging starts
+            Debug.Log($"[DRAG] Drag started for '{item.ObjectData.displayName}' at screen position {screenPosition}");
+            
+            // Check if sandbox builder is assigned
+            if (_sandboxBuilder == null)
+            {
+                Debug.LogError("[DRAG] ❌ SandboxBuilder is NULL! Cannot start drag.");
+                return;
+            }
+            
+            // Delegate to SceneSandboxBuilder to handle indicator and world position conversion
+            _sandboxBuilder.HandleDragFromUI(item.ObjectData.id, screenPosition);
         }
         
         private void OnItemDragMoved(ObjectPaletteItemUIToolkit item, Vector2 screenPosition)
         {
-            // Update drag feedback based on whether position is valid
-            Vector2 actualScreenPosition = PanelToScreenPosition(screenPosition);
-            bool isOverUI = IsPositionOverUI(screenPosition);
-            bool isValidPlacement = IsScreenPositionOverScene(actualScreenPosition) && !isOverUI;
+            // Check if sandbox builder is assigned
+            if (_sandboxBuilder == null) return;
             
-            // Could add visual feedback here (e.g., change cursor, highlight ground plane)
-            // Debug.Log($"[DRAG] Drag moved - Valid placement: {isValidPlacement}");
+            // Delegate to SceneSandboxBuilder to update indicator position
+            _sandboxBuilder.HandleDragMoveFromUI(screenPosition);
         }
         
         private void OnItemDragEnded(ObjectPaletteItemUIToolkit item, Vector2 screenPosition)
         {
             Debug.Log($"[DRAG] ========== DRAG ENDED ==========");
             Debug.Log($"[DRAG] Object: '{item.ObjectData.displayName}' (ID: {item.ObjectData.id})");
-            Debug.Log($"[DRAG] Panel position: {screenPosition}");
-            
-            // Convert panel-local position to screen position
-            Vector2 actualScreenPosition = PanelToScreenPosition(screenPosition);
-            Debug.Log($"[DRAG] Screen position (after conversion): {actualScreenPosition}");
-            
-            // Check if we're over the scene (not over UI)
-            bool isOverUI = IsPositionOverUI(screenPosition);
-            bool isOverScene = IsScreenPositionOverScene(actualScreenPosition) && !isOverUI;
-            
-            Debug.Log($"[DRAG] Is over UI? {isOverUI}");
-            Debug.Log($"[DRAG] Is over scene viewport? {isOverScene}");
-            
-            // Only place if over scene area
-            if (!isOverScene)
-            {
-                Debug.LogWarning($"[DRAG] ❌ Cannot place - not over scene area (over UI: {isOverUI})");
-                return;
-            }
+            Debug.Log($"[DRAG] Screen position: {screenPosition}");
             
             // Check if sandbox builder is assigned
             if (_sandboxBuilder == null)
             {
                 Debug.LogError("[DRAG] ❌ SandboxBuilder is NULL! Cannot place object.");
-                Debug.LogError("[DRAG] Make sure SceneSandboxBuilder exists in the scene and is assigned to ObjectPalette!");
                 return;
             }
             
-            Debug.Log($"[DRAG] SandboxBuilder found: {_sandboxBuilder.name}");
+            // Check if we're over the scene (not over UI)
+            bool isOverScene = IsScreenPositionOverScene(screenPosition);
             
-            // Convert to world position
-            Vector3 worldPosition = ScreenToWorldPosition(actualScreenPosition);
-            Debug.Log($"[DRAG] World position: {worldPosition}");
+            Debug.Log($"[DRAG] Is over scene viewport? {isOverScene}");
             
-            // Try to place the object
-            Debug.Log($"[DRAG] ✅ Placing object in SceneSandboxBuilder...");
+            // Only place if over scene area
+            if (!isOverScene)
+            {
+                Debug.LogWarning($"[DRAG] ❌ Cannot place - not over scene area");
+                _sandboxBuilder.CancelDragFromUI();
+                return;
+            }
+            
+            // Delegate to SceneSandboxBuilder to handle placement
+            // SceneSandboxBuilder will convert screen → world and place the object
+            Debug.Log($"[DRAG] ✅ Requesting placement from SceneSandboxBuilder...");
             try
             {
-                _sandboxBuilder.PlaceObject(item.ObjectData.id, worldPosition);
-                Debug.Log($"[DRAG] ✅ Successfully placed '{item.ObjectData.displayName}' at {worldPosition}");
-                OnObjectDraggedToScene?.Invoke(item.ObjectData, actualScreenPosition);
+                GameObject placedObject = _sandboxBuilder.HandleDropFromUI(item.ObjectData.id, screenPosition);
+                
+                if (placedObject != null)
+                {
+                    Debug.Log($"[DRAG] ✅ Successfully placed '{item.ObjectData.displayName}' at {placedObject.transform.position}");
+                    OnObjectDraggedToScene?.Invoke(item.ObjectData, screenPosition);
+                }
+                else
+                {
+                    Debug.LogWarning($"[DRAG] ⚠️ Placement returned null (possibly out of bounds)");
+                }
             }
             catch (System.Exception ex)
             {
-                Debug.LogError($"[DRAG] ❌ Exception in PlaceObject: {ex.Message}");
+                Debug.LogError($"[DRAG] ❌ Exception during placement: {ex.Message}");
                 Debug.LogError($"[DRAG] Stack trace: {ex.StackTrace}");
             }
             
@@ -668,17 +708,48 @@ namespace SceneSandbox.UI
                 return panelPosition;
             }
             
-            // Get the panel's reference resolution and actual screen size
-            var panelSettings = _rootElement.panel;
+            Debug.Log($"[DRAG] Input panel position: {panelPosition}");
             
-            // In UI Toolkit, the coordinates are already in screen-like space
-            // but we need to account for the panel's coordinate system
-            // For most cases, panel position IS screen position, but Y is inverted
+            // IMPORTANT: Panel position can be negative for elements in left/top panels
+            // We need to convert from panel-space to absolute screen-space
             
+            // Get screen dimensions
             float screenHeight = Screen.height;
-            Vector2 screenPos = new Vector2(panelPosition.x, screenHeight - panelPosition.y);
             
-            Debug.Log($"[DRAG] Coordinate conversion: Panel({panelPosition.x}, {panelPosition.y}) -> Screen({screenPos.x}, {screenPos.y}) [Screen height: {screenHeight}]");
+            // Panel coordinates are already in pixel space, just need Y-flip for Unity screen coords
+            // Unity screen space: (0,0) = bottom-left, (width, height) = top-right
+            // Panel space: (0,0) = top-left, (width, height) = bottom-right
+            
+            // Handle negative panel positions (elements outside main viewport)
+            // For left panels, panelPosition.x will be negative
+            // We need to convert this to positive screen coordinates
+            
+            Vector2 screenPos;
+            if (panelPosition.x < 0 || panelPosition.y < 0)
+            {
+                // Element is in a side panel or outside main area
+                // Need to calculate absolute position from panel root
+                if (_rootElement.panel.visualTree != null)
+                {
+                    var panelRoot = _rootElement.panel.visualTree;
+                    // panelPosition is already in absolute coordinates from the panel root
+                    screenPos = new Vector2(
+                        panelPosition.x,  // Keep X as-is (absolute from left)
+                        screenHeight - panelPosition.y  // Flip Y
+                    );
+                }
+                else
+                {
+                    screenPos = new Vector2(panelPosition.x, screenHeight - panelPosition.y);
+                }
+            }
+            else
+            {
+                // Standard conversion for positive coordinates
+                screenPos = new Vector2(panelPosition.x, screenHeight - panelPosition.y);
+            }
+            
+            Debug.Log($"[DRAG] Coordinate conversion: Panel({panelPosition.x}, {panelPosition.y}) -> Screen({screenPos.x}, {screenPos.y}) [Screen: {Screen.width}x{screenHeight}]");
             
             return screenPos;
         }
