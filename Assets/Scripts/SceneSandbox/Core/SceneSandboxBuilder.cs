@@ -60,9 +60,9 @@ namespace SceneSandbox.Core
         [SerializeField] private float _dropIndicatorSize = 1f;
 
         [Header("Save/Load")]
-        [SerializeField] private string _defaultSavePath = "Assets/SceneSandboxBuilder/SavedScenes/";
+        [SerializeField] private string _defaultSavePath = ""; // Will be initialized to Application.persistentDataPath/SavedScenes
         [SerializeField] private string _currentSceneName = "Untitled Scene";
-        [SerializeField] private string _defaultProjectSavePath = "Assets/SceneSandboxBuilder/SavedProjects/";
+        [SerializeField] private string _defaultProjectSavePath = ""; // Will be initialized to Application.persistentDataPath/SavedProjects
 
         // Components
         private SandboxInputHandler _inputHandler;
@@ -134,8 +134,49 @@ namespace SceneSandbox.Core
 
         }
 
+        /// <summary>
+        /// Initialize default save paths using Application.persistentDataPath for multi-platform support
+        /// </summary>
+        private void InitializeDefaultPaths()
+        {
+            // Initialize scene save path if not set or still using old Assets/ path
+            if (string.IsNullOrEmpty(_defaultSavePath) || _defaultSavePath.StartsWith("Assets/"))
+            {
+                _defaultSavePath = System.IO.Path.Combine(Application.persistentDataPath, "SceneSandboxBuilder", "SavedScenes");
+                Debug.Log($"[SceneSandboxBuilder] Initialized scene save path: {_defaultSavePath}");
+            }
+
+            // Initialize project save path if not set or still using old Assets/ path
+            if (string.IsNullOrEmpty(_defaultProjectSavePath) || _defaultProjectSavePath.StartsWith("Assets/"))
+            {
+                _defaultProjectSavePath = System.IO.Path.Combine(Application.persistentDataPath, "SceneSandboxBuilder", "SavedProjects");
+                Debug.Log($"[SceneSandboxBuilder] Initialized project save path: {_defaultProjectSavePath}");
+            }
+
+            // Ensure directories exist
+            try
+            {
+                if (!System.IO.Directory.Exists(_defaultSavePath))
+                {
+                    System.IO.Directory.CreateDirectory(_defaultSavePath);
+                }
+
+                if (!System.IO.Directory.Exists(_defaultProjectSavePath))
+                {
+                    System.IO.Directory.CreateDirectory(_defaultProjectSavePath);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[SceneSandboxBuilder] Failed to create default directories: {ex.Message}");
+            }
+        }
+
         private void Awake()
         {
+            // Initialize default paths for multi-platform support
+            InitializeDefaultPaths();
+
             // Auto-assign InputActions if not set
             if (_inputActions == null)
             {
@@ -467,17 +508,24 @@ namespace SceneSandbox.Core
                 UpdateSceneConfiguration();
 
                 string savePath = filePath ?? GetDefaultSavePath();
-                string json = JsonUtility.ToJson(_currentScene, true);
+                
+                // Ensure directory exists
+                if (!EnsureDirectoryExists(savePath))
+                {
+                    Debug.LogError($"Cannot create directory for: {savePath}");
+                    return false;
+                }
 
-                System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(savePath));
+                string json = JsonUtility.ToJson(_currentScene, true);
                 System.IO.File.WriteAllText(savePath, json);
 
                 OnSceneSaved?.Invoke(_currentScene);
 
                 return true;
             }
-            catch (System.Exception)
+            catch (System.Exception ex)
             {
+                Debug.LogError($"Failed to save scene: {ex.Message}");
                 return false;
             }
         }
@@ -602,10 +650,8 @@ namespace SceneSandbox.Core
             // Set default configuration from current settings
             UpdateProjectSettingsFromBuilder();
 
-            // Create new scene as part of the project
-            _currentScene = new SceneConfiguration($"{name} Scene");
-            _currentProject.sceneConfiguration = _currentScene;
-            
+            // Get the default scene created by the constructor
+            _currentScene = _currentProject.GetActiveScene();
             _currentSceneName = _currentScene.sceneName;
 
             OnSceneLoaded?.Invoke(_currentScene);
@@ -623,17 +669,36 @@ namespace SceneSandbox.Core
 
             try
             {
-                // Update scene configuration with current object states before saving
+                // Update current scene configuration with current object states before saving
                 if (_currentScene != null)
                 {
                     UpdateSceneConfiguration();
-                    _currentProject.sceneConfiguration = _currentScene;
+                    
+                    // Update scene in project's scene list
+                    var sceneInProject = _currentProject.GetScene(_currentScene.sceneId);
+                    if (sceneInProject != null)
+                    {
+                        // Update the scene in the list
+                        int index = _currentProject.scenes.FindIndex(s => s.sceneId == _currentScene.sceneId);
+                        if (index >= 0)
+                        {
+                            _currentProject.scenes[index] = _currentScene;
+                        }
+                    }
                 }
 
                 // Update project settings from current builder state
                 UpdateProjectSettingsFromBuilder();
 
                 string savePath = filePath ?? GetDefaultProjectSavePath();
+                
+                // Ensure directory exists
+                if (!EnsureDirectoryExists(savePath))
+                {
+                    Debug.LogError($"Cannot create directory for: {savePath}");
+                    return false;
+                }
+
                 bool success = SandboxProjectSerializer.SaveToFile(_currentProject, this, savePath);
                 
                 if (success)
@@ -643,8 +708,9 @@ namespace SceneSandbox.Core
                 
                 return success;
             }
-            catch (System.Exception)
+            catch (System.Exception ex)
             {
+                Debug.LogError($"Failed to save project: {ex.Message}");
                 return false;
             }
         }
@@ -841,16 +907,23 @@ namespace SceneSandbox.Core
             // Apply project settings to builder
             ApplyProjectSettingsToBuilder();
 
-            // Load scene configuration
-            if (project.sceneConfiguration != null)
+            // Load active scene or first scene
+            var activeScene = project.GetActiveScene();
+            if (activeScene != null)
             {
-                LoadSceneConfiguration(project.sceneConfiguration);
+                LoadSceneConfiguration(activeScene);
+            }
+            else if (project.scenes.Count > 0)
+            {
+                LoadSceneConfiguration(project.scenes[0]);
+                project.activeSceneId = project.scenes[0].sceneId;
             }
             else
             {
                 // Create default scene if none exists
                 _currentScene = new SceneConfiguration($"{project.projectName} Scene");
-                _currentProject.sceneConfiguration = _currentScene;
+                project.scenes.Add(_currentScene);
+                project.activeSceneId = _currentScene.sceneId;
             }
 
             _currentSceneName = _currentScene.sceneName;
@@ -871,7 +944,13 @@ namespace SceneSandbox.Core
                 _currentScene = new SceneConfiguration(_currentSceneName ?? "New Scene");
             }
 
-            _currentProject.sceneConfiguration = _currentScene;
+            // Ensure current scene is in project
+            if (!_currentProject.scenes.Contains(_currentScene))
+            {
+                _currentProject.scenes.Add(_currentScene);
+            }
+            
+            _currentProject.activeSceneId = _currentScene.sceneId;
             UpdateProjectSettingsFromBuilder();
         }
 
@@ -881,8 +960,205 @@ namespace SceneSandbox.Core
         private string GetDefaultProjectSavePath()
         {
             string projectName = _currentProject?.projectName ?? _currentSceneName ?? "Untitled";
-            return $"{_defaultProjectSavePath}{projectName}.sbproj";
+            string safeName = SanitizeFileName(projectName);
+            return System.IO.Path.Combine(_defaultProjectSavePath, $"{safeName}.sbproj");
         }
+
+        #endregion
+
+        #region Multi-Scene Management
+
+        /// <summary>
+        /// Create a new scene in the current project
+        /// </summary>
+        public SceneConfiguration CreateNewSceneInProject(string sceneName = null)
+        {
+            if (_currentProject == null)
+            {
+                CreateDefaultProject();
+            }
+
+            // Save current scene before switching
+            if (_currentScene != null)
+            {
+                UpdateSceneConfiguration();
+            }
+
+            string name = sceneName ?? $"Scene {_currentProject.scenes.Count + 1}";
+            var newScene = _currentProject.AddScene(name);
+            
+            // Switch to new scene
+            SwitchToScene(newScene.sceneId);
+            
+            Debug.Log($"[SceneSandboxBuilder] Created new scene: {name}");
+            return newScene;
+        }
+
+        /// <summary>
+        /// Switch to a different scene in the project
+        /// </summary>
+        public bool SwitchToScene(string sceneId)
+        {
+            if (_currentProject == null)
+            {
+                Debug.LogError("No project loaded");
+                return false;
+            }
+
+            var targetScene = _currentProject.GetScene(sceneId);
+            if (targetScene == null)
+            {
+                Debug.LogError($"Scene not found: {sceneId}");
+                return false;
+            }
+
+            // Save current scene state
+            if (_currentScene != null)
+            {
+                UpdateSceneConfiguration();
+            }
+
+            // Clear current scene
+            ClearScene();
+
+            // Load target scene
+            LoadSceneConfiguration(targetScene);
+            _currentProject.SetActiveScene(sceneId);
+            
+            Debug.Log($"[SceneSandboxBuilder] Switched to scene: {targetScene.sceneName}");
+            return true;
+        }
+
+        /// <summary>
+        /// Delete a scene from the project
+        /// </summary>
+        public bool DeleteSceneFromProject(string sceneId)
+        {
+            if (_currentProject == null)
+            {
+                Debug.LogError("No project loaded");
+                return false;
+            }
+
+            if (_currentProject.scenes.Count <= 1)
+            {
+                Debug.LogError("Cannot delete the last scene in project");
+                return false;
+            }
+
+            // If deleting current scene, switch to another first
+            if (_currentScene != null && _currentScene.sceneId == sceneId)
+            {
+                var otherScene = _currentProject.scenes.Find(s => s.sceneId != sceneId);
+                if (otherScene != null)
+                {
+                    SwitchToScene(otherScene.sceneId);
+                }
+            }
+
+            bool removed = _currentProject.RemoveScene(sceneId);
+            if (removed)
+            {
+                Debug.Log($"[SceneSandboxBuilder] Deleted scene: {sceneId}");
+            }
+            
+            return removed;
+        }
+
+        /// <summary>
+        /// Get all scenes in the current project
+        /// </summary>
+        public List<SceneConfiguration> GetAllScenesInProject()
+        {
+            return _currentProject?.scenes ?? new List<SceneConfiguration>();
+        }
+
+        /// <summary>
+        /// Duplicate the current scene
+        /// </summary>
+        public SceneConfiguration DuplicateCurrentScene()
+        {
+            if (_currentScene == null || _currentProject == null)
+            {
+                Debug.LogError("No scene or project loaded");
+                return null;
+            }
+
+            // Save current state
+            UpdateSceneConfiguration();
+
+            // Create duplicate
+            var duplicate = new SceneConfiguration($"{_currentScene.sceneName} (Copy)");
+            duplicate.description = _currentScene.description;
+            duplicate.defaultCameraPosition = _currentScene.defaultCameraPosition;
+            duplicate.defaultCameraRotation = _currentScene.defaultCameraRotation;
+            duplicate.environmentColor = _currentScene.environmentColor;
+            duplicate.environmentLighting = _currentScene.environmentLighting;
+
+            // Copy all placed objects
+            foreach (var obj in _currentScene.placedObjects)
+            {
+                var objCopy = new Data.PlacedObjectData(obj.objectDataId, obj.position)
+                {
+                    id = System.Guid.NewGuid().ToString(), // New ID for copy
+                    rotation = obj.rotation,
+                    scale = obj.scale,
+                    customName = obj.customName,
+                    properties = new Dictionary<string, object>(obj.properties)
+                };
+                duplicate.AddPlacedObject(objCopy);
+            }
+
+            _currentProject.scenes.Add(duplicate);
+            
+            Debug.Log($"[SceneSandboxBuilder] Duplicated scene: {duplicate.sceneName}");
+            return duplicate;
+        }
+
+        /// <summary>
+        /// Rename the current scene
+        /// </summary>
+        public void RenameCurrentScene(string newName)
+        {
+            if (_currentScene != null)
+            {
+                _currentScene.sceneName = newName;
+                _currentSceneName = newName;
+                _currentScene.lastModified = System.DateTime.Now;
+                Debug.Log($"[SceneSandboxBuilder] Renamed scene to: {newName}");
+            }
+        }
+
+        /// <summary>
+        /// Get scene count in current project
+        /// </summary>
+        public int GetSceneCount()
+        {
+            return _currentProject?.scenes.Count ?? 0;
+        }
+
+        /// <summary>
+        /// Get metadata for all scenes in project (for UI)
+        /// </summary>
+        public System.Collections.Generic.List<Data.SceneMetadata> GetAllSceneMetadata()
+        {
+            var metadataList = new System.Collections.Generic.List<Data.SceneMetadata>();
+            
+            if (_currentProject == null)
+                return metadataList;
+
+            string activeSceneId = _currentProject.activeSceneId;
+            
+            foreach (var scene in _currentProject.scenes)
+            {
+                bool isActive = scene.sceneId == activeSceneId;
+                metadataList.Add(new Data.SceneMetadata(scene, isActive));
+            }
+            
+            return metadataList;
+        }
+
+        #endregion
 
         /// <summary>
         /// Place an object using the new factory system
@@ -1116,8 +1392,6 @@ namespace SceneSandbox.Core
         {
             return _dragPreviewPosition;
         }
-
-        #endregion
 
         #region Input Event Handlers
 
@@ -1567,7 +1841,47 @@ namespace SceneSandbox.Core
 
         private string GetDefaultSavePath()
         {
-            return $"{_defaultSavePath}{_currentSceneName}.json";
+            string safeName = SanitizeFileName(_currentSceneName ?? "Untitled");
+            return System.IO.Path.Combine(_defaultSavePath, $"{safeName}.json");
+        }
+
+        /// <summary>
+        /// Sanitize filename to remove invalid characters
+        /// </summary>
+        private string SanitizeFileName(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+                return "Untitled";
+            
+            // Remove invalid filename characters
+            char[] invalidChars = System.IO.Path.GetInvalidFileNameChars();
+            string sanitized = string.Join("_", fileName.Split(invalidChars, System.StringSplitOptions.RemoveEmptyEntries));
+            
+            // Trim and ensure not empty
+            sanitized = sanitized.Trim();
+            return string.IsNullOrEmpty(sanitized) ? "Untitled" : sanitized;
+        }
+
+        /// <summary>
+        /// Ensure directory exists before saving
+        /// </summary>
+        private bool EnsureDirectoryExists(string filePath)
+        {
+            try
+            {
+                string directory = System.IO.Path.GetDirectoryName(filePath);
+                if (!string.IsNullOrEmpty(directory))
+                {
+                    System.IO.Directory.CreateDirectory(directory);
+                    return true;
+                }
+                return false;
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to create directory: {ex.Message}");
+                return false;
+            }
         }
 
         /// <summary>

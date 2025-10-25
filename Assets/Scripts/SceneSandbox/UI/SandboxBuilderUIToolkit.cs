@@ -108,7 +108,6 @@ namespace SceneSandbox.UI
             if (_objectLibrary == null && _sandboxBuilder != null)
             {
                 _objectLibrary = _sandboxBuilder.ObjectLibrary;
-                Debug.Log("SandboxBuilderUIToolkit: Got ObjectLibrary from SandboxBuilder.");
             }
             
             // Initialize object palette if not assigned
@@ -290,8 +289,6 @@ namespace SceneSandbox.UI
             
             // Assign palette resources
             AssignPaletteResources();
-            
-            Debug.Log("SandboxBuilderUIToolkit: Created new ObjectPaletteUIToolkit instance.");
         }
         
         private void AssignPaletteResources()
@@ -309,7 +306,6 @@ namespace SceneSandbox.UI
                 if (objectLibraryField != null)
                 {
                     objectLibraryField.SetValue(_objectPalette, _objectLibrary);
-                    Debug.Log("SandboxBuilderUIToolkit: Assigned ObjectLibrary to palette.");
                 }
             }
             
@@ -321,7 +317,6 @@ namespace SceneSandbox.UI
                 if (paletteTemplateField != null)
                 {
                     paletteTemplateField.SetValue(_objectPalette, _paletteTemplate);
-                    Debug.Log("SandboxBuilderUIToolkit: Assigned PaletteTemplate to palette.");
                 }
             }
             
@@ -333,7 +328,6 @@ namespace SceneSandbox.UI
                 if (itemTemplateField != null)
                 {
                     itemTemplateField.SetValue(_objectPalette, _itemTemplate);
-                    Debug.Log("SandboxBuilderUIToolkit: Assigned ItemTemplate to palette.");
                 }
             }
             
@@ -345,7 +339,6 @@ namespace SceneSandbox.UI
                 if (paletteStyleSheetField != null)
                 {
                     paletteStyleSheetField.SetValue(_objectPalette, _paletteStyleSheet);
-                    Debug.Log("SandboxBuilderUIToolkit: Assigned StyleSheet to palette.");
                 }
             }
             
@@ -357,7 +350,6 @@ namespace SceneSandbox.UI
                 if (sandboxBuilderField != null)
                 {
                     sandboxBuilderField.SetValue(_objectPalette, _sandboxBuilder);
-                    Debug.Log("SandboxBuilderUIToolkit: Assigned SandboxBuilder to palette.");
                 }
             }
             
@@ -369,7 +361,6 @@ namespace SceneSandbox.UI
                 if (inputActionsField != null)
                 {
                     inputActionsField.SetValue(_objectPalette, _inputActions);
-                    Debug.Log("SandboxBuilderUIToolkit: Assigned InputActions to palette.");
                 }
                 else
                 {
@@ -395,8 +386,6 @@ namespace SceneSandbox.UI
             
             // Attach palette UI to the palette-container in the main UI
             AttachPaletteToContainer();
-            
-            Debug.Log("SandboxBuilderUIToolkit: Palette integration setup complete.");
         }
         
         private void AttachPaletteToContainer()
@@ -455,19 +444,15 @@ namespace SceneSandbox.UI
             
             // Disable the palette's own UIDocument to avoid rendering conflicts
             paletteUIDocument.enabled = false;
-            
-            Debug.Log("SandboxBuilderUIToolkit: Successfully attached palette UI to palette-container.");
         }
         
         private void OnPaletteObjectSelected(SceneObjectData objectData)
         {
-            Debug.Log($"SandboxBuilderUIToolkit: Object selected from palette: {objectData.displayName}");
             // Additional logic when an object is selected from palette
         }
         
         private void OnPaletteObjectDraggedToScene(SceneObjectData objectData, Vector2 screenPosition)
         {
-            Debug.Log($"SandboxBuilderUIToolkit: Object dragged to scene: {objectData.displayName}");
             // The ObjectPalette already handles placement, but we can add additional logic here
         }
         
@@ -732,7 +717,6 @@ namespace SceneSandbox.UI
         
         private void OnLoadSceneClicked()
         {
-            Debug.Log("Load scene dialog not implemented yet");
         }
         
         private void OnClearSceneClicked()
@@ -810,7 +794,6 @@ namespace SceneSandbox.UI
         
         private void OnLoadProjectClicked()
         {
-            Debug.Log("Load project dialog not implemented yet");
         }
         
         private void OnClearProjectClicked()
@@ -858,7 +841,6 @@ namespace SceneSandbox.UI
             // We just store the preference here
             if (_snapToGridToggle != null)
             {
-                Debug.Log($"Snap to grid: {enabled}");
             }
         }
         
@@ -870,7 +852,6 @@ namespace SceneSandbox.UI
             }
             
             // Grid size would need to be exposed in SceneSandboxBuilder
-            Debug.Log($"Grid size changed to: {size}");
         }
         
         // Sandbox events

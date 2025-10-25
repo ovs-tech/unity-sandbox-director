@@ -90,6 +90,12 @@ namespace SceneSandbox.Editor
         private Vector2 _projectListScrollPos;
         private List<SandboxProjectMetadata> _availableProjects;
         
+        // Scene Management (NEW)
+        private bool _showSceneManagementFoldout = true;
+        private string _newSceneName = "New Scene";
+        private Vector2 _sceneListScrollPos;
+        private List<SceneMetadata> _currentProjectScenes;
+        
         // Object Library Browser
         private Vector2 _objectLibraryScrollPos;
         private string _objectSearchFilter = "";
@@ -106,6 +112,7 @@ namespace SceneSandbox.Editor
             _target = (SceneSandboxBuilder)target;
             CacheSerializedProperties();
             RefreshAvailableProjects();
+            RefreshCurrentProjectScenes();
             
             // Subscribe to scene changes for auto-refresh
             EditorSceneManager.sceneOpened += OnSceneOpened;
@@ -127,6 +134,7 @@ namespace SceneSandbox.Editor
             EditorGUILayout.Space(10);
             
             DrawProjectManagement();
+            DrawSceneManagement(); // NEW: Multi-scene management
             DrawRuntimeInfo();
             DrawConfiguration();
             DrawPlacementSettings();
@@ -221,10 +229,20 @@ namespace SceneSandbox.Editor
                 $"Project: {_target.CurrentProject.projectName}" : "No Project Loaded";
             EditorGUILayout.LabelField("Status:", projectStatus);
             
-            // Scene status
-            string sceneStatus = _target.CurrentScene != null ? 
-                $"Scene: {_target.CurrentScene.sceneName}" : "No Scene";
-            EditorGUILayout.LabelField(sceneStatus);
+            // Scene status with count
+            if (_target.CurrentProject != null)
+            {
+                int sceneCount = _target.GetSceneCount();
+                string sceneStatus = _target.CurrentScene != null ? 
+                    $"Scene: {_target.CurrentScene.sceneName} ({sceneCount} total)" : $"No Scene ({sceneCount} total)";
+                EditorGUILayout.LabelField(sceneStatus);
+            }
+            else
+            {
+                string sceneStatus = _target.CurrentScene != null ? 
+                    $"Scene: {_target.CurrentScene.sceneName}" : "No Scene";
+                EditorGUILayout.LabelField(sceneStatus);
+            }
             
             EditorGUILayout.EndHorizontal();
             
@@ -262,6 +280,7 @@ namespace SceneSandbox.Editor
             {
                 _target.CreateNewProject(_newProjectName);
                 RefreshAvailableProjects();
+                RefreshCurrentProjectScenes();
                 _newProjectName = "New Sandbox Project";
             }
             GUI.enabled = true;
@@ -279,6 +298,7 @@ namespace SceneSandbox.Editor
                 {
                     EditorGUILayout.LabelField($"Name: {projectInfo.projectName}");
                     EditorGUILayout.LabelField($"Objects: {projectInfo.objectCount}");
+                    EditorGUILayout.LabelField($"Scenes: {_target.GetSceneCount()}");
                     EditorGUILayout.LabelField($"Created: {projectInfo.created:yyyy-MM-dd HH:mm}");
                     EditorGUILayout.LabelField($"Modified: {projectInfo.lastModified:yyyy-MM-dd HH:mm}");
                     
@@ -296,6 +316,7 @@ namespace SceneSandbox.Editor
                         {
                             EditorUtility.DisplayDialog("Success", "Project saved successfully!", "OK");
                             RefreshAvailableProjects();
+                            RefreshCurrentProjectScenes();
                         }
                         else
                         {
@@ -337,6 +358,7 @@ namespace SceneSandbox.Editor
                         if (_target.LoadProject(project.filePath))
                         {
                             EditorUtility.DisplayDialog("Success", $"Project '{project.projectName}' loaded successfully!", "OK");
+                            RefreshCurrentProjectScenes();
                         }
                         else
                         {
@@ -379,6 +401,158 @@ namespace SceneSandbox.Editor
             else
             {
                 EditorGUILayout.HelpBox("No saved projects found.", MessageType.Info);
+            }
+            
+            EditorGUILayout.EndVertical();
+        }
+        
+        private void DrawSceneManagement()
+        {
+            if (_target.CurrentProject == null || !Application.isPlaying) return;
+            
+            _showSceneManagementFoldout = EditorGUILayout.Foldout(_showSceneManagementFoldout, 
+                "Scene Management", true, EditorStyles.foldoutHeader);
+            
+            if (!_showSceneManagementFoldout) return;
+            
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            
+            // Create New Scene
+            EditorGUILayout.LabelField("Create New Scene", EditorStyles.boldLabel);
+            EditorGUILayout.BeginHorizontal();
+            _newSceneName = EditorGUILayout.TextField("Scene Name:", _newSceneName);
+            
+            GUI.enabled = !string.IsNullOrEmpty(_newSceneName);
+            if (GUILayout.Button("Create Scene", GUILayout.Width(100)))
+            {
+                _target.CreateNewSceneInProject(_newSceneName);
+                RefreshCurrentProjectScenes();
+                _newSceneName = "New Scene";
+            }
+            GUI.enabled = true;
+            EditorGUILayout.EndHorizontal();
+            
+            EditorGUILayout.Space(5);
+            
+            // Current Scene Actions
+            if (_target.CurrentScene != null)
+            {
+                EditorGUILayout.LabelField("Current Scene Actions", EditorStyles.boldLabel);
+                EditorGUILayout.BeginHorizontal();
+                
+                if (GUILayout.Button("Duplicate Scene"))
+                {
+                    var duplicate = _target.DuplicateCurrentScene();
+                    if (duplicate != null)
+                    {
+                        EditorUtility.DisplayDialog("Success", $"Scene duplicated: {duplicate.sceneName}", "OK");
+                        RefreshCurrentProjectScenes();
+                    }
+                }
+                
+                if (GUILayout.Button("Rename Scene"))
+                {
+                    string newName = EditorUtility.SaveFilePanel("Rename Scene", "", _target.CurrentScene.sceneName, "");
+                    if (!string.IsNullOrEmpty(newName))
+                    {
+                        newName = System.IO.Path.GetFileNameWithoutExtension(newName);
+                        _target.RenameCurrentScene(newName);
+                        RefreshCurrentProjectScenes();
+                    }
+                }
+                
+                EditorGUILayout.EndHorizontal();
+            }
+            
+            EditorGUILayout.Space(5);
+            
+            // Scene List
+            EditorGUILayout.LabelField($"Scenes in Project ({_target.GetSceneCount()})", EditorStyles.boldLabel);
+            
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Refresh", GUILayout.Width(80)))
+            {
+                RefreshCurrentProjectScenes();
+            }
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.EndHorizontal();
+            
+            if (_currentProjectScenes != null && _currentProjectScenes.Count > 0)
+            {
+                _sceneListScrollPos = EditorGUILayout.BeginScrollView(_sceneListScrollPos, GUILayout.Height(200));
+                
+                foreach (var sceneMetadata in _currentProjectScenes)
+                {
+                    EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                    
+                    // Scene header
+                    EditorGUILayout.BeginHorizontal();
+                    
+                    // Active indicator
+                    if (sceneMetadata.isActive)
+                    {
+                        GUIStyle activeStyle = new GUIStyle(EditorStyles.boldLabel);
+                        activeStyle.normal.textColor = Color.green;
+                        EditorGUILayout.LabelField("● " + sceneMetadata.sceneName, activeStyle);
+                    }
+                    else
+                    {
+                        EditorGUILayout.LabelField(sceneMetadata.sceneName, EditorStyles.boldLabel);
+                    }
+                    
+                    GUILayout.FlexibleSpace();
+                    
+                    // Switch button
+                    if (!sceneMetadata.isActive)
+                    {
+                        if (GUILayout.Button("Switch", GUILayout.Width(60)))
+                        {
+                            if (_target.SwitchToScene(sceneMetadata.sceneId))
+                            {
+                                RefreshCurrentProjectScenes();
+                                Repaint();
+                            }
+                        }
+                    }
+                    
+                    // Delete button (can't delete if only one scene)
+                    GUI.enabled = _target.GetSceneCount() > 1;
+                    if (GUILayout.Button("Delete", GUILayout.Width(60)))
+                    {
+                        if (EditorUtility.DisplayDialog("Delete Scene", 
+                            $"Are you sure you want to delete scene '{sceneMetadata.sceneName}'?\n\nThis action cannot be undone.", 
+                            "Delete", "Cancel"))
+                        {
+                            if (_target.DeleteSceneFromProject(sceneMetadata.sceneId))
+                            {
+                                EditorUtility.DisplayDialog("Success", $"Scene '{sceneMetadata.sceneName}' deleted!", "OK");
+                                RefreshCurrentProjectScenes();
+                            }
+                        }
+                    }
+                    GUI.enabled = true;
+                    
+                    EditorGUILayout.EndHorizontal();
+                    
+                    // Scene details
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField($"Objects: {sceneMetadata.objectCount}", EditorStyles.miniLabel, GUILayout.Width(100));
+                    EditorGUILayout.LabelField($"Modified: {sceneMetadata.lastModified:MM/dd HH:mm}", EditorStyles.miniLabel);
+                    EditorGUILayout.EndHorizontal();
+                    
+                    if (!string.IsNullOrEmpty(sceneMetadata.description))
+                    {
+                        EditorGUILayout.LabelField($"Description: {sceneMetadata.description}", EditorStyles.wordWrappedMiniLabel);
+                    }
+                    
+                    EditorGUILayout.EndVertical();
+                }
+                
+                EditorGUILayout.EndScrollView();
+            }
+            else
+            {
+                EditorGUILayout.HelpBox("No scenes in project.", MessageType.Info);
             }
             
             EditorGUILayout.EndVertical();
@@ -678,6 +852,7 @@ namespace SceneSandbox.Editor
                 {
                     _target.CreateNewProject();
                     RefreshAvailableProjects();
+                    RefreshCurrentProjectScenes();
                 }
             }
             
@@ -686,10 +861,39 @@ namespace SceneSandbox.Editor
             {
                 _target.SaveProject();
                 RefreshAvailableProjects();
+                RefreshCurrentProjectScenes();
+            }
+            GUI.enabled = true;
+            
+            EditorGUILayout.Space(10);
+            
+            // Scene operations (NEW)
+            GUI.enabled = Application.isPlaying && _target.CurrentProject != null;
+            if (GUILayout.Button("New Scene", EditorStyles.toolbarButton))
+            {
+                _target.CreateNewSceneInProject();
+                RefreshCurrentProjectScenes();
+            }
+            
+            if (GUILayout.Button("Duplicate Scene", EditorStyles.toolbarButton))
+            {
+                if (_target.CurrentScene != null)
+                {
+                    _target.DuplicateCurrentScene();
+                    RefreshCurrentProjectScenes();
+                }
             }
             GUI.enabled = true;
             
             GUILayout.FlexibleSpace();
+            
+            // Scene count indicator
+            if (Application.isPlaying && _target.CurrentProject != null)
+            {
+                int sceneCount = _target.GetSceneCount();
+                string sceneLabel = sceneCount == 1 ? "scene" : "scenes";
+                EditorGUILayout.LabelField($"{sceneCount} {sceneLabel}", EditorStyles.toolbarButton, GUILayout.Width(80));
+            }
             
             // View toggles
             if (Application.isPlaying)
@@ -731,14 +935,28 @@ namespace SceneSandbox.Editor
             }
         }
         
+        private void RefreshCurrentProjectScenes()
+        {
+            if (_target != null && _target.CurrentProject != null)
+            {
+                _currentProjectScenes = _target.GetAllSceneMetadata();
+            }
+            else
+            {
+                _currentProjectScenes = new List<SceneMetadata>();
+            }
+        }
+        
         private void OnSceneOpened(UnityEngine.SceneManagement.Scene scene, OpenSceneMode mode)
         {
             RefreshAvailableProjects();
+            RefreshCurrentProjectScenes();
         }
         
         private void OnSceneSaved(UnityEngine.SceneManagement.Scene scene)
         {
             RefreshAvailableProjects();
+            RefreshCurrentProjectScenes();
         }
         
         #endregion

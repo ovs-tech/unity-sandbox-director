@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using SceneSandbox.Input;
 using Core.UI.FormSubmit;
 using Core.UI.FormSubmit.Fields;
@@ -21,9 +20,10 @@ namespace SceneSandbox.Core
 
     /// <summary>
     /// Component for objects that can be dragged in the scene sandbox
+    /// Uses Physics Raycast for selection and interaction instead of UI Event System
     /// Supports both mouse and touch input, selection, form-based options, and transform controls
     /// </summary>
-    public class TransformableItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler
+    public class TransformableItem : MonoBehaviour
     {
         [Header("Drag Settings")]
         [SerializeField] private bool _canDrag = true;
@@ -47,12 +47,26 @@ namespace SceneSandbox.Core
         [SerializeField] private Vector3 _minScale = new Vector3(0.1f, 0.1f, 0.1f);
         [SerializeField] private Vector3 _maxScale = new Vector3(5f, 5f, 5f);
 
+        [Header("Gizmo Settings")]
+        [SerializeField] private bool _showGizmo = true;
+        [SerializeField] private float _gizmoScreenScale = 0.12f;
+        [SerializeField] private LayerMask _gizmoLayer = 1 << 2; // Default to layer 2
+        [SerializeField] private Color _gizmoXColor = new Color(1, 0.2f, 0.2f);
+        [SerializeField] private Color _gizmoYColor = new Color(0.2f, 1, 0.2f);
+        [SerializeField] private Color _gizmoZColor = new Color(0.2f, 0.6f, 1f);
+        [SerializeField] private Color _gizmoHighlight = Color.yellow;
+
         // Transform control state
         [SerializeField] private TransformMode _currentTransformMode = TransformMode.None;
         private Vector3 _originalScale;
         private Vector3 _originalRotation;
         private Vector2 _lastInputPosition;
         private bool _isInTransformMode = false;
+
+        // Gizmo state
+        private Transform _gizmoRoot;
+        private GizmoAxisHandle _xHandle, _yHandle, _zHandle;
+        private bool _gizmoInitialized = false;
 
         [Header("Object Data")]
         [SerializeField] private string _objectId;
@@ -69,6 +83,7 @@ namespace SceneSandbox.Core
 
         // Drag state
         private bool _isDragging;
+        private bool _dragInitiated; // Track if OnBeginDrag was called but not actually dragging yet
         private bool _isSelected;
         private Vector3 _originalPosition;
         private Vector3 _dragOffset;
@@ -125,17 +140,18 @@ namespace SceneSandbox.Core
 
         private void Awake()
         {
+            Debug.Log($"[TransformableItem] Awake called for {gameObject.name}");
+            
             InitializeComponents();
             
-            // Debug EventSystem setup
-            var eventSystem = EventSystem.current;
-            if (eventSystem == null)
+            // Check collider for raycast interaction
+            if (_collider == null)
             {
-                
+                Debug.LogWarning($"[TransformableItem] No collider on {gameObject.name}!");
             }
             else
             {
-                
+                Debug.Log($"[TransformableItem] Collider found: {_collider.GetType().Name}, enabled: {_collider.enabled}");
             }
         }
 
@@ -144,28 +160,34 @@ namespace SceneSandbox.Core
             // Clean up long press coroutine
             StopLongPressDetection();
             
-            // Unregister from selection manager
+            // Clean up gizmo
+            DestroyGizmo();
+            
+            // Unregister from selection manager (handles both selection and transform control)
             if (TransformableSelectionManager.Instance != null)
             {
                 TransformableSelectionManager.Instance.UnregisterDraggableItem(this);
             }
+        }
 
-            // Unregister from transform control manager
-            if (TransformableControlManager.Instance != null)
-            {
-                TransformableControlManager.Instance.UnregisterItem(this);
-            }
+        private void Update()
+        {
+            UpdateGizmo();
         }
 
         private void Start()
         {
+            Debug.Log($"[TransformableItem] Start called for {gameObject.name}");
+            
             _camera = Camera.main ?? FindFirstObjectByType<Camera>();
 
-            // Ensure camera has PhysicsRaycaster for EventSystem 3D interaction
-            if (_camera != null && _camera.GetComponent<PhysicsRaycaster>() == null)
+            if (_camera == null)
             {
-                
-                _camera.gameObject.AddComponent<PhysicsRaycaster>();
+                Debug.LogError($"[TransformableItem] No camera found for {gameObject.name}!");
+            }
+            else
+            {
+                Debug.Log($"[TransformableItem] Camera found: {_camera.name}");
             }
 
             if (string.IsNullOrEmpty(_objectId))
@@ -173,14 +195,17 @@ namespace SceneSandbox.Core
                 _objectId = System.Guid.NewGuid().ToString();
             }
 
-            // Register with selection manager
+            // Register with selection manager (handles both selection and transform control)
+            Debug.Log($"[TransformableItem] Registering {gameObject.name} with SelectionManager");
             TransformableSelectionManager.Instance.RegisterDraggableItem(this);
-
-            // Register with transform control manager
-            if (_enableTransformControls)
+            
+            // Initialize gizmo if transform controls are enabled
+            if (_enableTransformControls && _showGizmo)
             {
-                TransformableControlManager.Instance.RegisterItem(this);
+                InitializeGizmo();
             }
+            
+            Debug.Log($"[TransformableItem] Initialization complete for {gameObject.name}");
         }
 
         private void InitializeComponents()
@@ -206,71 +231,164 @@ namespace SceneSandbox.Core
             }
         }
 
-        public void OnBeginDrag(PointerEventData eventData)
+        #region Raycast Interaction Methods
+
+        /// <summary>
+        /// Handle click from raycast (replaces OnPointerClick)
+        /// </summary>
+        public void OnRaycastClick(Vector2 screenPosition, int clickCount = 1, bool isRightClick = false)
         {
+            Debug.Log($"[TransformableItem] OnRaycastClick called for {name}");
+            Debug.Log($"[TransformableItem] _longPressTriggered: {_longPressTriggered}, _isDragging: {_isDragging}");
             
+            // Handle right click for options form
+            if (isRightClick)
+            {
+                ShowOptionsForm(screenPosition, false);
+                return;
+            }
+            
+            // Don't handle click if long press was triggered or if we're dragging
+            if (!_longPressTriggered && !_isDragging)
+            {
+                Debug.Log($"[TransformableItem] Processing click and selecting {name}");
+                OnItemClicked?.Invoke(this);
+
+                // Handle selection on single click using selection manager
+                TransformableSelectionManager.Instance.SelectItem(this);
+
+                if (clickCount >= 2)
+                {
+                    Debug.Log($"[TransformableItem] Double-click detected for {name}");
+                    OnItemSelected?.Invoke(this);
+                }
+            }
+            else
+            {
+                Debug.Log($"[TransformableItem] Click ignored due to longPress={_longPressTriggered} or drag={_isDragging}");
+            }
+
+            // Reset long press triggered flag
+            _longPressTriggered = false;
+        }
+
+        /// <summary>
+        /// Handle drag start from raycast (replaces OnBeginDrag)
+        /// </summary>
+        public void OnRaycastDragStart(Vector2 screenPosition)
+        {
+            Debug.Log($"[TransformableItem] OnRaycastDragStart called for {name}, _canDrag={_canDrag}");
             
             if (!_canDrag) 
             {
-                
+                Debug.Log($"[TransformableItem] OnRaycastDragStart ignored - _canDrag=false for {name}");
                 return;
             }
 
             // Check if we should handle transform mode instead of regular drag
             if (_isInTransformMode && _currentTransformMode != TransformMode.None)
             {
-                StartTransformControl(eventData.position);
+                Debug.Log($"[TransformableItem] Starting transform control for {name}");
+                StartTransformControl(screenPosition);
                 return;
             }
             
-            StartDrag(eventData.position);
+            // Mark drag as initiated but don't set _isDragging yet
+            // This allows OnRaycastClick to still work if there's no actual movement
+            Debug.Log($"[TransformableItem] Marking drag as initiated for {name}");
+            _dragInitiated = true;
+            _originalPosition = transform.position;
+            
+            // Calculate drag offset for later use
+            Ray ray = _camera.ScreenPointToRay(screenPosition);
+            _dragPlane = new Plane(Vector3.up, transform.position);
+            
+            if (_dragPlane.Raycast(ray, out float distance))
+            {
+                Vector3 worldPosition = ray.GetPoint(distance);
+                _dragOffset = transform.position - worldPosition;
+            }
         }
 
-        public void OnDrag(PointerEventData eventData)
+        /// <summary>
+        /// Handle drag continue from raycast (replaces OnDrag)
+        /// </summary>
+        public void OnRaycastDrag(Vector2 screenPosition)
         {
             if (!_canDrag) return;
 
             // Handle transform mode
             if (_isInTransformMode && _currentTransformMode != TransformMode.None)
             {
-                ContinueTransformControl(eventData.position);
+                ContinueTransformControl(screenPosition);
                 return;
+            }
+
+            // Start actual dragging on first OnRaycastDrag call after OnRaycastDragStart
+            if (_dragInitiated && !_isDragging)
+            {
+                Debug.Log($"[TransformableItem] First OnRaycastDrag - starting actual drag for {name}");
+                _isDragging = true;
+                _dragInitiated = false;
+                
+                // Visual feedback
+                SetDragMaterial();
+                
+                // Disable physics during drag
+                if (_rigidbody != null)
+                {
+                    _rigidbody.isKinematic = true;
+                }
+                
+                OnDragStarted?.Invoke(this, _originalPosition);
             }
 
             // Handle regular drag
             if (_isDragging)
             {
-                ContinueDrag(eventData.position);
+                ContinueDrag(screenPosition);
             }
         }
 
-        public void OnEndDrag(PointerEventData eventData)
+        /// <summary>
+        /// Handle drag end from raycast (replaces OnEndDrag)
+        /// </summary>
+        public void OnRaycastDragEnd(Vector2 screenPosition)
         {
             if (!_canDrag) return;
 
             // Handle transform mode
             if (_isInTransformMode && _currentTransformMode != TransformMode.None)
             {
-                EndTransformControl(eventData.position);
+                EndTransformControl(screenPosition);
                 return;
             }
+
+            // Reset drag initiated flag
+            _dragInitiated = false;
 
             // Handle regular drag
             if (_isDragging)
             {
-                EndDrag(eventData.position);
+                EndDrag(screenPosition);
             }
         }
 
-        public void OnPointerDown(PointerEventData eventData)
+        /// <summary>
+        /// Handle pointer down from raycast (for long press detection)
+        /// </summary>
+        public void OnRaycastPointerDown(Vector2 screenPosition, bool isLeftButton = true)
         {
-            if (eventData.button == PointerEventData.InputButton.Left)
+            if (isLeftButton)
             {
-                StartLongPressDetection(eventData.position);
+                StartLongPressDetection(screenPosition);
             }
         }
 
-        public void OnPointerUp(PointerEventData eventData)
+        /// <summary>
+        /// Handle pointer up from raycast (for long press detection)
+        /// </summary>
+        public void OnRaycastPointerUp(Vector2 screenPosition)
         {
             StopLongPressDetection();
             
@@ -281,51 +399,25 @@ namespace SceneSandbox.Core
             }
         }
 
-        public void OnPointerClick(PointerEventData eventData)
-        {
-            
-            
-            // Don't handle click if long press was triggered or if we're dragging
-            if (!_longPressTriggered && !_isDragging)
-            {
-                OnItemClicked?.Invoke(this);
-
-                // Handle selection on single click using selection manager
-                TransformableSelectionManager.Instance.SelectItem(this);
-
-                if (eventData.clickCount == 2)
-                {
-                    
-                    OnItemSelected?.Invoke(this);
-                }
-            }
-            
-            // Handle right click for options form
-            if (eventData.button == PointerEventData.InputButton.Right)
-            {
-                ShowOptionsForm(eventData.position, false);
-            }
-
-            // Reset long press triggered flag
-            _longPressTriggered = false;
-        }
+        #endregion
 
         /// <summary>
         /// Start dragging the item programmatically
         /// </summary>
         public void StartDrag(Vector2 screenPosition)
         {
-            
+            Debug.Log($"[TransformableItem] StartDrag called for {name}, _canDrag={_canDrag}, _isDragging={_isDragging}");
             
             if (!_canDrag || _isDragging) 
             {
-                
+                Debug.Log($"[TransformableItem] StartDrag aborted for {name}");
                 return;
             }
 
-            
+            Debug.Log($"[TransformableItem] Setting _isDragging=true for {name}");
 
             _isDragging = true;
+            _dragInitiated = false; // Clear initiated flag since we're now dragging
             _originalPosition = transform.position;
 
             // Calculate drag offset
@@ -390,6 +482,8 @@ namespace SceneSandbox.Core
         /// </summary>
         public void EndDrag(Vector2 screenPosition)
         {
+            Debug.Log($"[TransformableItem] EndDrag called for {name}, _isDragging={_isDragging}");
+            
             if (!_isDragging) return;
 
             Vector3 finalPosition = transform.position;
@@ -409,6 +503,7 @@ namespace SceneSandbox.Core
                 finalPosition = _originalPosition;
             }
 
+            Debug.Log($"[TransformableItem] Setting _isDragging=false for {name}");
             _isDragging = false;
 
             // Restore visual feedback
@@ -901,6 +996,9 @@ namespace SceneSandbox.Core
 
             // Update visual feedback
             UpdateTransformVisuals();
+            
+            // Update gizmo visuals
+            UpdateGizmoVisuals();
 
             // Store original values when entering transform mode
             if (mode != TransformMode.None && previousMode == TransformMode.None)
@@ -1095,22 +1193,304 @@ namespace SceneSandbox.Core
             if (!_enableTransformControls)
             {
                 SetTransformMode(TransformMode.None);
-                // Unregister from transform control manager
-                if (TransformableControlManager.Instance != null)
+                
+                // Destroy gizmo
+                DestroyGizmo();
+                
+                // Unregister from transform control
+                if (TransformableSelectionManager.Instance != null)
                 {
-                    TransformableControlManager.Instance.UnregisterItem(this);
+                    TransformableSelectionManager.Instance.UnregisterItemFromTransformControl(this);
                 }
             }
             else
             {
-                // Register with transform control manager
-                if (TransformableControlManager.Instance != null)
+                // Initialize gizmo
+                if (_showGizmo)
                 {
-                    TransformableControlManager.Instance.RegisterItem(this);
+                    InitializeGizmo();
+                }
+                
+                // Register with transform control
+                if (TransformableSelectionManager.Instance != null)
+                {
+                    TransformableSelectionManager.Instance.RegisterItemForTransformControl(this);
                 }
             }
             
             Debug.Log($"Transform controls {(_enableTransformControls ? "enabled" : "disabled")} for item: {name}");
+        }
+
+        #endregion
+
+        #region Gizmo Management
+
+        /// <summary>
+        /// Initialize the visual gizmo for transform manipulation
+        /// </summary>
+        private void InitializeGizmo()
+        {
+            if (_gizmoInitialized || !_enableTransformControls || !_showGizmo)
+                return;
+
+            // Create gizmo root
+            var gizmoObj = new GameObject($"{name}_Gizmo");
+            _gizmoRoot = gizmoObj.transform;
+            _gizmoRoot.SetParent(transform, false);
+            _gizmoRoot.localPosition = Vector3.zero;
+            _gizmoRoot.localRotation = Quaternion.identity;
+
+            // Create axis handles
+            _xHandle = CreateAxisHandle("X", Vector3.right, _gizmoXColor);
+            _yHandle = CreateAxisHandle("Y", Vector3.up, _gizmoYColor);
+            _zHandle = CreateAxisHandle("Z", Vector3.forward, _gizmoZColor);
+
+            _gizmoInitialized = true;
+            
+            // Initially hide gizmo
+            SetGizmoVisible(false);
+            
+            Debug.Log($"[TransformableItem] Gizmo initialized for {name}");
+        }
+
+        /// <summary>
+        /// Create a single axis handle (arrow, ring, box)
+        /// </summary>
+        private GizmoAxisHandle CreateAxisHandle(string axisName, Vector3 localAxis, Color color)
+        {
+            var handleObj = new GameObject($"{axisName}Handle");
+            handleObj.layer = LayerMaskToLayer(_gizmoLayer);
+            handleObj.transform.SetParent(_gizmoRoot, false);
+
+            var handle = new GizmoAxisHandle
+            {
+                localAxis = localAxis,
+                baseColor = color
+            };
+
+            // Build arrow for Move mode
+            handle.BuildArrow(handleObj.transform, color);
+            
+            // Build ring for Rotate mode
+            handle.BuildRing(handleObj.transform, color);
+            
+            // Build box for Scale mode
+            handle.BuildBox(handleObj.transform, color);
+
+            return handle;
+        }
+
+        /// <summary>
+        /// Update gizmo position, rotation, and scale each frame
+        /// </summary>
+        private void UpdateGizmo()
+        {
+            if (!_gizmoInitialized || !_showGizmo || _gizmoRoot == null || _camera == null)
+                return;
+
+            // Show/hide gizmo based on transform mode
+            bool shouldShow = _isInTransformMode && _currentTransformMode != TransformMode.None;
+            SetGizmoVisible(shouldShow);
+
+            if (!shouldShow)
+                return;
+
+            // Keep gizmo at object position
+            _gizmoRoot.position = transform.position;
+            
+            // Gizmo rotation (always world space for now)
+            _gizmoRoot.rotation = Quaternion.identity;
+
+            // Scale gizmo based on distance to camera
+            float dist = Vector3.Distance(_camera.transform.position, transform.position);
+            _gizmoRoot.localScale = Vector3.one * Mathf.Max(0.0001f, dist * _gizmoScreenScale);
+
+            // Update visibility of axis handles based on current mode
+            UpdateGizmoVisuals();
+        }
+
+        /// <summary>
+        /// Update which parts of the gizmo are visible based on current transform mode
+        /// </summary>
+        private void UpdateGizmoVisuals()
+        {
+            if (!_gizmoInitialized)
+                return;
+
+            _xHandle?.Show(_currentTransformMode);
+            _yHandle?.Show(_currentTransformMode);
+            _zHandle?.Show(_currentTransformMode);
+        }
+
+        /// <summary>
+        /// Show or hide the entire gizmo
+        /// </summary>
+        private void SetGizmoVisible(bool visible)
+        {
+            if (_gizmoRoot != null)
+            {
+                _gizmoRoot.gameObject.SetActive(visible);
+            }
+        }
+
+        /// <summary>
+        /// Destroy the gizmo
+        /// </summary>
+        private void DestroyGizmo()
+        {
+            if (_gizmoRoot != null)
+            {
+                if (Application.isPlaying)
+                {
+                    Destroy(_gizmoRoot.gameObject);
+                }
+                else
+                {
+                    DestroyImmediate(_gizmoRoot.gameObject);
+                }
+                _gizmoRoot = null;
+            }
+
+            _gizmoInitialized = false;
+        }
+
+        /// <summary>
+        /// Convert LayerMask to layer index
+        /// </summary>
+        private int LayerMaskToLayer(LayerMask mask)
+        {
+            int m = mask.value;
+            for (int i = 0; i < 32; i++)
+            {
+                if ((m & (1 << i)) != 0)
+                    return i;
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// Helper class to represent a single axis handle with arrow, ring, and box
+        /// </summary>
+        private class GizmoAxisHandle
+        {
+            public Vector3 localAxis;
+            public Color baseColor;
+
+            // Visual components
+            private MeshRenderer _arrowRenderer;
+            private MeshRenderer _ringRenderer;
+            private MeshRenderer _boxRenderer;
+
+            private Collider _arrowCollider;
+            private Collider _ringCollider;
+            private Collider _boxCollider;
+
+            /// <summary>
+            /// Build arrow visual for Move mode
+            /// </summary>
+            public void BuildArrow(Transform parent, Color color)
+            {
+                // Create shaft
+                var shaft = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                shaft.transform.SetParent(parent, false);
+                shaft.transform.localRotation = Quaternion.FromToRotation(Vector3.up, localAxis);
+                shaft.transform.localPosition = localAxis * 0.6f;
+                shaft.transform.localScale = new Vector3(0.04f, 0.6f, 0.04f);
+
+                // Create tip
+                var tip = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                tip.transform.SetParent(parent, false);
+                tip.transform.localRotation = Quaternion.FromToRotation(Vector3.up, localAxis);
+                tip.transform.localPosition = localAxis * 1.3f;
+                tip.transform.localScale = new Vector3(0.10f, 0.2f, 0.10f);
+
+                // Setup materials
+                var mat = new Material(Shader.Find("Unlit/Color"));
+                mat.color = color;
+                
+                _arrowRenderer = shaft.GetComponent<MeshRenderer>();
+                _arrowRenderer.material = mat;
+                
+                var tipRenderer = tip.GetComponent<MeshRenderer>();
+                tipRenderer.material = mat;
+
+                // Setup colliders
+                _arrowCollider = tip.GetComponent<Collider>();
+                shaft.GetComponent<Collider>().enabled = false;
+            }
+
+            /// <summary>
+            /// Build ring visual for Rotate mode
+            /// </summary>
+            public void BuildRing(Transform parent, Color color)
+            {
+                var ring = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                ring.transform.SetParent(parent, false);
+                ring.transform.localPosition = Vector3.zero;
+                ring.transform.localRotation = Quaternion.FromToRotation(Vector3.up, localAxis);
+                ring.transform.localScale = new Vector3(1.2f, 0.01f, 1.2f);
+
+                var mat = new Material(Shader.Find("Unlit/Color"));
+                mat.color = color;
+                
+                _ringRenderer = ring.GetComponent<MeshRenderer>();
+                _ringRenderer.material = mat;
+
+                _ringCollider = ring.GetComponent<Collider>();
+            }
+
+            /// <summary>
+            /// Build box visual for Scale mode
+            /// </summary>
+            public void BuildBox(Transform parent, Color color)
+            {
+                var box = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                box.transform.SetParent(parent, false);
+                box.transform.localPosition = localAxis * 1.0f;
+                box.transform.localScale = new Vector3(0.15f, 0.15f, 0.15f);
+
+                var mat = new Material(Shader.Find("Unlit/Color"));
+                mat.color = color;
+                
+                _boxRenderer = box.GetComponent<MeshRenderer>();
+                _boxRenderer.material = mat;
+
+                _boxCollider = box.GetComponent<Collider>();
+            }
+
+            /// <summary>
+            /// Show/hide components based on current transform mode
+            /// </summary>
+            public void Show(TransformMode mode)
+            {
+                bool showArrow = mode == TransformMode.Move;
+                bool showRing = mode == TransformMode.Rotate;
+                bool showBox = mode == TransformMode.Scale;
+
+                // Hide all when mode is None
+                if (mode == TransformMode.None)
+                {
+                    showArrow = showRing = showBox = false;
+                }
+
+                // Update arrow visibility
+                if (_arrowRenderer != null)
+                    _arrowRenderer.enabled = showArrow;
+                if (_arrowCollider != null)
+                    _arrowCollider.enabled = showArrow;
+
+                // Update ring visibility
+                if (_ringRenderer != null)
+                    _ringRenderer.enabled = showRing;
+                if (_ringCollider != null)
+                    _ringCollider.enabled = showRing;
+
+                // Update box visibility
+                if (_boxRenderer != null)
+                    _boxRenderer.enabled = showBox;
+                if (_boxCollider != null)
+                    _boxCollider.enabled = showBox;
+            }
         }
 
         #endregion

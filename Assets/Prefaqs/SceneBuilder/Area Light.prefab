@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 2447933482320504702}
   - component: {fileID: 5885843145286193811}
   - component: {fileID: 1231891022329323345}
-  - component: {fileID: 3931194773155410814}
   m_Layer: 0
   m_Name: Area Light
   m_TagString: Untagged
@@ -159,30 +158,16 @@ MonoBehaviour:
   _scaleSensitivity: 0.01
   _minScale: {x: 0.1, y: 0.1, z: 0.1}
   _maxScale: {x: 5, y: 5, z: 5}
+  _showGizmo: 1
+  _gizmoScreenScale: 0.12
+  _gizmoLayer:
+    serializedVersion: 2
+    m_Bits: 4
+  _gizmoXColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  _gizmoYColor: {r: 0.2, g: 1, b: 0.2, a: 1}
+  _gizmoZColor: {r: 0.2, g: 0.6, b: 1, a: 1}
+  _gizmoHighlight: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   _currentTransformMode: 0
   _objectId: 
   _objectDataId: 
   _longPressDuration: 0.8
---- !u!114 &3931194773155410814
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6709121272351812685}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e1f125766b05c4e5f82b6f8a218acbd9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SceneSandbox.Core.TransformableItemGizmo
-  target: {fileID: 0}
-  _autoSync: 1
-  screenScale: 0.12
-  gizmoLayer:
-    serializedVersion: 2
-    m_Bits: 0
-  xColor: {r: 1, g: 0.2, b: 0.2, a: 1}
-  yColor: {r: 0.2, g: 1, b: 0.2, a: 1}
-  zColor: {r: 0.2, g: 0.6, b: 1, a: 1}
-  highlight: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  disabledColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.3}
