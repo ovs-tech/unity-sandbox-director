@@ -810,7 +810,7 @@ namespace SceneSandbox.UI
                     _sandboxBuilder?.ClearScene();
                     if (_sandboxBuilder != null)
                     {
-                        _sandboxBuilder.CurrentProject?.sceneConfiguration?.ClearPlacedObjects();
+                        _sandboxBuilder.CurrentProject?.GetActiveScene()?.ClearPlacedObjects();
                     }
                 },
                 () => { /* Cancelled */ }

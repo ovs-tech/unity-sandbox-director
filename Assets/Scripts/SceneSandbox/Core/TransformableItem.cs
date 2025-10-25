@@ -238,8 +238,6 @@ namespace SceneSandbox.Core
         /// </summary>
         public void OnRaycastClick(Vector2 screenPosition, int clickCount = 1, bool isRightClick = false)
         {
-            Debug.Log($"[TransformableItem] OnRaycastClick called for {name}");
-            Debug.Log($"[TransformableItem] _longPressTriggered: {_longPressTriggered}, _isDragging: {_isDragging}");
             
             // Handle right click for options form
             if (isRightClick)
@@ -251,7 +249,6 @@ namespace SceneSandbox.Core
             // Don't handle click if long press was triggered or if we're dragging
             if (!_longPressTriggered && !_isDragging)
             {
-                Debug.Log($"[TransformableItem] Processing click and selecting {name}");
                 OnItemClicked?.Invoke(this);
 
                 // Handle selection on single click using selection manager
@@ -259,13 +256,8 @@ namespace SceneSandbox.Core
 
                 if (clickCount >= 2)
                 {
-                    Debug.Log($"[TransformableItem] Double-click detected for {name}");
                     OnItemSelected?.Invoke(this);
                 }
-            }
-            else
-            {
-                Debug.Log($"[TransformableItem] Click ignored due to longPress={_longPressTriggered} or drag={_isDragging}");
             }
 
             // Reset long press triggered flag
@@ -277,25 +269,20 @@ namespace SceneSandbox.Core
         /// </summary>
         public void OnRaycastDragStart(Vector2 screenPosition)
         {
-            Debug.Log($"[TransformableItem] OnRaycastDragStart called for {name}, _canDrag={_canDrag}");
-            
             if (!_canDrag) 
             {
-                Debug.Log($"[TransformableItem] OnRaycastDragStart ignored - _canDrag=false for {name}");
                 return;
             }
 
             // Check if we should handle transform mode instead of regular drag
             if (_isInTransformMode && _currentTransformMode != TransformMode.None)
             {
-                Debug.Log($"[TransformableItem] Starting transform control for {name}");
                 StartTransformControl(screenPosition);
                 return;
             }
             
             // Mark drag as initiated but don't set _isDragging yet
             // This allows OnRaycastClick to still work if there's no actual movement
-            Debug.Log($"[TransformableItem] Marking drag as initiated for {name}");
             _dragInitiated = true;
             _originalPosition = transform.position;
             
@@ -327,7 +314,6 @@ namespace SceneSandbox.Core
             // Start actual dragging on first OnRaycastDrag call after OnRaycastDragStart
             if (_dragInitiated && !_isDragging)
             {
-                Debug.Log($"[TransformableItem] First OnRaycastDrag - starting actual drag for {name}");
                 _isDragging = true;
                 _dragInitiated = false;
                 
@@ -406,15 +392,11 @@ namespace SceneSandbox.Core
         /// </summary>
         public void StartDrag(Vector2 screenPosition)
         {
-            Debug.Log($"[TransformableItem] StartDrag called for {name}, _canDrag={_canDrag}, _isDragging={_isDragging}");
             
             if (!_canDrag || _isDragging) 
             {
-                Debug.Log($"[TransformableItem] StartDrag aborted for {name}");
                 return;
             }
-
-            Debug.Log($"[TransformableItem] Setting _isDragging=true for {name}");
 
             _isDragging = true;
             _dragInitiated = false; // Clear initiated flag since we're now dragging
@@ -440,14 +422,6 @@ namespace SceneSandbox.Core
             }
 
             OnDragStarted?.Invoke(this, _originalPosition);
-
-            // Also notify SandboxInputHandler if it exists and isn't already aware
-            var inputHandler = FindFirstObjectByType<SandboxInputHandler>();
-            if (inputHandler != null)
-            {
-                
-                inputHandler.ManualStartDrag(gameObject, screenPosition);
-            }
         }
 
         /// <summary>
@@ -482,7 +456,6 @@ namespace SceneSandbox.Core
         /// </summary>
         public void EndDrag(Vector2 screenPosition)
         {
-            Debug.Log($"[TransformableItem] EndDrag called for {name}, _isDragging={_isDragging}");
             
             if (!_isDragging) return;
 
@@ -503,7 +476,6 @@ namespace SceneSandbox.Core
                 finalPosition = _originalPosition;
             }
 
-            Debug.Log($"[TransformableItem] Setting _isDragging=false for {name}");
             _isDragging = false;
 
             // Restore visual feedback

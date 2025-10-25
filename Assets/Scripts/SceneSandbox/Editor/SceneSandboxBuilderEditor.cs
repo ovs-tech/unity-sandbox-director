@@ -20,7 +20,6 @@ namespace SceneSandbox.Editor
         
         // Configuration
         private SerializedProperty _objectLibrary;
-        private SerializedProperty _inputActions;
         private SerializedProperty _sceneRoot;
         private SerializedProperty _stageArea;
         
@@ -159,7 +158,6 @@ namespace SceneSandbox.Editor
         {
             // Configuration
             _objectLibrary = serializedObject.FindProperty("_objectLibrary");
-            _inputActions = serializedObject.FindProperty("_inputActions");
             _sceneRoot = serializedObject.FindProperty("_sceneRoot");
             _stageArea = serializedObject.FindProperty("_stageArea");
             
@@ -633,9 +631,11 @@ namespace SceneSandbox.Editor
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             
             EditorGUILayout.PropertyField(_objectLibrary);
-            EditorGUILayout.PropertyField(_inputActions);
             EditorGUILayout.PropertyField(_sceneRoot);
             EditorGUILayout.PropertyField(_stageArea);
+            
+            EditorGUILayout.Space(5);
+            EditorGUILayout.HelpBox("Input handling is managed by TransformableSelectionManager (singleton)", MessageType.Info);
             
             EditorGUILayout.EndVertical();
         }

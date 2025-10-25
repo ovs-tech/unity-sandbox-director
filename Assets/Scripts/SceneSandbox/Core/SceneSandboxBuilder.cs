@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using SceneSandbox.Data;
-using SceneSandbox.Input;
 using SceneSandbox.Serialization;
 using MiniTimeline.Core;
 
@@ -16,7 +14,6 @@ namespace SceneSandbox.Core
     {
         [Header("Configuration")]
         [SerializeField] private SceneObjectLibrary _objectLibrary;
-        [SerializeField] private InputActionAsset _inputActions;
         [SerializeField] private Transform _sceneRoot;
         [SerializeField] private Transform _stageArea;
 
@@ -65,7 +62,6 @@ namespace SceneSandbox.Core
         [SerializeField] private string _defaultProjectSavePath = ""; // Will be initialized to Application.persistentDataPath/SavedProjects
 
         // Components
-        private SandboxInputHandler _inputHandler;
         private Camera _sceneCamera;
 
         // State
@@ -106,32 +102,6 @@ namespace SceneSandbox.Core
         public void SetObjectLibrary(SceneObjectLibrary library)
         {
             _objectLibrary = library;
-        }
-
-        /// <summary>
-        /// Automatically find and assign the InputActions asset if not already set
-        /// </summary>
-        private void AutoAssignInputActions()
-        {
-            if (_inputActions != null) return;
-
-            // Try to find the UIAndGameplay InputActions asset
-            string[] assetPaths = {
-                "Assets/Settings/InputActions/UIAndGameplay.inputactions",
-                "Assets/InputActions/UIAndGameplay.inputactions",
-                "Assets/Settings/UIAndGameplay.inputactions"
-            };
-
-            foreach (string path in assetPaths)
-            {
-                var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<InputActionAsset>(path);
-                if (asset != null)
-                {
-                    _inputActions = asset;
-                    return;
-                }
-            }
-
         }
 
         /// <summary>
@@ -177,12 +147,6 @@ namespace SceneSandbox.Core
             // Initialize default paths for multi-platform support
             InitializeDefaultPaths();
 
-            // Auto-assign InputActions if not set
-            if (_inputActions == null)
-            {
-                AutoAssignInputActions();
-            }
-
             InitializeComponents();
             InitializeState();
 
@@ -190,9 +154,17 @@ namespace SceneSandbox.Core
 
         private void Start()
         {
-            SetupInputHandler();
             CreateNewScene();
+            SetupSelectionManagerEvents();
+        }
 
+        private void SetupSelectionManagerEvents()
+        {
+            if (TransformableSelectionManager.Instance != null)
+            {
+                TransformableSelectionManager.Instance.OnItemSelected += HandleItemSelected;
+                TransformableSelectionManager.Instance.OnItemDeselected += HandleItemDeselected;
+            }
         }
 
 
@@ -220,13 +192,6 @@ namespace SceneSandbox.Core
                 dropZone.ZoneSize = new Vector3(20f, 5f, 20f);
                 dropZone.AcceptAllTypes = true;
             }
-
-            // Get or create input handler
-            _inputHandler = GetComponent<SandboxInputHandler>();
-            if (_inputHandler == null)
-            {
-                _inputHandler = gameObject.AddComponent<SandboxInputHandler>();
-            }
         }
 
         private void InitializeState()
@@ -236,31 +201,6 @@ namespace SceneSandbox.Core
 
             // Don't create drop indicator here - create it when first needed
             // This avoids potential issues with early initialization
-        }
-
-        private void SetupInputHandler()
-        {
-
-            if (_inputHandler != null && _inputActions != null)
-            {
-                _inputHandler.Initialize(_inputActions);
-
-                // Bind input events
-                _inputHandler.OnClick += HandleClick;
-                _inputHandler.OnRightClick += HandleRightClick;
-                _inputHandler.OnDragStart += HandleDragStart;
-                _inputHandler.OnDragMove += HandleDragMove;
-                _inputHandler.OnDragEnd += HandleDragEnd;
-                _inputHandler.OnObjectSelect += HandleObjectSelect;
-                _inputHandler.OnObjectDelete += HandleObjectDelete;
-                _inputHandler.OnPointMove += HandlePointMove;
-                _inputHandler.Enable();
-
-            }
-            else
-            {
-                // Input handler or actions not available; nothing to initialize.
-            }
         }
 
         #region Public Interface
@@ -419,37 +359,26 @@ namespace SceneSandbox.Core
 
         /// <summary>
         /// Select an object in the scene
+        /// Delegates to TransformableSelectionManager for actual selection
         /// </summary>
         public void SelectObject(GameObject obj)
         {
-            // Deselect previous object
-            if (_selectedObject != null)
+            if (obj != null)
             {
-                var prevDraggable = _selectedObject.GetComponent<TransformableItem>();
-                prevDraggable?.SetSelectedState(false);
-            }
-
-            _selectedObject = obj;
-
-            // Select new object
-            if (_selectedObject != null)
-            {
-                var draggable = _selectedObject.GetComponent<TransformableItem>();
-                draggable?.SetSelectedState(true);
-
-                // Show indicator for draggable objects when selected
-                if (draggable != null && draggable.CanDrag && _enableDropIndicator)
+                var item = obj.GetComponent<TransformableItem>();
+                if (item != null && TransformableSelectionManager.Instance != null)
                 {
-                    ShowDropIndicator(_selectedObject.transform.position);
+                    TransformableSelectionManager.Instance.SelectItem(item);
                 }
             }
             else
             {
-                // Hide indicator when nothing is selected
-                HideDropIndicator();
+                // Deselect all
+                if (TransformableSelectionManager.Instance != null)
+                {
+                    TransformableSelectionManager.Instance.ClearSelection();
+                }
             }
-
-            OnObjectSelected?.Invoke(_selectedObject);
         }
 
         /// <summary>
@@ -978,16 +907,24 @@ namespace SceneSandbox.Core
                 CreateDefaultProject();
             }
 
-            // Save current scene before switching
+            // Save current scene before switching and update it in the project's scene list
             if (_currentScene != null)
             {
                 UpdateSceneConfiguration();
+                
+                // Update the scene in the project's scenes list
+                int currentSceneIndex = _currentProject.scenes.FindIndex(s => s.sceneId == _currentScene.sceneId);
+                if (currentSceneIndex >= 0)
+                {
+                    _currentProject.scenes[currentSceneIndex] = _currentScene;
+                    Debug.Log($"[SceneSandboxBuilder] Saved current scene '{_currentScene.sceneName}' with {_currentScene.placedObjects.Count} objects before creating new scene");
+                }
             }
 
             string name = sceneName ?? $"Scene {_currentProject.scenes.Count + 1}";
             var newScene = _currentProject.AddScene(name);
             
-            // Switch to new scene
+            // Switch to new scene (this will clear and load the empty new scene)
             SwitchToScene(newScene.sceneId);
             
             Debug.Log($"[SceneSandboxBuilder] Created new scene: {name}");
@@ -1012,20 +949,25 @@ namespace SceneSandbox.Core
                 return false;
             }
 
-            // Save current scene state
+            // Save current scene state and update it in the project's scene list
             if (_currentScene != null)
             {
                 UpdateSceneConfiguration();
+                
+                // Update the scene in the project's scenes list
+                int currentSceneIndex = _currentProject.scenes.FindIndex(s => s.sceneId == _currentScene.sceneId);
+                if (currentSceneIndex >= 0)
+                {
+                    _currentProject.scenes[currentSceneIndex] = _currentScene;
+                    Debug.Log($"[SceneSandboxBuilder] Saved scene '{_currentScene.sceneName}' with {_currentScene.placedObjects.Count} objects");
+                }
             }
 
-            // Clear current scene
-            ClearScene();
-
-            // Load target scene
+            // Load target scene (LoadSceneConfiguration handles clearing internally)
             LoadSceneConfiguration(targetScene);
             _currentProject.SetActiveScene(sceneId);
             
-            Debug.Log($"[SceneSandboxBuilder] Switched to scene: {targetScene.sceneName}");
+            Debug.Log($"[SceneSandboxBuilder] Switched to scene: {targetScene.sceneName} with {targetScene.placedObjects.Count} objects");
             return true;
         }
 
@@ -1084,8 +1026,15 @@ namespace SceneSandbox.Core
                 return null;
             }
 
-            // Save current state
+            // Save current state and update it in the project's scene list
             UpdateSceneConfiguration();
+            
+            // Update the scene in the project's scenes list
+            int currentSceneIndex = _currentProject.scenes.FindIndex(s => s.sceneId == _currentScene.sceneId);
+            if (currentSceneIndex >= 0)
+            {
+                _currentProject.scenes[currentSceneIndex] = _currentScene;
+            }
 
             // Create duplicate
             var duplicate = new SceneConfiguration($"{_currentScene.sceneName} (Copy)");
@@ -1111,7 +1060,7 @@ namespace SceneSandbox.Core
 
             _currentProject.scenes.Add(duplicate);
             
-            Debug.Log($"[SceneSandboxBuilder] Duplicated scene: {duplicate.sceneName}");
+            Debug.Log($"[SceneSandboxBuilder] Duplicated scene: {duplicate.sceneName} with {duplicate.placedObjects.Count} objects");
             return duplicate;
         }
 
@@ -1393,109 +1342,24 @@ namespace SceneSandbox.Core
             return _dragPreviewPosition;
         }
 
-        #region Input Event Handlers
+        #region Selection Manager Event Handlers
 
-        private void HandleClick(Vector2 screenPosition)
+        private void HandleItemSelected(TransformableItem item)
         {
-            var hitObject = GetObjectAtScreenPosition(screenPosition);
-
-            // Handle empty space clicks (deselect)
-            if (hitObject == null)
+            if (item != null)
             {
-                SelectObject(null);
+                _selectedObject = item.gameObject;
+                OnObjectSelected?.Invoke(_selectedObject);
             }
         }
 
-        private void HandleRightClick(Vector2 screenPosition)
+        private void HandleItemDeselected(TransformableItem item)
         {
-            var hitObject = GetObjectAtScreenPosition(screenPosition);
-            if (hitObject != null)
+            if (item != null && _selectedObject == item.gameObject)
             {
-                // Show context menu for object
-                ShowContextMenu(hitObject, screenPosition);
+                _selectedObject = null;
+                OnObjectSelected?.Invoke(null);
             }
-            else
-            {
-                // Show general context menu
-                ShowGeneralContextMenu(screenPosition);
-            }
-        }
-
-        private void HandlePointMove(Vector2 screenPosition)
-        {
-            // Update drop indicator position during drag operations
-            if (_isDraggingObject && _enableDropIndicator)
-            {
-                Vector3 worldPos = GetWorldPositionFromScreen(screenPosition);
-                UpdateDropIndicator(worldPos);
-            }
-            // Show indicator following mouse when a draggable object is selected (but not being dragged)
-            else if (_selectedObject != null && !_isDraggingObject && _enableDropIndicator)
-            {
-                var draggable = _selectedObject.GetComponent<TransformableItem>();
-                if (draggable != null && draggable.CanDrag)
-                {
-                    Vector3 worldPos = GetWorldPositionFromScreen(screenPosition);
-                    if (worldPos != Vector3.zero) // Valid world position
-                    {
-                        UpdateDropIndicator(worldPos);
-                    }
-                }
-            }
-        }
-
-        private void HandleDragStart(GameObject obj, Vector2 screenPosition)
-        {
-            var draggable = obj.GetComponent<TransformableItem>();
-            if (draggable != null)
-            {
-                SelectObject(obj);
-                draggable.StartDrag(screenPosition);
-
-                // Start drop indicator system
-                _isDraggingObject = true;
-                Vector3 worldPos = GetWorldPositionFromScreen(screenPosition);
-
-                ShowDropIndicator(worldPos);
-            }
-            else
-            {
-
-            }
-        }
-
-        private void HandleDragMove(GameObject obj, Vector2 screenPosition)
-        {
-            var draggable = obj.GetComponent<TransformableItem>();
-            draggable?.ContinueDrag(screenPosition);
-
-            // Drop indicator updates are now handled by HandlePointMove
-        }
-
-        private void HandleDragEnd(GameObject obj, Vector2 screenPosition)
-        {
-            var draggable = obj.GetComponent<TransformableItem>();
-            if (draggable != null)
-            {
-                draggable.EndDrag(screenPosition);
-
-                // Update scene configuration
-                UpdateObjectInScene(draggable);
-            }
-
-            // End drop indicator system
-            _isDraggingObject = false;
-            HideDropIndicator();
-        }
-
-        private void HandleObjectSelect(GameObject obj)
-        {
-            SelectObject(obj);
-        }
-
-        private void HandleObjectDelete(GameObject obj)
-        {
-            RemoveObject(obj);
         }
 
         #endregion
@@ -1539,8 +1403,24 @@ namespace SceneSandbox.Core
 
         private void LoadSceneConfiguration(SceneConfiguration sceneConfig)
         {
-            ClearScene();
+            // Clear current scene GameObjects and runtime state first
+            // Important: Clear before setting _currentScene to avoid clearing the new scene's data
+            if (_placedObjects != null)
+            {
+                var objectsToRemove = new List<GameObject>(_placedObjects.Values);
+                foreach (var obj in objectsToRemove)
+                {
+                    if (obj != null)
+                    {
+                        Destroy(obj);
+                    }
+                }
+                _placedObjects.Clear();
+            }
+            
+            SelectObject(null);
 
+            // Now set the new scene (after clearing runtime state)
             _currentScene = sceneConfig;
             _currentSceneName = sceneConfig.sceneName;
 
@@ -1676,17 +1556,10 @@ namespace SceneSandbox.Core
             Vector3 center = _stageArea != null ? _stageArea.position : transform.position;
             Vector3 localPos = position - center;
 
-            Debug.Log($"[BOUNDS] Position: {position}, Center: {center}, LocalPos: {localPos}");
-            Debug.Log($"[BOUNDS] SceneBounds: {_sceneBounds} (half-extents: {_sceneBounds / 2f})");
-            Debug.Log($"[BOUNDS] Check X: {Mathf.Abs(localPos.x)} <= {_sceneBounds.x / 2f} = {Mathf.Abs(localPos.x) <= _sceneBounds.x / 2f}");
-            Debug.Log($"[BOUNDS] Check Y: {Mathf.Abs(localPos.y)} <= {_sceneBounds.y / 2f} = {Mathf.Abs(localPos.y) <= _sceneBounds.y / 2f}");
-            Debug.Log($"[BOUNDS] Check Z: {Mathf.Abs(localPos.z)} <= {_sceneBounds.z / 2f} = {Mathf.Abs(localPos.z) <= _sceneBounds.z / 2f}");
-
             bool result = Mathf.Abs(localPos.x) <= _sceneBounds.x / 2f &&
                    Mathf.Abs(localPos.y) <= _sceneBounds.y / 2f &&
                    Mathf.Abs(localPos.z) <= _sceneBounds.z / 2f;
-            
-            Debug.Log($"[BOUNDS] Result: {result}");
+                   
             return result;
         }
 
@@ -2317,19 +2190,11 @@ namespace SceneSandbox.Core
 
         private void OnDestroy()
         {
-            if (_inputHandler != null)
+            // Unsubscribe from selection manager events
+            if (TransformableSelectionManager.Instance != null)
             {
-                // Unbind input events
-                _inputHandler.OnClick -= HandleClick;
-                _inputHandler.OnRightClick -= HandleRightClick;
-                _inputHandler.OnDragStart -= HandleDragStart;
-                _inputHandler.OnDragMove -= HandleDragMove;
-                _inputHandler.OnDragEnd -= HandleDragEnd;
-                _inputHandler.OnObjectSelect -= HandleObjectSelect;
-                _inputHandler.OnObjectDelete -= HandleObjectDelete;
-                _inputHandler.OnPointMove -= HandlePointMove;
-
-                _inputHandler.Cleanup();
+                TransformableSelectionManager.Instance.OnItemSelected -= HandleItemSelected;
+                TransformableSelectionManager.Instance.OnItemDeselected -= HandleItemDeselected;
             }
 
             StopPreview();

@@ -100,7 +100,11 @@ namespace SceneSandbox.Core
             if (_instance == null)
             {
                 _instance = this;
+                // Don't use DontDestroyOnLoad for editor workflow - let it be scene-specific
+                // Only persist in builds if needed
+                #if !UNITY_EDITOR
                 DontDestroyOnLoad(gameObject);
+                #endif
                 
                 // Subscribe to scene change events for cleanup
                 SceneManager.sceneUnloaded += OnSceneUnloaded;
@@ -845,12 +849,31 @@ namespace SceneSandbox.Core
         private void OnSceneUnloaded(Scene scene)
         {
             Debug.Log($"TransformableSelectionManager: Cleaning up for unloaded scene '{scene.name}'");
+            
+            // Clear selection state
             ClearSelection();
             
             // Clear transform control state
             _activeTransformItems.Clear();
             _currentActiveTransformItem = null;
             ExitAllTransformModes();
+            
+            // Clear input state
+            _isPointerDown = false;
+            _isDragging = false;
+            _currentHoverItem = null;
+            _currentDragItem = null;
+            
+            // In editor mode, if this was the last scene, clear the instance
+            #if UNITY_EDITOR
+            if (SceneManager.sceneCount == 0 || !Application.isPlaying)
+            {
+                if (_instance == this)
+                {
+                    _instance = null;
+                }
+            }
+            #endif
         }
 
         /// <summary>
@@ -865,9 +888,16 @@ namespace SceneSandbox.Core
 
         private void OnDestroy()
         {
+            // Clean up selection state
+            ClearSelection();
+            ExitAllTransformModes();
+            
             // Unsubscribe from scene events
             SceneManager.sceneUnloaded -= OnSceneUnloaded;
             SceneManager.sceneLoaded -= OnSceneLoaded;
+            
+            // Disable input actions before unbinding
+            DisableInputActions();
             
             // Unbind input action events
             if (_exitAllModesActionRef != null && _exitAllModesActionRef.action != null)
@@ -887,6 +917,7 @@ namespace SceneSandbox.Core
                 _scaleHotkeyActionRef.action.performed -= OnScaleHotkeyPerformed;
             }
             
+            // Clear instance reference
             if (_instance == this)
             {
                 _instance = null;
@@ -906,6 +937,21 @@ namespace SceneSandbox.Core
             {
                 GUI.Label(new Rect(15, 35, 190, 20), $"Last: {_lastSelectedItem.name}");
             }
+        }
+
+        /// <summary>
+        /// Editor-only: Reset static instance when play mode stops
+        /// </summary>
+        [UnityEditor.InitializeOnLoadMethod]
+        private static void ResetInstanceOnPlayModeChange()
+        {
+            UnityEditor.EditorApplication.playModeStateChanged += (state) =>
+            {
+                if (state == UnityEditor.PlayModeStateChange.EnteredEditMode)
+                {
+                    _instance = null;
+                }
+            };
         }
         #endif
     }
