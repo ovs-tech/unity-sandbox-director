@@ -1,0 +1,235 @@
+/* Object Palette Item UI Toolkit Styles */
+
+/* Palette Item Base */
+.palette-item {
+    width: 100px;
+    height: 120px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    background-color: rgba(50, 50, 50, 1);
+    border-width: 1px;
+    border-color: rgba(80, 80, 80, 1);
+    border-radius: 4px;
+    cursor: link;
+    transition-property: background-color, border-color, transform;
+    transition-duration: 0.15s;
+    overflow: hidden;
+}
+
+.palette-item:hover {
+    background-color: rgba(70, 70, 70, 1);
+    border-color: rgba(100, 100, 100, 1);
+    transform: scale(1.02);
+}
+
+.palette-item:active {
+    background-color: rgba(60, 60, 60, 1);
+    transform: scale(0.98);
+}
+
+/* Selected State */
+.palette-item--selected {
+    border-width: 2px;
+    border-color: rgb(77, 150, 255);
+    background-color: rgba(60, 60, 80, 1);
+}
+
+.palette-item--selected:hover {
+    border-color: rgb(97, 170, 255);
+    background-color: rgba(70, 70, 90, 1);
+}
+
+/* Disabled State */
+.palette-item--disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.palette-item--disabled:hover {
+    background-color: rgba(50, 50, 50, 1);
+    border-color: rgba(80, 80, 80, 1);
+    transform: scale(1);
+}
+
+/* Icon Container */
+.palette-item__icon-container {
+    flex-grow: 1;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+}
+
+/* Icon Element */
+.palette-item__icon {
+    width: 64px;
+    height: 64px;
+    background-color: rgba(100, 100, 180, 1);
+    border-radius: 4px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* Name Label */
+.palette-item__name {
+    height: 30px;
+    -unity-text-align: middle-center;
+    font-size: 11px;
+    color: rgb(255, 255, 255);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-left: 4px;
+    padding-right: 4px;
+    padding-bottom: 4px;
+    background-color: rgba(40, 40, 40, 0.8);
+}
+
+/* Drag Preview */
+.palette-item-drag-preview {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+}
+
+.palette-item-drag-preview .palette-item__icon {
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+}
+
+.palette-item-drag-preview .palette-item__name {
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+}
+
+/* Category Badge (Optional) */
+.palette-item__badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background-color: rgba(77, 150, 255, 0.9);
+    color: rgb(255, 255, 255);
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 8px;
+}
+
+/* Type Indicator (Optional) */
+.palette-item__type-indicator {
+    position: absolute;
+    bottom: 32px;
+    left: 4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background-color: rgb(100, 200, 100);
+}
+
+/* Type Colors */
+.palette-item__type-indicator--actor {
+    background-color: rgb(100, 200, 100);
+}
+
+.palette-item__type-indicator--prop {
+    background-color: rgb(200, 150, 100);
+}
+
+.palette-item__type-indicator--light {
+    background-color: rgb(255, 255, 100);
+}
+
+.palette-item__type-indicator--camera {
+    background-color: rgb(100, 150, 255);
+}
+
+.palette-item__type-indicator--effect {
+    background-color: rgb(200, 100, 200);
+}
+
+/* Hover Tooltip (Optional) */
+.palette-item__tooltip {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(40, 40, 40, 0.95);
+    color: rgb(255, 255, 255);
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    visibility: hidden;
+    opacity: 0;
+    transition-property: opacity, visibility;
+    transition-duration: 0.2s;
+}
+
+.palette-item:hover .palette-item__tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Grid Layout Variants */
+.palette-item--small {
+    width: 80px;
+    height: 100px;
+}
+
+.palette-item--small .palette-item__icon {
+    width: 48px;
+    height: 48px;
+}
+
+.palette-item--small .palette-item__name {
+    font-size: 10px;
+    height: 24px;
+}
+
+.palette-item--large {
+    width: 120px;
+    height: 140px;
+}
+
+.palette-item--large .palette-item__icon {
+    width: 80px;
+    height: 80px;
+}
+
+.palette-item--large .palette-item__name {
+    font-size: 12px;
+    height: 36px;
+}
+
+/* Animation States */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.palette-item--loading {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Selection Highlight */
+.palette-item--highlight {
+    border-width: 3px;
+    border-color: rgb(255, 200, 50);
+    box-shadow: 0 0 10px rgba(255, 200, 50, 0.5);
+}
+
+/* Error State */
+.palette-item--error {
+    border-color: rgb(220, 53, 69);
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+.palette-item--error .palette-item__name {
+    color: rgb(255, 100, 100);
+}
+
+/* Accessibility - Focus State */
+.palette-item:focus {
+    border-width: 2px;
+    border-color: rgb(77, 150, 255);
+    outline: none;
+}

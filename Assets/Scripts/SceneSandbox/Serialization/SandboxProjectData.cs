@@ -56,7 +56,8 @@ namespace SceneSandbox.Serialization
         public SandboxProjectSettings settings = new SandboxProjectSettings();
         
         [Header("Scene Data")]
-        public SceneConfiguration sceneConfiguration;
+        public List<SceneConfiguration> scenes = new List<SceneConfiguration>();
+        public string activeSceneId = ""; // ID of currently active scene
         
         [Header("Object Library Reference")]
         public string objectLibraryPath = "";
@@ -70,13 +71,83 @@ namespace SceneSandbox.Serialization
 
         public SandboxProjectData()
         {
-            sceneConfiguration = new SceneConfiguration("New Scene");
+            var defaultScene = new SceneConfiguration("Main Scene");
+            scenes.Add(defaultScene);
+            activeSceneId = defaultScene.sceneId;
         }
 
         public SandboxProjectData(string name) : this()
         {
             projectName = name;
-            sceneConfiguration.sceneName = name;
+            scenes[0].sceneName = $"{name} - Main Scene";
+        }
+        
+        /// <summary>
+        /// Get the currently active scene
+        /// </summary>
+        public SceneConfiguration GetActiveScene()
+        {
+            return scenes.Find(s => s.sceneId == activeSceneId) ?? (scenes.Count > 0 ? scenes[0] : null);
+        }
+        
+        /// <summary>
+        /// Add a new scene to the project
+        /// </summary>
+        public SceneConfiguration AddScene(string sceneName)
+        {
+            var newScene = new SceneConfiguration(sceneName);
+            scenes.Add(newScene);
+            return newScene;
+        }
+        
+        /// <summary>
+        /// Remove a scene from the project
+        /// </summary>
+        public bool RemoveScene(string sceneId)
+        {
+            // Don't allow removing the last scene
+            if (scenes.Count <= 1)
+                return false;
+                
+            var removed = scenes.RemoveAll(s => s.sceneId == sceneId) > 0;
+            
+            // If removed scene was active, switch to first scene
+            if (removed && activeSceneId == sceneId)
+            {
+                activeSceneId = scenes.Count > 0 ? scenes[0].sceneId : "";
+            }
+            
+            return removed;
+        }
+        
+        /// <summary>
+        /// Get a scene by ID
+        /// </summary>
+        public SceneConfiguration GetScene(string sceneId)
+        {
+            return scenes.Find(s => s.sceneId == sceneId);
+        }
+        
+        /// <summary>
+        /// Get a scene by name
+        /// </summary>
+        public SceneConfiguration GetSceneByName(string sceneName)
+        {
+            return scenes.Find(s => s.sceneName == sceneName);
+        }
+        
+        /// <summary>
+        /// Set the active scene
+        /// </summary>
+        public bool SetActiveScene(string sceneId)
+        {
+            var scene = GetScene(sceneId);
+            if (scene != null)
+            {
+                activeSceneId = sceneId;
+                return true;
+            }
+            return false;
         }
     }
 

@@ -88,22 +88,18 @@
     font-size: var(--font-size-sm);
     color: var(--color-bg);
     background-color: var(--color-primary); /* primary blue */
-    unity-background-image-tint-color: var(--color-primary);
     padding: var(--space-sm) var(--space-md);
     -unity-text-align: middle-center;
     unity-font-style: normal;
     -unity-transition-property: background-color, color, opacity;
-    -unity-transition-duration: var(--transition);
 }
 
 .button:hover {
     background-color: var(--color-primary-hover); /* darker on hover */
-    unity-background-image-tint-color: var(--color-primary-hover);
 }
 
 .button:active {
     background-color: var(--color-primary-hover);
-    unity-background-image-tint-color: var(--color-primary-hover);
 }
 
 .button:disabled {
@@ -113,13 +109,12 @@
 
 .button--secondary {
     background-color: transparent;
-    unity-background-image-tint-color: transparent;
     border-width: var(--border-width);
     border-color: var(--color-border); /* light border */
     color: var(--color-primary); /* primary text */
 }
 
-.button__icon {
+.button--icon {
     width: 16px;
     height: 16px;
     margin-right: 8px;
@@ -130,47 +125,42 @@
 .button--primary {
     /* explicit primary — same as base but kept for clarity & tokens */
     background-color: var(--color-primary);
-    unity-background-image-tint-color: var(--color-primary);
     color: var(--color-bg);
 }
 
 .button--success {
     background-color: var(--color-success); /* green */
-    unity-background-image-tint-color: var(--color-success);
     color: var(--color-bg);
 }
 
 .button--danger {
     background-color: var(--color-danger); /* red */
-    unity-background-image-tint-color: var(--color-danger);
     color: var(--color-bg);
 }
 
 .button--warning {
     background-color: var(--color-warning); /* orange */
-    unity-background-image-tint-color: var(--color-warning);
     color: var(--color-bg);
 }
 
 .button--ghost {
     background-color: transparent;
-    unity-background-image-tint-color: transparent;
     color: var(--color-primary); /* using primary color for ghost text */
     border-width: 0;
 }
 
 /* Hover/active states for variants (uses color darkening) */
-.button--success:hover { background-color: var(--color-success); unity-background-image-tint-color: var(--color-success); }
-.button--success:active { background-color: var(--color-success); unity-background-image-tint-color: var(--color-success); }
+.button--success:hover { background-color: var(--color-success);  }
+.button--success:active { background-color: var(--color-success);  }
 
-.button--danger:hover { background-color: var(--color-danger); unity-background-image-tint-color: var(--color-danger); }
-.button--danger:active { background-color: var(--color-danger); unity-background-image-tint-color: var(--color-danger); }
+.button--danger:hover { background-color: var(--color-danger);  }
+.button--danger:active { background-color: var(--color-danger);  }
 
-.button--warning:hover { background-color: var(--color-warning); unity-background-image-tint-color: var(--color-warning); }
-.button--warning:active { background-color: var(--color-warning); unity-background-image-tint-color: var(--color-warning); }
+.button--warning:hover { background-color: var(--color-warning);  }
+.button--warning:active { background-color: var(--color-warning);  }
 
-.button--ghost:hover { background-color: rgba(79,70,229,0.06); unity-background-image-tint-color: rgba(79,70,229,0.06); }
-.button--ghost:active { background-color: rgba(79,70,229,0.12); unity-background-image-tint-color: rgba(79,70,229,0.12); }
+.button--ghost:hover { background-color: rgba(79,70,229,0.06); }
+.button--ghost:active { background-color: rgba(79,70,229,0.12); }
 
 
 /* Panel - a generic container used across UI for card/panel backgrounds */
@@ -182,7 +172,6 @@
     padding: var(--space-md);
     color: var(--color-text); /* default panel text color */
     -unity-transition-property: background-color, opacity;
-    -unity-transition-duration: var(--transition);
 }
 
 .panel--elevated {
@@ -194,7 +183,6 @@
 
 .panel__header {
     font-size: var(--font-size-md);
-    font-weight: var(--font-weight-medium);
     margin-bottom: var(--space-sm);
     color: var(--color-text);
 }

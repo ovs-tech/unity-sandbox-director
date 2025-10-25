@@ -1,0 +1,176 @@
+/* Sandbox Builder UI Toolkit Styles */
+
+/* Main Container */
+.main-container {
+    flex-direction: row;
+    flex-grow: 1;
+}
+
+/* Panel Styles */
+.left-panel,
+.right-panel {
+    padding: 12px;
+    margin: 8px
+}
+
+.left-panel {
+    min-width: 200px;
+    max-width: 400px;
+}
+
+.right-panel {
+    min-width: 200px;
+    max-width: 400px;
+}
+
+.center-panel {
+    flex-grow: 1;
+    background-color: transparent;
+}
+
+/* Controls Panel */
+.controls-panel {
+    padding: 12px;
+    margin: 8px;
+}
+
+/* Palette Panel */
+.palette-panel {
+    flex-grow: 1;
+    padding: 8px;
+}
+
+/* Palette Item */
+.palette-item {
+    background-color: rgba(50, 50, 50, 1);
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: rgba(80, 80, 80, 1);
+    margin: 4px;
+    transition-duration: 0.2s;
+    transition-property: background-color, border-color;
+}
+
+.palette-item:hover {
+    background-color: rgba(70, 70, 70, 1);
+    border-color: rgba(100, 100, 100, 1);
+}
+
+.palette-item--selected {
+    border-color: rgba(80, 150, 255, 1);
+    border-width: 2px;
+    background-color: rgba(60, 80, 120, 1);
+}
+
+.palette-item__icon {
+    width: 64px;
+    height: 64px;
+    margin: 8px;
+    align-self: center;
+    border-radius: 4px;
+    background-color: rgba(100, 100, 200, 1);
+}
+
+.palette-item__name {
+    height: 30px;
+    -unity-text-align: middle-center;
+    font-size: 12px;
+    color: rgb(255, 255, 255);
+    padding: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Mobile Controls */
+.mobile-controls {
+    background-color: rgba(30, 30, 30, 0.95);
+    border-top-width: 1px;
+    border-color: rgba(60, 60, 60, 1);
+    padding: 8px;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+
+/* Scene Info */
+.scene-info-panel {
+    padding: 12px;
+    margin: 8px;
+}
+
+.scene-info-row {
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 8px;
+    padding: 8px;
+}
+
+.scene-info-row Label {
+    font-size: 12px;
+    color: rgba(200, 200, 200, 1);
+}
+
+/* Viewport Area */
+.viewport-area {
+    flex-grow: 1;
+    background-color: transparent;
+}
+
+/* Horizontal Groups */
+.project-controls-row,
+.scene-controls-row,
+.preview-controls-row {
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.project-name-input {
+    flex-grow: 1;
+    margin-right: 4px;
+}
+
+/* Filters Container */
+.filters-container {
+    padding: 8px;
+    background-color: rgba(40, 40, 40, 1);
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.filters-container TextField,
+.filters-container DropdownField {
+    margin-top: 4px;
+}
+
+/* Items Container (Grid) */
+.items-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 4px;
+}
+
+/* Scroll View */
+ScrollView {
+    flex-grow: 1;
+}
+
+/* Object Controls */
+.object-controls-panel {
+    padding: 12px;
+}
+
+.object-controls-panel Label {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.object-controls-panel Toggle {
+    margin-top: 8px;
+}
+
+.object-controls-panel Slider {
+    margin-top: 4px;
+}

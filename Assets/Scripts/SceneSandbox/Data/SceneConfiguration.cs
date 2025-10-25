@@ -42,6 +42,7 @@ namespace SceneSandbox.Data
     public class SceneConfiguration
     {
         [Header("Scene Info")]
+        public string sceneId; // Unique identifier for the scene
         public string sceneName;
         public string description;
         public DateTime createdDate;
@@ -58,6 +59,7 @@ namespace SceneSandbox.Data
         
         public SceneConfiguration()
         {
+            sceneId = Guid.NewGuid().ToString();
             sceneName = "New Scene";
             description = "";
             createdDate = DateTime.Now;

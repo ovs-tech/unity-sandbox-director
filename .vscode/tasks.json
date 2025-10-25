@@ -1,0 +1,38 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Unity Project (macOS)",
+      "type": "shell",
+      "command": "/Applications/Unity/Hub/Editor/6000.2.6f2/Unity.app/Contents/MacOS/Unity",
+      "args": [
+        "-batchmode",
+        "-quit",
+        "-nographics",
+        "-buildTarget",
+        "StandaloneOSX",
+        "-projectPath",
+        "${workspaceFolder}",
+        "-buildOSXUniversalPlayer",
+        "${workspaceFolder}/Builds/macOS/MyUnityGame.app",
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [
+        {
+          "owner": "unity",
+          "pattern": [
+            {
+              "regexp": "^(?<file>.*)\\((?<line>\\d+)\\):\\s*(?<message>.*)$",
+              "file": 1,
+              "line": 2,
+              "message": 3
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

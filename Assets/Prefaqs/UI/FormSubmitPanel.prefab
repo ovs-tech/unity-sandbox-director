@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7431276014944143584
 RectTransform:
   m_ObjectHideFlags: 0
@@ -61,14 +61,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50591bab23ec145d6b6f02eb5a420217, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MiniTimeline.UI.FormSubmitPanel
-  backgroundPanel: {fileID: 0}
-  formContainer: {fileID: 0}
-  scrollRect: {fileID: 0}
-  fieldsParent: {fileID: 0}
-  titleText: {fileID: 0}
-  closeButton: {fileID: 0}
-  submitButton: {fileID: 0}
-  cancelButton: {fileID: 0}
   textFieldPrefab: {fileID: 0}
   textAreaFieldPrefab: {fileID: 0}
   numberFieldPrefab: {fileID: 0}

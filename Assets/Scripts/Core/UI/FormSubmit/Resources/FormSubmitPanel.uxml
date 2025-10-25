@@ -4,7 +4,7 @@
         <ui:VisualElement name="form-container" class="form-container">
             <ui:VisualElement name="header" class="form-header">
                 <ui:Label name="title-text" text="Create Clip" class="form-title" />
-                <ui:Button name="close-button" text="\uf00d" parse-escape-sequences="true" class="form-close-button button button__icon button--danger fa-solid" />
+                <ui:Button name="close-button" text="\uf00d" parse-escape-sequences="true" class="form-close-button button button--icon button--danger fa-solid" />
             </ui:VisualElement>
             <ui:ScrollView name="scroll-view" mode="Vertical" class="form-scroll-view">
                 <ui:VisualElement name="fields-container" class="form-fields-container" />

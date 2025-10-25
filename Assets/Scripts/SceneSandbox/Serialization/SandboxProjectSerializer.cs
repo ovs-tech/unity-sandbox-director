@@ -37,10 +37,25 @@ namespace SceneSandbox.Serialization
             // Update project metadata
             project.lastModified = DateTime.Now;
             
-            // Update scene configuration from current scene
+            // Update active scene configuration from current scene
             if (builder.CurrentScene != null)
             {
-                project.sceneConfiguration = builder.CurrentScene;
+                var activeScene = project.GetActiveScene();
+                if (activeScene != null)
+                {
+                    // Update the active scene with current scene data
+                    var index = project.scenes.IndexOf(activeScene);
+                    if (index >= 0)
+                    {
+                        project.scenes[index] = builder.CurrentScene;
+                    }
+                }
+                else
+                {
+                    // No active scene, add current scene
+                    project.scenes.Add(builder.CurrentScene);
+                    project.activeSceneId = builder.CurrentScene.sceneId;
+                }
             }
             
             // Update settings from builder's current configuration
@@ -230,7 +245,7 @@ namespace SceneSandbox.Serialization
                     created = DateTime.Parse(jsonProject.created),
                     lastModified = DateTime.Parse(jsonProject.lastModified),
                     description = jsonProject.description,
-                    objectCount = jsonProject.sceneConfiguration?.placedObjects?.Count ?? 0,
+                    objectCount = jsonProject.scenes?.Sum(s => s.placedObjects?.Count ?? 0) ?? 0,
                     hasTimelineIntegration = jsonProject.hasTimelineIntegration,
                     sceneBounds = ParseVector3(jsonProject.settings?.sceneBounds ?? "20,10,20")
                 };
@@ -291,7 +306,8 @@ namespace SceneSandbox.Serialization
                 created = project.created.ToString("O"), // ISO 8601 format
                 lastModified = project.lastModified.ToString("O"),
                 settings = ConvertToJsonSettings(project.settings),
-                sceneConfiguration = project.sceneConfiguration,
+                scenes = project.scenes,
+                activeSceneId = project.activeSceneId,
                 objectLibraryPath = project.objectLibraryPath,
                 timelineProjectPath = project.timelineProjectPath,
                 hasTimelineIntegration = project.hasTimelineIntegration,
@@ -320,10 +336,23 @@ namespace SceneSandbox.Serialization
                 objectLibraryPath = jsonProject.objectLibraryPath ?? "",
                 timelineProjectPath = jsonProject.timelineProjectPath ?? "",
                 hasTimelineIntegration = jsonProject.hasTimelineIntegration,
-                sceneConfiguration = jsonProject.sceneConfiguration ?? new SceneConfiguration("New Scene"),
+                scenes = jsonProject.scenes ?? new List<SceneConfiguration> { new SceneConfiguration("New Scene") },
+                activeSceneId = jsonProject.activeSceneId ?? "",
                 settings = ConvertFromJsonSettings(jsonProject.settings),
                 exportSettings = ConvertFromJsonExportSettings(jsonProject.exportSettings)
             };
+            
+            // Ensure there's always at least one scene and a valid active scene
+            if (project.scenes.Count == 0)
+            {
+                project.scenes.Add(new SceneConfiguration("New Scene"));
+            }
+            
+            // Set active scene ID if not set or invalid
+            if (string.IsNullOrEmpty(project.activeSceneId) || project.GetScene(project.activeSceneId) == null)
+            {
+                project.activeSceneId = project.scenes[0].sceneId;
+            }
 
             // Parse dates safely
             if (DateTime.TryParse(jsonProject.created, out DateTime created))
@@ -517,7 +546,8 @@ namespace SceneSandbox.Serialization
             public string created;
             public string lastModified;
             public JsonSandboxProjectSettings settings;
-            public SceneConfiguration sceneConfiguration;
+            public List<SceneConfiguration> scenes;
+            public string activeSceneId;
             public string objectLibraryPath;
             public string timelineProjectPath;
             public bool hasTimelineIntegration;
@@ -591,8 +621,12 @@ namespace SceneSandbox.Serialization
                 description = "A sample project demonstrating Scene Sandbox Builder capabilities"
             };
 
-            // Configure sample scene
-            project.sceneConfiguration.sceneName = "Sample Scene";
+            // Configure sample scene - get the active scene and update its name
+            var activeScene = project.GetActiveScene();
+            if (activeScene != null)
+            {
+                activeScene.sceneName = "Sample Scene";
+            }
             
             // Add some sample placed objects (if we had object IDs to reference)
             // This would typically be done by the SandboxObjectFactory
