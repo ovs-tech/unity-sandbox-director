@@ -338,6 +338,218 @@ namespace MiniTimeline.Core
         #region Project Management
         
         /// <summary>
+        /// Get the projects folder path (uses Application.persistentDataPath)
+        /// </summary>
+        /// <returns>Full path to projects folder</returns>
+        public static string GetProjectsFolder()
+        {
+            string projectsPath = System.IO.Path.Combine(Application.persistentDataPath, "TimelineProjects");
+            
+            // Ensure directory exists
+            if (!System.IO.Directory.Exists(projectsPath))
+            {
+                System.IO.Directory.CreateDirectory(projectsPath);
+                Debug.Log($"[MiniTimelineDirector] Created projects folder: {projectsPath}");
+            }
+            
+            return projectsPath;
+        }
+        
+        /// <summary>
+        /// Get full path for a project file
+        /// </summary>
+        /// <param name="projectName">Name of the project (without extension)</param>
+        /// <returns>Full file path</returns>
+        public static string GetProjectFilePath(string projectName)
+        {
+            return System.IO.Path.Combine(GetProjectsFolder(), projectName + ".json");
+        }
+        
+        /// <summary>
+        /// Create a new empty project
+        /// </summary>
+        /// <param name="projectName">Name for the new project</param>
+        /// <param name="length">Length in seconds</param>
+        /// <param name="frameRate">Frame rate</param>
+        /// <returns>True if successful</returns>
+        public bool CreateNewProject(string projectName, float length = 10f, float frameRate = 30f)
+        {
+            try
+            {
+                var newProject = new MiniTimelineProject
+                {
+                    name = projectName,
+                    version = 1,
+                    length = length,
+                    frameRate = frameRate,
+                    tracks = new System.Collections.Generic.List<TrackData>()
+                };
+                
+                SetProject(newProject);
+                
+                if (debugMode)
+                    Debug.Log($"[MiniTimelineDirector] Created new project '{projectName}' with length {length}s");
+                
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[MiniTimelineDirector] Failed to create new project: {e.Message}");
+                return false;
+            }
+        }
+        
+        /// <summary>
+        /// Save current project to persistent data path
+        /// </summary>
+        /// <param name="projectName">Name to save as (optional, uses current project name if null)</param>
+        /// <returns>True if successful</returns>
+        public bool SaveProject(string projectName = null)
+        {
+            if (project == null)
+            {
+                Debug.LogWarning("[MiniTimelineDirector] Cannot save: No project loaded");
+                return false;
+            }
+            
+            try
+            {
+                // Use provided name or current project name
+                string saveName = string.IsNullOrEmpty(projectName) ? project.name : projectName;
+                
+                // Update project name if changed
+                if (projectName != null && projectName != project.name)
+                {
+                    project.name = projectName;
+                }
+                
+                string filePath = GetProjectFilePath(saveName);
+                
+                // Save with runtime tracks
+                bool success = Serialization.ProjectSerializer.SaveToFile(project, this, filePath);
+                
+                if (success && debugMode)
+                    Debug.Log($"[MiniTimelineDirector] Saved project '{saveName}' to: {filePath}");
+                
+                return success;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[MiniTimelineDirector] Failed to save project: {e.Message}");
+                return false;
+            }
+        }
+        
+        /// <summary>
+        /// Load a project from persistent data path
+        /// </summary>
+        /// <param name="projectName">Name of the project to load (without extension)</param>
+        /// <returns>True if successful</returns>
+        public bool LoadProject(string projectName)
+        {
+            try
+            {
+                string filePath = GetProjectFilePath(projectName);
+                
+                if (!System.IO.File.Exists(filePath))
+                {
+                    Debug.LogWarning($"[MiniTimelineDirector] Project file not found: {filePath}");
+                    return false;
+                }
+                
+                var loadedProject = Serialization.ProjectSerializer.LoadFromFile(filePath);
+                
+                if (loadedProject != null)
+                {
+                    SetProject(loadedProject);
+                    
+                    if (debugMode)
+                        Debug.Log($"[MiniTimelineDirector] Loaded project '{projectName}' from: {filePath}");
+                    
+                    return true;
+                }
+                
+                return false;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[MiniTimelineDirector] Failed to load project: {e.Message}");
+                return false;
+            }
+        }
+        
+        /// <summary>
+        /// Get list of all available project names
+        /// </summary>
+        /// <returns>Array of project names (without extension)</returns>
+        public static string[] GetAvailableProjects()
+        {
+            try
+            {
+                string projectsFolder = GetProjectsFolder();
+                
+                if (!System.IO.Directory.Exists(projectsFolder))
+                {
+                    return new string[0];
+                }
+                
+                var jsonFiles = System.IO.Directory.GetFiles(projectsFolder, "*.json");
+                var projectNames = new string[jsonFiles.Length];
+                
+                for (int i = 0; i < jsonFiles.Length; i++)
+                {
+                    projectNames[i] = System.IO.Path.GetFileNameWithoutExtension(jsonFiles[i]);
+                }
+                
+                return projectNames;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[MiniTimelineDirector] Failed to get available projects: {e.Message}");
+                return new string[0];
+            }
+        }
+        
+        /// <summary>
+        /// Delete a project file
+        /// </summary>
+        /// <param name="projectName">Name of the project to delete (without extension)</param>
+        /// <returns>True if successful</returns>
+        public static bool DeleteProject(string projectName)
+        {
+            try
+            {
+                string filePath = GetProjectFilePath(projectName);
+                
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                    Debug.Log($"[MiniTimelineDirector] Deleted project: {filePath}");
+                    return true;
+                }
+                
+                Debug.LogWarning($"[MiniTimelineDirector] Project file not found: {filePath}");
+                return false;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[MiniTimelineDirector] Failed to delete project: {e.Message}");
+                return false;
+            }
+        }
+        
+        /// <summary>
+        /// Check if a project exists
+        /// </summary>
+        /// <param name="projectName">Name of the project (without extension)</param>
+        /// <returns>True if project file exists</returns>
+        public static bool ProjectExists(string projectName)
+        {
+            string filePath = GetProjectFilePath(projectName);
+            return System.IO.File.Exists(filePath);
+        }
+        
+        /// <summary>
         /// Load a timeline project
         /// </summary>
         /// <param name="newProject">Project data to load</param>

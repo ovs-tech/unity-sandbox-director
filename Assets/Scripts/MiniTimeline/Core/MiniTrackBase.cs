@@ -12,6 +12,7 @@ namespace MiniTimeline.Core
         public string BindKey { get; set; }
         public bool Enabled { get; set; } = true;
         public virtual int Order => 0;
+        public bool IsBound => isBound;
         
         protected List<TClip> clips = new List<TClip>();
         protected UnityEngine.Object targetObject;

@@ -1,11 +1,7 @@
-#if UNITY_EDITOR
-using UnityEngine;
 using UnityEditor;
-using MiniTimeline.Core;
+using UnityEngine;
 
-namespace MiniTimeline.Editor
-{
-    [CustomPropertyDrawer(typeof(StringObjectDictionary))]
+[CustomPropertyDrawer(typeof(StringObjectDictionary))]
     public class StringObjectDictionaryDrawer : PropertyDrawer
     {
         private const float LINE_HEIGHT = 20f;
@@ -177,5 +173,3 @@ namespace MiniTimeline.Editor
             return height;
         }
     }
-}
-#endif
