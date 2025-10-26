@@ -7,15 +7,14 @@ using MiniTimeline.Core;
 namespace MiniTimeline.Tracks
 {
     /// <summary>
-    /// Camera track for controlling camera position, rotation, and properties
-    /// Supports smooth transitions between camera positions and settings
+    /// Movement track for controlling Transform position and rotation.
+    /// Supports smooth transitions between positions with various animation curves.
     /// </summary>
     public class MovementTrack : MiniTrackBase<MovementClip>
     {
-        public override int Order => 20; // Camera tracks run after animation
+        public override int Order => 20; // Movement tracks run after animation
         
-        private Camera targetCamera;
-        private Transform cameraTransform;
+        private Transform targetTransform;
         
         // Animation state
         private MovementClip currentClip;
@@ -31,41 +30,44 @@ namespace MiniTimeline.Tracks
         {
             Debug.Log($"[MovementTrack] OnPrepare called for track '{Id}', bind key: '{BindKey}', target object: {targetObject}");
             
-            if(targetObject is Camera camera)
+            // Reset references
+            targetTransform = null;
+            
+            if (targetObject is Transform transform)
             {
-                targetCamera = camera;
-                cameraTransform = camera.transform;
-                Debug.Log($"[MovementTrack] Target is Camera: {camera.name}");
+                targetTransform = transform;
+                Debug.Log($"[MovementTrack] Target is Transform: {transform.name}");
             }
             else if (targetObject is GameObject go)
             {
-                targetCamera = go.GetComponent<Camera>();
-                if (targetCamera != null)
-                {
-                    cameraTransform = targetCamera.transform;
-                    Debug.Log($"[MovementTrack] Target is GameObject: {go.name}, Camera found: {targetCamera != null}");
-                }
+                targetTransform = go.transform;
+                Debug.Log($"[MovementTrack] Target is GameObject: {go.name}");
+            }
+            else if (targetObject is Component component)
+            {
+                targetTransform = component.transform;
+                Debug.Log($"[MovementTrack] Target is Component: {component.GetType().Name} on {component.gameObject.name}");
             }
             else
             {
-                Debug.LogError($"[MovementTrack] Target object for track '{Id}' is not a Camera or GameObject with Camera");
+                Debug.LogError($"[MovementTrack] Target object for track '{Id}' is not a Transform, GameObject, or Component");
                 return;
             }
             
-            if (targetCamera == null)
+            if (targetTransform == null)
             {
-                Debug.LogError($"[MovementTrack] No Camera found for track '{Id}'");
+                Debug.LogError($"[MovementTrack] No Transform found for track '{Id}'");
                 return;
             }
             
-            Debug.Log($"[MovementTrack] Prepared track '{Id}' with {clips.Count} clips, target camera: {targetCamera.name}");
+            Debug.Log($"[MovementTrack] Prepared track '{Id}' with {clips.Count} clips, target transform: {targetTransform.name}");
         }
         
         protected override void OnEvaluate(float time, bool scrub)
         {
-            if (targetCamera == null || cameraTransform == null) 
+            if (targetTransform == null) 
             {
-                Debug.LogWarning($"[MovementTrack] Cannot evaluate - targetCamera or cameraTransform is null for track '{Id}'");
+                Debug.LogWarning($"[MovementTrack] Cannot evaluate - targetTransform is null for track '{Id}'");
                 return;
             }
             
@@ -106,10 +108,10 @@ namespace MiniTimeline.Tracks
         
         #endregion
         
-        #region Camera Control
+        #region Movement Control
         
         /// <summary>
-        /// Apply a single camera clip
+        /// Apply a single movement clip
         /// </summary>
         private void ApplySingleClip(MovementClip clip, float time)
         {   
@@ -118,10 +120,10 @@ namespace MiniTimeline.Tracks
             float normalizedTime = Mathf.Clamp01(localTime / clip.Duration);
             
             Debug.Log($"[MovementTrack] Applying clip '{clip.Id}': localTime={localTime:F3}, normalizedTime={normalizedTime:F3}, " +
-                     $"hasPosition={clip.hasPosition}, hasRotation={clip.hasRotation}, hasFOV={clip.hasFieldOfView}");
+                     $"hasPosition={clip.hasPosition}, hasRotation={clip.hasRotation}");
             
-            // Apply camera properties
-            ApplyCameraProperties(clip, normalizedTime, 1f);
+            // Apply transform properties
+            ApplyTransformProperties(clip, normalizedTime, 1f);
             
             currentClip = clip;
         }
@@ -141,9 +143,9 @@ namespace MiniTimeline.Tracks
         }
         
         /// <summary>
-        /// Apply camera properties with blending
+        /// Apply transform properties with blending
         /// </summary>
-        private void ApplyCameraProperties(MovementClip clip, float normalizedTime, float weight)
+        private void ApplyTransformProperties(MovementClip clip, float normalizedTime, float weight)
         {
             // Interpolate position if specified
             if (clip.hasPosition)
@@ -151,12 +153,12 @@ namespace MiniTimeline.Tracks
                 Vector3 targetPos = EvaluatePosition(clip, normalizedTime);
                 if (weight < 1f && currentClip != null && currentClip.hasPosition)
                 {
-                    Vector3 currentPos = cameraTransform.position;
+                    Vector3 currentPos = targetTransform.position;
                     targetPos = Vector3.Lerp(currentPos, targetPos, weight);
                 }
                 
                 Debug.Log($"[MovementTrack] Setting position: {targetPos} (weight: {weight:F2})");
-                cameraTransform.position = targetPos;
+                targetTransform.position = targetPos;
             }
             
             // Interpolate rotation if specified
@@ -165,26 +167,12 @@ namespace MiniTimeline.Tracks
                 Quaternion targetRot = EvaluateRotation(clip, normalizedTime);
                 if (weight < 1f && currentClip != null && currentClip.hasRotation)
                 {
-                    Quaternion currentRot = cameraTransform.rotation;
+                    Quaternion currentRot = targetTransform.rotation;
                     targetRot = Quaternion.Lerp(currentRot, targetRot, weight);
                 }
                 
                 Debug.Log($"[MovementTrack] Setting rotation: {targetRot.eulerAngles} (weight: {weight:F2})");
-                cameraTransform.rotation = targetRot;
-            }
-            
-            // Apply camera settings
-            if (clip.hasFieldOfView)
-            {
-                float targetFOV = EvaluateFieldOfView(clip, normalizedTime);
-                if (weight < 1f && currentClip != null && currentClip.hasFieldOfView)
-                {
-                    float currentFOV = targetCamera.fieldOfView;
-                    targetFOV = Mathf.Lerp(currentFOV, targetFOV, weight);
-                }
-                
-                Debug.Log($"[MovementTrack] Setting field of view: {targetFOV:F1} (weight: {weight:F2})");
-                targetCamera.fieldOfView = targetFOV;
+                targetTransform.rotation = targetRot;
             }
         }
         
@@ -230,33 +218,12 @@ namespace MiniTimeline.Tracks
             }
         }
         
-        /// <summary>
-        /// Evaluate field of view at normalized time
-        /// </summary>
-        private float EvaluateFieldOfView(MovementClip clip, float normalizedTime)
-        {
-            if (clip.animationCurve == CameraAnimationCurve.Linear)
-            {
-                return Mathf.Lerp(clip.startFieldOfView, clip.endFieldOfView, normalizedTime);
-            }
-            else if (clip.animationCurve == CameraAnimationCurve.EaseInOut)
-            {
-                float easedTime = Mathf.SmoothStep(0f, 1f, normalizedTime);
-                return Mathf.Lerp(clip.startFieldOfView, clip.endFieldOfView, easedTime);
-            }
-            else
-            {
-                // Custom curve or constant
-                return normalizedTime < 0.5f ? clip.startFieldOfView : clip.endFieldOfView;
-            }
-        }
-        
         #endregion
         
         #region Public API
         
         /// <summary>
-        /// Add a new camera clip to this track
+        /// Add a new position movement clip to this track
         /// </summary>
         /// <param name="start">Start time</param>
         /// <param name="duration">Duration</param>
@@ -282,7 +249,7 @@ namespace MiniTimeline.Tracks
         }
         
         /// <summary>
-        /// Add a new camera rotation clip to this track
+        /// Add a new rotation movement clip to this track
         /// </summary>
         /// <param name="start">Start time</param>
         /// <param name="duration">Duration</param>
@@ -304,32 +271,6 @@ namespace MiniTimeline.Tracks
             
             clips.Add(clip);
             Debug.Log($"[MovementTrack] Added rotation clip '{clip.Id}' to track '{Id}': start={start:F2}, duration={duration:F2}, from={startRot.eulerAngles} to={endRot.eulerAngles}");
-            return clip;
-        }
-        
-        /// <summary>
-        /// Add a new field of view clip to this track
-        /// </summary>
-        /// <param name="start">Start time</param>
-        /// <param name="duration">Duration</param>
-        /// <param name="startFOV">Starting field of view</param>
-        /// <param name="endFOV">Ending field of view</param>
-        /// <returns>Created clip</returns>
-        public MovementClip AddFieldOfViewClip(float start, float duration, float startFOV, float endFOV)
-        {
-            var clip = new MovementClip
-            {
-                Id = Guid.NewGuid().ToString(),
-                Start = start,
-                Duration = duration,
-                hasFieldOfView = true,
-                startFieldOfView = startFOV,
-                endFieldOfView = endFOV,
-                animationCurve = CameraAnimationCurve.Linear
-            };
-            
-            clips.Add(clip);
-            Debug.Log($"[MovementTrack] Added field of view clip '{clip.Id}' to track '{Id}': start={start:F2}, duration={duration:F2}, from={startFOV:F1} to={endFOV:F1}");
             return clip;
         }
         

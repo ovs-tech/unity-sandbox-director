@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -49,6 +50,7 @@ namespace MiniTimeline.Editor
         private bool showPlaybackControls = false;
         private bool showTrackInfo = false;
         private bool showDebugInfo = false;
+        private Dictionary<string, bool> clipDataFoldouts = new Dictionary<string, bool>();
         
         // Styles
         private GUIStyle headerStyle;
@@ -664,9 +666,12 @@ namespace MiniTimeline.Editor
                         }
                         
                         // Apply changes
+                        bool bindingsChanged = false;
+                        
                         foreach (var keyToRemove in keysToRemove)
                         {
                             director.BindingContext.Unbind(keyToRemove);
+                            bindingsChanged = true;
                         }
                         
                         foreach (var (oldKey, newKey, obj) in bindingsToAdd)
@@ -674,7 +679,14 @@ namespace MiniTimeline.Editor
                             if (!bindingKeys.Contains(newKey)) // Avoid duplicate keys
                             {
                                 director.BindingContext.Bind(newKey, obj);
+                                bindingsChanged = true;
                             }
+                        }
+                        
+                        // Rebind all tracks if bindings were modified
+                        if (bindingsChanged)
+                        {
+                            RebindAllTracks();
                         }
                     }
                     
@@ -713,6 +725,9 @@ namespace MiniTimeline.Editor
                             director.BindingContext.Bind(newBindingKey, newBindingObject);
                             newBindingKey = "";
                             newBindingObject = null;
+                            
+                            // Rebind all tracks to update their IsBound status
+                            RebindAllTracks();
                         }
                         else
                         {
@@ -1025,6 +1040,28 @@ namespace MiniTimeline.Editor
                                         GUI.color = new Color(0.7f, 0.7f, 0.7f);
                                         EditorGUILayout.LabelField($"ℹ {clipInfo}", EditorStyles.miniLabel);
                                         GUI.color = savedColor;
+                                    }
+                                    
+                                    // Serialized Data Foldout
+                                    EditorGUILayout.Space(3);
+                                    string clipFoldoutKey = $"{track.Id}_{clip.Id}";
+                                    if (!clipDataFoldouts.ContainsKey(clipFoldoutKey))
+                                    {
+                                        clipDataFoldouts[clipFoldoutKey] = false;
+                                    }
+                                    
+                                    clipDataFoldouts[clipFoldoutKey] = EditorGUILayout.Foldout(
+                                        clipDataFoldouts[clipFoldoutKey], 
+                                        "Serialized Data", 
+                                        true,
+                                        EditorStyles.foldout
+                                    );
+                                    
+                                    if (clipDataFoldouts[clipFoldoutKey])
+                                    {
+                                        EditorGUI.indentLevel++;
+                                        DrawClipSerializedData(track, clip);
+                                        EditorGUI.indentLevel--;
                                     }
                                     
                                     EditorGUILayout.EndVertical();
@@ -1394,16 +1431,22 @@ namespace MiniTimeline.Editor
                 return;
             }
             
-            // Use BindingContext.AutoBind() to discover and bind all BindableObject components
-            var existingBindingsCount = director.BindingContext.GetKeys().Count();
-
-            director.BindingContext.AutoBind();
+            // Use the director's AutoBindSceneObjects method which handles both binding and rebinding
+            int bindingsAdded = director.AutoBindSceneObjects();
             
-            var newBindingsCount = director.BindingContext.GetKeys().Count();
-            var bindingsAdded = newBindingsCount - existingBindingsCount;
+            // Repaint to show updated UI
+            Repaint();
             
-            Debug.Log($"[MiniTimelineDirectorEditor] Auto-bound {bindingsAdded} BindableObject components (Total bindings: {newBindingsCount})");
-            EditorUtility.DisplayDialog("Auto-Binding Complete", $"Successfully auto-bound {bindingsAdded} BindableObject components.\n\nTotal bindings: {newBindingsCount}\n\nTip: Add BindableObject component to GameObjects you want to bind.", "OK");
+            int totalBindings = director.BindingContext.GetKeys().Count();
+            Debug.Log($"[MiniTimelineDirectorEditor] Auto-bound {bindingsAdded} BindableObject components (Total bindings: {totalBindings})");
+            EditorUtility.DisplayDialog("Auto-Binding Complete", $"Successfully auto-bound {bindingsAdded} BindableObject components.\n\nTotal bindings: {totalBindings}\n\nTip: Add BindableObject component to GameObjects you want to bind.", "OK");
+        }
+        
+        private void RebindAllTracks()
+        {
+            // Use the public method from director
+            director.RebindAllTracks();
+            Repaint();
         }
         
         private void ClearAllBindings()
@@ -1419,6 +1462,9 @@ namespace MiniTimeline.Editor
             {
                 director.BindingContext.Unbind(key);
             }
+            
+            // Rebind all tracks to update their IsBound status
+            RebindAllTracks();
             
             Debug.Log($"[MiniTimelineDirectorEditor] Cleared {keys.Count} bindings");
         }
@@ -1900,6 +1946,137 @@ namespace MiniTimeline.Editor
                 return new Color(0.9f, 0.3f, 0.5f, 0.8f); // Pink for wardrobe
             
             return new Color(0.5f, 0.5f, 0.5f, 0.8f); // Gray for unknown
+        }
+        
+        private void DrawClipSerializedData(IMiniTrack track, IMiniClip clip)
+        {
+            EditorGUILayout.BeginVertical(GUI.skin.box);
+            
+            // Display runtime clip data
+            GUI.color = new Color(0.9f, 0.9f, 0.6f);
+            EditorGUILayout.LabelField("Runtime Clip Data:", EditorStyles.boldLabel);
+            GUI.color = Color.white;
+            
+            EditorGUILayout.LabelField($"Type: {clip.GetType().Name}");
+            EditorGUILayout.LabelField($"Start: {clip.Start:F3}s");
+            EditorGUILayout.LabelField($"Duration: {clip.Duration:F3}s");
+            EditorGUILayout.LabelField($"End: {(clip.Start + clip.Duration):F3}s");
+            EditorGUILayout.LabelField($"ID: {clip.Id}");
+            
+            // Try to find serialized data
+            if (director.Project != null)
+            {
+                var trackData = director.Project.tracks?.FirstOrDefault(t => t.id == track.Id);
+                if (trackData != null)
+                {
+                    var clipData = trackData.clips?.FirstOrDefault(c => c.id == clip.Id);
+                    if (clipData != null)
+                    {
+                        EditorGUILayout.Space(5);
+                        GUI.color = new Color(0.6f, 0.9f, 0.9f);
+                        EditorGUILayout.LabelField("Serialized Clip Data:", EditorStyles.boldLabel);
+                        GUI.color = Color.white;
+                        
+                        EditorGUILayout.LabelField($"Start: {clipData.start:F3}s");
+                        EditorGUILayout.LabelField($"Duration: {clipData.duration:F3}s");
+                        
+                        if (clipData.payload != null && clipData.payload.Count > 0)
+                        {
+                            EditorGUILayout.Space(3);
+                            EditorGUILayout.LabelField("Payload:", EditorStyles.boldLabel);
+                            
+                            // Display payload dictionary
+                            foreach (var kvp in clipData.payload)
+                            {
+                                var valueStr = kvp.Value?.ToString() ?? "null";
+                                
+                                // Try to format if it's JSON-like
+                                if (valueStr.StartsWith("{") || valueStr.StartsWith("["))
+                                {
+                                    try
+                                    {
+                                        valueStr = FormatJsonForDisplay(valueStr);
+                                    }
+                                    catch { }
+                                }
+                                
+                                EditorGUILayout.BeginHorizontal();
+                                EditorGUILayout.LabelField(kvp.Key, GUILayout.Width(120));
+                                EditorGUILayout.SelectableLabel(valueStr, GUILayout.MinHeight(20));
+                                EditorGUILayout.EndHorizontal();
+                            }
+                        }
+                        else
+                        {
+                            EditorGUILayout.HelpBox("No payload data", MessageType.Info);
+                        }
+                    }
+                    else
+                    {
+                        EditorGUILayout.HelpBox("Serialized data not found (clip not saved yet)", MessageType.Info);
+                    }
+                }
+                else
+                {
+                    EditorGUILayout.HelpBox("Track data not found in project", MessageType.Warning);
+                }
+            }
+            else
+            {
+                EditorGUILayout.HelpBox("No project loaded", MessageType.Warning);
+            }
+            
+            EditorGUILayout.EndVertical();
+        }
+        
+        private string FormatJsonForDisplay(string json)
+        {
+            if (string.IsNullOrEmpty(json)) return json;
+            
+            // Simple JSON formatting (indentation)
+            var indent = 0;
+            var formatted = "";
+            var inString = false;
+            
+            for (int i = 0; i < json.Length; i++)
+            {
+                var c = json[i];
+                
+                if (c == '"' && (i == 0 || json[i - 1] != '\\'))
+                {
+                    inString = !inString;
+                }
+                
+                if (!inString)
+                {
+                    if (c == '{' || c == '[')
+                    {
+                        formatted += c + "\n" + new string(' ', ++indent * 2);
+                    }
+                    else if (c == '}' || c == ']')
+                    {
+                        formatted += "\n" + new string(' ', --indent * 2) + c;
+                    }
+                    else if (c == ',')
+                    {
+                        formatted += c + "\n" + new string(' ', indent * 2);
+                    }
+                    else if (c == ':')
+                    {
+                        formatted += c + " ";
+                    }
+                    else if (!char.IsWhiteSpace(c))
+                    {
+                        formatted += c;
+                    }
+                }
+                else
+                {
+                    formatted += c;
+                }
+            }
+            
+            return formatted;
         }
         
         private string GetClipTypeInfo(IMiniClip clip)

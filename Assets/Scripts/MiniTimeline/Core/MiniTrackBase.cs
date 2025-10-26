@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace MiniTimeline.Core
 {
@@ -23,10 +24,14 @@ namespace MiniTimeline.Core
         {
             if (context == null)
             {
-                UnityEngine.Debug.LogWarning($"[MiniTrack] Cannot bind track '{Id}': BindingContext is null");
+                Debug.LogWarning($"[MiniTrack] Cannot bind track '{Id}': BindingContext is null");
                 isBound = false;
+                isPrepared = false;
                 return;
             }
+            
+            // Store previous target to detect changes
+            var previousTarget = targetObject;
             
             if (!string.IsNullOrEmpty(BindKey))
             {
@@ -35,7 +40,13 @@ namespace MiniTimeline.Core
                 
                 if (!isBound)
                 {
-                    UnityEngine.Debug.LogWarning($"[MiniTrack] Failed to bind track '{Id}' with key '{BindKey}'");
+                    Debug.LogWarning($"[MiniTrack] Failed to bind track '{Id}' with key '{BindKey}'");
+                    isPrepared = false;
+                }
+                else if (previousTarget != targetObject)
+                {
+                    // Target changed, need to re-prepare
+                    isPrepared = false;
                 }
             }
             else
@@ -49,7 +60,7 @@ namespace MiniTimeline.Core
         {
             if (!isBound)
             {
-                UnityEngine.Debug.LogWarning($"[MiniTrack] Cannot prepare unbound track '{Id}'");
+                Debug.LogWarning($"[MiniTrack] Cannot prepare unbound track '{Id}'");
                 return;
             }
             
@@ -80,7 +91,7 @@ namespace MiniTimeline.Core
             }
             else
             {
-                UnityEngine.Debug.LogError($"[MiniTrack] Cannot add clip of type {clip?.GetType()} to track that expects {typeof(TClip)}");
+                Debug.LogError($"[MiniTrack] Cannot add clip of type {clip?.GetType()} to track that expects {typeof(TClip)}");
             }
         }
         

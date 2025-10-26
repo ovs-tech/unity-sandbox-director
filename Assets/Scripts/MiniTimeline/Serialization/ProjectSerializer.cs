@@ -314,7 +314,7 @@ namespace MiniTimeline.Serialization
                 id = clip.id,
                 start = clip.start,
                 duration = clip.duration,
-                payload = clip.payload
+                payload = DictionaryToSerializableList(clip.payload)
             };
         }
 
@@ -329,7 +329,7 @@ namespace MiniTimeline.Serialization
                     id = jsonClip.id,
                     start = jsonClip.start,
                     duration = jsonClip.duration,
-                    payload = jsonClip.payload ?? new Dictionary<string, object>()
+                    payload = SerializableListToDictionary(jsonClip.payload)
                 });
             }
 
@@ -343,7 +343,7 @@ namespace MiniTimeline.Serialization
                 zoom = metadata.zoom,
                 scrollPosition = metadata.scrollPosition,
                 selection = metadata.selection,
-                editorData = metadata.editorData
+                editorData = DictionaryToSerializableList(metadata.editorData)
             };
         }
 
@@ -359,8 +359,47 @@ namespace MiniTimeline.Serialization
                 zoom = jsonMetadata.zoom,
                 scrollPosition = jsonMetadata.scrollPosition,
                 selection = jsonMetadata.selection ?? new List<string>(),
-                editorData = jsonMetadata.editorData ?? new Dictionary<string, object>()
+                editorData = SerializableListToDictionary(jsonMetadata.editorData)
             };
+        }
+
+        /// <summary>
+        /// Convert Dictionary to List of SerializableKeyValue for JSON serialization
+        /// </summary>
+        private static List<SerializableKeyValue> DictionaryToSerializableList(Dictionary<string, object> dictionary)
+        {
+            if (dictionary == null)
+                return new List<SerializableKeyValue>();
+            
+            var list = new List<SerializableKeyValue>();
+            foreach (var kvp in dictionary)
+            {
+                list.Add(new SerializableKeyValue
+                {
+                    key = kvp.Key,
+                    value = kvp.Value?.ToString() ?? ""
+                });
+            }
+            return list;
+        }
+        
+        /// <summary>
+        /// Convert List of SerializableKeyValue back to Dictionary after JSON deserialization
+        /// </summary>
+        private static Dictionary<string, object> SerializableListToDictionary(List<SerializableKeyValue> list)
+        {
+            var dictionary = new Dictionary<string, object>();
+            if (list == null)
+                return dictionary;
+            
+            foreach (var item in list)
+            {
+                if (!string.IsNullOrEmpty(item.key))
+                {
+                    dictionary[item.key] = item.value;
+                }
+            }
+            return dictionary;
         }
 
         #endregion
@@ -396,7 +435,7 @@ namespace MiniTimeline.Serialization
             public string id;
             public float start;
             public float duration;
-            public Dictionary<string, object> payload;
+            public List<SerializableKeyValue> payload; // Changed from Dictionary to List for Unity JsonUtility compatibility
         }
 
         [Serializable]
@@ -405,7 +444,17 @@ namespace MiniTimeline.Serialization
             public float zoom;
             public float scrollPosition;
             public List<string> selection;
-            public Dictionary<string, object> editorData;
+            public List<SerializableKeyValue> editorData; // Changed from Dictionary to List for Unity JsonUtility compatibility
+        }
+        
+        /// <summary>
+        /// Serializable key-value pair for Dictionary replacement (Unity JsonUtility compatible)
+        /// </summary>
+        [Serializable]
+        private class SerializableKeyValue
+        {
+            public string key;
+            public string value; // Store as string, will be parsed when needed
         }
 
         #endregion
