@@ -134,7 +134,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &160561601
 Transform:
   m_ObjectHideFlags: 0
@@ -337,6 +337,7 @@ GameObject:
   m_Component:
   - component: {fileID: 398228399}
   - component: {fileID: 398228398}
+  - component: {fileID: 398228400}
   m_Layer: 0
   m_Name: Mini Timeline Director
   m_TagString: Untagged
@@ -364,6 +365,7 @@ MonoBehaviour:
   defaultProjectName: New Timeline Project
   defaultProjectLength: 10
   defaultFrameRate: 30
+  bindingContext: {fileID: 398228400}
   debugMode: 0
 --- !u!4 &398228399
 Transform:
@@ -380,6 +382,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 721137537}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &398228400
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 398228396}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d74afd1dd40d45ae80574afe032de33, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MiniTimeline.Core.BindingContext
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -1191,6 +1205,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1403702397080736136, guid: 6a31b2ce0c8d34160a1840ae5e562520, type: 3}
+      propertyPath: m_PanelSettings
+      value: 
+      objectReference: {fileID: 11400000, guid: 73b3e9bb7d6264d0199c3d83231d5926, type: 2}
     - target: {fileID: 2654581129769879898, guid: 6a31b2ce0c8d34160a1840ae5e562520, type: 3}
       propertyPath: m_Name
       value: SceneSandboxUIDocument
@@ -1198,10 +1216,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 2654581129769879898, guid: 6a31b2ce0c8d34160a1840ae5e562520, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6a31b2ce0c8d34160a1840ae5e562520, type: 3}
 --- !u!1001 &5871812429103778294
 PrefabInstance:
@@ -1363,10 +1378,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 6856559121620909557, guid: 27296713c7c9141d69ebb46e4f349d8d, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 0}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 27296713c7c9141d69ebb46e4f349d8d, type: 3}
 --- !u!224 &7207087152061411445 stripped
 RectTransform:

@@ -14,15 +14,15 @@ namespace MiniTimeline.UI.Commands
         private readonly MiniTimelineDirector director;
         private readonly IMiniTrack track;
         private readonly TrackData trackBackup;
-        private readonly TimelineEditorUI editorUI;
+        private readonly ITimelineEditorUI editorUI;
         private readonly int trackIndex;
 
-        public RemoveTrackCommand(MiniTimelineDirector timelineDirector, IMiniTrack trackToRemove, TimelineEditorUI editor)
+        public RemoveTrackCommand(MiniTimelineDirector timelineDirector, IMiniTrack trackToRemove, ITimelineEditorUI timelineEditor)
             : base($"Remove {GetTrackDisplayName(trackToRemove)}")
         {
             director = timelineDirector;
             track = trackToRemove;
-            editorUI = editor;
+            editorUI = timelineEditor;
 
             // Backup track data and find index
             if (director?.Project?.tracks != null)

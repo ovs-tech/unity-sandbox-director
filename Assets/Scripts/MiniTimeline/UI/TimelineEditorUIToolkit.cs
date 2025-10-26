@@ -1633,5 +1633,942 @@ namespace MiniTimeline.UI
         }
 
         #endregion
+
+        #region Context Menu Actions
+
+        /// <summary>
+        /// Show clip context menu
+        /// </summary>
+        public void ShowClipMenu(ClipUIToolkit clip, Vector2 screenPosition)
+        {
+            Debug.Log($"ShowClipMenu called with clip: {clip?.Clip?.Id}, position: {screenPosition}");
+
+            // Get form fields from ClipContextMenuDefinitions
+            var formFields = ClipContextMenuDefinitions.GetClipActionFields();
+            Debug.Log($"Created {formFields?.Count ?? 0} form fields for clip");
+
+            // Show form panel
+            Debug.Log("Calling FormSubmitPanelUIToolkit.Instance.Show for clip menu...");
+            FormSubmitPanelUIToolkit.Instance.Show(
+                ClipContextMenuDefinitions.GetClipMenuTitle(), 
+                formFields,
+                onSubmit: (data) =>
+                {
+                    Debug.Log("Clip menu form submitted");
+                    HandleClipFormSubmission(data, clip);
+                },
+                onCancel: () =>
+                {
+                    Debug.Log("Clip menu form cancelled");
+                },
+                transform);
+            Debug.Log("ShowClipMenu completed");
+        }
+
+        /// <summary>
+        /// Show track context menu
+        /// </summary>
+        public void ShowTrackMenu(TrackUIToolkit track, Vector2 screenPosition)
+        {
+            Debug.Log($"ShowTrackMenu called with track: {track?.Track?.Id}, position: {screenPosition}");
+
+            // Get form fields from TrackContextMenuDefinitions
+            var formFields = TrackContextMenuDefinitions.GetTrackActionFields();
+            Debug.Log($"Created {formFields?.Count ?? 0} form fields");
+
+            // Show form panel
+            Debug.Log("Calling FormSubmitPanelUIToolkit.Instance.Show...");
+            FormSubmitPanelUIToolkit.Instance.Show(
+                TrackContextMenuDefinitions.GetTrackMenuTitle(), 
+                formFields,
+                onSubmit: (data) =>
+                {
+                    Debug.Log("Track menu form submitted");
+                    HandleTrackFormSubmission(data, track);
+                },
+                onCancel: () =>
+                {
+                    Debug.Log("Track menu form cancelled");
+                },
+                transform);
+            Debug.Log("ShowTrackMenu completed");
+        }
+
+        /// <summary>
+        /// Show timeline context menu
+        /// </summary>
+        public void ShowTimelineMenu(Vector2 screenPosition, float timePosition)
+        {
+            // Get form fields from TimelineContextMenuDefinitions
+            var formFields = TimelineContextMenuDefinitions.GetTimelineActionFields();
+
+            // Show form panel
+            FormSubmitPanelUIToolkit.Instance.Show(
+                TimelineContextMenuDefinitions.GetTimelineMenuTitle(), 
+                formFields,
+                onSubmit: (data) => HandleTimelineFormSubmission(data, timePosition),
+                onCancel: () => { /* Form cancelled */ },
+                transform);
+        }
+
+        #endregion
+
+        #region Clip Action Handlers
+
+        /// <summary>
+        /// Handles clip form submission
+        /// </summary>
+        private void HandleClipFormSubmission(Dictionary<string, object> data, ClipUIToolkit clip)
+        {
+            if (data.TryGetValue("action", out var action))
+            {
+                HandleClipAction(action.ToString(), clip);
+            }
+        }
+
+        /// <summary>
+        /// Handles clip actions
+        /// </summary>
+        private void HandleClipAction(string action, ClipUIToolkit clip)
+        {
+            switch (action)
+            {
+                case "cut":
+                    CutClip(clip);
+                    break;
+                case "copy":
+                    CopyClip(clip);
+                    break;
+                case "delete":
+                    DeleteClip(clip);
+                    break;
+                case "duplicate":
+                    DuplicateClip(clip);
+                    break;
+                case "split":
+                    SplitClipAtPlayhead(clip);
+                    break;
+                case "properties":
+                    ShowClipProperties(clip);
+                    break;
+                default:
+                    Debug.LogWarning($"Unknown clip action: {action}");
+                    break;
+            }
+        }
+
+        private void CutClip(ClipUIToolkit clipUI)
+        {
+            Debug.Log($"Cut clip: {clipUI?.Clip?.Id}");
+            // TODO: Implement cut functionality
+            // Could integrate with clipboard system
+        }
+
+        private void CopyClip(ClipUIToolkit clipUI)
+        {
+            Debug.Log($"Copy clip: {clipUI?.Clip?.Id}");
+            // TODO: Implement copy functionality
+        }
+
+        private void DeleteClip(ClipUIToolkit clipUI)
+        {
+            if (clipUI?.Clip == null || clipUI?.ParentTrack == null)
+            {
+                Debug.LogError("Cannot delete clip: clip or parent track is null");
+                return;
+            }
+
+            Debug.Log($"Delete clip: {clipUI.Clip.Id}");
+            
+            // TODO: Implement DeleteClipCommand that works with TrackUIToolkit
+            // For now, just remove the clip directly
+            clipUI.ParentTrack.Track.RemoveClip(clipUI.Clip);
+            clipUI.ParentTrack.RebuildClipUIs();
+        }
+
+        private void DuplicateClip(ClipUIToolkit clipUI)
+        {
+            Debug.Log($"Duplicate clip: {clipUI?.Clip?.Id}");
+            // TODO: Implement duplicate functionality
+        }
+
+        private void SplitClipAtPlayhead(ClipUIToolkit clipUI)
+        {
+            Debug.Log($"Split clip at playhead: {clipUI?.Clip?.Id}");
+            // TODO: Implement split functionality
+        }
+
+        private void ShowClipProperties(ClipUIToolkit clipUI)
+        {
+            Debug.Log($"Show properties for clip: {clipUI?.Clip?.Id}");
+
+            if (clipUI?.Clip == null || clipUI?.ParentTrack == null)
+            {
+                Debug.LogWarning("Cannot show properties: clip or parent track is null");
+                return;
+            }
+
+            // Get track type to determine form fields
+            string trackType = GetClipTrackType(clipUI);
+
+            // Get field definitions for this track type (same as creation form)
+            var fieldDefinitions = ClipFormDefinitions.GetFieldsForTrackType(trackType);
+
+            // Populate form fields with current clip data
+            PopulateFormFieldsWithClipData(fieldDefinitions, clipUI);
+
+            string formTitle = $"Edit {ClipFormDefinitions.GetTrackTypeDisplayName(trackType)}";
+
+            // Show the form for editing
+            FormSubmitPanelUIToolkit.Instance.Show(
+                formTitle,
+                fieldDefinitions,
+                (data) => OnClipEditFormSubmitted(data, clipUI),
+                () => OnClipEditFormCancelled(),
+                transform
+            );
+        }
+
+        /// <summary>
+        /// Get the track type string for this clip's parent track
+        /// </summary>
+        private string GetClipTrackType(ClipUIToolkit clipUI)
+        {
+            if (clipUI?.ParentTrack?.Track == null) return "generic";
+
+            // Use the same logic as the existing GetTrackType method
+            return TrackUIHelper.GetTrackTypeString(clipUI.ParentTrack.Track);
+        }
+
+        /// <summary>
+        /// Populate form field definitions with current clip data
+        /// </summary>
+        private void PopulateFormFieldsWithClipData(List<FormFieldDefinition> fieldDefinitions, ClipUIToolkit clipUI)
+        {
+            foreach (var fieldDef in fieldDefinitions)
+            {
+                switch (fieldDef.name)
+                {
+                    case "trackType":
+                        fieldDef.defaultValue = GetClipTrackType(clipUI);
+                        break;
+
+                    case "name":
+                        fieldDef.defaultValue = clipUI.Clip.Id;
+                        break;
+
+                    case "start":
+                        fieldDef.defaultValue = clipUI.Clip.Start;
+                        break;
+
+                    case "duration":
+                        fieldDef.defaultValue = clipUI.Clip.Duration;
+                        break;
+
+                    default:
+                        // Handle clip-specific properties using reflection
+                        PopulateClipSpecificProperty(fieldDef, clipUI);
+                        break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Populate clip-specific properties using reflection
+        /// </summary>
+        private void PopulateClipSpecificProperty(FormFieldDefinition fieldDef, ClipUIToolkit clipUI)
+        {
+            try
+            {
+                var clipType = clipUI.Clip.GetType();
+                var property = clipType.GetProperty(fieldDef.name, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                var field = clipType.GetField(fieldDef.name, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
+                if (property != null && property.CanRead)
+                {
+                    fieldDef.defaultValue = property.GetValue(clipUI.Clip);
+                }
+                else if (field != null)
+                {
+                    fieldDef.defaultValue = field.GetValue(clipUI.Clip);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"Failed to populate clip property '{fieldDef.name}': {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Handle form submission for clip editing
+        /// </summary>
+        private void OnClipEditFormSubmitted(Dictionary<string, object> formData, ClipUIToolkit clipUI)
+        {
+            Debug.Log($"Clip edit form submitted with {formData.Count} fields to clip {clipUI.Clip.Id}");
+
+            try
+            {
+                // Apply clip changes directly (fallback when no command system available)
+                ApplyClipChangesDirectly(formData, clipUI);
+
+                // TODO: Implement proper command-based editing
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to apply clip changes: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Handle form cancellation for clip editing
+        /// </summary>
+        private void OnClipEditFormCancelled()
+        {
+            Debug.Log("Clip edit cancelled");
+        }
+
+        /// <summary>
+        /// Apply clip changes directly (fallback when no command system available)
+        /// </summary>
+        private void ApplyClipChangesDirectly(Dictionary<string, object> formData, ClipUIToolkit clipUI)
+        {
+            // Cast to MiniClipBase to access setters
+            var clipBase = clipUI.Clip as MiniClipBase;
+            if (clipBase == null)
+            {
+                Debug.LogError($"Cannot edit clip: clip {clipUI.Clip.GetType().Name} is not derived from MiniClipBase");
+                return;
+            }
+
+            // Store original values for basic properties
+            float originalStart = clipBase.Start;
+            float originalDuration = clipBase.Duration;
+            string originalId = clipBase.Id;
+
+            // Apply basic properties
+            if (formData.ContainsKey("name"))
+            {
+                clipBase.Id = formData["name"].ToString();
+            }
+
+            if (formData.ContainsKey("start") && float.TryParse(formData["start"].ToString(), out float newStart))
+            {
+                clipBase.Start = newStart;
+            }
+
+            if (formData.ContainsKey("duration") && float.TryParse(formData["duration"].ToString(), out float newDuration))
+            {
+                clipBase.Duration = Mathf.Max(0.1f, newDuration); // Ensure minimum duration
+            }
+
+            // Apply clip-specific properties using reflection
+            ApplyClipSpecificProperties(formData, clipUI);
+
+            // Update visual representation
+            clipUI.UpdateClipAppearance();
+
+            // If position or duration changed, rebuild track layout
+            if (Mathf.Abs(originalStart - clipBase.Start) > 0.001f ||
+                Mathf.Abs(originalDuration - clipBase.Duration) > 0.001f)
+            {
+                clipUI.ParentTrack?.RebuildClipUIs();
+            }
+
+            Debug.Log($"Applied clip changes directly: {originalId} -> {clipBase.Id}");
+        }
+
+        /// <summary>
+        /// Apply clip-specific properties using reflection
+        /// </summary>
+        private void ApplyClipSpecificProperties(Dictionary<string, object> formData, ClipUIToolkit clipUI)
+        {
+            var clipType = clipUI.Clip.GetType();
+
+            foreach (var kvp in formData)
+            {
+                // Skip basic properties that are handled separately
+                if (kvp.Key == "trackType" || kvp.Key == "name" || kvp.Key == "start" || kvp.Key == "duration")
+                    continue;
+
+                try
+                {
+                    var property = clipType.GetProperty(kvp.Key, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                    var field = clipType.GetField(kvp.Key, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
+                    if (property != null && property.CanWrite)
+                    {
+                        var convertedValue = ConvertValueToPropertyType(kvp.Value, property.PropertyType);
+                        property.SetValue(clipUI.Clip, convertedValue);
+                        Debug.Log($"Set clip property {kvp.Key} = {convertedValue}");
+                    }
+                    else if (field != null)
+                    {
+                        var convertedValue = ConvertValueToPropertyType(kvp.Value, field.FieldType);
+                        field.SetValue(clipUI.Clip, convertedValue);
+                        Debug.Log($"Set clip field {kvp.Key} = {convertedValue}");
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogWarning($"Failed to set clip property '{kvp.Key}': {ex.Message}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Convert form value to the target property type
+        /// </summary>
+        private object ConvertValueToPropertyType(object value, System.Type targetType)
+        {
+            if (value == null) return null;
+
+            // If already correct type, return as-is
+            if (targetType.IsAssignableFrom(value.GetType()))
+                return value;
+
+            // Handle common type conversions
+            if (targetType == typeof(string))
+                return value.ToString();
+
+            if (targetType == typeof(float))
+                return Convert.ToSingle(value);
+
+            if (targetType == typeof(int))
+                return Convert.ToInt32(value);
+
+            if (targetType == typeof(bool))
+                return Convert.ToBoolean(value);
+
+            // Default: try direct conversion
+            return Convert.ChangeType(value, targetType);
+        }
+
+        #endregion
+
+        #region Track Action Handlers
+
+        /// <summary>
+        /// Handles track form submission
+        /// </summary>
+        private void HandleTrackFormSubmission(Dictionary<string, object> data, TrackUIToolkit track)
+        {
+            Debug.Log($"HandleTrackFormSubmission called with {data.Count} data items");
+            foreach (var kvp in data)
+            {
+                Debug.Log($"  {kvp.Key}: {kvp.Value}");
+            }
+
+            if (data.TryGetValue("action", out var action))
+            {
+                Debug.Log($"Found action: {action}");
+                HandleTrackAction(action.ToString(), track);
+            }
+            else
+            {
+                Debug.LogWarning("No 'action' key found in form data");
+            }
+        }
+
+        /// <summary>
+        /// Handles track actions
+        /// </summary>
+        private void HandleTrackAction(string action, TrackUIToolkit track)
+        {
+            Debug.Log($"HandleTrackAction called with action: '{action}', track: {track?.Track?.Id}");
+
+            switch (action)
+            {
+                case "addClip":
+                    Debug.Log("Calling AddClipToTrack");
+                    AddClipToTrack(track);
+                    break;
+                case "mute":
+                    MuteTrack(track);
+                    break;
+                case "solo":
+                    SoloTrack(track);
+                    break;
+                case "delete":
+                    DeleteTrack(track);
+                    break;
+                case "settings":
+                    ShowTrackSettings(track);
+                    break;
+                default:
+                    Debug.LogWarning($"Unknown track action: {action}");
+                    break;
+            }
+        }
+
+        private void AddClipToTrack(TrackUIToolkit track)
+        {
+            Debug.Log($"AddClipToTrack called with track: {track?.Track?.Id}");
+
+            if (track?.Track == null)
+            {
+                Debug.LogError("Cannot create clip: track is null");
+                return;
+            }
+
+            Debug.Log("Track is valid, calling ShowCreateClipForm");
+            // Show create clip form
+            ShowCreateClipForm(track);
+        }
+
+        private void ShowCreateClipForm(TrackUIToolkit trackUI)
+        {
+            Debug.Log($"ShowCreateClipForm called with trackUI: {trackUI?.Track?.Id}");
+
+            if (trackUI.Track == null)
+            {
+                Debug.LogError("Cannot create clip: track is null");
+                return;
+            }
+
+            Debug.Log("Getting track type...");
+            // Get the track type
+            string trackType = TrackUIHelper.GetTrackTypeString(trackUI.Track);
+            Debug.Log($"Track type: {trackType}");
+
+            Debug.Log("Getting form field definitions...");
+            // Get form field definitions using ClipFormDefinitions
+            var fieldDefinitions = ClipFormDefinitions.GetFieldsForTrackType(trackType);
+            Debug.Log($"Got {fieldDefinitions?.Count ?? 0} field definitions");
+
+            if (fieldDefinitions != null)
+            {
+                foreach (var field in fieldDefinitions)
+                {
+                    Debug.Log($"  Field: {field.name} | Type: {field.type} | Label: {field.label}");
+                }
+            }
+            else
+            {
+                Debug.LogError("fieldDefinitions is null!");
+            }
+
+            // Get display name for the form title
+            string formTitle = ClipFormDefinitions.GetTrackTypeDisplayName(trackType);
+            Debug.Log($"Form title: {formTitle}");
+
+            Debug.Log("Showing FormSubmitPanelUIToolkit...");
+            // Show the form
+            FormSubmitPanelUIToolkit.Instance.Show(
+                formTitle,
+                fieldDefinitions,
+                (data) => OnClipFormSubmittedForTrack(data, trackUI),
+                () => OnClipFormCancelled(),
+                transform
+            );
+            Debug.Log("FormSubmitPanelUIToolkit.Show call completed");
+        }
+
+        private void OnClipFormSubmittedForTrack(Dictionary<string, object> formData, TrackUIToolkit trackUI)
+        {
+            Debug.Log($"Clip form submitted with {formData.Count} fields: {string.Join(", ", formData.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
+
+            // Get track type from form data (it's included as a hidden field)
+            string trackType = formData.ContainsKey("trackType") ? formData["trackType"].ToString() : TrackUIHelper.GetTrackTypeString(trackUI.Track);
+
+            CreateClipFromFormData(trackType, formData, trackUI);
+        }
+
+        private void OnClipFormCancelled()
+        {
+            Debug.Log("Clip creation cancelled");
+        }
+
+        private void CreateClipFromFormData(string trackType, Dictionary<string, object> formData, TrackUIToolkit trackUI)
+        {
+            try
+            {
+                // Use TrackFactory to create the clip instance properly
+                IMiniClip clipInstance = TrackFactory.CreateClipFromFormData(trackType, formData);
+
+                if (clipInstance != null)
+                {
+                    // Try to add clip directly since we don't have access to commands
+                    trackUI.Track.AddClip(clipInstance);
+                    trackUI.RebuildClipUIs();
+
+                    Debug.Log($"Successfully created clip '{clipInstance.Id}' on track '{trackUI.Track.Id}'");
+                }
+                else
+                {
+                    Debug.LogError($"Failed to create clip instance for track type: {trackType}");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to create clip: {ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
+        private void MuteTrack(TrackUIToolkit track)
+        {
+            Debug.Log($"Toggle mute for track: {track.Track?.GetType().Name}");
+            // TODO: Implement mute functionality - need access to mute toggle or track enabled state
+            // For now, just toggle the track enabled state
+            if (track.Track != null)
+            {
+                track.Track.Enabled = !track.Track.Enabled;
+            }
+        }
+
+        private void SoloTrack(TrackUIToolkit track)
+        {
+            Debug.Log($"Solo track: {track.Track?.GetType().Name}");
+            // TODO: Implement solo functionality
+        }
+
+        private void DeleteTrack(TrackUIToolkit track)
+        {
+            if (track.Track == null || director == null)
+            {
+                Debug.LogError("Cannot delete track: track or timeline director is null");
+                return;
+            }
+
+            // Show confirmation dialog for track deletion
+            ShowDeleteTrackConfirmation(track);
+        }
+
+        private void ShowDeleteTrackConfirmation(TrackUIToolkit trackUI)
+        {
+            string trackDisplayName = GetTrackDisplayName(trackUI.Track);
+            int clipCount = trackUI.Track.GetClips()?.Count() ?? 0;
+
+            // Create confirmation form
+            var fieldDefinitions = new List<FormFieldDefinition>
+            {
+                new FormFieldDefinition
+                {
+                    name = "confirmationText",
+                    type = "textarea",
+                    label = "Confirmation",
+                    required = false,
+                    defaultValue = $"Are you sure you want to delete '{trackDisplayName}'?\n\n" +
+                                   $"This track contains {clipCount} clip(s).\n\n" +
+                                   "This action cannot be undone (but can be undone via Undo command).\n\n" +
+                                   "Type 'DELETE' below to confirm:",
+                    tooltip = "Confirmation message for track deletion",
+                    options = new Dictionary<string, object>
+                    {
+                        { "readonly", true }
+                    }
+                },
+
+                new FormFieldDefinition
+                {
+                    name = "confirmationInput",
+                    type = "text",
+                    label = "Type 'DELETE' to confirm",
+                    required = true,
+                    placeholder = "DELETE",
+                    tooltip = "Type 'DELETE' exactly to confirm track deletion"
+                },
+
+                new FormFieldDefinition
+                {
+                    name = "preserveClips",
+                    type = "toggle",
+                    label = "Preserve Clips Data (for debugging)",
+                    required = false,
+                    defaultValue = false,
+                    tooltip = "Keep clip data in memory for debugging purposes (not recommended for production)"
+                }
+            };
+
+            // Show confirmation form
+            FormSubmitPanelUIToolkit.Instance.Show(
+                $"⚠️ Delete {trackDisplayName}",
+                fieldDefinitions,
+                (data) => OnDeleteTrackConfirmed(data, trackUI),
+                () => OnDeleteTrackCancelled(),
+                transform
+            );
+        }
+
+        private string GetTrackDisplayName(IMiniTrack track)
+        {
+            if (track == null) return "Unknown Track";
+
+            string typeName = track.GetType().Name;
+            return typeName switch
+            {
+                "AnimTrack" => "Animation Track",
+                "AnimatorTrack" => "Animator Track",
+                "MorphTrack" => "Morph Track",
+                "MovementTrack" => "Movement Track",
+                "SignalTrack" => "Signal Track",
+                "UmaWardrobeTrack" => "UMA Wardrobe Track",
+                "UMAExpressionTrack" => "UMA Expression Track",
+                _ => $"{typeName} Track"
+            };
+        }
+
+        private void OnDeleteTrackConfirmed(Dictionary<string, object> formData, TrackUIToolkit trackUI)
+        {
+            try
+            {
+                // Validate confirmation input
+                string confirmationInput = formData.ContainsKey("confirmationInput")
+                    ? formData["confirmationInput"]?.ToString() ?? ""
+                    : "";
+
+                if (confirmationInput != "DELETE")
+                {
+                    Debug.LogWarning("Track deletion cancelled: confirmation text does not match 'DELETE'");
+                    return;
+                }
+
+                // Get preserve clips option
+                bool preserveClips = formData.ContainsKey("preserveClips")
+                    ? Convert.ToBoolean(formData["preserveClips"])
+                    : false;
+
+                // Execute delete command
+                ExecuteDeleteTrack(trackUI, preserveClips);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to process track deletion confirmation: {ex.Message}");
+            }
+        }
+
+        private void OnDeleteTrackCancelled()
+        {
+            Debug.Log("Track deletion cancelled by user");
+        }
+
+        private void ExecuteDeleteTrack(TrackUIToolkit trackUI, bool preserveClips = false)
+        {
+            try
+            {
+                string trackDisplayName = GetTrackDisplayName(trackUI.Track);
+
+                if (preserveClips)
+                {
+                    Debug.Log($"Preserving clips data for debugging: {trackUI.Track.GetClips()?.Count() ?? 0} clips");
+                    // Could store clips data here for debugging if needed
+                }
+
+                // For now, just log the deletion - implement proper track removal command later
+                Debug.Log($"Delete track requested: {trackDisplayName}");
+                // TODO: Implement proper track deletion through command system
+                // var removeCommand = new RemoveTrackCommand(director, trackUI.Track, this);
+                // ExecuteCommand(removeCommand);
+
+                Debug.Log($"Successfully deleted {trackDisplayName}");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to delete track: {ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
+        private void ShowTrackSettings(TrackUIToolkit track)
+        {
+            if (track.Track == null)
+            {
+                Debug.LogError("Cannot show track settings: track is null");
+                return;
+            }
+
+            // Get the track type for form definition lookup
+            string trackType = TrackUIHelper.GetTrackTypeString(track.Track);
+
+            // Get form field definitions from TrackFormDefinitions
+            var fieldDefinitions = TrackFormDefinitions.GetTrackSettingsFields(trackType);
+
+            // Set default values from current track state
+            SetDefaultValuesForTrackSettings(fieldDefinitions, track);
+
+            // Show the form using FormSubmitPanelUIToolkit
+            FormSubmitPanelUIToolkit.Instance.Show(
+                $"Track Settings - {TrackFormDefinitions.GetTrackTypeDisplayName(trackType)}",
+                fieldDefinitions,
+                (data) => OnTrackSettingsFormSubmitted(data, track),
+                () => OnTrackSettingsFormCancelled(),
+                transform
+            );
+
+            Debug.Log($"Show track settings: {track.Track?.GetType().Name}");
+        }
+
+        private void SetDefaultValuesForTrackSettings(List<FormFieldDefinition> fieldDefinitions, TrackUIToolkit trackUI)
+        {
+            foreach (var field in fieldDefinitions)
+            {
+                switch (field.name)
+                {
+                    case "trackName":
+                        field.defaultValue = GetTrackDisplayName(trackUI.Track);
+                        break;
+                    case "bindKey":
+                        field.defaultValue = trackUI.Track.BindKey ?? "";
+                        // Update selectbox options with available bindings
+                        if (field.options == null)
+                            field.options = new Dictionary<string, object>();
+                        field.options["items"] = TrackFormDefinitions.GetAvailableBindingKeys();
+                        break;
+                    case "enabled":
+                        field.defaultValue = trackUI.Track.Enabled;
+                        break;
+                    case "trackOrder":
+                        field.defaultValue = GetTrackOrder(trackUI);
+                        break;
+                }
+            }
+        }
+
+        private int GetTrackOrder(TrackUIToolkit trackUI)
+        {
+            if (trackUI.Track == null || director?.Project == null) return 0;
+
+            var projectTracks = director.Project.tracks;
+            var trackData = projectTracks?.FirstOrDefault(t => t.id == trackUI.Track.Id);
+            return trackData?.order ?? 0;
+        }
+
+        private void OnTrackSettingsFormSubmitted(Dictionary<string, object> formData, TrackUIToolkit trackUI)
+        {
+            try
+            {
+                Debug.Log("Track settings form submitted with data:");
+                foreach (var kvp in formData)
+                {
+                    Debug.Log($"  {kvp.Key}: {kvp.Value}");
+                }
+
+                // Apply the settings changes
+                ApplyTrackSettings(formData, trackUI);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to apply track settings: {ex.Message}");
+            }
+        }
+
+        private void OnTrackSettingsFormCancelled()
+        {
+            Debug.Log("Track settings cancelled");
+        }
+
+        private void ApplyTrackSettings(Dictionary<string, object> formData, TrackUIToolkit trackUI)
+        {
+            if (trackUI.Track == null) return;
+
+            string trackType = TrackUIHelper.GetTrackTypeString(trackUI.Track);
+
+            // Validate the form data using TrackFormDefinitions
+            if (!TrackFormDefinitions.ValidateTrackSettings(formData, trackType, out string errorMessage))
+            {
+                Debug.LogError($"Track settings validation failed: {errorMessage}");
+                return;
+            }
+
+            // Convert form data to track settings using TrackFormDefinitions
+            var newSettings = TrackFormDefinitions.ConvertFormDataToTrackSettings(formData, trackType);
+
+            // Apply settings directly to the track
+            ApplyTrackSettingsDirectly(newSettings, trackUI);
+        }
+
+        private void ApplyTrackSettingsDirectly(Dictionary<string, object> formData, TrackUIToolkit trackUI)
+        {
+            try
+            {
+                // Log the settings that would be applied
+                // Note: Some properties like BindKey might be readonly and require special handling
+                Debug.Log("Track settings to apply:");
+
+                if (formData.ContainsKey("bindKey"))
+                {
+                    string newBindKey = formData["bindKey"].ToString();
+                    Debug.Log($"  BindKey: {trackUI.Track.BindKey} -> {newBindKey}");
+                    // TODO: Apply bind key through proper command or method
+                }
+
+                if (formData.ContainsKey("enabled"))
+                {
+                    bool newEnabled = Convert.ToBoolean(formData["enabled"]);
+                    Debug.Log($"  Enabled: {trackUI.Track.Enabled} -> {newEnabled}");
+                    trackUI.Track.Enabled = newEnabled;
+                }
+
+                Debug.Log("Track settings applied successfully");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"Failed to apply track settings: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #region Timeline Action Handlers
+
+        /// <summary>
+        /// Handles timeline form submission
+        /// </summary>
+        private void HandleTimelineFormSubmission(Dictionary<string, object> data, float timePosition)
+        {
+            if (data.TryGetValue("action", out var action))
+            {
+                HandleTimelineAction(action.ToString(), timePosition);
+            }
+        }
+
+        /// <summary>
+        /// Handles timeline actions
+        /// </summary>
+        private void HandleTimelineAction(string action, float timePosition)
+        {
+            switch (action)
+            {
+                case "addTrack":
+                    ShowAddTrackForm();
+                    break;
+                case "paste":
+                    PasteAtTime(timePosition);
+                    break;
+                case "addMarker":
+                    AddMarker(timePosition);
+                    break;
+                case "zoomFit":
+                    ZoomToFit();
+                    break;
+                case "resetZoom":
+                    ResetZoom();
+                    break;
+            }
+        }
+
+        private void PasteAtTime(float time)
+        {
+            Debug.Log($"Paste at time: {time}");
+            // TODO: Implement paste functionality
+        }
+
+        private void AddMarker(float time)
+        {
+            Debug.Log($"Add marker at time: {time}");
+            // TODO: Add event marker
+        }
+
+        private void ZoomToFit()
+        {
+            Debug.Log("Zoom to fit");
+            SetZoom(1f); // TODO: Calculate proper zoom to fit
+        }
+
+        private void ResetZoom()
+        {
+            Debug.Log("Reset zoom");
+            SetZoom(1f);
+        }
+
+        #endregion
     }
 }

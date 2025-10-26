@@ -93,12 +93,11 @@
 /* Ruler Container */
 .ruler-container {
     height: 30px;
-    margin-left: 200px
+    margin-left: 200px;
     background-color: rgb(55, 55, 55);
     border-bottom-width: 1px;
     border-bottom-color: rgb(30, 30, 30);
     flex-direction: row;
-    position: relative;
 }
 
 /* Ruler */

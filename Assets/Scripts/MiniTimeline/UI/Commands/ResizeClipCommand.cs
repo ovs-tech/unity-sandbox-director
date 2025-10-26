@@ -31,15 +31,15 @@ namespace MiniTimeline.UI.Commands
         {
             SetClipTiming(newStartTime, newDuration);
 
-            // Update UI
-            trackUI?.RebuildClipUIs();
+            // Don't rebuild UI here - the visual update was already done during resize
+            // Only rebuild on undo/redo to ensure consistency
         }
 
         protected override void UndoInternal()
         {
             SetClipTiming(oldStartTime, oldDuration);
 
-            // Update UI
+            // Rebuild UI to reflect the undone timing
             trackUI?.RebuildClipUIs();
         }
 

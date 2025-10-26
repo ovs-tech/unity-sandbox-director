@@ -108,28 +108,7 @@ namespace MiniTimeline.UI
             // Assign track color after all elements are set up
             AssignTrackColor();
 
-            // Ensure TimelineContextMenu is initialized for context menu support
-            EnsureContextMenuInitialized();
-        }
-
-        /// <summary>
-        /// Ensures TimelineContextMenu is properly initialized for this track
-        /// </summary>
-        private void EnsureContextMenuInitialized()
-        {
-            if (!TimelineContextMenu.HasInstance)
-            {
-                Debug.LogWarning("TimelineContextMenu instance not found. Context menus may not work properly.");
-                return;
-            }
-
-            // Get the TimelineEditorUI component for context menu initialization
-            var timelineEditorUI = editorUI?.GetComponent<TimelineEditorUI>();
-            if (timelineEditorUI != null)
-            {
-                // Initialize the context menu with the timeline editor
-                TimelineContextMenu.Instance.Initialize(timelineEditorUI);
-            }
+            // Debug.Log($"TrackUIToolkit initialized for track: {track.Id}");
         }
 
         private void CreateTrackElement()
@@ -381,7 +360,7 @@ namespace MiniTimeline.UI
             foreach (var clip in clips)
             {
                 var clipUI = new ClipUIToolkit();
-                clipUI.Initialize(editorUI, clip, clipsContainer, editorUI.ClipTemplate, editorUI.ClipStyleSheet);
+                clipUI.Initialize(editorUI, clip, clipsContainer, editorUI.ClipTemplate, editorUI.ClipStyleSheet, this);
                 clipUIs.Add(clipUI);
                 clipUILookup[clip.Id] = clipUI;
 
@@ -605,27 +584,17 @@ namespace MiniTimeline.UI
         }
 
         /// <summary>
-        /// Shows track context menu using FormSubmitPanelUIToolkit directly
+        /// Shows track context menu using TimelineEditorUIToolkit
         /// </summary>
         private void ShowTrackContextMenuDynamic()
         {
-            // Create form fields for track actions
-            var formFields = CreateTrackActionFields();
-
-            // Show form panel directly
-            if (FormSubmitPanelUIToolkit.HasInstance)
+            if (editorUI != null)
             {
-                FormSubmitPanelUIToolkit.Instance.Show(
-                    "Track Actions",
-                    formFields,
-                    onSubmit: OnTrackActionSubmitted,
-                    onCancel: OnTrackActionCancelled,
-                    editorUI?.transform
-                );
+                editorUI.ShowTrackMenu(this, Vector2.zero);
             }
             else
             {
-                Debug.LogWarning("FormSubmitPanelUIToolkit not available");
+                Debug.LogWarning("TimelineEditorUIToolkit not available");
             }
         }
 
@@ -782,21 +751,24 @@ namespace MiniTimeline.UI
         }
 
         /// <summary>
-        /// Toggle track mute state
+        /// Toggle track mute state using command for undo/redo support
         /// </summary>
         private void ToggleTrackMute()
         {
-            if (track != null)
+            if (track == null || editorUI == null)
             {
-                Debug.Log($"Toggle mute for track: {track.GetType().Name}");
-                track.Enabled = !track.Enabled;
-                
-                // Update visual state
-                if (trackEnabled != null)
-                {
-                    trackEnabled.value = track.Enabled;
-                }
+                Debug.LogWarning("Cannot toggle mute: track or editorUI is null");
+                return;
             }
+
+            bool oldEnabled = track.Enabled;
+            bool newEnabled = !oldEnabled;
+            
+            // Create and execute mute command
+            var muteCommand = new MuteTrackCommand(track, oldEnabled, newEnabled, editorUI);
+            editorUI.ExecuteCommand(muteCommand);
+            
+            Debug.Log($"Toggled mute for track: {track.GetType().Name} (enabled: {newEnabled})");
         }
 
         /// <summary>
@@ -946,12 +918,18 @@ namespace MiniTimeline.UI
         }
 
         /// <summary>
-        /// Execute track deletion
+        /// Execute track deletion using command for undo/redo support
         /// </summary>
         private void ExecuteDeleteTrack(bool preserveClips = false)
         {
             try
             {
+                if (track == null || editorUI == null || editorUI.Director == null)
+                {
+                    Debug.LogError("Cannot delete track: track, editorUI, or Director is null");
+                    return;
+                }
+
                 string trackDisplayName = GetTrackDisplayName(track);
 
                 if (preserveClips)
@@ -960,11 +938,9 @@ namespace MiniTimeline.UI
                     // Could store clips data here for debugging if needed
                 }
 
-                // For now, just log the deletion - implement proper track removal command later
-                Debug.Log($"Delete track requested: {trackDisplayName}");
-                // TODO: Implement proper track deletion through timeline editor
-                // var removeCommand = new RemoveTrackCommand(editorUI.Director, track, editorUI);
-                // editorUI.ExecuteCommand(removeCommand);
+                // Create and execute remove track command
+                var removeCommand = new RemoveTrackCommand(editorUI.Director, track, editorUI);
+                editorUI.ExecuteCommand(removeCommand);
 
                 Debug.Log($"Successfully deleted {trackDisplayName}");
             }
@@ -1091,23 +1067,52 @@ namespace MiniTimeline.UI
         }
 
         /// <summary>
-        /// Apply track settings directly to track
+        /// Apply track settings using command for undo/redo support
         /// </summary>
         private void ApplyTrackSettingsDirectly(Dictionary<string, object> formData)
         {
-            // Note: BindKey is read-only in IMiniTrack interface
-            // To change bindKey, we'd need to use a command or recreate the track
-            // For now, we only apply properties that are writable
+            if (track == null || editorUI == null || editorUI.Director == null)
+                return;
 
-            if (formData.ContainsKey("enabled") && bool.TryParse(formData["enabled"]?.ToString(), out bool enabled))
+            // Capture old settings for undo
+            var oldSettings = new Dictionary<string, object>();
+            
+            foreach (var kvp in formData)
             {
-                track.Enabled = enabled;
+                switch (kvp.Key)
+                {
+                    case "enabled":
+                        oldSettings["enabled"] = track.Enabled;
+                        break;
+                    case "bindKey":
+                        oldSettings["bindKey"] = track.BindKey ?? "";
+                        break;
+                    case "order":
+                        oldSettings["order"] = GetTrackOrder();
+                        break;
+                    default:
+                        // Capture track-specific properties
+                        var property = track.GetType().GetProperty(kvp.Key);
+                        if (property != null && property.CanRead)
+                        {
+                            oldSettings[kvp.Key] = property.GetValue(track);
+                        }
+                        break;
+                }
             }
 
-            // Update UI to reflect changes
-            SetupTrackData();
+            // Create and execute command
+            var updateCommand = new UpdateTrackSettingsCommand(
+                track, 
+                oldSettings, 
+                formData, 
+                editorUI, 
+                editorUI.Director
+            );
             
-            Debug.Log($"Applied track settings for {GetTrackDisplayName(track)}");
+            editorUI.ExecuteCommand(updateCommand);
+            
+            Debug.Log($"Applied track settings for {GetTrackDisplayName(track)} via command");
         }
 
         /// <summary>
@@ -1137,42 +1142,6 @@ namespace MiniTimeline.UI
 
             // Rebuild clips
             CreateClipElements();
-        }
-
-        /// <summary>
-        /// Initialize the TrackUI wrapper with minimal required data
-        /// </summary>
-        private void InitializeTrackUIWrapper(TrackUI wrapper)
-        {
-            if (wrapper == null || track == null) return;
-
-            // Set the track reference using reflection if needed
-            var trackField = typeof(TrackUI).GetField("track",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-            if (trackField != null)
-            {
-                trackField.SetValue(wrapper, track);
-            }
-
-            // Set the timeline editor reference
-            var editorField = typeof(TrackUI).GetField("timelineEditor",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-            if (editorField != null && editorUI != null)
-            {
-                var timelineEditorUI = editorUI.GetComponent<TimelineEditorUI>();
-                if (timelineEditorUI != null)
-                {
-                    editorField.SetValue(wrapper, timelineEditorUI);
-                }
-            }
-
-            // Set the wrapper name for debugging
-            wrapper.name = $"TrackUIWrapper_{track.Id}";
-
-            // Hide the wrapper GameObject since it's just for context menu compatibility
-            wrapper.gameObject.SetActive(false);
         }
 
         #endregion

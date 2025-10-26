@@ -33,6 +33,9 @@ namespace MiniTimeline.Core
         [SerializeField] private float defaultProjectLength = 10f;
         [SerializeField] private float defaultFrameRate = 30f;
         
+        [Header("Binding")]
+        [SerializeField] private BindingContext bindingContext;
+        
         [Header("Debug")]
         [SerializeField] private bool debugMode = false;
         
@@ -50,7 +53,6 @@ namespace MiniTimeline.Core
         
         // Project data
         private MiniTimelineProject project;
-        private BindingContext bindingContext;
         private List<IMiniTrack> tracks = new List<IMiniTrack>();
         private Dictionary<string, IMiniTrack> trackLookup = new Dictionary<string, IMiniTrack>();
         
@@ -149,7 +151,11 @@ namespace MiniTimeline.Core
         /// <summary>
         /// Binding context
         /// </summary>
-        public BindingContext BindingContext => bindingContext;
+        public BindingContext BindingContext
+        {
+            get => bindingContext;
+            set => bindingContext = value;
+        }
         
         /// <summary>
         /// Whether to auto-create an empty project on Start if no project is loaded
@@ -193,7 +199,18 @@ namespace MiniTimeline.Core
         
         private void Awake()
         {
-            bindingContext = new BindingContext();
+            // If no BindingContext is assigned, try to find one or create one
+            if (bindingContext == null)
+            {
+                bindingContext = GetComponent<BindingContext>();
+                
+                if (bindingContext == null)
+                {
+                    bindingContext = gameObject.AddComponent<BindingContext>();
+                    if (debugMode)
+                        Debug.Log("[MiniTimelineDirector] Auto-created BindingContext component");
+                }
+            }
         }
         
         private void Start()

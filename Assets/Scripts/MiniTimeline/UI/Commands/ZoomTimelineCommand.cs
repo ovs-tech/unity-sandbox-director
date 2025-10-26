@@ -7,11 +7,11 @@ namespace MiniTimeline.UI.Commands
     /// </summary>
     public class ZoomTimelineCommand : TimelineCommandBase
     {
-        private readonly TimelineEditorUI editor;
+        private readonly ITimelineEditorUI editor;
         private readonly float oldZoom;
         private readonly float newZoom;
 
-        public ZoomTimelineCommand(TimelineEditorUI timelineEditor, float oldZoomValue, float newZoomValue)
+        public ZoomTimelineCommand(ITimelineEditorUI timelineEditor, float oldZoomValue, float newZoomValue)
             : base($"Zoom to {newZoomValue:F1}x")
         {
             editor = timelineEditor;
