@@ -3,7 +3,11 @@
     <ui:VisualElement name="track-root" class="track">
         <ui:VisualElement name="track-header" class="track-header">
             <ui:VisualElement name="track-info" class="track-info">
-                <ui:Label name="track-title" text="Track Name" class="track-title" />
+                <ui:Label name="track-title" text="Track Name" class="track-title">
+                    <Bindings>
+                        <UnityEngine.Localization.LocalizedString property="text" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="track.name" />
+                    </Bindings>
+                </ui:Label>
                 <ui:VisualElement name="track-subinfo" class="track-subinfo">
                     <ui:Label name="track-bind-key" text="binding-key" class="track-bind-key" />
                     <ui:Label name="track-type" text="anim" class="track-type" />

@@ -1,12 +1,32 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <Style src="project://database/Assets/Scripts/SceneSandbox/UI/ObjectPaletteUIToolkit.uss?fileID=7433441132597879392&amp;guid=aeed075a33b6b2843a246d7c755500f7&amp;type=3#ObjectPaletteUIToolkit" />
     <ui:VisualElement name="palette-container" class="panel palette-panel" style="flex-grow: 1;">
-        <ui:Label text="Object Palette" class="panel__header" />
+        <ui:Label text="Object Palette" class="panel__header">
+            <Bindings>
+                <UnityEngine.Localization.LocalizedString property="text" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="sandbox.palette.title" />
+            </Bindings>
+        </ui:Label>
         <ui:VisualElement name="filters-container" class="filters-container">
-            <ui:DropdownField label="Type" name="type-filter" index="0" />
-            <ui:DropdownField label="Category" name="category-filter" index="0" />
-            <ui:TextField label="Search" name="search-field" placeholder="Search objects..." style="margin-top: 4px;" />
-            <ui:Button text="Refresh" name="refresh-button" class="button button--secondary" style="margin-top: 4px;" />
+            <ui:DropdownField label="Type" name="type-filter" index="0">
+                <Bindings>
+                    <UnityEngine.Localization.LocalizedString property="label" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="sandbox.type.dropdown" />
+                </Bindings>
+            </ui:DropdownField>
+            <ui:DropdownField label="Category" name="category-filter" index="0">
+                <Bindings>
+                    <UnityEngine.Localization.LocalizedString property="label" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="sandbox.category.dropdown" />
+                </Bindings>
+            </ui:DropdownField>
+            <ui:TextField label="Search" name="search-field" placeholder="Search objects..." style="margin-top: 4px;">
+                <Bindings>
+                    <UnityEngine.Localization.LocalizedString property="label" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="sandbox.search.textfield" />
+                </Bindings>
+            </ui:TextField>
+            <ui:Button text="Refresh" name="refresh-button" class="button button--secondary" style="margin-top: 4px;">
+                <Bindings>
+                    <UnityEngine.Localization.LocalizedString property="text" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="sandbox.refresh.button" />
+                </Bindings>
+            </ui:Button>
         </ui:VisualElement>
         <ui:ScrollView name="items-scroll-view" mode="Vertical" style="flex-grow: 1;">
             <ui:VisualElement name="items-container" class="items-container" style="flex-direction: row; flex-wrap: wrap; padding: 4px;" />

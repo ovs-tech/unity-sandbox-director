@@ -90,6 +90,70 @@ MonoBehaviour:
     m_Localized: 'Tải dự án dòng thời gian'
     m_Metadata:
       m_Items: []
+  - m_Id: 825833156625
+    m_Localized: 'Bảng đối tượng'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156626
+    m_Localized: 'Trình dựng cảnh'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156627
+    m_Localized: 'Tên dự án'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156628
+    m_Localized: 'Cảnh mới'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156629
+    m_Localized: 'Lưu cảnh'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156630
+    m_Localized: 'Tải cảnh'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156631
+    m_Localized: 'Điều khiển đối tượng'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156632
+    m_Localized: 'Cài đặt lưới'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156633
+    m_Localized: 'Bắt vào lưới'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156634
+    m_Localized: 'Kích thước lưới'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156635
+    m_Localized: 'Bảng'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156636
+    m_Localized: 'Thuộc tính'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156637
+    m_Localized: 'Loại'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156638
+    m_Localized: 'Danh mục'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156639
+    m_Localized: 'Tìm kiếm'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156640
+    m_Localized: 'Làm mới'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

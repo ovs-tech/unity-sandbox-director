@@ -90,6 +90,70 @@ MonoBehaviour:
     m_Localized: 'Load Timeline Project'
     m_Metadata:
       m_Items: []
+  - m_Id: 825833156625
+    m_Localized: 'Object Palette'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156626
+    m_Localized: 'Scene Builder'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156627
+    m_Localized: 'Project Name'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156628
+    m_Localized: 'New Scene'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156629
+    m_Localized: 'Save Scene'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156630
+    m_Localized: 'Load Scene'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156631
+    m_Localized: 'Object Controls'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156632
+    m_Localized: 'Grid Settings'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156633
+    m_Localized: 'Snap to Grid'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156634
+    m_Localized: 'Grid Size'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156635
+    m_Localized: 'Palette'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156636
+    m_Localized: 'Properties'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156637
+    m_Localized: 'Type'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156638
+    m_Localized: 'Category'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156639
+    m_Localized: 'Search'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156640
+    m_Localized: 'Refresh'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

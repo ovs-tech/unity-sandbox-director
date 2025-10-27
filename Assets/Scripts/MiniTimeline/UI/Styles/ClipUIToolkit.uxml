@@ -12,7 +12,11 @@
             </ui:VisualElement>
             
             <!-- Clip Title -->
-            <ui:Label name="clip-title" class="clip-title" text="Clip Name" />
+            <ui:Label name="clip-title" class="clip-title" text="Clip Name">
+                <Bindings>
+                    <UnityEngine.Localization.LocalizedString property="text" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="clip.name" />
+                </Bindings>
+            </ui:Label>
             
             <!-- Clip Status Icons -->
             <ui:VisualElement name="clip-status" class="clip-status">
@@ -39,7 +43,11 @@
             <!-- Clip Info Overlay -->
             <ui:VisualElement name="clip-info" class="clip-info">
                 <ui:Label name="clip-duration" class="clip-duration" text="2.5s" />
-                <ui:Label name="clip-details" class="clip-details" text="Details" />
+                <ui:Label name="clip-details" class="clip-details" text="Details">
+                    <Bindings>
+                        <UnityEngine.Localization.LocalizedString property="text" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="clip.details" />
+                    </Bindings>
+                </ui:Label>
             </ui:VisualElement>
             
         </ui:VisualElement>

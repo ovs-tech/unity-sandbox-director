@@ -90,6 +90,70 @@ MonoBehaviour:
     m_Localized: 'タイムラインプロジェクトを読み込む'
     m_Metadata:
       m_Items: []
+  - m_Id: 825833156625
+    m_Localized: 'オブジェクトパレット'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156626
+    m_Localized: 'シーンビルダー'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156627
+    m_Localized: 'プロジェクト名'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156628
+    m_Localized: '新しいシーン'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156629
+    m_Localized: 'シーンを保存'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156630
+    m_Localized: 'シーンを読み込む'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156631
+    m_Localized: 'オブジェクトコントロール'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156632
+    m_Localized: 'グリッド設定'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156633
+    m_Localized: 'グリッドにスナップ'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156634
+    m_Localized: 'グリッドサイズ'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156635
+    m_Localized: 'パレット'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156636
+    m_Localized: 'プロパティ'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156637
+    m_Localized: 'タイプ'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156638
+    m_Localized: 'カテゴリー'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156639
+    m_Localized: '検索'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156640
+    m_Localized: '更新'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -90,6 +90,70 @@ MonoBehaviour:
     m_Localized: '加载时间轴项目'
     m_Metadata:
       m_Items: []
+  - m_Id: 825833156625
+    m_Localized: '对象调色板'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156626
+    m_Localized: '场景生成器'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156627
+    m_Localized: '项目名称'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156628
+    m_Localized: '新场景'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156629
+    m_Localized: '保存场景'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156630
+    m_Localized: '加载场景'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156631
+    m_Localized: '对象控件'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156632
+    m_Localized: '网格设置'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156633
+    m_Localized: '对齐网格'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156634
+    m_Localized: '网格大小'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156635
+    m_Localized: '调色板'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156636
+    m_Localized: '属性'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156637
+    m_Localized: '类型'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156638
+    m_Localized: '类别'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156639
+    m_Localized: '搜索'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 825833156640
+    m_Localized: '刷新'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -3,7 +3,11 @@
     <ui:VisualElement name="background-panel" class="form-background">
         <ui:VisualElement name="form-container" class="form-container">
             <ui:VisualElement name="header" class="form-header">
-                <ui:Label name="title-text" text="Create Clip" class="form-title" />
+                <ui:Label name="title-text" text="Create Clip" class="form-title">
+                    <Bindings>
+                        <UnityEngine.Localization.LocalizedString property="text" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="form.createClip.title" />
+                    </Bindings>
+                </ui:Label>
                 <ui:Button name="close-button" text="\uf00d" parse-escape-sequences="true" class="form-close-button button button--icon button--danger fa-solid" />
             </ui:VisualElement>
             <ui:ScrollView name="scroll-view" mode="Vertical" class="form-scroll-view">
