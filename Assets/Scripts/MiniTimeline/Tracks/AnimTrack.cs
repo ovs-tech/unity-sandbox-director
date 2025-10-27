@@ -11,20 +11,24 @@ namespace MiniTimeline.Tracks
     /// <summary>
     /// Track for playing Unity Animation clips on timeline
     /// Supports multiple animation layers, blending, and timing control
-    /// Binds to Animator or Animation components
+    /// Directly samples AnimationClip without requiring Animator component
     /// 
     /// Asset Loading:
     /// - Supports Addressable assets with "addr:" prefix (e.g., "addr:Animations/WalkCycle")
     /// - Supports Resources folder assets (e.g., "Animations/WalkCycle")  
     /// - Automatic async loading with proper cleanup
     /// - Loading progress tracking and status queries
+    /// 
+    /// EvaluateMode:
+    /// - Default: Continuous - samples animation every frame
+    /// - OnEnter: Only triggers when animation starts
+    /// - OnExit: Only triggers when animation ends
     /// </summary>
     public class AnimTrack : MiniTrackBase<AnimClip>
     {
         public override int Order => 10; // Animation tracks run early, after events but before IK/morph
         
-        private Animator targetAnimator;
-        private Animation targetAnimation; // Legacy animation system support
+        private GameObject targetGameObject;
         private Transform targetTransform;
         
         // Animation state management
@@ -44,51 +48,31 @@ namespace MiniTimeline.Tracks
         
         protected override void OnPrepare()
         {
-            // Debug.Log($"[AnimTrack] OnPrepare called for track '{Id}', target object: {targetObject}");
-            
-            // Try to find Animator first (preferred)
-            if (targetObject is Animator animator)
+            // Resolve target GameObject
+            if (targetObject is GameObject go)
             {
-                targetAnimator = animator;
-                targetTransform = animator.transform;
-                // Debug.Log($"[AnimTrack] Target is Animator: {animator.name}");
-            }
-            else if (targetObject is GameObject go)
-            {
-                targetAnimator = go.GetComponent<Animator>();
-                if (targetAnimator != null)
-                {
-                    targetTransform = targetAnimator.transform;
-                    // Debug.Log($"[AnimTrack] Target GameObject has Animator: {go.name}");
-                }
-                else
-                {
-                    // Fallback to legacy Animation component
-                    targetAnimation = go.GetComponent<Animation>();
-                    if (targetAnimation != null)
-                    {
-                        targetTransform = targetAnimation.transform;
-                        // Debug.Log($"[AnimTrack] Target GameObject has Animation (legacy): {go.name}");
-                    }
-                    else
-                    {
-                        // Just get the transform for basic animation
-                        targetTransform = go.transform;
-                        // Debug.LogWarning($"[AnimTrack] No Animator or Animation found on {go.name}, using Transform only");
-                    }
-                }
+                targetGameObject = go;
+                targetTransform = go.transform;
             }
             else if (targetObject is Transform transform)
             {
                 targetTransform = transform;
-                targetAnimator = transform.GetComponent<Animator>();
-                targetAnimation = transform.GetComponent<Animation>();
-                // Debug.Log($"[AnimTrack] Target is Transform: {transform.name}");
+                targetGameObject = transform.gameObject;
+            }
+            else if (targetObject is Animator animator)
+            {
+                targetGameObject = animator.gameObject;
+                targetTransform = animator.transform;
+            }
+            else if (targetObject is Animation animation)
+            {
+                targetGameObject = animation.gameObject;
+                targetTransform = animation.transform;
             }
             
-            if (targetTransform == null)
+            if (targetGameObject == null)
             {
-                // Debug.LogError($"[AnimTrack] Could not resolve target for track '{Id}' with bind key '{BindKey}'");
+                Debug.LogError($"[AnimTrack] Could not resolve target GameObject for track '{Id}' with bind key '{BindKey}'");
                 return;
             }
             
@@ -96,41 +80,58 @@ namespace MiniTimeline.Tracks
             LoadAnimationAssets();
         }
         
+        protected override void OnEnter(float time, bool scrub)
+        {
+            // Called when track enters active state
+            Debug.Log($"[AnimTrack] OnEnter at time {time:F2}, scrub={scrub}");
+        }
+        
         protected override void OnEvaluate(float time, bool scrub)
         {
-            if (targetTransform == null) return;
+            if (targetGameObject == null) return;
             
             // Get all active clips at current time
             GetActiveClipsAtTime(time, activeClips);
             
-            if (activeClips.Count == 0)
-            {
-                // No clips active, stop any playing animations
-                StopAllAnimations(scrub);
-                return;
-            }
+            if (activeClips.Count == 0) return;
             
             // Sort clips by layer (higher layers have priority)
             activeClips.Sort((a, b) => a.layer.CompareTo(b.layer));
             
-            if (targetAnimator != null)
+            // Sample animations directly
+            foreach (var clip in activeClips)
             {
-                EvaluateWithAnimator(time, scrub);
+                var state = clip.GetAnimationState(time);
+                if (!state.isActive) continue;
+                
+                if (loadedClips.TryGetValue(clip.animationAsset, out var animClip))
+                {
+                    // Apply weight for blending
+                    float effectiveWeight = state.weight * clip.weight;
+                    
+                    // Sample animation at specific time
+                    if (effectiveWeight > 0.01f) // Only sample if weight is significant
+                    {
+                        animClip.SampleAnimation(targetGameObject, state.animationTime);
+                    }
+                    
+                    // Store state
+                    lastClipStates[state.clipId] = state;
+                }
             }
-            else if (targetAnimation != null)
-            {
-                EvaluateWithAnimation(time, scrub);
-            }
-            else
-            {
-                // Fallback: simple transform-based animation
-                EvaluateTransformOnly(time, scrub);
-            }
+        }
+        
+        protected override void OnExit(float time, bool scrub)
+        {
+            // Called when track exits active state
+            Debug.Log($"[AnimTrack] OnExit at time {time:F2}, scrub={scrub}");
+            
+            // Clear animation states
+            lastClipStates.Clear();
         }
         
         protected override void OnCleanup()
         {
-            StopAllAnimations(false);
             UnloadAnimationAssets();
             
             activeClips.Clear();
@@ -336,122 +337,7 @@ namespace MiniTimeline.Tracks
         
         #endregion
         
-        #region Animation Evaluation
-        
-        private void EvaluateWithAnimator(float time, bool scrub)
-        {
-            if (targetAnimator == null) return;
-            
-            // Get animation states for all active clips
-            tempStates.Clear();
-            foreach (var clip in activeClips)
-            {
-                var state = clip.GetAnimationState(time);
-                if (state.isActive)
-                {
-                    tempStates.Add(state);
-                }
-            }
-            
-            // Apply animations through Animator
-            foreach (var state in tempStates)
-            {
-                ApplyAnimationState(state, scrub);
-            }
-            
-            // Store states for comparison next frame
-            foreach (var state in tempStates)
-            {
-                lastClipStates[state.clipId] = state;
-            }
-        }
-        
-        private void EvaluateWithAnimation(float time, bool scrub)
-        {
-            if (targetAnimation == null) return;
-            
-            // Legacy Animation component evaluation
-            foreach (var clip in activeClips)
-            {
-                var state = clip.GetAnimationState(time);
-                if (!state.isActive) continue;
-                
-                if (loadedClips.TryGetValue(clip.animationAsset, out var animClip))
-                {
-                    // Set up animation state
-                    targetAnimation.clip = animClip;
-                    
-                    // Sample animation at specific time
-                    animClip.SampleAnimation(targetTransform.gameObject, state.animationTime);
-                    
-                    // Store state
-                    lastClipStates[state.clipId] = state;
-                }
-            }
-        }
-        
-        private void EvaluateTransformOnly(float time, bool scrub)
-        {
-            // Simple transform-based animation as fallback
-            // This would be used for basic position/rotation animation without Animator/Animation
-            
-            foreach (var clip in activeClips)
-            {
-                var state = clip.GetAnimationState(time);
-                if (!state.isActive) continue;
-                
-                // Basic interpolation logic would go here
-                // For now, just log that we're in fallback mode
-                // Debug.LogWarning($"[AnimTrack] Using transform-only evaluation for clip {clip.Id} - limited functionality");
-                
-                lastClipStates[state.clipId] = state;
-            }
-        }
-        
-        private void ApplyAnimationState(AnimationState state, bool scrub)
-        {
-            if (!loadedClips.TryGetValue(GetClipAssetPath(state.clipId), out var animClip))
-                return;
-                
-            // For Animator, we need to use AnimatorController or create runtime states
-            // This is a simplified implementation
-            
-            if (targetAnimator.runtimeAnimatorController == null)
-            {
-                // If no controller, fall back to direct clip sampling
-                animClip.SampleAnimation(targetAnimator.gameObject, state.animationTime);
-            }
-            else
-            {
-                // Use Animator controller (would need proper state setup)
-                Debug.LogWarning($"[AnimTrack] Animator controller animation not fully implemented for clip {state.clipId}");
-            }
-        }
-        
-        private string GetClipAssetPath(string clipId)
-        {
-            var clip = clips.FirstOrDefault(c => c.Id == clipId);
-            return clip?.animationAsset ?? string.Empty;
-        }
-        
-        #endregion
-        
-        #region Animation Control
-        
-        private void StopAllAnimations(bool scrub)
-        {
-            if (targetAnimator != null)
-            {
-                // Stop Animator animations
-                // In a full implementation, you'd stop specific states
-            }
-            else if (targetAnimation != null)
-            {
-                targetAnimation.Stop();
-            }
-            
-            lastClipStates.Clear();
-        }
+        #region Helper Methods
         
         private void GetActiveClipsAtTime(float time, List<AnimClip> result)
         {
@@ -644,15 +530,15 @@ namespace MiniTimeline.Tracks
         {
             var info = $"AnimTrack '{Id}' (BindKey: '{BindKey}')\n";
             info += $"  Target: {targetObject?.name ?? "None"}\n";
-            info += $"  Animator: {targetAnimator != null}\n";
-            info += $"  Animation: {targetAnimation != null}\n";
+            info += $"  GameObject: {targetGameObject != null}\n";
             info += $"  Transform: {targetTransform != null}\n";
             info += $"  Clips: {clips.Count}\n";
             info += $"  Loaded Assets: {loadedClips.Count}\n";
             info += $"  Loading Assets: {loadingOperations.Count}\n";
             info += $"  Addressable Handles: {loadedHandles.Count}\n";
             info += $"  Loading Progress: {GetLoadingProgress():P1}\n";
-            info += $"  Active States: {lastClipStates.Count}";
+            info += $"  Active States: {lastClipStates.Count}\n";
+            info += $"  EvaluateMode: {EvaluateMode}";
             
             return info;
         }

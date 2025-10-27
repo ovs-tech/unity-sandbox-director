@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
@@ -34,7 +35,7 @@ namespace MiniTimeline.Core
         [SerializeField] private float defaultFrameRate = 30f;
 
         [Header("Binding")]
-        [SerializeField] private BindingContext bindingContext;
+        [SerializeField] private BindableObjectManager bindableObjectManager;
 
         [Header("Debug")]
         [SerializeField] private bool debugMode = false;
@@ -151,10 +152,10 @@ namespace MiniTimeline.Core
         /// <summary>
         /// Binding context
         /// </summary>
-        public BindingContext BindingContext
+        public BindableObjectManager BindingContext
         {
-            get => bindingContext;
-            set => bindingContext = value;
+            get => bindableObjectManager;
+            set => bindableObjectManager = value;
         }
 
         /// <summary>
@@ -200,13 +201,13 @@ namespace MiniTimeline.Core
         private void Awake()
         {
             // If no BindingContext is assigned, try to find one or create one
-            if (bindingContext == null)
+            if (bindableObjectManager == null)
             {
-                bindingContext = GetComponent<BindingContext>();
+                bindableObjectManager = GetComponent<BindableObjectManager>();
 
-                if (bindingContext == null)
+                if (bindableObjectManager == null)
                 {
-                    bindingContext = gameObject.AddComponent<BindingContext>();
+                    bindableObjectManager = gameObject.AddComponent<BindableObjectManager>();
                     if (debugMode)
                         Debug.Log("[MiniTimelineDirector] Auto-created BindingContext component");
                 }
@@ -340,12 +341,12 @@ namespace MiniTimeline.Core
         /// <returns>Full path to projects folder</returns>
         public static string GetProjectsFolder()
         {
-            string projectsPath = System.IO.Path.Combine(Application.persistentDataPath, "TimelineProjects");
+            string projectsPath = Path.Combine(Application.persistentDataPath, "TimelineProjects");
 
             // Ensure directory exists
-            if (!System.IO.Directory.Exists(projectsPath))
+            if (!Directory.Exists(projectsPath))
             {
-                System.IO.Directory.CreateDirectory(projectsPath);
+                Directory.CreateDirectory(projectsPath);
                 Debug.Log($"[MiniTimelineDirector] Created projects folder: {projectsPath}");
             }
 
@@ -359,7 +360,7 @@ namespace MiniTimeline.Core
         /// <returns>Full file path</returns>
         public static string GetProjectFilePath(string projectName)
         {
-            return System.IO.Path.Combine(GetProjectsFolder(), projectName + ".json");
+            return Path.Combine(GetProjectsFolder(), projectName + ".json");
         }
 
         /// <summary>
@@ -379,7 +380,7 @@ namespace MiniTimeline.Core
                     version = 1,
                     length = length,
                     frameRate = frameRate,
-                    tracks = new System.Collections.Generic.List<TrackData>()
+                    tracks = new List<TrackData>()
                 };
 
                 SetProject(newProject);
@@ -448,7 +449,7 @@ namespace MiniTimeline.Core
             {
                 string filePath = GetProjectFilePath(projectName);
 
-                if (!System.IO.File.Exists(filePath))
+                if (!File.Exists(filePath))
                 {
                     Debug.LogWarning($"[MiniTimelineDirector] Project file not found: {filePath}");
                     return false;
@@ -485,17 +486,17 @@ namespace MiniTimeline.Core
             {
                 string projectsFolder = GetProjectsFolder();
 
-                if (!System.IO.Directory.Exists(projectsFolder))
+                if (!Directory.Exists(projectsFolder))
                 {
                     return new string[0];
                 }
 
-                var jsonFiles = System.IO.Directory.GetFiles(projectsFolder, "*.json");
+                var jsonFiles = Directory.GetFiles(projectsFolder, "*.json");
                 var projectNames = new string[jsonFiles.Length];
 
                 for (int i = 0; i < jsonFiles.Length; i++)
                 {
-                    projectNames[i] = System.IO.Path.GetFileNameWithoutExtension(jsonFiles[i]);
+                    projectNames[i] = Path.GetFileNameWithoutExtension(jsonFiles[i]);
                 }
 
                 return projectNames;
@@ -518,9 +519,9 @@ namespace MiniTimeline.Core
             {
                 string filePath = GetProjectFilePath(projectName);
 
-                if (System.IO.File.Exists(filePath))
+                if (File.Exists(filePath))
                 {
-                    System.IO.File.Delete(filePath);
+                    File.Delete(filePath);
                     Debug.Log($"[MiniTimelineDirector] Deleted project: {filePath}");
                     return true;
                 }
@@ -543,7 +544,7 @@ namespace MiniTimeline.Core
         public static bool ProjectExists(string projectName)
         {
             string filePath = GetProjectFilePath(projectName);
-            return System.IO.File.Exists(filePath);
+            return File.Exists(filePath);
         }
 
         /// <summary>
@@ -551,7 +552,7 @@ namespace MiniTimeline.Core
         /// </summary>
         /// <param name="newProject">Project data to load</param>
         /// <param name="context">Binding context (optional, will create new if null)</param>
-        public void SetProject(MiniTimelineProject newProject, BindingContext context = null)
+        public void SetProject(MiniTimelineProject newProject, BindableObjectManager context = null)
         {
             if (newProject == null)
             {
@@ -567,7 +568,7 @@ namespace MiniTimeline.Core
             length = project.length;
 
             if (context != null)
-                bindingContext = context;
+                bindableObjectManager = context;
 
             // Build tracks from project data
             BuildTracks();
@@ -793,7 +794,7 @@ namespace MiniTimeline.Core
                         // Bind and prepare track
                         if (debugMode)
                             Debug.Log($"[MiniTimelineDirector] Binding track '{track.Id}' with bind key '{track.BindKey}'");
-                        track.Bind(bindingContext);
+                        track.Bind(bindableObjectManager);
 
                         if (debugMode)
                             Debug.Log($"[MiniTimelineDirector] Preparing track '{track.Id}'");
@@ -841,7 +842,7 @@ namespace MiniTimeline.Core
         /// </summary>
         public void RebindAllTracks()
         {
-            if (bindingContext == null)
+            if (bindableObjectManager == null)
             {
                 if (debugMode)
                     Debug.LogWarning("[MiniTimelineDirector] Cannot rebind tracks - no binding context available");
@@ -853,7 +854,7 @@ namespace MiniTimeline.Core
             
             foreach (var track in tracks)
             {
-                track.Bind(bindingContext);
+                track.Bind(bindableObjectManager);
                 reboundCount++;
                 
                 // Re-prepare track if it's bound (Bind() sets isPrepared=false if target changed)
@@ -882,16 +883,16 @@ namespace MiniTimeline.Core
         /// <returns>Number of new bindings added</returns>
         public int AutoBindSceneObjects()
         {
-            if (bindingContext == null)
+            if (bindableObjectManager == null)
             {
                 if (debugMode)
                     Debug.LogWarning("[MiniTimelineDirector] Cannot auto-bind - no binding context available");
                 return 0;
             }
             
-            int existingCount = bindingContext.GetKeys().Count();
-            bindingContext.AutoBind();
-            int newCount = bindingContext.GetKeys().Count();
+            int existingCount = bindableObjectManager.GetKeys().Count();
+            bindableObjectManager.AutoBind();
+            int newCount = bindableObjectManager.GetKeys().Count();
             int bindingsAdded = newCount - existingCount;
             
             // Rebind all tracks to update their IsBound status with the new bindings

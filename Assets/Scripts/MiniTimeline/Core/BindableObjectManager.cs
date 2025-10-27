@@ -8,7 +8,7 @@ namespace MiniTimeline.Core
     /// Context for binding track keys to Unity objects with tagging support
     /// Maps string keys to BindableObjects that wrap Unity objects and provide discovery functionality
     /// </summary>
-    public class BindingContext : MonoBehaviour
+    public class BindableObjectManager : MonoBehaviour
     {
         private readonly Dictionary<string, BindableObject> bindings = new Dictionary<string, BindableObject>();
         

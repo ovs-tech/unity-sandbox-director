@@ -34,10 +34,20 @@ namespace MiniTimeline.Core
         bool IsBound { get; }
         
         /// <summary>
+        /// Whether this track is ready to evaluate (enabled and prepared)
+        /// </summary>
+        bool IsReady { get; }
+        
+        /// <summary>
+        /// Evaluation mode determining when callbacks are triggered
+        /// </summary>
+        EvaluateMode EvaluateMode { get; set; }
+        
+        /// <summary>
         /// Bind this track to its target object via BindingContext
         /// </summary>
         /// <param name="context">Binding context to resolve objects</param>
-        void Bind(BindingContext context);
+        void Bind(BindableObjectManager context);
         
         /// <summary>
         /// Prepare internal resources (called after binding)

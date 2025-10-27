@@ -12,7 +12,7 @@ using Core.UI.Core.Helpers;
 using Core.Behaviors.Command;
 using MiniTimeline.UI.FormDefinitions;
 using Core.UI.FormSubmit.Fields;
-using BindingContextCore = MiniTimeline.Core.BindingContext;
+using BindingContextCore = MiniTimeline.Core.BindableObjectManager;
 
 namespace MiniTimeline.UI
 {

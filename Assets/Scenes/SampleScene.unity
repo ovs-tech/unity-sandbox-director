@@ -343,6 +343,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8069204319789709471, guid: 5ff9de63dbe2f394ca7ffdf4fe29dd55, type: 3}
   m_PrefabInstance: {fileID: 3427927543822543505}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &398228400 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 517533721236897367, guid: 5ff9de63dbe2f394ca7ffdf4fe29dd55, type: 3}
+  m_PrefabInstance: {fileID: 3427927543822543505}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d74afd1dd40d45ae80574afe032de33, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MiniTimeline.Core.BindingContext
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -934,6 +945,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Mini Timeline Director
       objectReference: {fileID: 0}
+    - target: {fileID: 3751378087522260266, guid: 5ff9de63dbe2f394ca7ffdf4fe29dd55, type: 3}
+      propertyPath: bindableObjectManager
+      value: 
+      objectReference: {fileID: 398228400}
     - target: {fileID: 8069204319789709471, guid: 5ff9de63dbe2f394ca7ffdf4fe29dd55, type: 3}
       propertyPath: m_LocalPosition.x
       value: -6.568401

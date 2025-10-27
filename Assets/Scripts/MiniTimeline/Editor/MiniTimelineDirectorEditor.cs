@@ -29,7 +29,7 @@ namespace MiniTimeline.Editor
         private SerializedProperty defaultProjectNameProp;
         private SerializedProperty defaultProjectLengthProp;
         private SerializedProperty defaultFrameRateProp;
-        private SerializedProperty bindingContextProp;
+        private SerializedProperty bindableObjectManagerProp;
         
         // Project management
         private string newProjectName = "New Timeline Project";
@@ -76,7 +76,7 @@ namespace MiniTimeline.Editor
             defaultProjectNameProp = serializedObject.FindProperty("defaultProjectName");
             defaultProjectLengthProp = serializedObject.FindProperty("defaultProjectLength");
             defaultFrameRateProp = serializedObject.FindProperty("defaultFrameRate");
-            bindingContextProp = serializedObject.FindProperty("bindingContext");
+            bindableObjectManagerProp = serializedObject.FindProperty("bindableObjectManager");
             
             // Setup event handlers for play mode updates
             if (Application.isPlaying)
@@ -245,27 +245,27 @@ namespace MiniTimeline.Editor
             EditorGUILayout.BeginVertical(boxStyle);
             
             EditorGUILayout.LabelField("Binding Setup", EditorStyles.boldLabel);
-            
-            // BindingContext field
-            EditorGUILayout.PropertyField(bindingContextProp, new GUIContent("Binding Context", "BindingContext component to use for object binding. Leave empty to auto-create."));
-            
+
+            // BindableObjectManager field
+            EditorGUILayout.PropertyField(bindableObjectManagerProp, new GUIContent("Bindable Objects", "BindableObjectManager component to use for object binding. Leave empty to auto-create."));
+
             // Helper text
-            if (bindingContextProp.objectReferenceValue == null)
+            if (bindableObjectManagerProp.objectReferenceValue == null)
             {
-                EditorGUILayout.HelpBox("No BindingContext assigned. One will be auto-created on the same GameObject when the scene starts.", MessageType.Info);
-                
+                EditorGUILayout.HelpBox("No BindableObjectManager assigned. One will be auto-created on the same GameObject when the scene starts.", MessageType.Info);
+
                 // Button to manually create one
-                if (GUILayout.Button("Create BindingContext Component", buttonStyle))
+                if (GUILayout.Button("Create BindableObjectManager Component", buttonStyle))
                 {
                     CreateBindingContextComponent();
                 }
             }
             else
             {
-                var context = bindingContextProp.objectReferenceValue as BindingContext;
+                var context = bindableObjectManagerProp.objectReferenceValue as BindableObjectManager;
                 if (context != null)
                 {
-                    EditorGUILayout.HelpBox($"Using BindingContext from '{context.gameObject.name}'", MessageType.None);
+                    EditorGUILayout.HelpBox($"Using BindableObjectManager from '{context.gameObject.name}'", MessageType.None);
                 }
             }
             
@@ -851,9 +851,21 @@ namespace MiniTimeline.Editor
                         EditorGUILayout.LabelField(bindIcon, GUILayout.Width(20));
                         GUI.color = oldColor;
                         
+                        // Ready status indicator
+                        bool isReady = track.IsReady;
+                        var readyColor = isReady ? new Color(0.3f, 0.8f, 0.3f) : new Color(0.8f, 0.5f, 0.2f);
+                        GUI.color = readyColor;
+                        var readyIcon = isReady ? "✓" : "✗";
+                        EditorGUILayout.LabelField(readyIcon, GUILayout.Width(20));
+                        GUI.color = oldColor;
+                        
                         EditorGUILayout.LabelField($"{track.Id} ({track.GetType().Name})", EditorStyles.boldLabel);
                         
                         GUILayout.FlexibleSpace();
+                        
+                        // Status legend (tooltip)
+                        var statusTooltip = $"● Enabled: {track.Enabled}\n🔗 Bound: {isBound}\n✓ Ready: {isReady}";
+                        EditorGUILayout.LabelField(new GUIContent("ℹ", statusTooltip), GUILayout.Width(20));
                         
                         // Delete button
                         GUI.backgroundColor = new Color(1f, 0.5f, 0.5f);
@@ -907,6 +919,26 @@ namespace MiniTimeline.Editor
                         EditorGUILayout.LabelField("Order:", track.Order.ToString(), EditorStyles.miniLabel, GUILayout.Width(60));
                         EditorGUILayout.EndHorizontal();
                         
+                        // Status information
+                        EditorGUILayout.BeginHorizontal();
+                        EditorGUILayout.LabelField("Status:", GUILayout.Width(60));
+                        
+                        // Enabled status
+                        var enabledStatusColor = GUI.color;
+                        GUI.color = track.Enabled ? new Color(0.3f, 0.8f, 0.3f) : new Color(0.8f, 0.3f, 0.3f);
+                        EditorGUILayout.LabelField(track.Enabled ? "● Enabled" : "○ Disabled", EditorStyles.miniLabel, GUILayout.Width(80));
+                        
+                        // Bound status
+                        GUI.color = track.IsBound ? new Color(0.3f, 0.8f, 0.3f) : new Color(0.8f, 0.5f, 0.2f);
+                        EditorGUILayout.LabelField(track.IsBound ? "🔗 Bound" : "⚠ Not Bound", EditorStyles.miniLabel, GUILayout.Width(90));
+                        
+                        // Ready status
+                        GUI.color = track.IsReady ? new Color(0.3f, 0.8f, 0.3f) : new Color(0.8f, 0.5f, 0.2f);
+                        EditorGUILayout.LabelField(track.IsReady ? "✓ Ready" : "✗ Not Ready", EditorStyles.miniLabel, GUILayout.Width(80));
+                        
+                        GUI.color = enabledStatusColor;
+                        EditorGUILayout.EndHorizontal();
+                        
                         // Binding status details
                         EditorGUILayout.BeginHorizontal();
                         UnityEngine.Object boundObject = null;
@@ -933,6 +965,23 @@ namespace MiniTimeline.Editor
                         {
                             EditorGUILayout.LabelField("○ No binding key assigned", EditorStyles.miniLabel);
                         }
+                        EditorGUILayout.EndHorizontal();
+                        
+                        // EvaluateMode display
+                        EditorGUILayout.BeginHorizontal();
+                        EditorGUILayout.LabelField("Evaluate Mode:", GUILayout.Width(100));
+                        var modeColor = GUI.color;
+                        GUI.color = new Color(0.6f, 0.8f, 1f);
+                        var modeText = track.EvaluateMode switch
+                        {
+                            EvaluateMode.OnEnter => "🚀 OnEnter",
+                            EvaluateMode.OnExit => "🏁 OnExit",
+                            EvaluateMode.OnEnterAndExit => "🔄 OnEnter+Exit",
+                            EvaluateMode.Continuous => "▶️ Continuous",
+                            _ => track.EvaluateMode.ToString()
+                        };
+                        EditorGUILayout.LabelField(modeText, EditorStyles.miniLabel);
+                        GUI.color = modeColor;
                         EditorGUILayout.EndHorizontal();
                         
                         // Enable/Disable toggle
@@ -1403,7 +1452,7 @@ namespace MiniTimeline.Editor
             if (director == null) return;
             
             // Check if one already exists on the GameObject
-            var existingContext = director.GetComponent<BindingContext>();
+            var existingContext = director.GetComponent<BindableObjectManager>();
             if (existingContext != null)
             {
                 // Assign it to the director
@@ -1414,7 +1463,7 @@ namespace MiniTimeline.Editor
             else
             {
                 // Create new BindingContext component
-                var newContext = director.gameObject.AddComponent<BindingContext>();
+                var newContext = director.gameObject.AddComponent<BindableObjectManager>();
                 director.BindingContext = newContext;
                 EditorUtility.SetDirty(director);
                 Debug.Log("[MiniTimelineDirectorEditor] Created and assigned new BindingContext component");
