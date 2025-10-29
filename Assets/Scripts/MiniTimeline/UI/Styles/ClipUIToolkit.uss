@@ -411,8 +411,9 @@
 }
 
 /* Keyframe Indicators */
-.clip.has-keyframes::after {
-    /* Unity USS doesn't support content property or ::after pseudo-elements fully */
+/* Note: Unity USS doesn't support ::after pseudo-element.
+   Create a child VisualElement with class "clip-keyframe-indicator" in C# code */
+.clip-keyframe-indicator {
     position: absolute;
     bottom: 1px;
     left: 50%;
