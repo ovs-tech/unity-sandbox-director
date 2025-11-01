@@ -375,7 +375,11 @@ namespace SceneSandbox.Serialization
                 useRaycastForPlacement = settings.useRaycastForPlacement,
                 useConsistentHeight = settings.useConsistentHeight,
                 placementLayers = settings.placementLayers.value,
+                gridOffset = Vector3ToString(settings.gridOffset),
+                gridPivotOffset = settings.gridPivotOffset.ToString(),
                 sceneBounds = Vector3ToString(settings.sceneBounds),
+                sceneBoundsOffset = Vector3ToString(settings.sceneBoundsOffset),
+                sceneBoundsPivot = settings.sceneBoundsPivot.ToString(),
                 sceneBoundsColor = ColorToString(settings.sceneBoundsColor),
                 enableGizmos = settings.enableGizmos,
                 showBoundsGizmo = settings.showBoundsGizmo,
@@ -412,7 +416,11 @@ namespace SceneSandbox.Serialization
                 useRaycastForPlacement = jsonSettings.useRaycastForPlacement,
                 useConsistentHeight = jsonSettings.useConsistentHeight,
                 placementLayers = jsonSettings.placementLayers,
+                gridOffset = ParseVector3(jsonSettings.gridOffset ?? "0,0,0"),
+                gridPivotOffset = ParsePivotPoint(jsonSettings.gridPivotOffset ?? "Center"),
                 sceneBounds = ParseVector3(jsonSettings.sceneBounds ?? "20,10,20"),
+                sceneBoundsOffset = ParseVector3(jsonSettings.sceneBoundsOffset ?? "0,0,0"),
+                sceneBoundsPivot = ParsePivotPoint(jsonSettings.sceneBoundsPivot ?? "Center"),
                 sceneBoundsColor = ParseColor(jsonSettings.sceneBoundsColor ?? "#00FFFF"),
                 enableGizmos = jsonSettings.enableGizmos,
                 showBoundsGizmo = jsonSettings.showBoundsGizmo,
@@ -481,6 +489,10 @@ namespace SceneSandbox.Serialization
         {
             // Update settings from builder's serialized fields
             settings.sceneBounds = builder.SceneBounds;
+            settings.sceneBoundsOffset = builder.SceneBoundsOffset;
+            settings.sceneBoundsPivot = builder.SceneBoundsPivot;
+            settings.gridOffset = builder.GridOffset;
+            settings.gridPivotOffset = builder.GridPivotOffset;
             settings.enableGizmos = builder.GizmosEnabled;
             settings.enableSceneGizmos = builder.SceneGizmosEnabled;
             settings.enableDropIndicator = builder.DropIndicatorEnabled;
@@ -533,6 +545,14 @@ namespace SceneSandbox.Serialization
             return Color.white;
         }
 
+        private static Core.PivotPoint ParsePivotPoint(string pivotString)
+        {
+            if (System.Enum.TryParse<Core.PivotPoint>(pivotString, out var pivot))
+                return pivot;
+            
+            return Core.PivotPoint.Center;
+        }
+
         #endregion
 
         #region JSON Data Classes
@@ -564,7 +584,11 @@ namespace SceneSandbox.Serialization
             public bool useRaycastForPlacement;
             public bool useConsistentHeight;
             public int placementLayers;
+            public string gridOffset;
+            public string gridPivotOffset;
             public string sceneBounds;
+            public string sceneBoundsOffset;
+            public string sceneBoundsPivot;
             public string sceneBoundsColor;
             public bool enableGizmos;
             public bool showBoundsGizmo;

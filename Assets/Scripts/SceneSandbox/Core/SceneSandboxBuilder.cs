@@ -1,11 +1,71 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using SceneSandbox.Data;
 using SceneSandbox.Serialization;
 using MiniTimeline.Core;
 
 namespace SceneSandbox.Core
 {
+    /// <summary>
+    /// Placement state for drag-drop operations
+    /// </summary>
+    public enum PlacementState
+    {
+        Idle,           // No active placement
+        Active,         // Dragging with preview
+        Confirming,     // Transition to place
+        Cancelling      // Transition to cancel
+    }
+
+    /// <summary>
+    /// Pivot point options for grid and bounds positioning (3D box)
+    /// Total: 27 points (1 center + 6 face centers + 12 edge centers + 8 corners)
+    /// </summary>
+    public enum PivotPoint
+    {
+        // Center (1)
+        Center,
+        
+        // Face Centers (6 faces)
+        FrontCenter,
+        BackCenter,
+        LeftCenter,
+        RightCenter,
+        TopCenter,
+        BottomCenter,
+        
+        // Bottom Edge Centers (4 edges)
+        BottomFrontEdge,
+        BottomBackEdge,
+        BottomLeftEdge,
+        BottomRightEdge,
+        
+        // Top Edge Centers (4 edges)
+        TopFrontEdge,
+        TopBackEdge,
+        TopLeftEdge,
+        TopRightEdge,
+        
+        // Vertical Edge Centers (4 edges)
+        FrontLeftEdge,
+        FrontRightEdge,
+        BackLeftEdge,
+        BackRightEdge,
+        
+        // Bottom Corners (4 corners)
+        BottomFrontLeft,
+        BottomFrontRight,
+        BottomBackLeft,
+        BottomBackRight,
+        
+        // Top Corners (4 corners)
+        TopFrontLeft,
+        TopFrontRight,
+        TopBackLeft,
+        TopBackRight
+    }
+
     /// <summary>
     /// Main controller for the Scene Sandbox Builder system
     /// Manages the placement, interaction, and organization of scene objects
@@ -21,10 +81,52 @@ namespace SceneSandbox.Core
         [SerializeField] private LayerMask _placementLayers = -1;
         [SerializeField] private bool _snapToGrid = true;
         [SerializeField] private float _gridSize = 1f;
+        [SerializeField] private Vector3 _gridOffset = Vector3.zero; // Grid offset from stage area (only X, Z used for 2D plane)
+        [SerializeField] private PivotPoint _gridPivotOffset = PivotPoint.Center; // Grid pivot offset relative to scene bounds pivot
         [SerializeField] private float _defaultPlacementHeight = 0f;
         [SerializeField] private float _minimumPlacementHeight = 0f; // Minimum Y position for placement
         [SerializeField] private bool _useRaycastForPlacement = true;
         [SerializeField] private bool _useConsistentHeight = false; // Force consistent Y height for indicator
+        [SerializeField] private Vector3 _sceneBounds = new Vector3(20f, 10f, 20f);
+        [SerializeField] private Vector3 _sceneBoundsOffset = Vector3.zero; // Offset from stage area center
+        [SerializeField] private PivotPoint _sceneBoundsPivot = PivotPoint.Center; // Scene bounds pivot point
+        [SerializeField] private bool _enableDropIndicator = true;
+        [SerializeField] private GameObject _dropIndicatorPrefab;
+        [SerializeField] private Color _validDropColor = Color.green;
+        [SerializeField] private Color _invalidDropColor = Color.red;
+        [SerializeField] private float _dropIndicatorSize = 1f;
+
+        [Header("Ghost Preview Settings")]
+        [SerializeField] private bool _enableGhostPreview = true;
+        [SerializeField] private Color _validGhostColor = new Color(0f, 1f, 0f, 0.5f); // Semi-transparent green
+        [SerializeField] private Color _invalidGhostColor = new Color(1f, 0f, 0f, 0.5f); // Semi-transparent red
+        [SerializeField] private bool _showGridSnapIndicator = true;
+        [SerializeField] private bool _showSurfaceNormal = true;
+        [SerializeField] private float _surfaceNormalLength = 1f;
+        
+        [Header("Transform Mode Colors")]
+        [SerializeField] private Color _positionModeColor = new Color(0f, 1f, 1f, 0.5f); // Cyan
+        [SerializeField] private Color _rotationModeColor = new Color(1f, 1f, 0f, 0.5f); // Yellow
+        [SerializeField] private Color _scaleModeColor = new Color(1f, 0f, 1f, 0.5f); // Magenta
+        
+        [Header("Selection & Edit Settings")]
+        [SerializeField] private bool _autoEditOnSelect = true; // Auto start ghost edit mode when object selected
+
+        [Header("Placement Validation")]
+        [SerializeField] private bool _checkCollisions = true;
+        [SerializeField] private LayerMask _collisionLayers = -1;
+        [SerializeField] private LayerMask _groundLayers = 0; // Layers to ignore in collision check (ground, floor, etc.)
+        [SerializeField] private bool _ignoreStaticObjects = true; // Ignore static objects in collision check
+        [SerializeField] private bool _requireSurfaceBelow = false;
+        [SerializeField] private bool _enableCostSystem = false;
+        [SerializeField] private int _placementCost = 10; // Placeholder for future resource system
+
+        [Header("Transform Input Settings")]
+        [SerializeField] private float _rotationSensitivity = 1.0f; // Degrees per pixel
+        [SerializeField] private float _scaleSensitivity = 0.01f; // Scale units per pixel
+        [SerializeField] private float _scrollScaleSensitivity = 0.1f; // Scale units per scroll notch
+        [SerializeField] private Vector3 _minScale = new Vector3(0.1f, 0.1f, 0.1f);
+        [SerializeField] private Vector3 _maxScale = new Vector3(10f, 10f, 10f);
 
         [Header("Preview Settings")]
         [SerializeField] private MiniTimelineDirector _timelineDirector;
@@ -45,21 +147,16 @@ namespace SceneSandbox.Core
         [SerializeField] private bool _showSceneBounds = true;
         [SerializeField] private bool _showStageAreaGizmo = true;
         [SerializeField] private bool _showPlacementHeightGizmo = true;
-        [SerializeField] private Vector3 _sceneBounds = new Vector3(20f, 10f, 20f);
         [SerializeField] private Color _sceneBoundsColor = Color.cyan;
         [SerializeField] private Color _placementHeightColor = Color.yellow;
 
-        [Header("Drop Indicator Settings")]
-        [SerializeField] private bool _enableDropIndicator = true;
-        [SerializeField] private GameObject _dropIndicatorPrefab;
-        [SerializeField] private Color _validDropColor = Color.green;
-        [SerializeField] private Color _invalidDropColor = Color.red;
-        [SerializeField] private float _dropIndicatorSize = 1f;
-
         [Header("Save/Load")]
-        [SerializeField] private string _defaultSavePath = ""; // Will be initialized to Application.persistentDataPath/SavedScenes
+        [Tooltip("Scene save path (Read-Only). Automatically set to: persistentDataPath/SceneSandboxBuilder/SavedScenes")]
+        [SerializeField] private string _defaultSavePath = ""; // Force initialized to Application.persistentDataPath/SceneSandboxBuilder/SavedScenes
+        [Tooltip("Name for the current scene configuration")]
         [SerializeField] private string _currentSceneName = "Untitled Scene";
-        [SerializeField] private string _defaultProjectSavePath = ""; // Will be initialized to Application.persistentDataPath/SavedProjects
+        [Tooltip("Project save path (Read-Only). Automatically set to: persistentDataPath/SceneSandboxBuilder/SavedProjects")]
+        [SerializeField] private string _defaultProjectSavePath = ""; // Force initialized to Application.persistentDataPath/SceneSandboxBuilder/SavedProjects
 
         // Components
         private Camera _sceneCamera;
@@ -75,6 +172,26 @@ namespace SceneSandbox.Core
         private GameObject _currentDropIndicator;
         private bool _isDraggingObject = false;
         private Vector3 _dragPreviewPosition;
+
+        // Placement & Transform State
+        private PlacementState _placementState = PlacementState.Idle;
+        private TransformModeType _currentTransformMode = TransformModeType.Position;
+        private GameObject _ghostObject;
+        private string _currentPlacementObjectId;
+        private Vector3 _currentPlacementPosition;
+        private Quaternion _currentPlacementRotation = Quaternion.identity;
+        private Vector3 _currentPlacementScale = Vector3.one;
+        private bool _isCurrentPlacementValid;
+        private List<Material> _originalMaterials = new List<Material>();
+        private List<Material> _ghostMaterials = new List<Material>();
+        private Vector3 _lastValidSurfaceNormal = Vector3.up;
+        
+        // Selection Edit State (for ghost-based editing of existing objects)
+        private GameObject _selectedObjectForEdit; // Original object being edited
+        private Vector3 _originalPosition;
+        private Quaternion _originalRotation;
+        private Vector3 _originalScale;
+        private Dictionary<Renderer, Material[]> _originalObjectMaterials; // Store original materials to restore
 
         // Events
         public System.Action<SceneConfiguration> OnSceneLoaded;
@@ -94,7 +211,29 @@ namespace SceneSandbox.Core
         public bool GizmosEnabled => _enableGizmos;
         public bool SceneGizmosEnabled => _enableSceneGizmos;
         public Vector3 SceneBounds => _sceneBounds;
+        public Vector3 SceneBoundsOffset => _sceneBoundsOffset;
+        public PivotPoint SceneBoundsPivot => _sceneBoundsPivot;
+        public Vector3 GridOffset => _gridOffset;
+        public PivotPoint GridPivotOffset => _gridPivotOffset;
         public bool DropIndicatorEnabled => _enableDropIndicator;
+        public PlacementState CurrentPlacementState => _placementState;
+        public bool IsPlacementActive => _placementState == PlacementState.Active;
+        public TransformModeType CurrentTransformMode => _currentTransformMode;
+
+        /// <summary>
+        /// Set the current transform mode (Position/Rotation/Scale)
+        /// </summary>
+        public void SetTransformMode(TransformModeType mode)
+        {
+            _currentTransformMode = mode;
+            Debug.Log($"[Transform] Mode changed to: {mode}");
+            
+            // Update ghost visual feedback if in placement mode
+            if (IsPlacementActive && _ghostObject != null)
+            {
+                UpdateGhostTransformMode();
+            }
+        }
 
         /// <summary>
         /// Set the object library for this sandbox builder
@@ -106,22 +245,20 @@ namespace SceneSandbox.Core
 
         /// <summary>
         /// Initialize default save paths using Application.persistentDataPath for multi-platform support
+        /// Force root folder to always be persistentDataPath for consistency
         /// </summary>
         private void InitializeDefaultPaths()
         {
-            // Initialize scene save path if not set or still using old Assets/ path
-            if (string.IsNullOrEmpty(_defaultSavePath) || _defaultSavePath.StartsWith("Assets/"))
-            {
-                _defaultSavePath = System.IO.Path.Combine(Application.persistentDataPath, "SceneSandboxBuilder", "SavedScenes");
-                Debug.Log($"[SceneSandboxBuilder] Initialized scene save path: {_defaultSavePath}");
-            }
-
-            // Initialize project save path if not set or still using old Assets/ path
-            if (string.IsNullOrEmpty(_defaultProjectSavePath) || _defaultProjectSavePath.StartsWith("Assets/"))
-            {
-                _defaultProjectSavePath = System.IO.Path.Combine(Application.persistentDataPath, "SceneSandboxBuilder", "SavedProjects");
-                Debug.Log($"[SceneSandboxBuilder] Initialized project save path: {_defaultProjectSavePath}");
-            }
+            // FORCE root to be Application.persistentDataPath for cross-platform compatibility
+            // This ensures data is saved to a consistent, writable location on all platforms
+            string rootPath = Application.persistentDataPath;
+            
+            // Always reset paths to use persistentDataPath root
+            _defaultSavePath = System.IO.Path.Combine(rootPath, "SceneSandboxBuilder", "SavedScenes");
+            _defaultProjectSavePath = System.IO.Path.Combine(rootPath, "SceneSandboxBuilder", "SavedProjects");
+            
+            Debug.Log($"[SceneSandboxBuilder] Initialized scene save path: {_defaultSavePath}");
+            Debug.Log($"[SceneSandboxBuilder] Initialized project save path: {_defaultProjectSavePath}");
 
             // Ensure directories exist
             try
@@ -129,11 +266,13 @@ namespace SceneSandbox.Core
                 if (!System.IO.Directory.Exists(_defaultSavePath))
                 {
                     System.IO.Directory.CreateDirectory(_defaultSavePath);
+                    Debug.Log($"[SceneSandboxBuilder] Created scene save directory");
                 }
 
                 if (!System.IO.Directory.Exists(_defaultProjectSavePath))
                 {
                     System.IO.Directory.CreateDirectory(_defaultProjectSavePath);
+                    Debug.Log($"[SceneSandboxBuilder] Created project save directory");
                 }
             }
             catch (System.Exception ex)
@@ -149,7 +288,6 @@ namespace SceneSandbox.Core
 
             InitializeComponents();
             InitializeState();
-
         }
 
         private void Start()
@@ -162,12 +300,132 @@ namespace SceneSandbox.Core
         {
             if (TransformableSelectionManager.Instance != null)
             {
+                // Subscribe to selection events
                 TransformableSelectionManager.Instance.OnItemSelected += HandleItemSelected;
                 TransformableSelectionManager.Instance.OnItemDeselected += HandleItemDeselected;
+                
+                // Subscribe to placement input events
+                TransformableSelectionManager.Instance.OnEmptySpaceClicked += HandleEmptySpaceClicked;
+                TransformableSelectionManager.Instance.OnPointerMoved += HandlePointerMoved;
+                TransformableSelectionManager.Instance.OnCancelRequested += HandleCancelRequested;
+                
+                // Subscribe to transform input events
+                TransformableSelectionManager.Instance.OnPointerDragged += HandlePointerDragged;
+                TransformableSelectionManager.Instance.OnMouseScrolled += HandleMouseScrolled;
+                TransformableSelectionManager.Instance.OnTransformModeTypeChangeRequested += HandleTransformModeChangeRequested;
             }
         }
 
+        /// <summary>
+        /// Handle empty space click event from SelectionManager
+        /// </summary>
+        private void HandleEmptySpaceClicked(Vector2 screenPosition)
+        {
+            if (IsPlacementActive)
+            {
+                // If editing an object, confirm the edit
+                if (_selectedObjectForEdit != null)
+                {
+                    ConfirmObjectEdit();
+                }
+                else
+                {
+                    // Otherwise confirm placement
+                    ConfirmPlacement();
+                }
+            }
+        }
 
+        /// <summary>
+        /// Handle pointer moved event from SelectionManager
+        /// </summary>
+        private void HandlePointerMoved(Vector2 screenPosition)
+        {
+            if (IsPlacementActive)
+            {
+                // Update position for both placement and edit modes
+                UpdatePlacement(screenPosition);
+            }
+        }
+
+        /// <summary>
+        /// Handle cancel requested event from SelectionManager
+        /// </summary>
+        private void HandleCancelRequested()
+        {
+            if (IsPlacementActive)
+            {
+                // If editing an object, cancel the edit
+                if (_selectedObjectForEdit != null)
+                {
+                    CancelObjectEdit();
+                }
+                else
+                {
+                    // Otherwise cancel placement
+                    CancelPlacement();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handle pointer dragged event from SelectionManager
+        /// </summary>
+        private void HandlePointerDragged(Vector2 delta)
+        {
+            if (!IsPlacementActive || _ghostObject == null)
+                return;
+
+            switch (_currentTransformMode)
+            {
+                case TransformModeType.Rotation:
+                    // Horizontal drag rotates around Y axis (yaw)
+                    float yawDelta = delta.x * _rotationSensitivity;
+                    _currentPlacementRotation *= Quaternion.Euler(0f, yawDelta, 0f);
+                    UpdateGhostPosition();
+                    break;
+
+                case TransformModeType.Scale:
+                    // Vertical drag scales uniformly
+                    float scaleDelta = -delta.y * _scaleSensitivity;
+                    Vector3 newScale = _currentPlacementScale + Vector3.one * scaleDelta;
+                    _currentPlacementScale = Vector3.Max(_minScale, Vector3.Min(_maxScale, newScale));
+                    UpdateGhostPosition();
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Handle mouse scroll event from SelectionManager
+        /// </summary>
+        private void HandleMouseScrolled(float scrollDelta)
+        {
+            if (!IsPlacementActive || _ghostObject == null)
+                return;
+
+            if (_currentTransformMode == TransformModeType.Scale)
+            {
+                // Scroll wheel scales uniformly
+                float scaleDelta = scrollDelta * _scrollScaleSensitivity;
+                Vector3 newScale = _currentPlacementScale + Vector3.one * scaleDelta;
+                _currentPlacementScale = Vector3.Max(_minScale, Vector3.Min(_maxScale, newScale));
+                UpdateGhostPosition();
+            }
+        }
+
+        /// <summary>
+        /// Handle transform mode change request from SelectionManager (hotkeys)
+        /// </summary>
+        private void HandleTransformModeChangeRequested(TransformModeType mode)
+        {
+            _currentTransformMode = mode;
+            Debug.Log($"[Transform] Mode changed to: {mode} (via hotkey)");
+            
+            if (IsPlacementActive && _ghostObject != null)
+            {
+                UpdateGhostTransformMode();
+            }
+        }
 
         private void InitializeComponents()
         {
@@ -198,6 +456,7 @@ namespace SceneSandbox.Core
         {
             _placedObjects = new Dictionary<string, GameObject>();
             _previewObjects = new List<GameObject>();
+            _placementState = PlacementState.Idle;
 
             // Don't create drop indicator here - create it when first needed
             // This avoids potential issues with early initialization
@@ -311,6 +570,459 @@ namespace SceneSandbox.Core
             return newObject;
         }
 
+        #endregion
+
+        #region New Placement System (Drag-Drop with Ghost Preview)
+
+        /// <summary>
+        /// Start placement operation - creates ghost preview and enters Active state
+        /// </summary>
+        /// <param name="objectDataId">ID of the object to place</param>
+        /// <param name="screenPosition">Initial screen position for placement</param>
+        public void StartPlacement(string objectDataId, Vector2 screenPosition)
+        {
+            Debug.Log($"[SceneSandboxBuilder] StartPlacement called: objectId={objectDataId}, screenPos={screenPosition}");
+            
+            if (_objectLibrary == null)
+            {
+                Debug.LogWarning("[Placement] Cannot start placement: ObjectLibrary is null");
+                return;
+            }
+
+            var objectData = _objectLibrary.GetObjectById(objectDataId);
+            if (objectData == null || objectData.prefab == null)
+            {
+                Debug.LogWarning($"[Placement] Cannot start placement: Invalid object data for ID {objectDataId}");
+                return;
+            }
+
+            // Cancel any existing placement
+            if (_placementState == PlacementState.Active)
+            {
+                Debug.Log("[Placement] Cancelling existing placement");
+                CancelPlacement();
+            }
+
+            _currentPlacementObjectId = objectDataId;
+            _placementState = PlacementState.Active;
+
+            // Convert screen position to world position
+            _currentPlacementPosition = GetWorldPositionFromScreen(screenPosition);
+            Debug.Log($"[Placement] Initial world position: {_currentPlacementPosition}");
+
+            // Create ghost object
+            CreateGhostObject(objectData);
+
+            Debug.Log($"[Placement] Started placement for {objectData.displayName}, IsPlacementActive={IsPlacementActive}");
+        }
+
+        /// <summary>
+        /// Update placement position during drag
+        /// </summary>
+        /// <param name="screenPosition">Current screen position</param>
+        public void UpdatePlacement(Vector2 screenPosition)
+        {
+            if (_placementState != PlacementState.Active || _ghostObject == null)
+            {
+                Debug.LogWarning($"[Placement] UpdatePlacement skipped: state={_placementState}, ghost={_ghostObject != null}");
+                return;
+            }
+
+            _currentPlacementPosition = GetWorldPositionFromScreen(screenPosition);
+            UpdateGhostPosition();
+            Debug.Log($"[Placement] Updated position: {_currentPlacementPosition}");
+        }
+
+        /// <summary>
+        /// Confirm placement and create the actual object
+        /// </summary>
+        /// <returns>The placed GameObject, or null if placement failed</returns>
+        public GameObject ConfirmPlacement()
+        {
+            Debug.Log($"[Placement] ConfirmPlacement called: state={_placementState}, ghost={_ghostObject != null}, valid={_isCurrentPlacementValid}");
+            
+            if (_placementState != PlacementState.Active || _ghostObject == null)
+            {
+                Debug.LogWarning("[Placement] Cannot confirm: No active placement");
+                return null;
+            }
+
+            if (!_isCurrentPlacementValid)
+            {
+                Debug.LogWarning("[Placement] Cannot confirm: Placement position is invalid");
+                CancelPlacement();
+                return null;
+            }
+
+            _placementState = PlacementState.Confirming;
+
+            // Place the object at the ghost position
+            Vector3 finalPosition = _ghostObject.transform.position;
+            Quaternion finalRotation = _ghostObject.transform.rotation;
+
+            // Cleanup ghost
+            DestroyGhostObject();
+
+            // Reset state
+            string objectId = _currentPlacementObjectId;
+            _currentPlacementObjectId = null;
+            _placementState = PlacementState.Idle;
+
+            // Actually place the object
+            GameObject placedObject = PlaceObject(objectId, finalPosition, autoSelect: true);
+            
+            if (placedObject != null)
+            {
+                placedObject.transform.rotation = finalRotation;
+                Debug.Log($"[Placement] ✅ Confirmed placement for {placedObject.name}");
+            }
+
+            return placedObject;
+        }
+
+        /// <summary>
+        /// Cancel the current placement operation
+        /// </summary>
+        public void CancelPlacement()
+        {
+            if (_placementState != PlacementState.Active)
+                return;
+
+            _placementState = PlacementState.Cancelling;
+
+            DestroyGhostObject();
+
+            _currentPlacementObjectId = null;
+            _currentPlacementPosition = Vector3.zero;
+            _isCurrentPlacementValid = false;
+            _placementState = PlacementState.Idle;
+
+            Debug.Log("[Placement] ❌ Placement cancelled");
+        }
+
+        /// <summary>
+        /// Create a ghost preview object from the object data
+        /// </summary>
+        private void CreateGhostObject(SceneObjectData objectData)
+        {
+            if (objectData == null || objectData.prefab == null)
+                return;
+
+            // Instantiate the prefab as ghost
+            _ghostObject = Instantiate(objectData.prefab);
+            _ghostObject.name = $"[GHOST] {objectData.displayName}";
+            
+            // Move ghost to Ignore Raycast layer to prevent collision detection
+            SetLayerRecursively(_ghostObject, LayerMask.NameToLayer("Ignore Raycast"));
+
+            // Apply scale
+            Vector3 targetScale = objectData.defaultScale;
+            if (targetScale == Vector3.zero)
+            {
+                targetScale = objectData.prefab.transform.localScale;
+            }
+            _ghostObject.transform.localScale = targetScale;
+
+            // Disable any colliders on the ghost
+            foreach (var collider in _ghostObject.GetComponentsInChildren<Collider>())
+            {
+                collider.enabled = false;
+            }
+
+            // Disable any TransformableItem components
+            foreach (var transformable in _ghostObject.GetComponentsInChildren<TransformableItem>())
+            {
+                transformable.enabled = false;
+            }
+
+            // Make it semi-transparent
+            if (_enableGhostPreview)
+            {
+                MakeGhostTransparent();
+            }
+
+            // Initial position
+            _ghostObject.transform.position = _currentPlacementPosition;
+            UpdateGhostValidation();
+        }
+
+        /// <summary>
+        /// Make the ghost object semi-transparent
+        /// </summary>
+        private void MakeGhostTransparent()
+        {
+            if (_ghostObject == null)
+                return;
+
+            _originalMaterials.Clear();
+            _ghostMaterials.Clear();
+
+            var renderers = _ghostObject.GetComponentsInChildren<Renderer>();
+            foreach (var renderer in renderers)
+            {
+                foreach (var originalMat in renderer.materials)
+                {
+                    _originalMaterials.Add(originalMat);
+
+                    // Create ghost material
+                    Material ghostMat = new Material(originalMat);
+                    
+                    // Enable transparency
+                    ghostMat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                    ghostMat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                    ghostMat.SetInt("_ZWrite", 0);
+                    ghostMat.DisableKeyword("_ALPHATEST_ON");
+                    ghostMat.EnableKeyword("_ALPHABLEND_ON");
+                    ghostMat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                    ghostMat.renderQueue = 3000;
+
+                    _ghostMaterials.Add(ghostMat);
+                }
+
+                renderer.materials = _ghostMaterials.ToArray();
+            }
+
+            UpdateGhostColor();
+        }
+
+        /// <summary>
+        /// Update ghost object color based on validity and transform mode
+        /// </summary>
+        private void UpdateGhostColor()
+        {
+            if (_ghostObject == null || _ghostMaterials.Count == 0)
+                return;
+
+            // If invalid, always use invalid color
+            Color ghostColor;
+            if (!_isCurrentPlacementValid)
+            {
+                ghostColor = _invalidGhostColor;
+            }
+            else
+            {
+                // Use mode-specific color when valid
+                switch (_currentTransformMode)
+                {
+                    case TransformModeType.Position:
+                        ghostColor = _positionModeColor;
+                        break;
+                    case TransformModeType.Rotation:
+                        ghostColor = _rotationModeColor;
+                        break;
+                    case TransformModeType.Scale:
+                        ghostColor = _scaleModeColor;
+                        break;
+                    default:
+                        ghostColor = _validGhostColor;
+                        break;
+                }
+            }
+
+            foreach (var mat in _ghostMaterials)
+            {
+                if (mat.HasProperty("_Color"))
+                {
+                    mat.color = ghostColor;
+                }
+                if (mat.HasProperty("_BaseColor"))
+                {
+                    mat.SetColor("_BaseColor", ghostColor);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update ghost object position and rotation
+        /// </summary>
+        private void UpdateGhostPosition()
+        {
+            if (_ghostObject == null)
+                return;
+
+            // Apply transform based on current mode
+            switch (_currentTransformMode)
+            {
+                case TransformModeType.Position:
+                    Vector3 targetPosition = _currentPlacementPosition;
+                    if (_snapToGrid)
+                    {
+                        targetPosition = SnapToGrid(targetPosition);
+                    }
+                    _ghostObject.transform.position = targetPosition;
+                    break;
+
+                case TransformModeType.Rotation:
+                    _ghostObject.transform.rotation = _currentPlacementRotation;
+                    break;
+
+                case TransformModeType.Scale:
+                    _ghostObject.transform.localScale = _currentPlacementScale;
+                    break;
+            }
+
+            // Validate placement
+            UpdateGhostValidation();
+
+            // Update visual feedback
+            UpdateGhostColor();
+        }
+
+        /// <summary>
+        /// Update ghost visual feedback based on transform mode
+        /// </summary>
+        private void UpdateGhostTransformMode()
+        {
+            if (_ghostObject == null)
+                return;
+
+            // Update transform and visual feedback
+            UpdateGhostPosition();
+            UpdateGhostColor(); // Update color to reflect new mode
+        }
+
+        /// <summary>
+        /// Validate the current placement position
+        /// </summary>
+        private void UpdateGhostValidation()
+        {
+            bool wasValid = _isCurrentPlacementValid;
+            _isCurrentPlacementValid = ValidatePlacementPosition(_currentPlacementPosition);
+
+            // Update visual feedback if validity changed
+            if (wasValid != _isCurrentPlacementValid)
+            {
+                UpdateGhostColor();
+            }
+        }
+
+        /// <summary>
+        /// Check if a placement position is valid
+        /// </summary>
+        private bool ValidatePlacementPosition(Vector3 position)
+        {
+            // Check scene bounds
+            if (!IsPositionInSceneBounds(position))
+            {
+                return false;
+            }
+
+            // Check collisions if enabled
+            if (_checkCollisions && _ghostObject != null)
+            {
+                Bounds ghostBounds = GetObjectBounds(_ghostObject);
+                
+                // Use OverlapBox to get all colliders, then filter out ghost object's colliders
+                Collider[] overlappingColliders = Physics.OverlapBox(
+                    ghostBounds.center, 
+                    ghostBounds.extents, 
+                    _ghostObject.transform.rotation, 
+                    _collisionLayers,
+                    QueryTriggerInteraction.Ignore
+                );
+                
+                // Check if any overlapping collider belongs to a different object (not the ghost)
+                foreach (var collider in overlappingColliders)
+                {
+                    // Skip if this collider belongs to the ghost object
+                    if (collider.transform.IsChildOf(_ghostObject.transform) || collider.gameObject == _ghostObject)
+                    {
+                        continue;
+                    }
+                    
+                    // Skip ground/floor objects (check if layer is in ground layers mask)
+                    int objLayer = collider.gameObject.layer;
+                    if ((_groundLayers.value & (1 << objLayer)) != 0)
+                    {
+                        continue;
+                    }
+                    
+                    // Skip static ground/floor objects if enabled
+                    if (_ignoreStaticObjects && collider.gameObject.isStatic)
+                    {
+                        continue;
+                    }
+                    
+                    // Found a collision with a movable/dynamic object
+                    return false;
+                }
+            }
+
+            // Check if surface below is required
+            if (_requireSurfaceBelow)
+            {
+                if (!Physics.Raycast(position + Vector3.up * 0.1f, Vector3.down, 0.2f, _placementLayers))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Get the bounds of a game object including all renderers
+        /// </summary>
+        private Bounds GetObjectBounds(GameObject obj)
+        {
+            Bounds bounds = new Bounds(obj.transform.position, Vector3.zero);
+            var renderers = obj.GetComponentsInChildren<Renderer>();
+            
+            if (renderers.Length > 0)
+            {
+                bounds = renderers[0].bounds;
+                for (int i = 1; i < renderers.Length; i++)
+                {
+                    bounds.Encapsulate(renderers[i].bounds);
+                }
+            }
+
+            return bounds;
+        }
+
+        /// <summary>
+        /// Destroy the ghost object and cleanup materials
+        /// </summary>
+        private void DestroyGhostObject()
+        {
+            if (_ghostObject != null)
+            {
+                // Cleanup ghost materials
+                foreach (var mat in _ghostMaterials)
+                {
+                    if (mat != null)
+                    {
+                        Destroy(mat);
+                    }
+                }
+
+                _ghostMaterials.Clear();
+                _originalMaterials.Clear();
+
+                Destroy(_ghostObject);
+                _ghostObject = null;
+            }
+        }
+
+        /// <summary>
+        /// Set layer for a GameObject and all its children recursively
+        /// </summary>
+        private void SetLayerRecursively(GameObject obj, int layer)
+        {
+            if (obj == null) return;
+            
+            obj.layer = layer;
+            
+            foreach (Transform child in obj.transform)
+            {
+                SetLayerRecursively(child.gameObject, layer);
+            }
+        }
+
+        #endregion
+
+        #region Public Interface (Legacy)
+
         /// <summary>
         /// Remove an object from the scene
         /// </summary>
@@ -378,6 +1090,200 @@ namespace SceneSandbox.Core
                 {
                     TransformableSelectionManager.Instance.ClearSelection();
                 }
+            }
+        }
+
+        /// <summary>
+        /// Start editing an existing object with ghost preview system
+        /// Similar to PlaceObject, but modifies an existing object instead of creating new one
+        /// </summary>
+        public void BeginObjectEdit(GameObject targetObject)
+        {
+            if (targetObject == null)
+            {
+                Debug.LogWarning("[Edit] Cannot edit: target object is null");
+                return;
+            }
+
+            // Cancel any existing placement/edit
+            if (IsPlacementActive)
+            {
+                CancelPlacement();
+            }
+
+            _selectedObjectForEdit = targetObject;
+            _originalPosition = targetObject.transform.position;
+            _originalRotation = targetObject.transform.rotation;
+            _originalScale = targetObject.transform.localScale;
+
+            // Store original materials to restore later
+            _originalObjectMaterials = new Dictionary<Renderer, Material[]>();
+            var renderers = targetObject.GetComponentsInChildren<Renderer>();
+            foreach (var renderer in renderers)
+            {
+                // Store a copy of the materials array
+                _originalObjectMaterials[renderer] = renderer.sharedMaterials;
+                // Disable renderer to hide original object
+                renderer.enabled = false;
+            }
+
+            // Create ghost from the existing object
+            _ghostObject = Instantiate(targetObject);
+            _ghostObject.name = $"[GHOST-EDIT] {targetObject.name}";
+            
+            // Move ghost to Ignore Raycast layer
+            SetLayerRecursively(_ghostObject, LayerMask.NameToLayer("Ignore Raycast"));
+
+            // Set initial transform state
+            _currentPlacementPosition = _originalPosition;
+            _currentPlacementRotation = _originalRotation;
+            _currentPlacementScale = _originalScale;
+
+            // Disable colliders and TransformableItem on ghost
+            foreach (var collider in _ghostObject.GetComponentsInChildren<Collider>())
+            {
+                collider.enabled = false;
+            }
+            foreach (var transformable in _ghostObject.GetComponentsInChildren<TransformableItem>())
+            {
+                transformable.enabled = false;
+            }
+
+            // Make it semi-transparent
+            if (_enableGhostPreview)
+            {
+                MakeGhostTransparent();
+            }
+
+            _placementState = PlacementState.Active;
+            
+            // Initial validation and visual update
+            UpdateGhostValidation();
+            UpdateGhostColor();
+
+            Debug.Log($"[Edit] Started editing {targetObject.name}");
+        }
+
+        /// <summary>
+        /// Confirm the edit - apply ghost transforms to original object
+        /// </summary>
+        public GameObject ConfirmObjectEdit()
+        {
+            if (_selectedObjectForEdit == null || _ghostObject == null)
+            {
+                Debug.LogWarning("[Edit] Cannot confirm: No active edit");
+                return null;
+            }
+
+            if (!_isCurrentPlacementValid)
+            {
+                Debug.LogWarning("[Edit] Cannot confirm: Edit position is invalid");
+                CancelObjectEdit();
+                return null;
+            }
+
+            _placementState = PlacementState.Confirming;
+
+            // Apply ghost transforms to original object
+            _selectedObjectForEdit.transform.position = _ghostObject.transform.position;
+            _selectedObjectForEdit.transform.rotation = _ghostObject.transform.rotation;
+            _selectedObjectForEdit.transform.localScale = _ghostObject.transform.localScale;
+
+            // Restore original materials and re-enable renderers
+            if (_originalObjectMaterials != null)
+            {
+                foreach (var kvp in _originalObjectMaterials)
+                {
+                    Renderer renderer = kvp.Key;
+                    Material[] materials = kvp.Value;
+                    
+                    if (renderer != null)
+                    {
+                        renderer.sharedMaterials = materials; // Restore original materials
+                        renderer.enabled = true; // Re-enable renderer
+                    }
+                }
+                _originalObjectMaterials.Clear();
+                _originalObjectMaterials = null;
+            }
+
+            // Update scene configuration
+            UpdatePlacedObjectTransform(_selectedObjectForEdit);
+
+            // Cleanup ghost
+            DestroyGhostObject();
+
+            GameObject editedObject = _selectedObjectForEdit;
+            _selectedObjectForEdit = null;
+            _placementState = PlacementState.Idle;
+
+            Debug.Log($"[Edit] ✅ Confirmed edit for {editedObject.name}");
+            return editedObject;
+        }
+
+        /// <summary>
+        /// Cancel the edit - restore original transforms and show original object
+        /// </summary>
+        public void CancelObjectEdit()
+        {
+            if (_selectedObjectForEdit == null)
+                return;
+
+            _placementState = PlacementState.Cancelling;
+
+            // Restore original transforms
+            _selectedObjectForEdit.transform.position = _originalPosition;
+            _selectedObjectForEdit.transform.rotation = _originalRotation;
+            _selectedObjectForEdit.transform.localScale = _originalScale;
+
+            // Restore original materials and re-enable renderers
+            if (_originalObjectMaterials != null)
+            {
+                foreach (var kvp in _originalObjectMaterials)
+                {
+                    Renderer renderer = kvp.Key;
+                    Material[] materials = kvp.Value;
+                    
+                    if (renderer != null)
+                    {
+                        renderer.sharedMaterials = materials; // Restore original materials
+                        renderer.enabled = true; // Re-enable renderer
+                    }
+                }
+                _originalObjectMaterials.Clear();
+                _originalObjectMaterials = null;
+            }
+
+            // Cleanup ghost
+            DestroyGhostObject();
+
+            _selectedObjectForEdit = null;
+            _placementState = PlacementState.Idle;
+
+            Debug.Log("[Edit] ❌ Edit cancelled");
+        }
+
+        /// <summary>
+        /// Update a placed object's transform in the scene configuration
+        /// </summary>
+        private void UpdatePlacedObjectTransform(GameObject obj)
+        {
+            if (obj == null || _currentScene == null)
+                return;
+
+            var draggable = obj.GetComponent<TransformableItem>();
+            if (draggable == null)
+                return;
+
+            string objectId = draggable.ObjectId;
+            var placedObjectData = _currentScene.placedObjects.Find(p => p.id == objectId);
+            
+            if (placedObjectData != null)
+            {
+                placedObjectData.position = obj.transform.position;
+                placedObjectData.rotation = obj.transform.eulerAngles;
+                placedObjectData.scale = obj.transform.localScale;
+                _currentScene.lastModified = System.DateTime.Now;
             }
         }
 
@@ -488,78 +1394,99 @@ namespace SceneSandbox.Core
         }
 
         /// <summary>
-        /// Handle drag start from UI - shows drop indicator at screen position
+        /// Begin placement operation from UI - starts placement with ghost preview
         /// </summary>
-        public void HandleDragFromUI(string objectDataId, Vector2 screenPosition)
+        /// <param name="objectDataId">ID of the object to place</param>
+        /// <param name="screenPosition">Screen position to start placement</param>
+        public void BeginPlacement(string objectDataId, Vector2 screenPosition)
         {
-            if (_objectLibrary == null) return;
-
-            var objectData = _objectLibrary.GetObjectById(objectDataId);
-            if (objectData == null || objectData.prefab == null) return;
-
-            // Convert screen position to world position
-            Vector3 worldPosition = GetWorldPositionFromScreen(screenPosition);
-
-            // Show drop indicator at the calculated position
-            _isDraggingObject = true;
-            _dragPreviewPosition = worldPosition;
-            ShowDropIndicator(worldPosition);
+            StartPlacement(objectDataId, screenPosition);
+            
+            // Also show drop indicator for additional visual feedback (optional)
+            if (_enableDropIndicator)
+            {
+                Vector3 worldPosition = GetWorldPositionFromScreen(screenPosition);
+                _isDraggingObject = true;
+                _dragPreviewPosition = worldPosition;
+                ShowDropIndicator(worldPosition);
+            }
         }
 
         /// <summary>
-        /// Handle drag move from UI - updates drop indicator position
+        /// Begin placement operation - starts placement with ghost preview at screen center
         /// </summary>
-        public void HandleDragMoveFromUI(Vector2 screenPosition)
+        /// <param name="objectDataId">ID of the object to place</param>
+        public void BeginPlacement(string objectDataId)
         {
-            if (!_isDraggingObject) return;
-
-            // Convert screen position to world position
-            Vector3 worldPosition = GetWorldPositionFromScreen(screenPosition);
-
-            // Update drop indicator position
-            _dragPreviewPosition = worldPosition;
-            UpdateDropIndicator(worldPosition);
+            Debug.Log($"[BeginPlacement] Called with objectId={objectDataId}, Application.isPlaying={Application.isPlaying}");
+            
+            // Use screen center as default position
+            Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+            Debug.Log($"[BeginPlacement] Screen size: {Screen.width}x{Screen.height}, center: {screenCenter}");
+            
+            BeginPlacement(objectDataId, screenCenter);
         }
 
         /// <summary>
-        /// Handle drag end from UI - places object at screen position
+        /// Update placement position from UI - updates ghost preview position
         /// </summary>
-        public GameObject HandleDropFromUI(string objectDataId, Vector2 screenPosition)
+        public void UpdatePlacementUI(Vector2 screenPosition)
         {
-            Debug.Log($"[BUILDER] HandleDropFromUI called - ID: {objectDataId}, ScreenPos: {screenPosition}");
+            // Update placement ghost
+            UpdatePlacement(screenPosition);
+
+            // Also update drop indicator if enabled
+            if (_isDraggingObject && _enableDropIndicator)
+            {
+                Vector3 worldPosition = GetWorldPositionFromScreen(screenPosition);
+                _dragPreviewPosition = worldPosition;
+                UpdateDropIndicator(worldPosition);
+            }
+        }
+
+        /// <summary>
+        /// Complete placement from UI - confirms placement and creates the object
+        /// </summary>
+        public GameObject CompletePlacement(string objectDataId, Vector2 screenPosition)
+        {
+            Debug.Log($"[BUILDER] CompletePlacement called - ID: {objectDataId}, ScreenPos: {screenPosition}");
             
             // Hide drop indicator
-            HideDropIndicator();
-            _isDraggingObject = false;
-
-            // Convert screen position to world position
-            Debug.Log($"[BUILDER] Converting screen to world position...");
-            Vector3 worldPosition = GetWorldPositionFromScreen(screenPosition);
-            Debug.Log($"[BUILDER] World position: {worldPosition}");
-
-            // Check if position is within scene bounds
-            Debug.Log($"[BUILDER] Checking if position is in scene bounds...");
-            if (!IsPositionInSceneBounds(worldPosition))
+            if (_enableDropIndicator)
             {
-                Debug.LogWarning($"[BUILDER] ❌ Position {worldPosition} is outside scene bounds!");
-                return null;
+                HideDropIndicator();
+                _isDraggingObject = false;
             }
-            Debug.Log($"[BUILDER] ✅ Position is within scene bounds");
 
-            // Place the object at the calculated world position
-            Debug.Log($"[BUILDER] Calling PlaceObject...");
-            GameObject result = PlaceObject(objectDataId, worldPosition, autoSelect: true);
-            Debug.Log($"[BUILDER] PlaceObject returned: {(result != null ? result.name : "NULL")}");
+            // Confirm placement with the new system
+            GameObject result = ConfirmPlacement();
+            
+            if (result != null)
+            {
+                Debug.Log($"[BUILDER] ✅ CompletePlacement successful: {result.name}");
+            }
+            else
+            {
+                Debug.LogWarning($"[BUILDER] ❌ CompletePlacement failed - placement invalid or cancelled");
+            }
+
             return result;
         }
 
         /// <summary>
-        /// Cancel drag operation from UI
+        /// Cancel placement operation from UI
         /// </summary>
-        public void CancelDragFromUI()
+        public void CancelPlacementUI()
         {
-            HideDropIndicator();
-            _isDraggingObject = false;
+            // Cancel the placement
+            CancelPlacement();
+
+            // Hide drop indicator
+            if (_enableDropIndicator)
+            {
+                HideDropIndicator();
+                _isDraggingObject = false;
+            }
         }
 
         #endregion
@@ -747,8 +1674,14 @@ namespace SceneSandbox.Core
             settings.useConsistentHeight = _useConsistentHeight;
             settings.placementLayers = _placementLayers;
 
+            // Update grid settings
+            settings.gridOffset = _gridOffset;
+            settings.gridPivotOffset = _gridPivotOffset;
+
             // Update visual settings
             settings.sceneBounds = _sceneBounds;
+            settings.sceneBoundsOffset = _sceneBoundsOffset;
+            settings.sceneBoundsPivot = _sceneBoundsPivot;
             settings.sceneBoundsColor = _sceneBoundsColor;
             settings.enableGizmos = _enableGizmos;
             settings.showBoundsGizmo = _showBoundsGizmo;
@@ -795,8 +1728,14 @@ namespace SceneSandbox.Core
             _useConsistentHeight = settings.useConsistentHeight;
             _placementLayers = settings.placementLayers;
 
+            // Apply grid settings
+            _gridOffset = settings.gridOffset;
+            _gridPivotOffset = settings.gridPivotOffset;
+
             // Apply visual settings
             _sceneBounds = settings.sceneBounds;
+            _sceneBoundsOffset = settings.sceneBoundsOffset;
+            _sceneBoundsPivot = settings.sceneBoundsPivot;
             _sceneBoundsColor = settings.sceneBoundsColor;
             _enableGizmos = settings.enableGizmos;
             _showBoundsGizmo = settings.showBoundsGizmo;
@@ -1298,6 +2237,14 @@ namespace SceneSandbox.Core
         }
 
         /// <summary>
+        /// Set the scene bounds offset from stage area center
+        /// </summary>
+        public void SetSceneBoundsOffset(Vector3 offset)
+        {
+            _sceneBoundsOffset = offset;
+        }
+
+        /// <summary>
         /// Set the scene bounds color
         /// </summary>
         public void SetSceneBoundsColor(Color color)
@@ -1350,6 +2297,13 @@ namespace SceneSandbox.Core
             {
                 _selectedObject = item.gameObject;
                 OnObjectSelected?.Invoke(_selectedObject);
+                
+                // Automatically start edit mode with ghost preview if enabled
+                if (_autoEditOnSelect)
+                {
+                    Debug.Log($"[SceneSandboxBuilder] Auto-starting edit mode for {item.gameObject.name}");
+                    BeginObjectEdit(item.gameObject);
+                }
             }
         }
 
@@ -1359,6 +2313,13 @@ namespace SceneSandbox.Core
             {
                 _selectedObject = null;
                 OnObjectSelected?.Invoke(null);
+                
+                // Cancel edit mode if active
+                if (_autoEditOnSelect && IsPlacementActive && _selectedObjectForEdit != null)
+                {
+                    Debug.Log($"[SceneSandboxBuilder] Auto-canceling edit mode");
+                    CancelObjectEdit();
+                }
             }
         }
 
@@ -1368,10 +2329,114 @@ namespace SceneSandbox.Core
 
         private void BindDraggableEvents(TransformableItem draggable)
         {
-            draggable.OnDragStarted += (item, pos) => SelectObject(item.gameObject);
-            draggable.OnDragEnded += (item, pos) => UpdateObjectInScene(item);
+            // Selection events are now handled by TransformableSelectionManager
+            // Object updates are handled through the ghost preview system
             draggable.OnItemClicked += (item) => SelectObject(item.gameObject);
             draggable.OnItemSelected += (item) => SelectObject(item.gameObject);
+        }
+
+        /// <summary>
+        /// Calculate offset based on pivot point and size
+        /// </summary>
+        private Vector3 CalculatePivotOffset(PivotPoint pivot, Vector3 size)
+        {
+            float halfX = size.x / 2f;
+            float halfY = size.y / 2f;
+            float halfZ = size.z / 2f;
+            
+            switch (pivot)
+            {
+                // Center
+                case PivotPoint.Center:
+                    return Vector3.zero;
+                
+                // Face Centers (6)
+                case PivotPoint.FrontCenter:
+                    return new Vector3(0, 0, -halfZ);
+                
+                case PivotPoint.BackCenter:
+                    return new Vector3(0, 0, halfZ);
+                
+                case PivotPoint.LeftCenter:
+                    return new Vector3(-halfX, 0, 0);
+                
+                case PivotPoint.RightCenter:
+                    return new Vector3(halfX, 0, 0);
+                
+                case PivotPoint.TopCenter:
+                    return new Vector3(0, halfY, 0);
+                
+                case PivotPoint.BottomCenter:
+                    return new Vector3(0, -halfY, 0);
+                
+                // Bottom Edge Centers (4)
+                case PivotPoint.BottomFrontEdge:
+                    return new Vector3(0, -halfY, -halfZ);
+                
+                case PivotPoint.BottomBackEdge:
+                    return new Vector3(0, -halfY, halfZ);
+                
+                case PivotPoint.BottomLeftEdge:
+                    return new Vector3(-halfX, -halfY, 0);
+                
+                case PivotPoint.BottomRightEdge:
+                    return new Vector3(halfX, -halfY, 0);
+                
+                // Top Edge Centers (4)
+                case PivotPoint.TopFrontEdge:
+                    return new Vector3(0, halfY, -halfZ);
+                
+                case PivotPoint.TopBackEdge:
+                    return new Vector3(0, halfY, halfZ);
+                
+                case PivotPoint.TopLeftEdge:
+                    return new Vector3(-halfX, halfY, 0);
+                
+                case PivotPoint.TopRightEdge:
+                    return new Vector3(halfX, halfY, 0);
+                
+                // Vertical Edge Centers (4)
+                case PivotPoint.FrontLeftEdge:
+                    return new Vector3(-halfX, 0, -halfZ);
+                
+                case PivotPoint.FrontRightEdge:
+                    return new Vector3(halfX, 0, -halfZ);
+                
+                case PivotPoint.BackLeftEdge:
+                    return new Vector3(-halfX, 0, halfZ);
+                
+                case PivotPoint.BackRightEdge:
+                    return new Vector3(halfX, 0, halfZ);
+                
+                // Bottom Corners (4)
+                case PivotPoint.BottomFrontLeft:
+                    return new Vector3(-halfX, -halfY, -halfZ);
+                
+                case PivotPoint.BottomFrontRight:
+                    return new Vector3(halfX, -halfY, -halfZ);
+                
+                case PivotPoint.BottomBackLeft:
+                    return new Vector3(-halfX, -halfY, halfZ);
+                
+                case PivotPoint.BottomBackRight:
+                    return new Vector3(halfX, -halfY, halfZ);
+                
+                // Top Corners (4)
+                case PivotPoint.TopFrontLeft:
+                    return new Vector3(-halfX, halfY, -halfZ);
+                
+                case PivotPoint.TopFrontRight:
+                    return new Vector3(halfX, halfY, -halfZ);
+                
+                case PivotPoint.TopBackLeft:
+                    return new Vector3(-halfX, halfY, halfZ);
+                
+                case PivotPoint.TopBackRight:
+                    return new Vector3(halfX, halfY, halfZ);
+                
+                default:
+                    return Vector3.zero;
+            }
         }
 
         private void UpdateObjectInScene(TransformableItem draggable)
@@ -1461,12 +2526,31 @@ namespace SceneSandbox.Core
             return new Vector3(snappedX, position.y, snappedZ);
         }
 
+        /// <summary>
+        /// Calculate the grid's Y position based on scene bounds and pivot offsets
+        /// </summary>
+        private float GetGridYPosition()
+        {
+            Vector3 stageCenter = _stageArea != null ? _stageArea.position : transform.position;
+            Vector3 sceneBoundsPivotOffset = CalculatePivotOffset(_sceneBoundsPivot, _sceneBounds);
+            Vector3 gridPivotOffset = CalculatePivotOffset(_gridPivotOffset, _sceneBounds);
+            
+            // Calculate grid Y: stageY + sceneBoundsOffsetY + gridOffsetY - sceneBoundsPivotY + gridPivotY
+            float gridY = stageCenter.y + _sceneBoundsOffset.y + _gridOffset.y - sceneBoundsPivotOffset.y + gridPivotOffset.y;
+            return gridY;
+        }
+
         private Vector3 GetSurfacePosition(Vector3 position)
         {
+            // Calculate grid Y position based on scene bounds and pivots
+            float gridY = GetGridYPosition();
+            float defaultHeight = gridY + _defaultPlacementHeight; // Default height is relative to grid
+            float minimumHeight = gridY + _minimumPlacementHeight; // Minimum height is relative to grid
+            
             // If raycast placement is disabled, always use default placement height
             if (!_useRaycastForPlacement)
             {
-                Vector3 result = new Vector3(position.x, _defaultPlacementHeight, position.z);
+                Vector3 result = new Vector3(position.x, defaultHeight, position.z);
                 return result;
             }
 
@@ -1475,13 +2559,13 @@ namespace SceneSandbox.Core
             if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, 20f, _placementLayers))
             {
                 // Found surface, use the hit point's Y position but respect minimum height
-                float finalY = Mathf.Max(hit.point.y, _minimumPlacementHeight);
+                float finalY = Mathf.Max(hit.point.y, minimumHeight);
                 Vector3 result = new Vector3(position.x, finalY, position.z);
                 return result;
             }
 
             // No surface found, use default placement height (respecting minimum)
-            float finalDefaultHeight = Mathf.Max(_defaultPlacementHeight, _minimumPlacementHeight);
+            float finalDefaultHeight = Mathf.Max(defaultHeight, minimumHeight);
             Vector3 defaultResult = new Vector3(position.x, finalDefaultHeight, position.z);
             return defaultResult;
         }
@@ -1512,16 +2596,21 @@ namespace SceneSandbox.Core
             Ray ray = _sceneCamera.ScreenPointToRay(screenPosition);
             Vector3 worldPos;
 
+            // Calculate grid Y position and heights relative to grid
+            float gridY = GetGridYPosition();
+            float defaultHeight = gridY + _defaultPlacementHeight;
+            float minimumHeight = gridY + _minimumPlacementHeight;
+
             // If raycast placement is disabled or consistent height is enabled, always project to default height
             if (!_useRaycastForPlacement || _useConsistentHeight)
             {
                 Vector3 rayDirection = ray.direction.normalized;
                 if (Mathf.Abs(rayDirection.y) < 0.001f)
                 {
-                    return new Vector3(0, _defaultPlacementHeight, 0);
+                    return new Vector3(0, defaultHeight, 0);
                 }
 
-                float t = (_defaultPlacementHeight - ray.origin.y) / rayDirection.y;
+                float t = (defaultHeight - ray.origin.y) / rayDirection.y;
                 worldPos = ray.origin + rayDirection * t;
                 return worldPos;
             }
@@ -1529,7 +2618,7 @@ namespace SceneSandbox.Core
             // Try to hit the ground or existing objects
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, _placementLayers))
             {
-                float finalY = Mathf.Max(hit.point.y, _minimumPlacementHeight);
+                float finalY = Mathf.Max(hit.point.y, minimumHeight);
                 worldPos = new Vector3(hit.point.x, finalY, hit.point.z);
             }
             else
@@ -1537,11 +2626,11 @@ namespace SceneSandbox.Core
                 Vector3 rayDirection = ray.direction.normalized;
                 if (Mathf.Abs(rayDirection.y) < 0.001f)
                 {
-                    return new Vector3(0, _defaultPlacementHeight, 0);
+                    return new Vector3(0, defaultHeight, 0);
                 }
-                float t = (_defaultPlacementHeight - ray.origin.y) / rayDirection.y;
+                float t = (defaultHeight - ray.origin.y) / rayDirection.y;
                 Vector3 projectedPos = ray.origin + rayDirection * t;
-                float finalY = Mathf.Max(projectedPos.y, _minimumPlacementHeight);
+                float finalY = Mathf.Max(projectedPos.y, minimumHeight);
                 worldPos = new Vector3(projectedPos.x, finalY, projectedPos.z);
             }
 
@@ -1553,12 +2642,17 @@ namespace SceneSandbox.Core
         /// </summary>
         private bool IsPositionInSceneBounds(Vector3 position)
         {
-            Vector3 center = _stageArea != null ? _stageArea.position : transform.position;
-            Vector3 localPos = position - center;
+            Vector3 stageCenter = _stageArea != null ? _stageArea.position : transform.position;
+            Vector3 pivotOffset = CalculatePivotOffset(_sceneBoundsPivot, _sceneBounds);
+            // We SUBTRACT the pivot offset to position the bounds relative to the pivot point
+            Vector3 boundsCenter = stageCenter + _sceneBoundsOffset - pivotOffset;
+            Vector3 localPos = position - boundsCenter;
 
-            bool result = Mathf.Abs(localPos.x) <= _sceneBounds.x / 2f &&
-                   Mathf.Abs(localPos.y) <= _sceneBounds.y / 2f &&
-                   Mathf.Abs(localPos.z) <= _sceneBounds.z / 2f;
+            bool withinX = Mathf.Abs(localPos.x) <= _sceneBounds.x / 2f;
+            bool withinY = Mathf.Abs(localPos.y) <= _sceneBounds.y / 2f;
+            bool withinZ = Mathf.Abs(localPos.z) <= _sceneBounds.z / 2f;
+            
+            bool result = withinX && withinY && withinZ;
                    
             return result;
         }
@@ -1781,6 +2875,12 @@ namespace SceneSandbox.Core
             {
                 DrawDropIndicatorGizmos();
             }
+
+            // Draw placement preview gizmos
+            if (_placementState == PlacementState.Active && _ghostObject != null)
+            {
+                DrawPlacementPreviewGizmos();
+            }
         }
 
         /// <summary>
@@ -1843,22 +2943,34 @@ namespace SceneSandbox.Core
         }
 
         /// <summary>
-        /// Draw the scene grid
+        /// Draw the scene grid (2D plane based on scene bounds)
         /// </summary>
         private void DrawSceneGrid()
         {
-            Vector3 center = _stageArea != null ? _stageArea.position : transform.position;
-            float gridExtent = 20f; // Grid extends 20 units from center
-            int gridLines = Mathf.RoundToInt(gridExtent * 2 / _gridSize);
+            Vector3 stageCenter = _stageArea != null ? _stageArea.position : transform.position;
+            
+            // First, align grid with scene bounds (subtract scene bounds pivot)
+            // Then, apply grid pivot offset (add grid offset)
+            Vector3 sceneBoundsPivotOffset = CalculatePivotOffset(_sceneBoundsPivot, _sceneBounds);
+            Vector3 gridPivotOffset = CalculatePivotOffset(_gridPivotOffset, _sceneBounds);
+            
+            Vector3 center = stageCenter + _sceneBoundsOffset + _gridOffset - sceneBoundsPivotOffset + gridPivotOffset;
+            
+            // Use scene bounds to determine grid extent (X, Z only)
+            float gridExtentX = _sceneBounds.x / 2f;
+            float gridExtentZ = _sceneBounds.z / 2f;
+            
+            int gridLinesX = Mathf.RoundToInt(_sceneBounds.x / _gridSize);
+            int gridLinesZ = Mathf.RoundToInt(_sceneBounds.z / _gridSize);
 
             Gizmos.color = Color.gray;
 
             // Draw vertical lines (along Z-axis)
-            for (int i = 0; i <= gridLines; i++)
+            for (int i = 0; i <= gridLinesX; i++)
             {
-                float x = center.x - gridExtent + (i * _gridSize);
-                Vector3 start = new Vector3(x, center.y, center.z - gridExtent);
-                Vector3 end = new Vector3(x, center.y, center.z + gridExtent);
+                float x = center.x - gridExtentX + (i * _gridSize);
+                Vector3 start = new Vector3(x, center.y, center.z - gridExtentZ);
+                Vector3 end = new Vector3(x, center.y, center.z + gridExtentZ);
 
                 // Center line in different color
                 if (Mathf.Approximately(x, center.x))
@@ -1874,11 +2986,11 @@ namespace SceneSandbox.Core
             }
 
             // Draw horizontal lines (along X-axis)
-            for (int i = 0; i <= gridLines; i++)
+            for (int i = 0; i <= gridLinesZ; i++)
             {
-                float z = center.z - gridExtent + (i * _gridSize);
-                Vector3 start = new Vector3(center.x - gridExtent, center.y, z);
-                Vector3 end = new Vector3(center.x + gridExtent, center.y, z);
+                float z = center.z - gridExtentZ + (i * _gridSize);
+                Vector3 start = new Vector3(center.x - gridExtentX, center.y, z);
+                Vector3 end = new Vector3(center.x + gridExtentX, center.y, z);
 
                 // Center line in different color
                 if (Mathf.Approximately(z, center.z))
@@ -1903,7 +3015,10 @@ namespace SceneSandbox.Core
         /// </summary>
         private void DrawSceneBounds()
         {
-            Vector3 center = _stageArea != null ? _stageArea.position : transform.position;
+            Vector3 stageCenter = _stageArea != null ? _stageArea.position : transform.position;
+            Vector3 pivotOffset = CalculatePivotOffset(_sceneBoundsPivot, _sceneBounds);
+            // We SUBTRACT the pivot offset to position the bounds relative to the pivot point
+            Vector3 center = stageCenter + _sceneBoundsOffset - pivotOffset;
             Vector3 size = _sceneBounds; // Use configurable scene bounds
 
             Gizmos.color = _sceneBoundsColor;
@@ -1950,34 +3065,47 @@ namespace SceneSandbox.Core
         /// </summary>
         private void DrawPlacementHeight()
         {
-            Vector3 center = _stageArea != null ? _stageArea.position : transform.position;
-            Vector3 placementPos = new Vector3(center.x, _defaultPlacementHeight, center.z);
+            Vector3 stageCenter = _stageArea != null ? _stageArea.position : transform.position;
+            
+            // First, align with scene bounds (subtract scene bounds pivot)
+            // Then, apply grid pivot offset (add grid offset)
+            Vector3 sceneBoundsPivotOffset = CalculatePivotOffset(_sceneBoundsPivot, _sceneBounds);
+            Vector3 gridPivotOffset = CalculatePivotOffset(_gridPivotOffset, _sceneBounds);
+            
+            Vector3 center = stageCenter + _sceneBoundsOffset + _gridOffset - sceneBoundsPivotOffset + gridPivotOffset;
+            
+            // Calculate placement height relative to grid
+            float placementHeight = center.y + _defaultPlacementHeight;
+            
+            // Use scene bounds to determine placement height grid extent
+            float gridExtentX = _sceneBounds.x / 2f;
+            float gridExtentZ = _sceneBounds.z / 2f;
+            
+            int gridLinesX = Mathf.Max(2, Mathf.RoundToInt(_sceneBounds.x / _gridSize));
+            int gridLinesZ = Mathf.Max(2, Mathf.RoundToInt(_sceneBounds.z / _gridSize));
 
             // Draw placement height plane
             Gizmos.color = _placementHeightColor;
 
-            // Draw a grid at the placement height
-            float gridExtent = 15f; // Smaller than scene grid
-            int gridLines = Mathf.RoundToInt(gridExtent * 2 / _gridSize);
-
             // Draw horizontal grid lines at placement height
-            for (int i = 0; i <= gridLines; i++)
+            for (int i = 0; i <= gridLinesX; i++)
             {
-                float x = center.x - gridExtent + (i * _gridSize);
-                Vector3 start = new Vector3(x, _defaultPlacementHeight, center.z - gridExtent);
-                Vector3 end = new Vector3(x, _defaultPlacementHeight, center.z + gridExtent);
+                float x = center.x - gridExtentX + (i * _gridSize);
+                Vector3 start = new Vector3(x, placementHeight, center.z - gridExtentZ);
+                Vector3 end = new Vector3(x, placementHeight, center.z + gridExtentZ);
                 Gizmos.DrawLine(start, end);
             }
 
-            for (int i = 0; i <= gridLines; i++)
+            for (int i = 0; i <= gridLinesZ; i++)
             {
-                float z = center.z - gridExtent + (i * _gridSize);
-                Vector3 start = new Vector3(center.x - gridExtent, _defaultPlacementHeight, z);
-                Vector3 end = new Vector3(center.x + gridExtent, _defaultPlacementHeight, z);
+                float z = center.z - gridExtentZ + (i * _gridSize);
+                Vector3 start = new Vector3(center.x - gridExtentX, placementHeight, z);
+                Vector3 end = new Vector3(center.x + gridExtentX, placementHeight, z);
                 Gizmos.DrawLine(start, end);
             }
 
             // Draw placement height indicator at center
+            Vector3 placementPos = new Vector3(center.x, placementHeight, center.z);
             Gizmos.color = Color.white;
             Gizmos.DrawWireSphere(placementPos, 0.2f);
 
@@ -2134,6 +3262,79 @@ namespace SceneSandbox.Core
             }
         }
 
+        /// <summary>
+        /// Draw placement preview gizmos (ghost object indicators)
+        /// </summary>
+        private void DrawPlacementPreviewGizmos()
+        {
+            if (_ghostObject == null) return;
+
+            Vector3 position = _ghostObject.transform.position;
+            Bounds bounds = GetObjectBounds(_ghostObject);
+
+            // Draw validity indicator with color
+            Gizmos.color = _isCurrentPlacementValid ? _validGhostColor : _invalidGhostColor;
+            Gizmos.DrawWireCube(bounds.center, bounds.size);
+
+            // Draw grid snap indicator if enabled
+            if (_showGridSnapIndicator && _snapToGrid)
+            {
+                Vector3 snappedPos = SnapToGrid(position);
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawWireCube(snappedPos + Vector3.up * 0.05f, Vector3.one * _gridSize * 0.15f);
+
+                // Draw line from ghost to snap point
+                Gizmos.color = new Color(0f, 1f, 1f, 0.3f);
+                Gizmos.DrawLine(position, snappedPos);
+            }
+
+            // Draw surface normal indicator if enabled
+            if (_showSurfaceNormal)
+            {
+                // Raycast down to find surface
+                if (Physics.Raycast(position + Vector3.up * 0.1f, Vector3.down, out RaycastHit hit, 10f, _placementLayers))
+                {
+                    _lastValidSurfaceNormal = hit.normal;
+                    
+                    // Draw normal vector
+                    Gizmos.color = Color.blue;
+                    Gizmos.DrawLine(hit.point, hit.point + hit.normal * _surfaceNormalLength);
+                    
+                    // Draw surface point
+                    Gizmos.DrawWireSphere(hit.point, 0.1f);
+                }
+                else if (_lastValidSurfaceNormal != Vector3.zero)
+                {
+                    // Draw last known normal if no surface hit
+                    Gizmos.color = new Color(0f, 0f, 1f, 0.3f);
+                    Gizmos.DrawLine(position, position + _lastValidSurfaceNormal * _surfaceNormalLength);
+                }
+            }
+
+            // Draw cost indicator (if enabled)
+            if (_enableCostSystem)
+            {
+                Gizmos.color = _isCurrentPlacementValid ? Color.green : Color.red;
+                Vector3 labelPos = bounds.center + Vector3.up * (bounds.extents.y + 0.5f);
+                
+                #if UNITY_EDITOR
+                UnityEditor.Handles.Label(labelPos, $"Cost: {_placementCost}");
+                #endif
+            }
+
+            // Draw validation feedback
+            if (!_isCurrentPlacementValid)
+            {
+                // Draw X indicator for invalid placement
+                Gizmos.color = Color.red;
+                Vector3 center = bounds.center;
+                float size = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z) * 0.5f;
+                
+                Gizmos.DrawLine(center + new Vector3(-size, size, 0), center + new Vector3(size, -size, 0));
+                Gizmos.DrawLine(center + new Vector3(-size, -size, 0), center + new Vector3(size, size, 0));
+            }
+        }
+
         private void ShowContextMenu(GameObject obj, Vector2 screenPosition)
         {
             // TODO: Implement context menu system
@@ -2195,6 +3396,9 @@ namespace SceneSandbox.Core
             {
                 TransformableSelectionManager.Instance.OnItemSelected -= HandleItemSelected;
                 TransformableSelectionManager.Instance.OnItemDeselected -= HandleItemDeselected;
+                TransformableSelectionManager.Instance.OnEmptySpaceClicked -= HandleEmptySpaceClicked;
+                TransformableSelectionManager.Instance.OnPointerMoved -= HandlePointerMoved;
+                TransformableSelectionManager.Instance.OnCancelRequested -= HandleCancelRequested;
             }
 
             StopPreview();
@@ -2203,6 +3407,12 @@ namespace SceneSandbox.Core
             if (_currentDropIndicator != null)
             {
                 DestroyImmediate(_currentDropIndicator);
+            }
+
+            // Cleanup ghost object
+            if (_ghostObject != null)
+            {
+                DestroyImmediate(_ghostObject);
             }
         }
     }

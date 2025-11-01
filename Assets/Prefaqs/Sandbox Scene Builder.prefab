@@ -53,10 +53,15 @@ MonoBehaviour:
     m_Bits: 64
   _snapToGrid: 1
   _gridSize: 1
-  _defaultPlacementHeight: 1
-  _minimumPlacementHeight: 0
+  _gridOffset: {x: 0, y: 0, z: 0}
+  _gridPivotOffset: 6
+  _defaultPlacementHeight: 0.2
+  _minimumPlacementHeight: 0.1
   _useRaycastForPlacement: 1
   _useConsistentHeight: 1
+  _sceneBounds: {x: 18.6, y: 6.39, z: 9.93}
+  _sceneBoundsOffset: {x: 0, y: -0.8, z: -1.8}
+  _sceneBoundsPivot: 7
   _timelineDirector: {fileID: 0}
   _autoPreview: 1
   _previewDuration: 10
@@ -66,12 +71,11 @@ MonoBehaviour:
   _showHandlesGizmo: 1
   _gizmoBoundsColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   _gizmoAxisLength: 1
-  _enableSceneGizmos: 0
+  _enableSceneGizmos: 1
   _showSceneGrid: 1
   _showSceneBounds: 1
   _showStageAreaGizmo: 1
   _showPlacementHeightGizmo: 1
-  _sceneBounds: {x: 20, y: 20, z: 20}
   _sceneBoundsColor: {r: 0, g: 1, b: 1, a: 1}
   _placementHeightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   _enableDropIndicator: 0

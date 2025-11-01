@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using SceneSandbox.Data;
+using SceneSandbox.Core;
 
 namespace SceneSandbox.Serialization
 {
@@ -166,8 +167,14 @@ namespace SceneSandbox.Serialization
         public bool useConsistentHeight = false;
         public LayerMask placementLayers = -1;
         
+        [Header("Grid Settings")]
+        public Vector3 gridOffset = Vector3.zero;
+        public PivotPoint gridPivotOffset = PivotPoint.Center; // Offset relative to scene bounds pivot
+        
         [Header("Scene Bounds")]
         public Vector3 sceneBounds = new Vector3(20f, 10f, 20f);
+        public Vector3 sceneBoundsOffset = Vector3.zero;
+        public PivotPoint sceneBoundsPivot = PivotPoint.Center;
         public Color sceneBoundsColor = Color.cyan;
         
         [Header("Gizmo Settings")]

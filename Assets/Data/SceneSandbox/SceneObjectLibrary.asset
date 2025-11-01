@@ -82,15 +82,17 @@ MonoBehaviour:
     - camera
     - ui
   lights:
-  - id: area-light
-    displayName: Area Light
+  - id: flash-light-4
+    displayName: Flash Light
     objectType: 3
-    prefab: {fileID: 6709121272351812685, guid: 6216345b2380043a49668f8f445cd587, type: 3}
+    prefab: {fileID: 927910266448547396, guid: 501b5a4f904924b1793df15da167ada3, type: 3}
     icon: {fileID: 0}
-    iconColor: {r: 1, g: 1, b: 1, a: 1}
+    iconColor: {r: 0, g: 0, b: 0, a: 0}
     canRotate: 1
     canScale: 1
-    defaultScale: {x: 1, y: 1, z: 1}
+    defaultScale: {x: 0, y: 0, z: 0}
     snapOffset: {x: 0, y: 0, z: 0}
     category: Light
-    tags: []
+    tags:
+    - light
+    - flash

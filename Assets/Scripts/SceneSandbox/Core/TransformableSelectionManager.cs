@@ -34,7 +34,7 @@ namespace SceneSandbox.Core
         [SerializeField] private bool _allowMultipleSelection = false;
 
         [Header("Transform Control Settings")]
-        [SerializeField] private bool _allowMultipleTransformModes = false;
+        [SerializeField] private bool _allowMultipleTransformModeTypes = false;
         [SerializeField] private bool _enableHotkeys = true;
 
         [Header("Input Action References")]
@@ -47,6 +47,10 @@ namespace SceneSandbox.Core
         [SerializeField] private InputActionReference _pointerPositionActionRef;
         [SerializeField] private InputActionReference _leftClickActionRef;
         [SerializeField] private InputActionReference _rightClickActionRef;
+        [SerializeField] private InputActionReference _mouseScrollActionRef;
+        
+        [Header("Placement Input Actions")]
+        [SerializeField] private InputActionReference _cancelPlacementActionRef;
 
         [Header("Raycast Settings")]
         [SerializeField] private Camera _mainCamera;
@@ -73,11 +77,16 @@ namespace SceneSandbox.Core
         private InputAction _pointerPositionAction;
         private InputAction _leftClickAction;
         private InputAction _rightClickAction;
+        private InputAction _mouseScrollAction;
+        
+        // Placement Input Actions
+        private InputAction _cancelPlacementAction;
 
         // Input state
         private bool _isPointerDown = false;
         private bool _isDragging = false;
         private Vector2 _pointerDownPosition;
+        private Vector2 _lastPointerPosition;
         private TransformableItem _currentHoverItem;
         private TransformableItem _currentDragItem;
         private float _lastClickTime = 0f;
@@ -87,7 +96,15 @@ namespace SceneSandbox.Core
         public System.Action<TransformableItem> OnItemSelected;
         public System.Action<TransformableItem> OnItemDeselected;
         public System.Action<List<TransformableItem>> OnSelectionChanged;
-        public System.Action<TransformableItem, TransformMode> OnGlobalTransformModeChanged;
+        public System.Action<TransformableItem, TransformModeType> OnGlobalTransformModeTypeChanged;
+
+        // Input/Placement Events (for decoupled communication)
+        public System.Action<Vector2> OnEmptySpaceClicked; // Click on empty space (can trigger placement confirm)
+        public System.Action<Vector2> OnPointerMoved; // Pointer moved (can update placement ghost)
+        public System.Action<Vector2> OnPointerDragged; // Pointer dragged (delta for rotation/scale)
+        public System.Action<float> OnMouseScrolled; // Mouse scroll wheel (for scale)
+        public System.Action<TransformModeType> OnTransformModeTypeChangeRequested; // Mode change requested from hotkeys
+        public System.Action OnCancelRequested; // Cancel action triggered (ESC, right-click, etc.)
 
         // Properties
         public TransformableItem SelectedItem => _selectedItems.Count > 0 ? _selectedItems[0] : null;
@@ -144,6 +161,30 @@ namespace SceneSandbox.Core
         private void Update()
         {
             HandleRaycastInput();
+            
+            // Get current input position
+            Vector2 inputPosition = GetInputPosition();
+            
+            // Emit pointer moved event for systems that need continuous position updates
+            OnPointerMoved?.Invoke(inputPosition);
+            
+            // Track pointer delta for drag operations
+            Vector2 pointerDelta = inputPosition - _lastPointerPosition;
+            if (pointerDelta.magnitude > 0.1f && _isDragging)
+            {
+                OnPointerDragged?.Invoke(pointerDelta);
+            }
+            _lastPointerPosition = inputPosition;
+            
+            // Handle scroll wheel input
+            if (_mouseScrollAction != null && _mouseScrollAction.enabled)
+            {
+                float scrollDelta = _mouseScrollAction.ReadValue<Vector2>().y;
+                if (Mathf.Abs(scrollDelta) > 0.01f)
+                {
+                    OnMouseScrolled?.Invoke(scrollDelta);
+                }
+            }
         }
 
         #region Raycast Input Handling
@@ -165,16 +206,27 @@ namespace SceneSandbox.Core
             HandleHoverState(hitItem);
 
             // Check if left click action exists and is enabled
-            if (_leftClickAction == null) return;
+            if (_leftClickAction == null)
+            {
+                Debug.LogWarning("[SelectionManager] _leftClickAction is NULL - input not configured!");
+                return;
+            }
 
             // Get click state from InputAction
             bool leftButtonDown = _leftClickAction.WasPressedThisFrame();
             bool leftButtonUp = _leftClickAction.WasReleasedThisFrame();
             bool leftButtonHeld = _leftClickAction.IsPressed();
             
+            // Debug input state every frame when there's activity
+            if (leftButtonDown || leftButtonUp || leftButtonHeld)
+            {
+                Debug.Log($"[SelectionManager] Input State - Down: {leftButtonDown}, Up: {leftButtonUp}, Held: {leftButtonHeld}, IsPointerDown: {_isPointerDown}, IsDragging: {_isDragging}");
+            }
+            
             // Right click
             bool rightButtonDown = _rightClickAction != null && _rightClickAction.WasPressedThisFrame();
 
+            // Normal selection handling
             // Pointer down
             if (leftButtonDown)
             {
@@ -193,11 +245,7 @@ namespace SceneSandbox.Core
                 HandlePointerUp(inputPosition, hitItem);
             }
 
-            // Right click
-            if (rightButtonDown && hitItem != null)
-            {
-                hitItem.OnRaycastClick(inputPosition, 1, true);
-            }
+            // Right click handling removed - no more options form
         }
 
         /// <summary>
@@ -224,7 +272,14 @@ namespace SceneSandbox.Core
             if (Physics.Raycast(ray, out RaycastHit hit, _maxRaycastDistance, _raycastLayers))
             {
                 // Try to get TransformableItem from hit object or its parents
-                return hit.collider.GetComponentInParent<TransformableItem>();
+                TransformableItem item = hit.collider.GetComponentInParent<TransformableItem>();
+                Debug.Log($"[SelectionManager] Raycast HIT - Object: {hit.collider.name}, Distance: {hit.distance}, HasTransformableItem: {item != null}");
+                return item;
+            }
+            else
+            {
+                // Log when raycast hits nothing (empty space)
+                Debug.Log($"[SelectionManager] Raycast MISS - Empty space at position: {screenPosition}");
             }
 
             return null;
@@ -257,19 +312,17 @@ namespace SceneSandbox.Core
         /// </summary>
         private void HandlePointerDown(Vector2 inputPosition, TransformableItem hitItem)
         {
+            Debug.Log($"[SelectionManager] HandlePointerDown - Position: {inputPosition}, HitItem: {(hitItem != null ? hitItem.name : "NULL")}");
+            
             _isPointerDown = true;
             _pointerDownPosition = inputPosition;
             _currentDragItem = hitItem;
 
-            if (hitItem != null)
-            {
-                // Notify item of pointer down (for long press detection)
-                hitItem.OnRaycastPointerDown(inputPosition, true);
-            }
+            // No more long press or drag start handling - TransformableItem simplified
         }
 
         /// <summary>
-        /// Handle pointer drag event
+        /// Handle pointer drag event - simplified, no object dragging
         /// </summary>
         private void HandlePointerDrag(Vector2 inputPosition)
         {
@@ -277,19 +330,16 @@ namespace SceneSandbox.Core
 
             if (!_isDragging && dragDistance > _dragThreshold)
             {
-                // Start dragging
+                Debug.Log($"[SelectionManager] Drag threshold exceeded - DragDistance: {dragDistance}, Threshold: {_dragThreshold}");
                 _isDragging = true;
-
-                if (_currentDragItem != null)
-                {
-                    Debug.Log($"[SelectionManager] Starting drag on {_currentDragItem.name}");
-                    _currentDragItem.OnRaycastDragStart(_pointerDownPosition);
-                }
+                // Drag functionality moved to SceneSandboxBuilder's ghost system
             }
 
-            if (_isDragging && _currentDragItem != null)
+            // Invoke pointer dragged event for transform controls
+            if (_isDragging)
             {
-                _currentDragItem.OnRaycastDrag(inputPosition);
+                Vector2 delta = inputPosition - _pointerDownPosition;
+                OnPointerDragged?.Invoke(delta);
             }
         }
 
@@ -298,36 +348,35 @@ namespace SceneSandbox.Core
         /// </summary>
         private void HandlePointerUp(Vector2 inputPosition, TransformableItem hitItem)
         {
-            if (_currentDragItem != null)
-            {
-                _currentDragItem.OnRaycastPointerUp(inputPosition);
-            }
-
-            if (_isDragging)
-            {
-                // End drag
-                if (_currentDragItem != null)
-                {
-                    Debug.Log($"[SelectionManager] Ending drag on {_currentDragItem.name}");
-                    _currentDragItem.OnRaycastDragEnd(inputPosition);
-                }
-                _isDragging = false;
-            }
-            else
+            Debug.Log($"[SelectionManager] HandlePointerUp - Position: {inputPosition}, HitItem: {(hitItem != null ? hitItem.name : "NULL")}, IsDragging: {_isDragging}, CurrentDragItem: {(_currentDragItem != null ? _currentDragItem.name : "NULL")}");
+            
+            if (!_isDragging)
             {
                 // Handle click (no drag occurred)
                 if (hitItem != null && hitItem == _currentDragItem)
                 {
+                    Debug.Log($"[SelectionManager] Click detected on item: {hitItem.name}");
                     HandleClick(inputPosition, hitItem);
                 }
                 else if (hitItem == null)
                 {
-                    // Clicked on empty space - deselect all
+                    // Clicked on empty space - emit event and deselect all
+                    Debug.Log($"[SelectionManager] Click on EMPTY SPACE - Invoking OnEmptySpaceClicked event, Subscribers: {OnEmptySpaceClicked?.GetInvocationList().Length ?? 0}");
+                    OnEmptySpaceClicked?.Invoke(inputPosition);
                     ClearSelection();
                 }
+                else
+                {
+                    Debug.LogWarning($"[SelectionManager] Click condition not met - HitItem: {(hitItem != null ? hitItem.name : "NULL")}, DragItem mismatch");
+                }
+            }
+            else
+            {
+                Debug.Log($"[SelectionManager] Dragging detected - skipping click handling");
             }
 
             _isPointerDown = false;
+            _isDragging = false;
             _currentDragItem = null;
         }
 
@@ -349,8 +398,20 @@ namespace SceneSandbox.Core
 
             _lastClickTime = Time.time;
 
-            Debug.Log($"[SelectionManager] Click on {hitItem.name}, count={_clickCount}");
-            hitItem.OnRaycastClick(inputPosition, _clickCount, false);
+            Debug.Log($"[SelectionManager] HandleClick - Item: {hitItem.name}, ClickCount: {_clickCount}, Position: {inputPosition}");
+            
+            // Single click - select the item
+            if (_clickCount == 1)
+            {
+                SelectItem(hitItem);
+            }
+            
+            // Double click - could trigger additional action (e.g., focus/edit mode)
+            if (_clickCount >= 2)
+            {
+                Debug.Log($"[SelectionManager] Double click on {hitItem.name}");
+                // Could add special double-click behavior here
+            }
         }
 
         #endregion
@@ -364,7 +425,7 @@ namespace SceneSandbox.Core
         {
             if (item != null)
             {
-                item.OnTransformModeChanged += OnItemTransformModeChanged;
+                item.OnTransformModeTypeChanged += OnItemTransformModeTypeChanged;
             }
         }
 
@@ -375,7 +436,7 @@ namespace SceneSandbox.Core
         {
             if (item != null)
             {
-                item.OnTransformModeChanged -= OnItemTransformModeChanged;
+                item.OnTransformModeTypeChanged -= OnItemTransformModeTypeChanged;
                 _activeTransformItems.Remove(item);
 
                 if (_currentActiveTransformItem == item)
@@ -388,9 +449,9 @@ namespace SceneSandbox.Core
         /// <summary>
         /// Handle transform mode changes from items
         /// </summary>
-        private void OnItemTransformModeChanged(TransformableItem item, TransformMode mode)
+        private void OnItemTransformModeTypeChanged(TransformableItem item, TransformModeType mode)
         {
-            if (mode == TransformMode.None)
+            if (mode == TransformModeType.None)
             {
                 // Item exited transform mode
                 _activeTransformItems.Remove(item);
@@ -402,10 +463,10 @@ namespace SceneSandbox.Core
             else
             {
                 // Item entered transform mode
-                if (!_allowMultipleTransformModes)
+                if (!_allowMultipleTransformModeTypes)
                 {
                     // Exit all other items from transform mode
-                    ExitOtherTransformModes(item);
+                    ExitOtherTransformModeTypes(item);
                 }
 
                 if (!_activeTransformItems.Contains(item))
@@ -415,20 +476,20 @@ namespace SceneSandbox.Core
                 _currentActiveTransformItem = item;
             }
 
-            OnGlobalTransformModeChanged?.Invoke(item, mode);
+            OnGlobalTransformModeTypeChanged?.Invoke(item, mode);
         }
 
         /// <summary>
         /// Exit transform mode for all items except the specified one
         /// </summary>
-        private void ExitOtherTransformModes(TransformableItem exceptItem)
+        private void ExitOtherTransformModeTypes(TransformableItem exceptItem)
         {
             var itemsToExit = new List<TransformableItem>(_activeTransformItems);
             foreach (var item in itemsToExit)
             {
                 if (item != exceptItem && item != null)
                 {
-                    item.SetTransformMode(TransformMode.None);
+                    item.SetTransformModeType(TransformModeType.None);
                 }
             }
         }
@@ -436,14 +497,14 @@ namespace SceneSandbox.Core
         /// <summary>
         /// Exit all transform modes
         /// </summary>
-        public void ExitAllTransformModes()
+        public void ExitAllTransformModeTypes()
         {
             var itemsToExit = new List<TransformableItem>(_activeTransformItems);
             foreach (var item in itemsToExit)
             {
                 if (item != null)
                 {
-                    item.SetTransformMode(TransformMode.None);
+                    item.SetTransformModeType(TransformModeType.None);
                 }
             }
             _activeTransformItems.Clear();
@@ -453,13 +514,13 @@ namespace SceneSandbox.Core
         /// <summary>
         /// Set transform mode for all selected items
         /// </summary>
-        public void SetModeForSelectedItems(TransformMode mode)
+        public void SetModeForSelectedItems(TransformModeType mode)
         {
             foreach (var item in _selectedItems)
             {
                 if (item != null && item.EnableTransformControls)
                 {
-                    item.SetTransformMode(mode);
+                    item.SetTransformModeType(mode);
                 }
             }
         }
@@ -491,14 +552,14 @@ namespace SceneSandbox.Core
         /// <summary>
         /// Toggle multiple transform modes support
         /// </summary>
-        public void SetAllowMultipleTransformModes(bool allow)
+        public void SetAllowMultipleTransformModeTypes(bool allow)
         {
-            _allowMultipleTransformModes = allow;
+            _allowMultipleTransformModeTypes = allow;
 
             // If disabling multiple modes and we have multiple active, keep only the current one
             if (!allow && _activeTransformItems.Count > 1 && _currentActiveTransformItem != null)
             {
-                ExitOtherTransformModes(_currentActiveTransformItem);
+                ExitOtherTransformModeTypes(_currentActiveTransformItem);
             }
         }
 
@@ -509,7 +570,7 @@ namespace SceneSandbox.Core
         {
             return $"Active Transform Items: {_activeTransformItems.Count}, " +
                    $"Current Active: {(_currentActiveTransformItem ? _currentActiveTransformItem.name : "None")}, " +
-                   $"Multiple Modes: {_allowMultipleTransformModes}";
+                   $"Multiple Modes: {_allowMultipleTransformModeTypes}";
         }
 
         #endregion
@@ -560,6 +621,18 @@ namespace SceneSandbox.Core
             {
                 _rightClickAction = _rightClickActionRef.action;
             }
+            
+            if (_mouseScrollActionRef != null)
+            {
+                _mouseScrollAction = _mouseScrollActionRef.action;
+            }
+
+            // Initialize placement input actions
+            if (_cancelPlacementActionRef != null)
+            {
+                _cancelPlacementAction = _cancelPlacementActionRef.action;
+                _cancelPlacementAction.performed += OnCancelPlacementPerformed;
+            }
         }
 
         private void EnableInputActions()
@@ -577,6 +650,10 @@ namespace SceneSandbox.Core
             _pointerPositionAction?.Enable();
             _leftClickAction?.Enable();
             _rightClickAction?.Enable();
+            _mouseScrollAction?.Enable();
+
+            // Enable placement input actions
+            _cancelPlacementAction?.Enable();
         }
 
         private void DisableInputActions()
@@ -590,6 +667,10 @@ namespace SceneSandbox.Core
             _pointerPositionAction?.Disable();
             _leftClickAction?.Disable();
             _rightClickAction?.Disable();
+            _mouseScrollAction?.Disable();
+
+            // Disable placement input actions
+            _cancelPlacementAction?.Disable();
         }
 
         #endregion
@@ -598,14 +679,15 @@ namespace SceneSandbox.Core
 
         private void OnExitAllModesPerformed(InputAction.CallbackContext context)
         {
-            ExitAllTransformModes();
+            ExitAllTransformModeTypes();
         }
 
         private void OnMoveHotkeyPerformed(InputAction.CallbackContext context)
         {
             if (_enableHotkeys)
             {
-                SetModeForSelectedItems(TransformMode.Move);
+                SetModeForSelectedItems(TransformModeType.Position);
+                OnTransformModeTypeChangeRequested?.Invoke(TransformModeType.Position);
             }
         }
 
@@ -613,7 +695,8 @@ namespace SceneSandbox.Core
         {
             if (_enableHotkeys)
             {
-                SetModeForSelectedItems(TransformMode.Rotate);
+                SetModeForSelectedItems(TransformModeType.Rotation);
+                OnTransformModeTypeChangeRequested?.Invoke(TransformModeType.Rotation);
             }
         }
 
@@ -621,8 +704,14 @@ namespace SceneSandbox.Core
         {
             if (_enableHotkeys)
             {
-                SetModeForSelectedItems(TransformMode.Scale);
+                SetModeForSelectedItems(TransformModeType.Scale);
+                OnTransformModeTypeChangeRequested?.Invoke(TransformModeType.Scale);
             }
+        }
+
+        private void OnCancelPlacementPerformed(InputAction.CallbackContext context)
+        {
+            OnCancelRequested?.Invoke();
         }
 
         #endregion
@@ -856,7 +945,7 @@ namespace SceneSandbox.Core
             // Clear transform control state
             _activeTransformItems.Clear();
             _currentActiveTransformItem = null;
-            ExitAllTransformModes();
+            ExitAllTransformModeTypes();
             
             // Clear input state
             _isPointerDown = false;
@@ -890,7 +979,7 @@ namespace SceneSandbox.Core
         {
             // Clean up selection state
             ClearSelection();
-            ExitAllTransformModes();
+            ExitAllTransformModeTypes();
             
             // Unsubscribe from scene events
             SceneManager.sceneUnloaded -= OnSceneUnloaded;
@@ -915,6 +1004,10 @@ namespace SceneSandbox.Core
             if (_scaleHotkeyActionRef != null && _scaleHotkeyActionRef.action != null)
             {
                 _scaleHotkeyActionRef.action.performed -= OnScaleHotkeyPerformed;
+            }
+            if (_cancelPlacementAction != null)
+            {
+                _cancelPlacementAction.performed -= OnCancelPlacementPerformed;
             }
             
             // Clear instance reference
