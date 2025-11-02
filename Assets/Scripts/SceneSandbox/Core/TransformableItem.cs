@@ -19,6 +19,11 @@ namespace SceneSandbox.Core
         [SerializeField] private float _scaleSensitivity = 0.01f;
         [SerializeField] private Vector3 _minScale = new Vector3(0.1f, 0.1f, 0.1f);
         [SerializeField] private Vector3 _maxScale = new Vector3(5f, 5f, 5f);
+        
+        [Header("Transform Step Settings")]
+        [SerializeField] private float _positionStep = 0.1f; // Step for position adjustment (not used in placement mode)
+        [SerializeField] private float _rotationStep = 5f; // Degrees per step
+        [SerializeField] private float _scaleStep = 0.1f; // Scale units per step
 
         [Header("Gizmo Settings")]
         [SerializeField] private bool _showGizmo = true;
@@ -312,122 +317,6 @@ namespace SceneSandbox.Core
             }
 
             OnTransformModeTypeChanged?.Invoke(this, mode);
-            Debug.Log($"Transform mode changed to: {mode}");
-        }
-
-        /// <summary>
-        /// Start transform control operation
-        /// </summary>
-        private void StartTransformControl(Vector2 screenPosition)
-        {
-            if (_currentTransformModeType == TransformModeType.None) return;
-
-            _lastInputPosition = screenPosition;
-            
-            // Store starting values
-            switch (_currentTransformModeType)
-            {
-                case TransformModeType.Position:
-                    _originalPosition = transform.position;
-                    break;
-                case TransformModeType.Rotation:
-                    _originalRotation = transform.eulerAngles;
-                    break;
-                case TransformModeType.Scale:
-                    _originalScale = transform.localScale;
-                    break;
-            }
-
-            Debug.Log($"Started {_currentTransformModeType} control");
-        }
-
-        /// <summary>
-        /// Continue transform control operation
-        /// </summary>
-        private void ContinueTransformControl(Vector2 screenPosition)
-        {
-            if (_currentTransformModeType == TransformModeType.None) return;
-
-            Vector2 deltaInput = screenPosition - _lastInputPosition;
-
-            switch (_currentTransformModeType)
-            {
-                case TransformModeType.Position:
-                    HandleMoveControl(deltaInput);
-                    break;
-                case TransformModeType.Rotation:
-                    HandleRotateControl(deltaInput);
-                    break;
-                case TransformModeType.Scale:
-                    HandleScaleControl(deltaInput);
-                    break;
-            }
-
-            _lastInputPosition = screenPosition;
-        }
-
-        /// <summary>
-        /// End transform control operation
-        /// </summary>
-        private void EndTransformControl(Vector2 screenPosition)
-        {
-            if (_currentTransformModeType == TransformModeType.None) return;
-
-            Debug.Log($"Ended {_currentTransformModeType} control");
-            
-            // Optional: Auto-exit transform mode after operation
-            // SetTransformModeType(TransformModeType.None);
-        }
-
-        /// <summary>
-        /// Handle move control input
-        /// </summary>
-        private void HandleMoveControl(Vector2 deltaInput)
-        {
-            if (_camera == null) return;
-
-            // Convert screen delta to world movement
-            float movementScale = 0.01f; // Adjust sensitivity
-            Vector3 cameraRight = _camera.transform.right;
-            Vector3 cameraUp = Vector3.up; // Keep movement on horizontal plane
-            
-            Vector3 movement = (cameraRight * deltaInput.x + cameraUp * deltaInput.y) * movementScale;
-            transform.position += movement;
-        }
-
-        /// <summary>
-        /// Handle rotation control input
-        /// </summary>
-        private void HandleRotateControl(Vector2 deltaInput)
-        {
-            // Convert screen delta to rotation
-            float rotationX = -deltaInput.y * _rotationSensitivity; // Pitch (around X axis)
-            float rotationY = deltaInput.x * _rotationSensitivity;  // Yaw (around Y axis)
-
-            // Apply rotation relative to current rotation
-            Vector3 currentRotation = transform.eulerAngles;
-            currentRotation.x += rotationX;
-            currentRotation.y += rotationY;
-
-            transform.eulerAngles = currentRotation;
-        }
-
-        /// <summary>
-        /// Handle scale control input
-        /// </summary>
-        private void HandleScaleControl(Vector2 deltaInput)
-        {
-            // Use Y delta for uniform scaling, or both X and Y for non-uniform
-            float scaleChange = deltaInput.y * _scaleSensitivity;
-            
-            Vector3 newScale = transform.localScale + Vector3.one * scaleChange;
-            
-            // Clamp to min/max values
-            newScale.x = Mathf.Clamp(newScale.x, _minScale.x, _maxScale.x);
-            newScale.y = Mathf.Clamp(newScale.y, _minScale.y, _maxScale.y);
-            newScale.z = Mathf.Clamp(newScale.z, _minScale.z, _maxScale.z);
-            
-            transform.localScale = newScale;
         }
 
         /// <summary>
@@ -505,6 +394,78 @@ namespace SceneSandbox.Core
             }
             
             Debug.Log($"Transform controls {(_enableTransformControls ? "enabled" : "disabled")} for item: {name}");
+        }
+
+        /// <summary>
+        /// Increase transform value based on current mode (step-based adjustment)
+        /// </summary>
+        public void IncreaseTransformValue()
+        {
+            if (!_enableTransformControls || _currentTransformModeType == TransformModeType.None)
+                return;
+
+            switch (_currentTransformModeType)
+            {
+                case TransformModeType.Position:
+                    // Position is controlled by SceneSandboxBuilder during placement
+                    // This method is not used for position mode
+                    Debug.Log($"[TransformableItem] Position mode does not support increase/decrease - controlled by SceneSandboxBuilder");
+                    break;
+
+                case TransformModeType.Rotation:
+                    // Rotate around Y axis by step
+                    Vector3 currentRotation = transform.eulerAngles;
+                    currentRotation.y += _rotationStep;
+                    transform.eulerAngles = currentRotation;
+                    Debug.Log($"[TransformableItem] Increased rotation by {_rotationStep}° - new rotation: {currentRotation.y}°");
+                    break;
+
+                case TransformModeType.Scale:
+                    // Increase scale uniformly
+                    Vector3 newScale = transform.localScale + Vector3.one * _scaleStep;
+                    newScale.x = Mathf.Clamp(newScale.x, _minScale.x, _maxScale.x);
+                    newScale.y = Mathf.Clamp(newScale.y, _minScale.y, _maxScale.y);
+                    newScale.z = Mathf.Clamp(newScale.z, _minScale.z, _maxScale.z);
+                    transform.localScale = newScale;
+                    Debug.Log($"[TransformableItem] Increased scale by {_scaleStep} - new scale: {newScale}");
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Decrease transform value based on current mode (step-based adjustment)
+        /// </summary>
+        public void DecreaseTransformValue()
+        {
+            if (!_enableTransformControls || _currentTransformModeType == TransformModeType.None)
+                return;
+
+            switch (_currentTransformModeType)
+            {
+                case TransformModeType.Position:
+                    // Position is controlled by SceneSandboxBuilder during placement
+                    // This method is not used for position mode
+                    Debug.Log($"[TransformableItem] Position mode does not support increase/decrease - controlled by SceneSandboxBuilder");
+                    break;
+
+                case TransformModeType.Rotation:
+                    // Rotate around Y axis by step (negative)
+                    Vector3 currentRotation = transform.eulerAngles;
+                    currentRotation.y -= _rotationStep;
+                    transform.eulerAngles = currentRotation;
+                    Debug.Log($"[TransformableItem] Decreased rotation by {_rotationStep}° - new rotation: {currentRotation.y}°");
+                    break;
+
+                case TransformModeType.Scale:
+                    // Decrease scale uniformly
+                    Vector3 newScale = transform.localScale - Vector3.one * _scaleStep;
+                    newScale.x = Mathf.Clamp(newScale.x, _minScale.x, _maxScale.x);
+                    newScale.y = Mathf.Clamp(newScale.y, _minScale.y, _maxScale.y);
+                    newScale.z = Mathf.Clamp(newScale.z, _minScale.z, _maxScale.z);
+                    transform.localScale = newScale;
+                    Debug.Log($"[TransformableItem] Decreased scale by {_scaleStep} - new scale: {newScale}");
+                    break;
+            }
         }
 
         #endregion

@@ -60,8 +60,6 @@ namespace SceneSandbox.Serialization
             
             // Update settings from builder's current configuration
             UpdateProjectSettingsFromBuilder(project.settings, builder);
-            
-            Debug.Log($"[SandboxProjectSerializer] Updated project data from runtime state");
         }
         
         /// <summary>

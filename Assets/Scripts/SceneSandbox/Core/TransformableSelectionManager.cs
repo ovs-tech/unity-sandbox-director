@@ -42,6 +42,8 @@ namespace SceneSandbox.Core
         [SerializeField] private InputActionReference _moveHotkeyActionRef;
         [SerializeField] private InputActionReference _rotateHotkeyActionRef;
         [SerializeField] private InputActionReference _scaleHotkeyActionRef;
+        [SerializeField] private InputActionReference _transformModeIncreaseActionRef;
+        [SerializeField] private InputActionReference _transformModeDecreaseActionRef;
         
         [Header("Pointer Input Actions")]
         [SerializeField] private InputActionReference _pointerPositionActionRef;
@@ -72,6 +74,8 @@ namespace SceneSandbox.Core
         private InputAction _moveHotkeyAction;
         private InputAction _rotateHotkeyAction;
         private InputAction _scaleHotkeyAction;
+        private InputAction _transformModeIncreaseAction;
+        private InputAction _transformModeDecreaseAction;
         
         // Pointer Input Actions
         private InputAction _pointerPositionAction;
@@ -101,10 +105,12 @@ namespace SceneSandbox.Core
         // Input/Placement Events (for decoupled communication)
         public System.Action<Vector2> OnEmptySpaceClicked; // Click on empty space (can trigger placement confirm)
         public System.Action<Vector2> OnPointerMoved; // Pointer moved (can update placement ghost)
-        public System.Action<Vector2> OnPointerDragged; // Pointer dragged (delta for rotation/scale)
-        public System.Action<float> OnMouseScrolled; // Mouse scroll wheel (for scale)
+        public System.Action<Vector2> OnPointerDragged; // Pointer dragged (delta for rotation/scale) - DEPRECATED for rotation/scale
+        public System.Action<float> OnMouseScrolled; // Mouse scroll wheel (for scale) - DEPRECATED
         public System.Action<TransformModeType> OnTransformModeTypeChangeRequested; // Mode change requested from hotkeys
         public System.Action OnCancelRequested; // Cancel action triggered (ESC, right-click, etc.)
+        public System.Action OnTransformModeIncrease; // Increase transform value (rotation/scale step)
+        public System.Action OnTransformModeDecrease; // Decrease transform value (rotation/scale step)
 
         // Properties
         public TransformableItem SelectedItem => _selectedItems.Count > 0 ? _selectedItems[0] : null;
@@ -208,7 +214,6 @@ namespace SceneSandbox.Core
             // Check if left click action exists and is enabled
             if (_leftClickAction == null)
             {
-                Debug.LogWarning("[SelectionManager] _leftClickAction is NULL - input not configured!");
                 return;
             }
 
@@ -216,12 +221,6 @@ namespace SceneSandbox.Core
             bool leftButtonDown = _leftClickAction.WasPressedThisFrame();
             bool leftButtonUp = _leftClickAction.WasReleasedThisFrame();
             bool leftButtonHeld = _leftClickAction.IsPressed();
-            
-            // Debug input state every frame when there's activity
-            if (leftButtonDown || leftButtonUp || leftButtonHeld)
-            {
-                Debug.Log($"[SelectionManager] Input State - Down: {leftButtonDown}, Up: {leftButtonUp}, Held: {leftButtonHeld}, IsPointerDown: {_isPointerDown}, IsDragging: {_isDragging}");
-            }
             
             // Right click
             bool rightButtonDown = _rightClickAction != null && _rightClickAction.WasPressedThisFrame();
@@ -273,13 +272,7 @@ namespace SceneSandbox.Core
             {
                 // Try to get TransformableItem from hit object or its parents
                 TransformableItem item = hit.collider.GetComponentInParent<TransformableItem>();
-                Debug.Log($"[SelectionManager] Raycast HIT - Object: {hit.collider.name}, Distance: {hit.distance}, HasTransformableItem: {item != null}");
                 return item;
-            }
-            else
-            {
-                // Log when raycast hits nothing (empty space)
-                Debug.Log($"[SelectionManager] Raycast MISS - Empty space at position: {screenPosition}");
             }
 
             return null;
@@ -312,8 +305,6 @@ namespace SceneSandbox.Core
         /// </summary>
         private void HandlePointerDown(Vector2 inputPosition, TransformableItem hitItem)
         {
-            Debug.Log($"[SelectionManager] HandlePointerDown - Position: {inputPosition}, HitItem: {(hitItem != null ? hitItem.name : "NULL")}");
-            
             _isPointerDown = true;
             _pointerDownPosition = inputPosition;
             _currentDragItem = hitItem;
@@ -330,7 +321,6 @@ namespace SceneSandbox.Core
 
             if (!_isDragging && dragDistance > _dragThreshold)
             {
-                Debug.Log($"[SelectionManager] Drag threshold exceeded - DragDistance: {dragDistance}, Threshold: {_dragThreshold}");
                 _isDragging = true;
                 // Drag functionality moved to SceneSandboxBuilder's ghost system
             }
@@ -348,31 +338,19 @@ namespace SceneSandbox.Core
         /// </summary>
         private void HandlePointerUp(Vector2 inputPosition, TransformableItem hitItem)
         {
-            Debug.Log($"[SelectionManager] HandlePointerUp - Position: {inputPosition}, HitItem: {(hitItem != null ? hitItem.name : "NULL")}, IsDragging: {_isDragging}, CurrentDragItem: {(_currentDragItem != null ? _currentDragItem.name : "NULL")}");
-            
             if (!_isDragging)
             {
                 // Handle click (no drag occurred)
                 if (hitItem != null && hitItem == _currentDragItem)
                 {
-                    Debug.Log($"[SelectionManager] Click detected on item: {hitItem.name}");
                     HandleClick(inputPosition, hitItem);
                 }
                 else if (hitItem == null)
                 {
                     // Clicked on empty space - emit event and deselect all
-                    Debug.Log($"[SelectionManager] Click on EMPTY SPACE - Invoking OnEmptySpaceClicked event, Subscribers: {OnEmptySpaceClicked?.GetInvocationList().Length ?? 0}");
                     OnEmptySpaceClicked?.Invoke(inputPosition);
                     ClearSelection();
                 }
-                else
-                {
-                    Debug.LogWarning($"[SelectionManager] Click condition not met - HitItem: {(hitItem != null ? hitItem.name : "NULL")}, DragItem mismatch");
-                }
-            }
-            else
-            {
-                Debug.Log($"[SelectionManager] Dragging detected - skipping click handling");
             }
 
             _isPointerDown = false;
@@ -397,8 +375,6 @@ namespace SceneSandbox.Core
             }
 
             _lastClickTime = Time.time;
-
-            Debug.Log($"[SelectionManager] HandleClick - Item: {hitItem.name}, ClickCount: {_clickCount}, Position: {inputPosition}");
             
             // Single click - select the item
             if (_clickCount == 1)
@@ -409,7 +385,6 @@ namespace SceneSandbox.Core
             // Double click - could trigger additional action (e.g., focus/edit mode)
             if (_clickCount >= 2)
             {
-                Debug.Log($"[SelectionManager] Double click on {hitItem.name}");
                 // Could add special double-click behavior here
             }
         }
@@ -604,6 +579,18 @@ namespace SceneSandbox.Core
                 {
                     _scaleHotkeyActionRef.action.performed += OnScaleHotkeyPerformed;
                 }
+                
+                if (_transformModeIncreaseActionRef != null)
+                {
+                    _transformModeIncreaseAction = _transformModeIncreaseActionRef.action;
+                    _transformModeIncreaseAction.performed += OnTransformModeIncreasePerformed;
+                }
+                
+                if (_transformModeDecreaseActionRef != null)
+                {
+                    _transformModeDecreaseAction = _transformModeDecreaseActionRef.action;
+                    _transformModeDecreaseAction.performed += OnTransformModeDecreasePerformed;
+                }
             }
             
             // Initialize pointer input actions
@@ -644,6 +631,8 @@ namespace SceneSandbox.Core
                 _moveHotkeyActionRef?.action?.Enable();
                 _rotateHotkeyActionRef?.action?.Enable();
                 _scaleHotkeyActionRef?.action?.Enable();
+                _transformModeIncreaseAction?.Enable();
+                _transformModeDecreaseAction?.Enable();
             }
             
             // Enable pointer input actions
@@ -662,6 +651,8 @@ namespace SceneSandbox.Core
             _moveHotkeyActionRef?.action?.Disable();
             _rotateHotkeyActionRef?.action?.Disable();
             _scaleHotkeyActionRef?.action?.Disable();
+            _transformModeIncreaseAction?.Disable();
+            _transformModeDecreaseAction?.Disable();
             
             // Disable pointer input actions
             _pointerPositionAction?.Disable();
@@ -706,6 +697,34 @@ namespace SceneSandbox.Core
             {
                 SetModeForSelectedItems(TransformModeType.Scale);
                 OnTransformModeTypeChangeRequested?.Invoke(TransformModeType.Scale);
+            }
+        }
+
+        private void OnTransformModeIncreasePerformed(InputAction.CallbackContext context)
+        {
+            if (_enableHotkeys)
+            {
+                OnTransformModeIncrease?.Invoke();
+                
+                // Also directly call increase on selected item if available
+                if (_currentActiveTransformItem != null)
+                {
+                    _currentActiveTransformItem.IncreaseTransformValue();
+                }
+            }
+        }
+
+        private void OnTransformModeDecreasePerformed(InputAction.CallbackContext context)
+        {
+            if (_enableHotkeys)
+            {
+                OnTransformModeDecrease?.Invoke();
+                
+                // Also directly call decrease on selected item if available
+                if (_currentActiveTransformItem != null)
+                {
+                    _currentActiveTransformItem.DecreaseTransformValue();
+                }
             }
         }
 
@@ -793,18 +812,15 @@ namespace SceneSandbox.Core
         /// <param name="item">The item to select</param>
         public void SelectItem(TransformableItem item)
         {
-            Debug.Log($"[SelectionManager] SelectItem called for {(item != null ? item.name : "null")}");
             
             if (item == null || _selectedItems.Contains(item))
             {
-                Debug.Log($"[SelectionManager] SelectItem aborted - item is null or already selected");
                 return;
             }
 
             // If multiple selection is not allowed, deselect all other items
             if (!_allowMultipleSelection && _selectedItems.Count > 0)
             {
-                Debug.Log($"[SelectionManager] Clearing previous selection");
                 ClearSelection();
             }
 
@@ -812,13 +828,10 @@ namespace SceneSandbox.Core
             _lastSelectedItem = item;
 
             // Ensure the item's visual state is updated
-            Debug.Log($"[SelectionManager] Setting selected state for {item.name}");
             item.SetSelectedState(true);
 
             OnItemSelected?.Invoke(item);
             OnSelectionChanged?.Invoke(SelectedItems);
-
-            Debug.Log($"[SelectionManager] Successfully selected item: {item.name}");
         }
 
         /// <summary>
@@ -841,8 +854,6 @@ namespace SceneSandbox.Core
             {
                 _lastSelectedItem = _selectedItems.Count > 0 ? _selectedItems[_selectedItems.Count - 1] : null;
             }
-
-            Debug.Log($"Deselected item: {item.name}");
         }
 
         /// <summary>
@@ -872,8 +883,6 @@ namespace SceneSandbox.Core
             }
 
             OnSelectionChanged?.Invoke(SelectedItems);
-
-            Debug.Log("Cleared all selection");
         }
 
         /// <summary>
@@ -937,8 +946,6 @@ namespace SceneSandbox.Core
         /// </summary>
         private void OnSceneUnloaded(Scene scene)
         {
-            Debug.Log($"TransformableSelectionManager: Cleaning up for unloaded scene '{scene.name}'");
-            
             // Clear selection state
             ClearSelection();
             
@@ -970,7 +977,6 @@ namespace SceneSandbox.Core
         /// </summary>
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            Debug.Log($"TransformableSelectionManager: Registering items in loaded scene '{scene.name}'");
             // Re-register items in the new scene
             RegisterExistingDraggableItems();
         }
@@ -1016,36 +1022,5 @@ namespace SceneSandbox.Core
                 _instance = null;
             }
         }
-
-        #if UNITY_EDITOR
-        private void OnGUI()
-        {
-            if (!Application.isPlaying) return;
-
-            // Show selection info in the corner for debugging
-            GUI.Box(new Rect(10, 10, 200, 60), "");
-            GUI.Label(new Rect(15, 15, 190, 20), $"Selected Items: {_selectedItems.Count}");
-            
-            if (_lastSelectedItem != null)
-            {
-                GUI.Label(new Rect(15, 35, 190, 20), $"Last: {_lastSelectedItem.name}");
-            }
-        }
-
-        /// <summary>
-        /// Editor-only: Reset static instance when play mode stops
-        /// </summary>
-        [UnityEditor.InitializeOnLoadMethod]
-        private static void ResetInstanceOnPlayModeChange()
-        {
-            UnityEditor.EditorApplication.playModeStateChanged += (state) =>
-            {
-                if (state == UnityEditor.PlayModeStateChange.EnteredEditMode)
-                {
-                    _instance = null;
-                }
-            };
-        }
-        #endif
     }
 }

@@ -223,9 +223,8 @@ namespace SceneSandbox.Editor
                     style.fontSize = 14;
                     style.alignment = TextAnchor.MiddleCenter;
                     
-                    GUILayout.BeginArea(new Rect(10, 10, 300, 60));
-                    GUILayout.Box("PLACEMENT MODE\nLeft Click: Place | ESC: Cancel", style, GUILayout.Width(300), GUILayout.Height(60));
-                    GUILayout.EndArea();
+                    // Use GUI.Box instead of GUILayout to avoid layout issues during repaint
+                    GUI.Box(new Rect(10, 10, 300, 60), "PLACEMENT MODE\nLeft Click: Place | ESC: Cancel", style);
                     Handles.EndGUI();
                     break;
             }

@@ -26,7 +26,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 857453676176504041}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -6.568401, y: 3.6282578, z: -4.485832}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -53,7 +53,7 @@ MonoBehaviour:
   defaultProjectName: New Timeline Project
   defaultProjectLength: 10
   defaultFrameRate: 30
-  bindingContext: {fileID: 517533721236897367}
+  bindableObjectManager: {fileID: 517533721236897367}
   debugMode: 1
 --- !u!114 &517533721236897367
 MonoBehaviour:
