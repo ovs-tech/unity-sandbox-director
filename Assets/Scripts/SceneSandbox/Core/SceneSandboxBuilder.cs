@@ -8,65 +8,6 @@ using MiniTimeline.Core;
 namespace SceneSandbox.Core
 {
     /// <summary>
-    /// Placement state for drag-drop operations
-    /// </summary>
-    public enum PlacementState
-    {
-        Idle,           // No active placement
-        Active,         // Dragging with preview
-        Confirming,     // Transition to place
-        Cancelling      // Transition to cancel
-    }
-
-    /// <summary>
-    /// Pivot point options for grid and bounds positioning (3D box)
-    /// Total: 27 points (1 center + 6 face centers + 12 edge centers + 8 corners)
-    /// </summary>
-    public enum PivotPoint
-    {
-        // Center (1)
-        Center,
-        
-        // Face Centers (6 faces)
-        FrontCenter,
-        BackCenter,
-        LeftCenter,
-        RightCenter,
-        TopCenter,
-        BottomCenter,
-        
-        // Bottom Edge Centers (4 edges)
-        BottomFrontEdge,
-        BottomBackEdge,
-        BottomLeftEdge,
-        BottomRightEdge,
-        
-        // Top Edge Centers (4 edges)
-        TopFrontEdge,
-        TopBackEdge,
-        TopLeftEdge,
-        TopRightEdge,
-        
-        // Vertical Edge Centers (4 edges)
-        FrontLeftEdge,
-        FrontRightEdge,
-        BackLeftEdge,
-        BackRightEdge,
-        
-        // Bottom Corners (4 corners)
-        BottomFrontLeft,
-        BottomFrontRight,
-        BottomBackLeft,
-        BottomBackRight,
-        
-        // Top Corners (4 corners)
-        TopFrontLeft,
-        TopFrontRight,
-        TopBackLeft,
-        TopBackRight
-    }
-
-    /// <summary>
     /// Main controller for the Scene Sandbox Builder system
     /// Manages the placement, interaction, and organization of scene objects
     /// </summary>
@@ -76,6 +17,29 @@ namespace SceneSandbox.Core
         [SerializeField] private SceneObjectLibrary _objectLibrary;
         [SerializeField] private Transform _sceneRoot;
         [SerializeField] private Transform _stageArea;
+
+        [Header("Input Action References")]
+        [SerializeField] private InputActionReference _exitAllModesActionRef;
+        [SerializeField] private InputActionReference _moveHotkeyActionRef;
+        [SerializeField] private InputActionReference _rotateHotkeyActionRef;
+        [SerializeField] private InputActionReference _scaleHotkeyActionRef;
+        [SerializeField] private InputActionReference _transformModeIncreaseActionRef;
+        [SerializeField] private InputActionReference _transformModeDecreaseActionRef;
+        
+        [Header("Pointer Input Actions")]
+        [SerializeField] private InputActionReference _pointerPositionActionRef;
+        [SerializeField] private InputActionReference _leftClickActionRef;
+        [SerializeField] private InputActionReference _rightClickActionRef;
+        [SerializeField] private InputActionReference _mouseScrollActionRef;
+        
+        [Header("Placement Input Actions")]
+        [SerializeField] private InputActionReference _cancelPlacementActionRef;
+
+        [Header("Raycast & Input Settings")]
+        [SerializeField] private float _maxRaycastDistance = 1000f;
+        [SerializeField] private float _dragThreshold = 5f;
+        [SerializeField] private float _doubleClickTime = 0.3f;
+        [SerializeField] private bool _enableHotkeys = true;
 
         [Header("Placement Settings")]
         [SerializeField] private LayerMask _placementLayers = -1;
@@ -160,6 +124,37 @@ namespace SceneSandbox.Core
 
         // Components
         private Camera _sceneCamera;
+
+        // Input Actions
+        private InputAction _exitAllModesAction;
+        private InputAction _moveHotkeyAction;
+        private InputAction _rotateHotkeyAction;
+        private InputAction _scaleHotkeyAction;
+        private InputAction _transformModeIncreaseAction;
+        private InputAction _transformModeDecreaseAction;
+        private InputAction _pointerPositionAction;
+        private InputAction _leftClickAction;
+        private InputAction _rightClickAction;
+        private InputAction _mouseScrollAction;
+        private InputAction _cancelPlacementAction;
+
+        // Input state
+        private bool _isPointerDown = false;
+        private bool _isDragging = false;
+        private Vector2 _pointerDownPosition;
+        private Vector2 _lastPointerPosition;
+        private TransformableItem _currentHoverItem;
+        private TransformableItem _currentDragItem;
+        private float _lastClickTime = 0f;
+        private int _clickCount = 0;
+
+        // Selection state
+        private readonly List<TransformableItem> _selectedItems = new List<TransformableItem>();
+        private TransformableItem _lastSelectedItem;
+
+        // Transform control state
+        private List<TransformableItem> _activeTransformItems = new List<TransformableItem>();
+        private TransformableItem _currentActiveTransformItem;
 
         // State
         private SceneConfiguration _currentScene;
@@ -282,171 +277,50 @@ namespace SceneSandbox.Core
 
             InitializeComponents();
             InitializeState();
+            InitializeInputActions();
         }
 
         private void Start()
         {
             CreateNewScene();
-            SetupSelectionManagerEvents();
+            RegisterExistingTransformableItems();
         }
 
-        private void SetupSelectionManagerEvents()
+        private void OnEnable()
         {
-            if (TransformableSelectionManager.Instance != null)
-            {
-                // Subscribe to selection events
-                TransformableSelectionManager.Instance.OnItemSelected += HandleItemSelected;
-                TransformableSelectionManager.Instance.OnItemDeselected += HandleItemDeselected;
-                
-                // Subscribe to placement input events
-                TransformableSelectionManager.Instance.OnEmptySpaceClicked += HandleEmptySpaceClicked;
-                TransformableSelectionManager.Instance.OnPointerMoved += HandlePointerMoved;
-                TransformableSelectionManager.Instance.OnCancelRequested += HandleCancelRequested;
-                
-                // Subscribe to transform input events (deprecated drag/scroll kept for compatibility)
-                TransformableSelectionManager.Instance.OnPointerDragged += HandlePointerDragged;
-                TransformableSelectionManager.Instance.OnMouseScrolled += HandleMouseScrolled;
-                TransformableSelectionManager.Instance.OnTransformModeTypeChangeRequested += HandleTransformModeChangeRequested;
-                
-                // Subscribe to new step-based transform adjustment events
-                TransformableSelectionManager.Instance.OnTransformModeIncrease += HandleTransformModeIncrease;
-                TransformableSelectionManager.Instance.OnTransformModeDecrease += HandleTransformModeDecrease;
-            }
+            EnableInputActions();
         }
 
-        /// <summary>
-        /// Handle empty space click event from SelectionManager
-        /// </summary>
-        private void HandleEmptySpaceClicked(Vector2 screenPosition)
+        private void OnDisable()
         {
-            if (IsPlacementActive)
-            {
-                // If editing an object, confirm the edit
-                if (_selectedObjectForEdit != null)
-                {
-                    ConfirmObjectEdit();
-                }
-                else
-                {
-                    // Otherwise confirm placement
-                    ConfirmPlacement();
-                }
-            }
+            DisableInputActions();
         }
 
-        /// <summary>
-        /// Handle pointer moved event from SelectionManager
-        /// </summary>
-        private void HandlePointerMoved(Vector2 screenPosition)
+        private void Update()
         {
-            if (IsPlacementActive)
-            {
-                // Update position for both placement and edit modes
-                UpdatePlacement(screenPosition);
-            }
-        }
-
-        /// <summary>
-        /// Handle cancel requested event from SelectionManager
-        /// </summary>
-        private void HandleCancelRequested()
-        {
-            if (IsPlacementActive)
-            {
-                // If editing an object, cancel the edit
-                if (_selectedObjectForEdit != null)
-                {
-                    CancelObjectEdit();
-                }
-                else
-                {
-                    // Otherwise cancel placement
-                    CancelPlacement();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Handle pointer dragged event from SelectionManager
-        /// DEPRECATED: No longer used for rotation/scale - use transform mode increase/decrease instead
-        /// </summary>
-        private void HandlePointerDragged(Vector2 delta)
-        {
-            if (!IsPlacementActive || _currentPlacementObject == null)
-                return;
-
-            // Only position mode uses drag for movement (if needed in future)
-            // Rotation and Scale now use step-based increase/decrease via hotkeys
-        }
-
-        /// <summary>
-        /// Handle mouse scroll event from SelectionManager
-        /// DEPRECATED: No longer used for scale - use transform mode increase/decrease instead
-        /// </summary>
-        private void HandleMouseScrolled(float scrollDelta)
-        {
-            if (!IsPlacementActive || _currentPlacementObject == null)
-                return;
-
-            // Scale now uses step-based increase/decrease via hotkeys instead of scroll
-        }
-
-        /// <summary>
-        /// Handle transform mode change request from SelectionManager (hotkeys)
-        /// </summary>
-        private void HandleTransformModeChangeRequested(TransformModeType mode)
-        {
-            _currentTransformMode = mode;
-
-            Debug.Log($"[SceneSandboxBuilder] Changed mode to: {mode}");
+            HandleRaycastInput();
             
-            if (IsPlacementActive && _currentPlacementObject != null)
+            // Get current input position
+            Vector2 inputPosition = GetInputPosition();
+            
+            // Update pointer tracking
+            Vector2 pointerDelta = inputPosition - _lastPointerPosition;
+            _lastPointerPosition = inputPosition;
+            
+            // Handle scroll wheel input
+            if (_mouseScrollAction != null && _mouseScrollAction.enabled)
             {
-                UpdateGhostTransformMode();
+                float scrollDelta = _mouseScrollAction.ReadValue<Vector2>().y;
+                if (Mathf.Abs(scrollDelta) > 0.01f)
+                {
+                    // Handle scroll for placement if needed
+                }
             }
-        }
-
-        /// <summary>
-        /// Handle transform mode increase request from SelectionManager
-        /// Delegates to TransformableItem's public method for rotation/scale
-        /// </summary>
-        private void HandleTransformModeIncrease()
-        {
-            if (!IsPlacementActive || _currentPlacementObject == null)
-                return;
-
-            // Get TransformableItem component from current placement object
-            var transformableItem = _currentPlacementObject.GetComponent<TransformableItem>();
-            if (transformableItem != null)
+            
+            // Continuously update placement position if in placement mode
+            if (IsPlacementActive)
             {
-                // Delegate to TransformableItem's increase method
-                transformableItem.IncreaseTransformValue();
-            }
-            else
-            {
-                Debug.LogWarning("[SceneSandboxBuilder] Current placement object does not have TransformableItem component");
-            }
-        }
-
-        /// <summary>
-        /// Handle transform mode decrease request from SelectionManager
-        /// Delegates to TransformableItem's public method for rotation/scale
-        /// </summary>
-        private void HandleTransformModeDecrease()
-        {
-            if (!IsPlacementActive || _currentPlacementObject == null)
-                return;
-
-            // Get TransformableItem component from current placement object
-            var transformableItem = _currentPlacementObject.GetComponent<TransformableItem>();
-            if (transformableItem != null)
-            {
-                // Delegate to TransformableItem's decrease method
-                transformableItem.DecreaseTransformValue();
-            }
-            else
-            {
-                Debug.LogWarning("[SceneSandboxBuilder] Current placement object does not have TransformableItem component");
+                UpdatePlacement(inputPosition);
             }
         }
 
@@ -979,25 +853,21 @@ namespace SceneSandbox.Core
 
         /// <summary>
         /// Select an object in the scene
-        /// Delegates to TransformableSelectionManager for actual selection
         /// </summary>
         public void SelectObject(GameObject obj)
         {
             if (obj != null)
             {
                 var item = obj.GetComponent<TransformableItem>();
-                if (item != null && TransformableSelectionManager.Instance != null)
+                if (item != null)
                 {
-                    TransformableSelectionManager.Instance.SelectItem(item);
+                    SelectItem(item);
                 }
             }
             else
             {
                 // Deselect all
-                if (TransformableSelectionManager.Instance != null)
-                {
-                    TransformableSelectionManager.Instance.ClearSelection();
-                }
+                ClearSelection();
             }
         }
 
@@ -2130,14 +2000,651 @@ namespace SceneSandbox.Core
 
         #endregion
 
+        #region Input Management
+
+        /// <summary>
+        /// Initialize input actions and bind events
+        /// </summary>
+        private void InitializeInputActions()
+        {
+            // Subscribe to transform mode hotkey callbacks
+            if (_exitAllModesActionRef != null)
+            {
+                _exitAllModesActionRef.action.performed += OnExitAllModesPerformed;
+            }
+
+            if (_enableHotkeys)
+            {
+                if (_moveHotkeyActionRef != null)
+                {
+                    _moveHotkeyActionRef.action.performed += OnMoveHotkeyPerformed;
+                }
+
+                if (_rotateHotkeyActionRef != null)
+                {
+                    _rotateHotkeyActionRef.action.performed += OnRotateHotkeyPerformed;
+                }
+
+                if (_scaleHotkeyActionRef != null)
+                {
+                    _scaleHotkeyActionRef.action.performed += OnScaleHotkeyPerformed;
+                }
+                
+                if (_transformModeIncreaseActionRef != null)
+                {
+                    _transformModeIncreaseAction = _transformModeIncreaseActionRef.action;
+                    _transformModeIncreaseAction.performed += OnTransformModeIncreasePerformed;
+                }
+                
+                if (_transformModeDecreaseActionRef != null)
+                {
+                    _transformModeDecreaseAction = _transformModeDecreaseActionRef.action;
+                    _transformModeDecreaseAction.performed += OnTransformModeDecreasePerformed;
+                }
+            }
+            
+            // Initialize pointer input actions
+            if (_pointerPositionActionRef != null)
+            {
+                _pointerPositionAction = _pointerPositionActionRef.action;
+            }
+            
+            if (_leftClickActionRef != null)
+            {
+                _leftClickAction = _leftClickActionRef.action;
+            }
+            
+            if (_rightClickActionRef != null)
+            {
+                _rightClickAction = _rightClickActionRef.action;
+            }
+            
+            if (_mouseScrollActionRef != null)
+            {
+                _mouseScrollAction = _mouseScrollActionRef.action;
+            }
+
+            // Initialize placement input actions
+            if (_cancelPlacementActionRef != null)
+            {
+                _cancelPlacementAction = _cancelPlacementActionRef.action;
+                _cancelPlacementAction.performed += OnCancelPlacementPerformed;
+            }
+        }
+
+        private void EnableInputActions()
+        {
+            _exitAllModesActionRef?.action?.Enable();
+
+            if (_enableHotkeys)
+            {
+                _moveHotkeyActionRef?.action?.Enable();
+                _rotateHotkeyActionRef?.action?.Enable();
+                _scaleHotkeyActionRef?.action?.Enable();
+                _transformModeIncreaseAction?.Enable();
+                _transformModeDecreaseAction?.Enable();
+            }
+            
+            _pointerPositionAction?.Enable();
+            _leftClickAction?.Enable();
+            _rightClickAction?.Enable();
+            _mouseScrollAction?.Enable();
+            _cancelPlacementAction?.Enable();
+        }
+
+        private void DisableInputActions()
+        {
+            _exitAllModesActionRef?.action?.Disable();
+            _moveHotkeyActionRef?.action?.Disable();
+            _rotateHotkeyActionRef?.action?.Disable();
+            _scaleHotkeyActionRef?.action?.Disable();
+            _transformModeIncreaseAction?.Disable();
+            _transformModeDecreaseAction?.Disable();
+            
+            _pointerPositionAction?.Disable();
+            _leftClickAction?.Disable();
+            _rightClickAction?.Disable();
+            _mouseScrollAction?.Disable();
+            _cancelPlacementAction?.Disable();
+        }
+
+        #endregion
+
+        #region Input Action Callbacks
+
+        private void OnExitAllModesPerformed(InputAction.CallbackContext context)
+        {
+            ExitAllTransformModes();
+        }
+
+        private void OnMoveHotkeyPerformed(InputAction.CallbackContext context)
+        {
+            if (_enableHotkeys)
+            {
+                SetTransformMode(TransformModeType.Position);
+                
+                // Apply to selected item if any
+                if (_lastSelectedItem != null && _lastSelectedItem.EnableTransformControls)
+                {
+                    _lastSelectedItem.SetTransformModeType(TransformModeType.Position);
+                }
+            }
+        }
+
+        private void OnRotateHotkeyPerformed(InputAction.CallbackContext context)
+        {
+            if (_enableHotkeys)
+            {
+                SetTransformMode(TransformModeType.Rotation);
+                
+                // Apply to selected item if any
+                if (_lastSelectedItem != null && _lastSelectedItem.EnableTransformControls)
+                {
+                    _lastSelectedItem.SetTransformModeType(TransformModeType.Rotation);
+                }
+            }
+        }
+
+        private void OnScaleHotkeyPerformed(InputAction.CallbackContext context)
+        {
+            if (_enableHotkeys)
+            {
+                SetTransformMode(TransformModeType.Scale);
+                
+                // Apply to selected item if any
+                if (_lastSelectedItem != null && _lastSelectedItem.EnableTransformControls)
+                {
+                    _lastSelectedItem.SetTransformModeType(TransformModeType.Scale);
+                }
+            }
+        }
+
+        private void OnTransformModeIncreasePerformed(InputAction.CallbackContext context)
+        {
+            if (!_enableHotkeys) return;
+            
+            // Priority 1: Placement object (if in placement mode)
+            if (_currentPlacementObject != null)
+            {
+                var transformableItem = _currentPlacementObject.GetComponent<TransformableItem>();
+                transformableItem?.IncreaseTransformValue();
+            }
+            // Priority 2: Selected item
+            else if (_lastSelectedItem != null)
+            {
+                _lastSelectedItem.IncreaseTransformValue();
+            }
+            // Priority 3: Active transform item (fallback)
+            else if (_currentActiveTransformItem != null)
+            {
+                _currentActiveTransformItem.IncreaseTransformValue();
+            }
+        }
+
+        private void OnTransformModeDecreasePerformed(InputAction.CallbackContext context)
+        {
+            if (!_enableHotkeys) return;
+            
+            // Priority 1: Placement object (if in placement mode)
+            if (_currentPlacementObject != null)
+            {
+                var transformableItem = _currentPlacementObject.GetComponent<TransformableItem>();
+                transformableItem?.DecreaseTransformValue();
+            }
+            // Priority 2: Selected item
+            else if (_lastSelectedItem != null)
+            {
+                _lastSelectedItem.DecreaseTransformValue();
+            }
+            // Priority 3: Active transform item (fallback)
+            else if (_currentActiveTransformItem != null)
+            {
+                _currentActiveTransformItem.DecreaseTransformValue();
+            }
+        }
+
+        private void OnCancelPlacementPerformed(InputAction.CallbackContext context)
+        {
+            if (IsPlacementActive)
+            {
+                if (_selectedObjectForEdit != null)
+                {
+                    CancelObjectEdit();
+                }
+                else
+                {
+                    CancelPlacement();
+                }
+            }
+        }
+
+        #endregion
+
+        #region Raycast Input Handling
+
+        /// <summary>
+        /// Handle raycast-based input detection
+        /// </summary>
+        private void HandleRaycastInput()
+        {
+            if (_sceneCamera == null) return;
+
+            Vector2 inputPosition = GetInputPosition();
+            TransformableItem hitItem = RaycastForItem(inputPosition);
+
+            HandleHoverState(hitItem);
+
+            if (_leftClickAction == null) return;
+
+            bool leftButtonDown = _leftClickAction.WasPressedThisFrame();
+            bool leftButtonUp = _leftClickAction.WasReleasedThisFrame();
+            bool leftButtonHeld = _leftClickAction.IsPressed();
+
+            if (leftButtonDown)
+            {
+                HandlePointerDown(inputPosition, hitItem);
+            }
+
+            if (leftButtonHeld && _isPointerDown)
+            {
+                HandlePointerDrag(inputPosition);
+            }
+
+            if (leftButtonUp && _isPointerDown)
+            {
+                HandlePointerUp(inputPosition, hitItem);
+            }
+        }
+
+        /// <summary>
+        /// Get current input position from InputAction
+        /// </summary>
+        private Vector2 GetInputPosition()
+        {
+            if (_pointerPositionAction != null && _pointerPositionAction.enabled)
+            {
+                return _pointerPositionAction.ReadValue<Vector2>();
+            }
+            
+            return Mouse.current?.position.ReadValue() ?? Vector2.zero;
+        }
+
+        /// <summary>
+        /// Perform raycast to detect TransformableItem
+        /// </summary>
+        private TransformableItem RaycastForItem(Vector2 screenPosition)
+        {
+            Ray ray = _sceneCamera.ScreenPointToRay(screenPosition);
+            
+            if (Physics.Raycast(ray, out RaycastHit hit, _maxRaycastDistance, _placementLayers))
+            {
+                return hit.collider.GetComponentInParent<TransformableItem>();
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Handle hover state changes
+        /// </summary>
+        private void HandleHoverState(TransformableItem hitItem)
+        {
+            if (_currentHoverItem != hitItem)
+            {
+                if (_currentHoverItem != null)
+                {
+                    _currentHoverItem.SetHoverState(false);
+                }
+
+                _currentHoverItem = hitItem;
+                if (_currentHoverItem != null)
+                {
+                    _currentHoverItem.SetHoverState(true);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handle pointer down event
+        /// </summary>
+        private void HandlePointerDown(Vector2 inputPosition, TransformableItem hitItem)
+        {
+            _isPointerDown = true;
+            _pointerDownPosition = inputPosition;
+            _currentDragItem = hitItem;
+        }
+
+        /// <summary>
+        /// Handle pointer drag event
+        /// </summary>
+        private void HandlePointerDrag(Vector2 inputPosition)
+        {
+            float dragDistance = Vector2.Distance(_pointerDownPosition, inputPosition);
+
+            if (!_isDragging && dragDistance > _dragThreshold)
+            {
+                _isDragging = true;
+            }
+        }
+
+        /// <summary>
+        /// Handle pointer up event
+        /// </summary>
+        private void HandlePointerUp(Vector2 inputPosition, TransformableItem hitItem)
+        {
+            if (!_isDragging)
+            {
+                // Click detected (no drag)
+                
+                // If in placement mode, clicking anywhere confirms placement
+                if (IsPlacementActive)
+                {
+                    if (_selectedObjectForEdit != null)
+                    {
+                        ConfirmObjectEdit();
+                    }
+                    else
+                    {
+                        ConfirmPlacement();
+                    }
+                }
+                // Normal selection mode
+                else if (hitItem != null)
+                {
+                    // Clicked on an object - select it
+                    HandleClick(inputPosition, hitItem);
+                }
+                else
+                {
+                    // Clicked on empty space - clear selection
+                    ClearSelection();
+                }
+            }
+
+            _isPointerDown = false;
+            _isDragging = false;
+            _currentDragItem = null;
+        }
+
+        /// <summary>
+        /// Handle click with double-click detection
+        /// </summary>
+        private void HandleClick(Vector2 inputPosition, TransformableItem hitItem)
+        {
+            float timeSinceLastClick = Time.time - _lastClickTime;
+
+            if (timeSinceLastClick <= _doubleClickTime)
+            {
+                _clickCount++;
+            }
+            else
+            {
+                _clickCount = 1;
+            }
+
+            _lastClickTime = Time.time;
+            
+            if (_clickCount == 1)
+            {
+                SelectItem(hitItem);
+            }
+        }
+
+        #endregion
+
+        #region Selection Management
+
+        /// <summary>
+        /// Register for events on all existing transformable items in the scene
+        /// </summary>
+        private void RegisterExistingTransformableItems()
+        {
+            var existingItems = FindObjectsByType<TransformableItem>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            foreach (var item in existingItems)
+            {
+                RegisterTransformableItem(item);
+            }
+        }
+
+        /// <summary>
+        /// Register a transformable item for selection management
+        /// </summary>
+        private void RegisterTransformableItem(TransformableItem item)
+        {
+            if (item == null) return;
+
+            item.OnSelectionChanged -= OnItemSelectionChanged;
+            item.OnSelectionChanged += OnItemSelectionChanged;
+
+            if (item.EnableTransformControls)
+            {
+                RegisterItemForTransformControl(item);
+            }
+        }
+
+        /// <summary>
+        /// Unregister a transformable item from selection management
+        /// </summary>
+        private void UnregisterTransformableItem(TransformableItem item)
+        {
+            if (item == null) return;
+
+            item.OnSelectionChanged -= OnItemSelectionChanged;
+            UnregisterItemFromTransformControl(item);
+
+            if (_selectedItems.Contains(item))
+            {
+                _selectedItems.Remove(item);
+            }
+        }
+
+        /// <summary>
+        /// Handle selection state change from a transformable item
+        /// </summary>
+        private void OnItemSelectionChanged(TransformableItem item, bool isSelected)
+        {
+            if (isSelected)
+            {
+                SelectItem(item);
+            }
+            else
+            {
+                DeselectItem(item);
+            }
+        }
+
+        /// <summary>
+        /// Select an item
+        /// </summary>
+        private void SelectItem(TransformableItem item)
+        {
+            if (item == null || _selectedItems.Contains(item))
+                return;
+
+            // Single selection only - clear others
+            ClearSelection();
+
+            _selectedItems.Add(item);
+            _lastSelectedItem = item;
+            item.SetSelectedState(true);
+            
+            _selectedObject = item.gameObject;
+            OnObjectSelected?.Invoke(_selectedObject);
+            
+            // Enable transform controls for the item
+            if (item.EnableTransformControls)
+            {
+                RegisterItemForTransformControl(item);
+                
+                // Set default transform mode to Position
+                item.SetTransformModeType(TransformModeType.Position);
+            }
+            
+            // Automatically start edit mode if enabled
+            if (_autoEditOnSelect)
+            {
+                BeginObjectEdit(item.gameObject);
+            }
+        }
+
+        /// <summary>
+        /// Deselect an item
+        /// </summary>
+        private void DeselectItem(TransformableItem item)
+        {
+            if (item == null || !_selectedItems.Contains(item)) return;
+
+            _selectedItems.Remove(item);
+            item.SetSelectedState(false);
+            
+            // Exit transform mode when deselecting
+            if (item.EnableTransformControls)
+            {
+                item.SetTransformModeType(TransformModeType.None);
+                UnregisterItemFromTransformControl(item);
+            }
+
+            if (_lastSelectedItem == item)
+            {
+                _lastSelectedItem = null;
+            }
+            
+            if (_selectedObject == item.gameObject)
+            {
+                _selectedObject = null;
+                OnObjectSelected?.Invoke(null);
+                
+                if (_autoEditOnSelect && IsPlacementActive && _selectedObjectForEdit != null)
+                {
+                    CancelObjectEdit();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Clear all selection
+        /// </summary>
+        private void ClearSelection()
+        {
+            var itemsToDeselect = new List<TransformableItem>(_selectedItems);
+            
+            foreach (var item in itemsToDeselect)
+            {
+                if (item != null)
+                {
+                    item.SetSelectedState(false);
+                    
+                    // Exit transform mode when clearing selection
+                    if (item.EnableTransformControls)
+                    {
+                        item.SetTransformModeType(TransformModeType.None);
+                        UnregisterItemFromTransformControl(item);
+                    }
+                }
+            }
+
+            _selectedItems.Clear();
+            _lastSelectedItem = null;
+            _selectedObject = null;
+        }
+
+        #endregion
+
+        #region Transform Control Management
+
+        /// <summary>
+        /// Register item for transform control
+        /// </summary>
+        private void RegisterItemForTransformControl(TransformableItem item)
+        {
+            if (item != null)
+            {
+                item.OnTransformModeTypeChanged += OnItemTransformModeTypeChanged;
+            }
+        }
+
+        /// <summary>
+        /// Unregister item from transform control
+        /// </summary>
+        private void UnregisterItemFromTransformControl(TransformableItem item)
+        {
+            if (item != null)
+            {
+                item.OnTransformModeTypeChanged -= OnItemTransformModeTypeChanged;
+                _activeTransformItems.Remove(item);
+
+                if (_currentActiveTransformItem == item)
+                {
+                    _currentActiveTransformItem = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handle transform mode changes from items
+        /// </summary>
+        private void OnItemTransformModeTypeChanged(TransformableItem item, TransformModeType mode)
+        {
+            if (mode == TransformModeType.None)
+            {
+                _activeTransformItems.Remove(item);
+                if (_currentActiveTransformItem == item)
+                {
+                    _currentActiveTransformItem = null;
+                }
+            }
+            else
+            {
+                ExitOtherTransformModes(item);
+
+                if (!_activeTransformItems.Contains(item))
+                {
+                    _activeTransformItems.Add(item);
+                }
+                _currentActiveTransformItem = item;
+            }
+        }
+
+        /// <summary>
+        /// Exit transform mode for all items except the specified one
+        /// </summary>
+        private void ExitOtherTransformModes(TransformableItem exceptItem)
+        {
+            var itemsToExit = new List<TransformableItem>(_activeTransformItems);
+            foreach (var item in itemsToExit)
+            {
+                if (item != exceptItem && item != null)
+                {
+                    item.SetTransformModeType(TransformModeType.None);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Exit all transform modes
+        /// </summary>
+        private void ExitAllTransformModes()
+        {
+            var itemsToExit = new List<TransformableItem>(_activeTransformItems);
+            foreach (var item in itemsToExit)
+            {
+                if (item != null)
+                {
+                    item.SetTransformModeType(TransformModeType.None);
+                }
+            }
+            _activeTransformItems.Clear();
+            _currentActiveTransformItem = null;
+        }
+
+        #endregion
+
         #region Helper Methods
 
         private void BindDraggableEvents(TransformableItem draggable)
         {
-            // Selection events are now handled by TransformableSelectionManager
-            // Object updates are handled through the ghost preview system
-            draggable.OnItemClicked += (item) => SelectObject(item.gameObject);
-            draggable.OnItemSelected += (item) => SelectObject(item.gameObject);
+            // Register the item for selection management
+            RegisterTransformableItem(draggable);
         }
 
         /// <summary>
@@ -3196,14 +3703,29 @@ namespace SceneSandbox.Core
 
         private void OnDestroy()
         {
-            // Unsubscribe from selection manager events
-            if (TransformableSelectionManager.Instance != null)
+            // Disable and cleanup input actions
+            DisableInputActions();
+            
+            // Unbind input action events
+            if (_exitAllModesActionRef != null && _exitAllModesActionRef.action != null)
             {
-                TransformableSelectionManager.Instance.OnItemSelected -= HandleItemSelected;
-                TransformableSelectionManager.Instance.OnItemDeselected -= HandleItemDeselected;
-                TransformableSelectionManager.Instance.OnEmptySpaceClicked -= HandleEmptySpaceClicked;
-                TransformableSelectionManager.Instance.OnPointerMoved -= HandlePointerMoved;
-                TransformableSelectionManager.Instance.OnCancelRequested -= HandleCancelRequested;
+                _exitAllModesActionRef.action.performed -= OnExitAllModesPerformed;
+            }
+            if (_moveHotkeyActionRef != null && _moveHotkeyActionRef.action != null)
+            {
+                _moveHotkeyActionRef.action.performed -= OnMoveHotkeyPerformed;
+            }
+            if (_rotateHotkeyActionRef != null && _rotateHotkeyActionRef.action != null)
+            {
+                _rotateHotkeyActionRef.action.performed -= OnRotateHotkeyPerformed;
+            }
+            if (_scaleHotkeyActionRef != null && _scaleHotkeyActionRef.action != null)
+            {
+                _scaleHotkeyActionRef.action.performed -= OnScaleHotkeyPerformed;
+            }
+            if (_cancelPlacementAction != null)
+            {
+                _cancelPlacementAction.performed -= OnCancelPlacementPerformed;
             }
 
             StopPreview();

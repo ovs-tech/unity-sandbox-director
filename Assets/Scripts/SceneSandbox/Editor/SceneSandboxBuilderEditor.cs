@@ -23,6 +23,25 @@ namespace SceneSandbox.Editor
         private SerializedProperty _sceneRoot;
         private SerializedProperty _stageArea;
         
+        // Input Action References
+        private SerializedProperty _exitAllModesActionRef;
+        private SerializedProperty _moveHotkeyActionRef;
+        private SerializedProperty _rotateHotkeyActionRef;
+        private SerializedProperty _scaleHotkeyActionRef;
+        private SerializedProperty _transformModeIncreaseActionRef;
+        private SerializedProperty _transformModeDecreaseActionRef;
+        private SerializedProperty _pointerPositionActionRef;
+        private SerializedProperty _leftClickActionRef;
+        private SerializedProperty _rightClickActionRef;
+        private SerializedProperty _mouseScrollActionRef;
+        private SerializedProperty _cancelPlacementActionRef;
+        
+        // Raycast & Input Settings
+        private SerializedProperty _maxRaycastDistance;
+        private SerializedProperty _dragThreshold;
+        private SerializedProperty _doubleClickTime;
+        private SerializedProperty _enableHotkeys;
+        
         // Placement Settings
         private SerializedProperty _placementLayers;
         private SerializedProperty _snapToGrid;
@@ -242,6 +261,7 @@ namespace SceneSandbox.Editor
             DrawSceneManagement(); // NEW: Multi-scene management
             DrawRuntimeInfo();
             DrawConfiguration();
+            DrawInputSettings(); // NEW: Input configuration section
             DrawPlacementSettings();
             DrawPreviewSettings();
             DrawUnifiedGizmoSettings();
@@ -263,6 +283,25 @@ namespace SceneSandbox.Editor
             _objectLibrary = serializedObject.FindProperty("_objectLibrary");
             _sceneRoot = serializedObject.FindProperty("_sceneRoot");
             _stageArea = serializedObject.FindProperty("_stageArea");
+            
+            // Input Action References
+            _exitAllModesActionRef = serializedObject.FindProperty("_exitAllModesActionRef");
+            _moveHotkeyActionRef = serializedObject.FindProperty("_moveHotkeyActionRef");
+            _rotateHotkeyActionRef = serializedObject.FindProperty("_rotateHotkeyActionRef");
+            _scaleHotkeyActionRef = serializedObject.FindProperty("_scaleHotkeyActionRef");
+            _transformModeIncreaseActionRef = serializedObject.FindProperty("_transformModeIncreaseActionRef");
+            _transformModeDecreaseActionRef = serializedObject.FindProperty("_transformModeDecreaseActionRef");
+            _pointerPositionActionRef = serializedObject.FindProperty("_pointerPositionActionRef");
+            _leftClickActionRef = serializedObject.FindProperty("_leftClickActionRef");
+            _rightClickActionRef = serializedObject.FindProperty("_rightClickActionRef");
+            _mouseScrollActionRef = serializedObject.FindProperty("_mouseScrollActionRef");
+            _cancelPlacementActionRef = serializedObject.FindProperty("_cancelPlacementActionRef");
+            
+            // Raycast & Input Settings
+            _maxRaycastDistance = serializedObject.FindProperty("_maxRaycastDistance");
+            _dragThreshold = serializedObject.FindProperty("_dragThreshold");
+            _doubleClickTime = serializedObject.FindProperty("_doubleClickTime");
+            _enableHotkeys = serializedObject.FindProperty("_enableHotkeys");
             
             // Placement Settings
             _placementLayers = serializedObject.FindProperty("_placementLayers");
@@ -855,8 +894,55 @@ namespace SceneSandbox.Editor
             EditorGUILayout.PropertyField(_sceneRoot);
             EditorGUILayout.PropertyField(_stageArea);
             
+            EditorGUILayout.EndVertical();
+        }
+        
+        private void DrawInputSettings()
+        {
+            bool showInputFoldout = true;
+            showInputFoldout = EditorGUILayout.Foldout(showInputFoldout, 
+                "Input Settings", true, EditorStyles.foldoutHeader);
+            
+            if (!showInputFoldout) return;
+            
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            
+            EditorGUILayout.HelpBox("Input actions are managed directly by SceneSandboxBuilder. All input handling, selection, and transform controls are integrated.", MessageType.Info);
+            
             EditorGUILayout.Space(5);
-            EditorGUILayout.HelpBox("Input handling is managed by TransformableSelectionManager (singleton)", MessageType.Info);
+            
+            // Transform Mode Hotkeys
+            EditorGUILayout.LabelField("Transform Mode Hotkeys", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_exitAllModesActionRef, new GUIContent("Exit All Modes"));
+            EditorGUILayout.PropertyField(_moveHotkeyActionRef, new GUIContent("Move Mode (Position)"));
+            EditorGUILayout.PropertyField(_rotateHotkeyActionRef, new GUIContent("Rotate Mode"));
+            EditorGUILayout.PropertyField(_scaleHotkeyActionRef, new GUIContent("Scale Mode"));
+            EditorGUILayout.PropertyField(_transformModeIncreaseActionRef, new GUIContent("Increase Transform"));
+            EditorGUILayout.PropertyField(_transformModeDecreaseActionRef, new GUIContent("Decrease Transform"));
+            
+            EditorGUILayout.Space(5);
+            
+            // Pointer Input Actions
+            EditorGUILayout.LabelField("Pointer Input Actions", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_pointerPositionActionRef, new GUIContent("Pointer Position"));
+            EditorGUILayout.PropertyField(_leftClickActionRef, new GUIContent("Left Click"));
+            EditorGUILayout.PropertyField(_rightClickActionRef, new GUIContent("Right Click"));
+            EditorGUILayout.PropertyField(_mouseScrollActionRef, new GUIContent("Mouse Scroll"));
+            
+            EditorGUILayout.Space(5);
+            
+            // Placement Input Actions
+            EditorGUILayout.LabelField("Placement Input Actions", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_cancelPlacementActionRef, new GUIContent("Cancel Placement"));
+            
+            EditorGUILayout.Space(5);
+            
+            // Raycast & Input Settings
+            EditorGUILayout.LabelField("Raycast & Detection Settings", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_maxRaycastDistance, new GUIContent("Max Raycast Distance"));
+            EditorGUILayout.PropertyField(_dragThreshold, new GUIContent("Drag Threshold (pixels)"));
+            EditorGUILayout.PropertyField(_doubleClickTime, new GUIContent("Double Click Time (seconds)"));
+            EditorGUILayout.PropertyField(_enableHotkeys, new GUIContent("Enable Hotkeys"));
             
             EditorGUILayout.EndVertical();
         }
