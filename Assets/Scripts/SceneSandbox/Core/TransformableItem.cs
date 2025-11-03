@@ -1,5 +1,9 @@
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace SceneSandbox.Core
 {
     /// <summary>
@@ -96,18 +100,7 @@ namespace SceneSandbox.Core
             InitializeComponents();
         }
 
-        private void OnDestroy()
-        {
-            // Clean up gizmo
-            DestroyGizmo();
-        }
-
-        private void Update()
-        {
-            UpdateGizmo();
-        }
-
-        private void Start()
+        private void OnEnable()
         {
             _camera = Camera.main ?? FindFirstObjectByType<Camera>();
 
@@ -122,6 +115,42 @@ namespace SceneSandbox.Core
                 InitializeGizmo();
             }
         }
+
+        private void OnDisable()
+        {
+            // Clean up gizmo when disabled
+            DestroyGizmo();
+        }
+
+        private void OnDestroy()
+        {
+            // Clean up gizmo
+            DestroyGizmo();
+        }
+
+        private void Update()
+        {
+            UpdateGizmo();
+        }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            // Reinitialize gizmo in editor when values change
+            if (_enableTransformControls && _showGizmo)
+            {
+                DestroyGizmo();
+                if (Application.isPlaying)
+                {
+                    InitializeGizmo();
+                }
+            }
+            else
+            {
+                DestroyGizmo();
+            }
+        }
+#endif
 
         private void InitializeComponents()
         {
@@ -262,6 +291,8 @@ namespace SceneSandbox.Core
             TransformModeType previousMode = _currentTransformModeType;
             _currentTransformModeType = mode;
             _isInTransformModeType = mode != TransformModeType.None;
+
+            Debug.Log($"[TransformableItem] Transform mode changed to: {mode}, isInMode: {_isInTransformModeType}, isSelected: {_isSelected}");
 
             // Reset axis to All when changing to Position mode or None
             if (mode == TransformModeType.Position || mode == TransformModeType.None)
@@ -512,7 +543,193 @@ namespace SceneSandbox.Core
 
         #endregion
 
+        #region Editor Gizmos (Edit Mode)
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// Draw gizmos when object is selected in editor (Edit Mode)
+        /// </summary>
+        private void OnDrawGizmosSelected()
+        {
+            Debug.Log($"[TransformableItem] OnDrawGizmosSelected called - isPlaying:{Application.isPlaying}, enableControls:{_enableTransformControls}, showGizmo:{_showGizmo}");
+            
+            // Only draw in edit mode when transform controls are enabled
+            if (Application.isPlaying || !_enableTransformControls || !_showGizmo)
+            {
+                Debug.Log($"[TransformableItem] Gizmo draw skipped");
+                return;
+            }
+
+            Debug.Log($"[TransformableItem] Drawing gizmo in Edit Mode, mode: {_currentTransformModeType}");
+            DrawEditorGizmo();
+        }
+
+        /// <summary>
+        /// Draw the gizmo in Edit Mode using Unity Gizmos API
+        /// </summary>
+        private void DrawEditorGizmo()
+        {
+            Vector3 position = transform.position;
+            float gizmoSize = HandleUtility.GetHandleSize(position) * _gizmoScreenScale;
+
+            Debug.Log($"[TransformableItem] DrawEditorGizmo - pos:{position}, size:{gizmoSize}, mode:{_currentTransformModeType}");
+
+            // Draw based on current transform mode (can be controlled via Inspector)
+            switch (_currentTransformModeType)
+            {
+                case TransformModeType.Position:
+                    DrawPositionGizmo(position, gizmoSize);
+                    break;
+                case TransformModeType.Rotation:
+                    DrawRotationGizmo(position, gizmoSize);
+                    break;
+                case TransformModeType.Scale:
+                    DrawScaleGizmo(position, gizmoSize);
+                    break;
+                default:
+                    // Default: show position gizmo when selected
+                    DrawPositionGizmo(position, gizmoSize);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Draw position mode arrows
+        /// </summary>
+        private void DrawPositionGizmo(Vector3 position, float size)
+        {
+            // X Axis (Red)
+            Gizmos.color = _gizmoXColor;
+            DrawArrow(position, Vector3.right, size);
+
+            // Y Axis (Green)
+            Gizmos.color = _gizmoYColor;
+            DrawArrow(position, Vector3.up, size);
+
+            // Z Axis (Blue)
+            Gizmos.color = _gizmoZColor;
+            DrawArrow(position, Vector3.forward, size);
+        }
+
+        /// <summary>
+        /// Draw rotation mode rings
+        /// </summary>
+        private void DrawRotationGizmo(Vector3 position, float size)
+        {
+            // X Axis Ring (Red)
+            Gizmos.color = _gizmoXColor;
+            DrawCircle(position, Vector3.right, size * 1.2f);
+
+            // Y Axis Ring (Green)
+            Gizmos.color = _gizmoYColor;
+            DrawCircle(position, Vector3.up, size * 1.2f);
+
+            // Z Axis Ring (Blue)
+            Gizmos.color = _gizmoZColor;
+            DrawCircle(position, Vector3.forward, size * 1.2f);
+        }
+
+        /// <summary>
+        /// Draw scale mode boxes
+        /// </summary>
+        private void DrawScaleGizmo(Vector3 position, float size)
+        {
+            float boxSize = size * 0.15f;
+
+            // X Axis (Red)
+            Gizmos.color = _gizmoXColor;
+            Gizmos.DrawCube(position + Vector3.right * size, Vector3.one * boxSize);
+            Gizmos.DrawLine(position, position + Vector3.right * size);
+
+            // Y Axis (Green)
+            Gizmos.color = _gizmoYColor;
+            Gizmos.DrawCube(position + Vector3.up * size, Vector3.one * boxSize);
+            Gizmos.DrawLine(position, position + Vector3.up * size);
+
+            // Z Axis (Blue)
+            Gizmos.color = _gizmoZColor;
+            Gizmos.DrawCube(position + Vector3.forward * size, Vector3.one * boxSize);
+            Gizmos.DrawLine(position, position + Vector3.forward * size);
+        }
+
+        /// <summary>
+        /// Helper to draw an arrow
+        /// </summary>
+        private void DrawArrow(Vector3 from, Vector3 direction, float size)
+        {
+            Vector3 to = from + direction * size;
+            
+            // Draw shaft
+            Gizmos.DrawLine(from, to);
+            
+            // Draw arrow head
+            Vector3 right = Vector3.Cross(direction, Vector3.up);
+            if (right.magnitude < 0.1f) right = Vector3.Cross(direction, Vector3.forward);
+            right = right.normalized;
+            
+            Vector3 arrowTip = to;
+            Vector3 arrowBase = to - direction * size * 0.2f;
+            
+            // Draw cone as arrow head
+            Vector3 up = Vector3.Cross(direction, right).normalized;
+            int segments = 8;
+            for (int i = 0; i < segments; i++)
+            {
+                float angle1 = (float)i / segments * Mathf.PI * 2;
+                float angle2 = (float)(i + 1) / segments * Mathf.PI * 2;
+                
+                Vector3 offset1 = (right * Mathf.Cos(angle1) + up * Mathf.Sin(angle1)) * size * 0.1f;
+                Vector3 offset2 = (right * Mathf.Cos(angle2) + up * Mathf.Sin(angle2)) * size * 0.1f;
+                
+                Gizmos.DrawLine(arrowBase + offset1, arrowTip);
+                Gizmos.DrawLine(arrowBase + offset1, arrowBase + offset2);
+            }
+        }
+
+        /// <summary>
+        /// Helper to draw a circle/ring
+        /// </summary>
+        private void DrawCircle(Vector3 center, Vector3 normal, float radius)
+        {
+            Vector3 right = Vector3.Cross(normal, Vector3.up);
+            if (right.magnitude < 0.1f) right = Vector3.Cross(normal, Vector3.forward);
+            right = right.normalized;
+            
+            Vector3 up = Vector3.Cross(normal, right).normalized;
+            
+            int segments = 32;
+            Vector3 prevPoint = center + right * radius;
+            
+            for (int i = 1; i <= segments; i++)
+            {
+                float angle = (float)i / segments * Mathf.PI * 2;
+                Vector3 point = center + (right * Mathf.Cos(angle) + up * Mathf.Sin(angle)) * radius;
+                Gizmos.DrawLine(prevPoint, point);
+                prevPoint = point;
+            }
+        }
+#endif
+
+        #endregion
+
         #region Gizmo Management
+
+        /// <summary>
+        /// Manually show/hide gizmo for testing
+        /// </summary>
+        public void ToggleGizmo(bool show)
+        {
+            if (!_enableTransformControls)
+                return;
+
+            if (show && !_gizmoInitialized)
+            {
+                InitializeGizmo();
+            }
+
+            SetGizmoVisible(show);
+            Debug.Log($"[TransformableItem] Gizmo toggled: {show}");
+        }
 
         /// <summary>
         /// Initialize the visual gizmo for transform manipulation
@@ -520,14 +737,22 @@ namespace SceneSandbox.Core
         private void InitializeGizmo()
         {
             if (_gizmoInitialized || !_enableTransformControls || !_showGizmo)
+            {
+                Debug.Log($"[TransformableItem] Gizmo init skipped - initialized:{_gizmoInitialized}, controls:{_enableTransformControls}, show:{_showGizmo}");
                 return;
+            }
 
-            // Create gizmo root
+            Debug.Log($"[TransformableItem] Initializing gizmo for {name}");
+
+            // Create gizmo root - DON'T parent it to the object to avoid scale/rotation dependency
             var gizmoObj = new GameObject($"{name}_Gizmo");
             _gizmoRoot = gizmoObj.transform;
-            _gizmoRoot.SetParent(transform, false);
-            _gizmoRoot.localPosition = Vector3.zero;
-            _gizmoRoot.localRotation = Quaternion.identity;
+            
+            // Don't parent to this transform - keep it independent in world space
+            // This ensures gizmo scale/rotation is not affected by object's transform
+            _gizmoRoot.position = transform.position;
+            _gizmoRoot.rotation = Quaternion.identity;
+            _gizmoRoot.localScale = Vector3.one;
 
             // Create axis handles
             _xHandle = CreateAxisHandle("X", Vector3.right, _gizmoXColor);
@@ -539,7 +764,7 @@ namespace SceneSandbox.Core
             // Initially hide gizmo
             SetGizmoVisible(false);
             
-            // Gizmo initialized for item
+            Debug.Log($"[TransformableItem] Gizmo initialized successfully for {name}");
         }
 
         /// <summary>
@@ -574,25 +799,34 @@ namespace SceneSandbox.Core
         /// </summary>
         private void UpdateGizmo()
         {
-            if (!_gizmoInitialized || !_showGizmo || _gizmoRoot == null || _camera == null)
+            if (!_gizmoInitialized || !_showGizmo || _gizmoRoot == null)
                 return;
 
-            // Show/hide gizmo based on transform mode
-            bool shouldShow = _isInTransformModeType && _currentTransformModeType != TransformModeType.None;
+            // Find camera if not cached
+            if (_camera == null)
+            {
+                _camera = Camera.main ?? FindFirstObjectByType<Camera>();
+                if (_camera == null)
+                    return;
+            }
+
+            // Show gizmo when selected AND in transform mode
+            bool shouldShow = _isSelected && _isInTransformModeType && _currentTransformModeType != TransformModeType.None;
             SetGizmoVisible(shouldShow);
 
             if (!shouldShow)
                 return;
 
-            // Keep gizmo at object position
+            // Keep gizmo at object position (independent of object's transform)
             _gizmoRoot.position = transform.position;
             
-            // Gizmo rotation (always world space for now)
+            // Gizmo rotation (always world space - not affected by object rotation)
             _gizmoRoot.rotation = Quaternion.identity;
 
-            // Scale gizmo based on distance to camera
+            // Scale gizmo based on distance to camera (independent of object scale)
             float dist = Vector3.Distance(_camera.transform.position, transform.position);
-            _gizmoRoot.localScale = Vector3.one * Mathf.Max(0.0001f, dist * _gizmoScreenScale);
+            float gizmoWorldScale = Mathf.Max(0.0001f, dist * _gizmoScreenScale);
+            _gizmoRoot.localScale = Vector3.one * gizmoWorldScale;
 
             // Update visibility of axis handles based on current mode
             UpdateGizmoVisuals();
