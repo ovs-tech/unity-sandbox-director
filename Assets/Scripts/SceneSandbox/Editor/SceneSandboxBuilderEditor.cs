@@ -24,12 +24,14 @@ namespace SceneSandbox.Editor
         private SerializedProperty _stageArea;
         
         // Input Action References
+        private SerializedProperty _toggleModeActionRef;
         private SerializedProperty _exitAllModesActionRef;
         private SerializedProperty _moveHotkeyActionRef;
         private SerializedProperty _rotateHotkeyActionRef;
         private SerializedProperty _scaleHotkeyActionRef;
         private SerializedProperty _transformModeIncreaseActionRef;
         private SerializedProperty _transformModeDecreaseActionRef;
+        private SerializedProperty _transformModeToggleAxisActionRef;
         private SerializedProperty _pointerPositionActionRef;
         private SerializedProperty _leftClickActionRef;
         private SerializedProperty _rightClickActionRef;
@@ -44,6 +46,7 @@ namespace SceneSandbox.Editor
         
         // Placement Settings
         private SerializedProperty _placementLayers;
+        private SerializedProperty _selectionLayers;
         private SerializedProperty _snapToGrid;
         private SerializedProperty _gridSize;
         private SerializedProperty _gridOffset;
@@ -285,12 +288,14 @@ namespace SceneSandbox.Editor
             _stageArea = serializedObject.FindProperty("_stageArea");
             
             // Input Action References
+            _toggleModeActionRef = serializedObject.FindProperty("_toggleModeActionRef");
             _exitAllModesActionRef = serializedObject.FindProperty("_exitAllModesActionRef");
             _moveHotkeyActionRef = serializedObject.FindProperty("_moveHotkeyActionRef");
             _rotateHotkeyActionRef = serializedObject.FindProperty("_rotateHotkeyActionRef");
             _scaleHotkeyActionRef = serializedObject.FindProperty("_scaleHotkeyActionRef");
             _transformModeIncreaseActionRef = serializedObject.FindProperty("_transformModeIncreaseActionRef");
             _transformModeDecreaseActionRef = serializedObject.FindProperty("_transformModeDecreaseActionRef");
+            _transformModeToggleAxisActionRef = serializedObject.FindProperty("_transformModeToggleAxisActionRef");
             _pointerPositionActionRef = serializedObject.FindProperty("_pointerPositionActionRef");
             _leftClickActionRef = serializedObject.FindProperty("_leftClickActionRef");
             _rightClickActionRef = serializedObject.FindProperty("_rightClickActionRef");
@@ -305,6 +310,7 @@ namespace SceneSandbox.Editor
             
             // Placement Settings
             _placementLayers = serializedObject.FindProperty("_placementLayers");
+            _selectionLayers = serializedObject.FindProperty("_selectionLayers");
             _snapToGrid = serializedObject.FindProperty("_snapToGrid");
             _gridSize = serializedObject.FindProperty("_gridSize");
             _gridOffset = serializedObject.FindProperty("_gridOffset");
@@ -362,6 +368,27 @@ namespace SceneSandbox.Editor
             
             GUILayout.Label("Scene Sandbox Builder", EditorStyles.largeLabel);
             GUILayout.Label("Ero Director - Mobile & AR Sandbox Edition", EditorStyles.miniLabel);
+            
+            EditorGUILayout.Space(5);
+            
+            // Mode indicator
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Current Mode:", GUILayout.Width(100));
+            
+            var modeColor = _target.CurrentMode == SandboxMode.Build ? Color.green : Color.cyan;
+            var prevColor = GUI.backgroundColor;
+            GUI.backgroundColor = modeColor;
+            
+            string modeText = _target.CurrentMode == SandboxMode.Build ? "BUILD MODE" : "PLAY MODE";
+            GUILayout.Label(modeText, EditorStyles.helpBox, GUILayout.Height(25));
+            
+            GUI.backgroundColor = prevColor;
+            EditorGUILayout.EndHorizontal();
+            
+            if (_target.CurrentMode == SandboxMode.Play)
+            {
+                EditorGUILayout.HelpBox("Play Mode: Input actions disabled, read-only preview", MessageType.Info);
+            }
             
             EditorGUILayout.Space(5);
             
@@ -911,6 +938,12 @@ namespace SceneSandbox.Editor
             
             EditorGUILayout.Space(5);
             
+            // Mode Toggle
+            EditorGUILayout.LabelField("Mode Control", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_toggleModeActionRef, new GUIContent("Toggle Build/Play Mode", "Toggle between Build Mode (editing enabled) and Play Mode (read-only, performance optimized)"));
+            
+            EditorGUILayout.Space(5);
+            
             // Transform Mode Hotkeys
             EditorGUILayout.LabelField("Transform Mode Hotkeys", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_exitAllModesActionRef, new GUIContent("Exit All Modes"));
@@ -919,6 +952,7 @@ namespace SceneSandbox.Editor
             EditorGUILayout.PropertyField(_scaleHotkeyActionRef, new GUIContent("Scale Mode"));
             EditorGUILayout.PropertyField(_transformModeIncreaseActionRef, new GUIContent("Increase Transform"));
             EditorGUILayout.PropertyField(_transformModeDecreaseActionRef, new GUIContent("Decrease Transform"));
+            EditorGUILayout.PropertyField(_transformModeToggleAxisActionRef, new GUIContent("Toggle Axis", "Toggle between X, Y, Z, and All axes for Rotation/Scale modes"));
             
             EditorGUILayout.Space(5);
             
@@ -939,6 +973,7 @@ namespace SceneSandbox.Editor
             
             // Raycast & Input Settings
             EditorGUILayout.LabelField("Raycast & Detection Settings", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_selectionLayers, new GUIContent("Selection Layers", "Layers used for object selection raycasts (separate from placement layers)"));
             EditorGUILayout.PropertyField(_maxRaycastDistance, new GUIContent("Max Raycast Distance"));
             EditorGUILayout.PropertyField(_dragThreshold, new GUIContent("Drag Threshold (pixels)"));
             EditorGUILayout.PropertyField(_doubleClickTime, new GUIContent("Double Click Time (seconds)"));

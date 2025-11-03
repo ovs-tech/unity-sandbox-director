@@ -1295,14 +1295,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4353651907213048014, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4353651907213048014, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _mainCamera
-      value: 
-      objectReference: {fileID: 330585545}
     - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
       propertyPath: _sceneRoot
       value: 
@@ -1315,50 +1307,6 @@ PrefabInstance:
       propertyPath: _timelineDirector
       value: 
       objectReference: {fileID: 398228398}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _leftClickActionRef
-      value: 
-      objectReference: {fileID: 846087269551105390, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _moveHotkeyActionRef
-      value: 
-      objectReference: {fileID: 2843508185504223957, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _rightClickActionRef
-      value: 
-      objectReference: {fileID: 7782487072623700467, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _mouseScrollActionRef
-      value: 
-      objectReference: {fileID: -957748281948142360, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _scaleHotkeyActionRef
-      value: 
-      objectReference: {fileID: 1537150768674875410, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _exitAllModesActionRef
-      value: 
-      objectReference: {fileID: -8120193850246896430, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _rotateHotkeyActionRef
-      value: 
-      objectReference: {fileID: -8373456726477787857, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _cancelPlacementActionRef
-      value: 
-      objectReference: {fileID: -8120193850246896430, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _pointerPositionActionRef
-      value: 
-      objectReference: {fileID: 1622428205235823346, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _transformModeDecreaseActionRef
-      value: 
-      objectReference: {fileID: 8128551554140899369, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _transformModeIncreaseActionRef
-      value: 
-      objectReference: {fileID: 3099720330267465567, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

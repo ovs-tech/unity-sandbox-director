@@ -1981,45 +1981,9 @@
             "id": "f7a3c2d1-8e4b-4629-9da5-3b7e8f1a2c6d",
             "actions": [
                 {
-                    "name": "Select",
-                    "type": "Button",
-                    "id": "1a2b3c4d-5e6f-7890-abcd-ef1234567890",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "Delete",
-                    "type": "Button",
-                    "id": "2b3c4d5e-6f78-9012-bcde-f23456789012",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "Duplicate",
-                    "type": "Button",
-                    "id": "3c4d5e6f-7890-1234-cdef-345678901234",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
                     "name": "ToggleSnapToGrid",
                     "type": "Button",
                     "id": "4d5e6f78-9012-3456-def0-456789012345",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "SaveScene",
-                    "type": "Button",
-                    "id": "6f789012-3456-7890-f012-678901234567",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -2087,64 +2051,27 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "TransformModeToggleAxis",
+                    "type": "Button",
+                    "id": "da422327-535b-4705-b362-0470a23c85fd",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ToggleSandboxMode",
+                    "type": "Button",
+                    "id": "a2c972e9-f7ce-4999-8b46-06533ea72ab1",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
-                {
-                    "name": "",
-                    "id": "0c1cdae9-6e03-483d-b150-dd762ae8161f",
-                    "path": "<Mouse>/leftButton",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": ";MouseKeyboard",
-                    "action": "Select",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "12345678-9012-3456-4567-123456789012",
-                    "path": "<Touchscreen>/primaryTouch/tap",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": ";MobileTouch",
-                    "action": "Select",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "23456789-0123-4567-5678-234567890123",
-                    "path": "<Keyboard>/delete",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": ";MouseKeyboard",
-                    "action": "Delete",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "34567890-1234-5678-6789-345678901234",
-                    "path": "<Keyboard>/x",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": ";MouseKeyboard",
-                    "action": "Delete",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "45678901-2345-6789-7890-456789012345",
-                    "path": "<Keyboard>/ctrl+d",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": ";MouseKeyboard",
-                    "action": "Duplicate",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
                 {
                     "name": "",
                     "id": "56789012-3456-7890-8901-567890123456",
@@ -2153,17 +2080,6 @@
                     "processors": "",
                     "groups": ";MouseKeyboard",
                     "action": "ToggleSnapToGrid",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "78901234-5678-9012-0123-789012345678",
-                    "path": "<Keyboard>/ctrl+s",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": ";MouseKeyboard",
-                    "action": "SaveScene",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -2181,7 +2097,7 @@
                 {
                     "name": "",
                     "id": "64456d00-c19d-4869-a968-e299d19173a5",
-                    "path": "<Keyboard>/m",
+                    "path": "<Keyboard>/p",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -2241,6 +2157,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "TransformModeDecrease",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "6382a809-c2e5-466a-8069-b33672b24bb8",
+                    "path": "<Keyboard>/t",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TransformModeToggleAxis",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "da617405-840b-4ced-9c30-c1d14d14a3e7",
+                    "path": "<Keyboard>/m",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ToggleSandboxMode",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 3697700392935551172}
   - component: {fileID: 6108783902824427292}
-  - component: {fileID: 4353651907213048014}
   m_Layer: 0
   m_Name: Sandbox Scene Builder
   m_TagString: Untagged
@@ -48,9 +47,29 @@ MonoBehaviour:
   _objectLibrary: {fileID: 11400000, guid: 2b589a7f8785049958954ff918693f0c, type: 2}
   _sceneRoot: {fileID: 0}
   _stageArea: {fileID: 0}
+  _toggleModeActionRef: {fileID: 7225520603179111591, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _exitAllModesActionRef: {fileID: -8120193850246896430, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _moveHotkeyActionRef: {fileID: 2843508185504223957, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _rotateHotkeyActionRef: {fileID: -8373456726477787857, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _scaleHotkeyActionRef: {fileID: 1537150768674875410, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _transformModeIncreaseActionRef: {fileID: 3099720330267465567, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _transformModeDecreaseActionRef: {fileID: 8128551554140899369, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _transformModeToggleAxisActionRef: {fileID: 1544176395740903846, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _pointerPositionActionRef: {fileID: 1622428205235823346, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _leftClickActionRef: {fileID: 846087269551105390, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _rightClickActionRef: {fileID: 7782487072623700467, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _mouseScrollActionRef: {fileID: -957748281948142360, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _cancelPlacementActionRef: {fileID: -8120193850246896430, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _maxRaycastDistance: 1000
+  _dragThreshold: 5
+  _doubleClickTime: 0.3
+  _enableHotkeys: 1
   _placementLayers:
     serializedVersion: 2
     m_Bits: 64
+  _selectionLayers:
+    serializedVersion: 2
+    m_Bits: 1
   _snapToGrid: 1
   _gridSize: 1
   _gridOffset: {x: 0, y: 0, z: 0}
@@ -112,38 +131,3 @@ MonoBehaviour:
   _defaultSavePath: Assets/SceneSandboxBuilder/SavedScenes/
   _currentSceneName: Untitled Scene
   _defaultProjectSavePath: Assets/SceneSandboxBuilder/SavedProjects/
---- !u!114 &4353651907213048014
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 444325856237096281}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd483b7e2302f445f8719b4ecae42e15, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SceneSandbox.Core.SelectionManager
-  _allowMultipleSelection: 0
-  _allowMultipleTransformModeTypes: 0
-  _enableHotkeys: 1
-  _exitAllModesActionRef: {fileID: -8120193850246896430, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-  _moveHotkeyActionRef: {fileID: 2843508185504223957, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-  _rotateHotkeyActionRef: {fileID: -8373456726477787857, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-  _scaleHotkeyActionRef: {fileID: 1537150768674875410, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-  _transformModeIncreaseActionRef: {fileID: 3099720330267465567, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-  _transformModeDecreaseActionRef: {fileID: 8128551554140899369, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-  _pointerPositionActionRef: {fileID: 1622428205235823346, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-  _leftClickActionRef: {fileID: 846087269551105390, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-  _rightClickActionRef: {fileID: 7782487072623700467, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-  _mouseScrollActionRef: {fileID: -957748281948142360, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-  _cancelPlacementActionRef: {fileID: -8120193850246896430, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-  _mainCamera: {fileID: 0}
-  _raycastLayers:
-    serializedVersion: 2
-    m_Bits: 1
-  _maxRaycastDistance: 1000
-  _dragThreshold: 5
-  _doubleClickTime: 0.3
-  _lastSelectedItem: {fileID: 0}
-  _currentActiveTransformItem: {fileID: 0}

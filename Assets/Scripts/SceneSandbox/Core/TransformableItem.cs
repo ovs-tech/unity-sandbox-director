@@ -36,6 +36,7 @@ namespace SceneSandbox.Core
 
         // Transform control state
         [SerializeField] private TransformModeType _currentTransformModeType = TransformModeType.None;
+        [SerializeField] private TransformAxis _currentTransformAxis = TransformAxis.All;
         private Vector3 _originalScale;
         private Vector3 _originalRotation;
         private Vector3 _originalPosition;
@@ -82,6 +83,7 @@ namespace SceneSandbox.Core
 
         public bool IsSelected => _isSelected;
         public TransformModeType CurrentTransformModeType => _currentTransformModeType;
+        public TransformAxis CurrentTransformAxis => _currentTransformAxis;
         public bool IsInTransformModeType => _isInTransformModeType;
         public bool EnableTransformControls
         {
@@ -91,31 +93,13 @@ namespace SceneSandbox.Core
 
         private void Awake()
         {
-            Debug.Log($"[TransformableItem] Awake called for {gameObject.name}");
-            
             InitializeComponents();
-            
-            // Check collider for raycast interaction
-            if (_collider == null)
-            {
-                Debug.LogWarning($"[TransformableItem] No collider on {gameObject.name}!");
-            }
-            else
-            {
-                Debug.Log($"[TransformableItem] Collider found: {_collider.GetType().Name}, enabled: {_collider.enabled}");
-            }
         }
 
         private void OnDestroy()
         {
             // Clean up gizmo
             DestroyGizmo();
-            
-            // Unregister from selection manager (handles both selection and transform control)
-            if (TransformableSelectionManager.Instance != null)
-            {
-                TransformableSelectionManager.Instance.UnregisterDraggableItem(this);
-            }
         }
 
         private void Update()
@@ -125,35 +109,18 @@ namespace SceneSandbox.Core
 
         private void Start()
         {
-            Debug.Log($"[TransformableItem] Start called for {gameObject.name}");
-            
             _camera = Camera.main ?? FindFirstObjectByType<Camera>();
-
-            if (_camera == null)
-            {
-                Debug.LogError($"[TransformableItem] No camera found for {gameObject.name}!");
-            }
-            else
-            {
-                Debug.Log($"[TransformableItem] Camera found: {_camera.name}");
-            }
 
             if (string.IsNullOrEmpty(_objectId))
             {
                 _objectId = System.Guid.NewGuid().ToString();
             }
-
-            // Register with selection manager (handles both selection and transform control)
-            Debug.Log($"[TransformableItem] Registering {gameObject.name} with SelectionManager");
-            TransformableSelectionManager.Instance.RegisterDraggableItem(this);
             
             // Initialize gizmo if transform controls are enabled
             if (_enableTransformControls && _showGizmo)
             {
                 InitializeGizmo();
             }
-            
-            Debug.Log($"[TransformableItem] Initialization complete for {gameObject.name}");
         }
 
         private void InitializeComponents()
@@ -296,6 +263,12 @@ namespace SceneSandbox.Core
             _currentTransformModeType = mode;
             _isInTransformModeType = mode != TransformModeType.None;
 
+            // Reset axis to All when changing to Position mode or None
+            if (mode == TransformModeType.Position || mode == TransformModeType.None)
+            {
+                _currentTransformAxis = TransformAxis.All;
+            }
+
             // Update visual feedback
             UpdateTransformVisuals();
             
@@ -317,6 +290,27 @@ namespace SceneSandbox.Core
             }
 
             OnTransformModeTypeChanged?.Invoke(this, mode);
+        }
+
+        /// <summary>
+        /// Set the current transform axis (X, Y, Z, All)
+        /// Only applicable for Rotation and Scale modes
+        /// </summary>
+        public void SetTransformAxis(TransformAxis axis)
+        {
+            // Only allow axis change for Rotation and Scale modes
+            if (_currentTransformModeType != TransformModeType.Rotation && _currentTransformModeType != TransformModeType.Scale)
+            {
+                _currentTransformAxis = TransformAxis.All;
+                return;
+            }
+
+            _currentTransformAxis = axis;
+            
+            // Update gizmo to highlight selected axis
+            UpdateGizmoVisuals();
+            
+            Debug.Log($"[TransformableItem] Axis set to: {axis}");
         }
 
         /// <summary>
@@ -355,7 +349,7 @@ namespace SceneSandbox.Core
             if (_originalRotation != Vector3.zero)
                 transform.eulerAngles = _originalRotation;
             
-            Debug.Log($"Reset transform for item: {name}");
+            // Reset transform for item
         }
 
         /// <summary>
@@ -371,12 +365,6 @@ namespace SceneSandbox.Core
                 
                 // Destroy gizmo
                 DestroyGizmo();
-                
-                // Unregister from transform control
-                if (TransformableSelectionManager.Instance != null)
-                {
-                    TransformableSelectionManager.Instance.UnregisterItemFromTransformControl(this);
-                }
             }
             else
             {
@@ -385,15 +373,9 @@ namespace SceneSandbox.Core
                 {
                     InitializeGizmo();
                 }
-                
-                // Register with transform control
-                if (TransformableSelectionManager.Instance != null)
-                {
-                    TransformableSelectionManager.Instance.RegisterItemForTransformControl(this);
-                }
             }
             
-            Debug.Log($"Transform controls {(_enableTransformControls ? "enabled" : "disabled")} for item: {name}");
+            // Transform controls toggled for item
         }
 
         /// <summary>
@@ -409,25 +391,55 @@ namespace SceneSandbox.Core
                 case TransformModeType.Position:
                     // Position is controlled by SceneSandboxBuilder during placement
                     // This method is not used for position mode
-                    Debug.Log($"[TransformableItem] Position mode does not support increase/decrease - controlled by SceneSandboxBuilder");
+                    // Position mode does not support increase/decrease - controlled by SceneSandboxBuilder
                     break;
 
                 case TransformModeType.Rotation:
-                    // Rotate around Y axis by step
+                    // Rotate based on selected axis
                     Vector3 currentRotation = transform.eulerAngles;
-                    currentRotation.y += _rotationStep;
+                    switch (_currentTransformAxis)
+                    {
+                        case TransformAxis.X:
+                            currentRotation.x += _rotationStep;
+                            break;
+                        case TransformAxis.Y:
+                            currentRotation.y += _rotationStep;
+                            break;
+                        case TransformAxis.Z:
+                            currentRotation.z += _rotationStep;
+                            break;
+                        case TransformAxis.All:
+                            currentRotation.y += _rotationStep; // Default to Y for All
+                            break;
+                    }
                     transform.eulerAngles = currentRotation;
-                    Debug.Log($"[TransformableItem] Increased rotation by {_rotationStep}° - new rotation: {currentRotation.y}°");
                     break;
 
                 case TransformModeType.Scale:
-                    // Increase scale uniformly
-                    Vector3 newScale = transform.localScale + Vector3.one * _scaleStep;
-                    newScale.x = Mathf.Clamp(newScale.x, _minScale.x, _maxScale.x);
-                    newScale.y = Mathf.Clamp(newScale.y, _minScale.y, _maxScale.y);
-                    newScale.z = Mathf.Clamp(newScale.z, _minScale.z, _maxScale.z);
+                    // Scale based on selected axis
+                    Vector3 newScale = transform.localScale;
+                    switch (_currentTransformAxis)
+                    {
+                        case TransformAxis.X:
+                            newScale.x += _scaleStep;
+                            newScale.x = Mathf.Clamp(newScale.x, _minScale.x, _maxScale.x);
+                            break;
+                        case TransformAxis.Y:
+                            newScale.y += _scaleStep;
+                            newScale.y = Mathf.Clamp(newScale.y, _minScale.y, _maxScale.y);
+                            break;
+                        case TransformAxis.Z:
+                            newScale.z += _scaleStep;
+                            newScale.z = Mathf.Clamp(newScale.z, _minScale.z, _maxScale.z);
+                            break;
+                        case TransformAxis.All:
+                            newScale += Vector3.one * _scaleStep;
+                            newScale.x = Mathf.Clamp(newScale.x, _minScale.x, _maxScale.x);
+                            newScale.y = Mathf.Clamp(newScale.y, _minScale.y, _maxScale.y);
+                            newScale.z = Mathf.Clamp(newScale.z, _minScale.z, _maxScale.z);
+                            break;
+                    }
                     transform.localScale = newScale;
-                    Debug.Log($"[TransformableItem] Increased scale by {_scaleStep} - new scale: {newScale}");
                     break;
             }
         }
@@ -445,25 +457,55 @@ namespace SceneSandbox.Core
                 case TransformModeType.Position:
                     // Position is controlled by SceneSandboxBuilder during placement
                     // This method is not used for position mode
-                    Debug.Log($"[TransformableItem] Position mode does not support increase/decrease - controlled by SceneSandboxBuilder");
+                    // Position mode does not support increase/decrease - controlled by SceneSandboxBuilder
                     break;
 
                 case TransformModeType.Rotation:
-                    // Rotate around Y axis by step (negative)
+                    // Rotate based on selected axis (negative)
                     Vector3 currentRotation = transform.eulerAngles;
-                    currentRotation.y -= _rotationStep;
+                    switch (_currentTransformAxis)
+                    {
+                        case TransformAxis.X:
+                            currentRotation.x -= _rotationStep;
+                            break;
+                        case TransformAxis.Y:
+                            currentRotation.y -= _rotationStep;
+                            break;
+                        case TransformAxis.Z:
+                            currentRotation.z -= _rotationStep;
+                            break;
+                        case TransformAxis.All:
+                            currentRotation.y -= _rotationStep; // Default to Y for All
+                            break;
+                    }
                     transform.eulerAngles = currentRotation;
-                    Debug.Log($"[TransformableItem] Decreased rotation by {_rotationStep}° - new rotation: {currentRotation.y}°");
                     break;
 
                 case TransformModeType.Scale:
-                    // Decrease scale uniformly
-                    Vector3 newScale = transform.localScale - Vector3.one * _scaleStep;
-                    newScale.x = Mathf.Clamp(newScale.x, _minScale.x, _maxScale.x);
-                    newScale.y = Mathf.Clamp(newScale.y, _minScale.y, _maxScale.y);
-                    newScale.z = Mathf.Clamp(newScale.z, _minScale.z, _maxScale.z);
+                    // Scale based on selected axis (decrease)
+                    Vector3 newScale = transform.localScale;
+                    switch (_currentTransformAxis)
+                    {
+                        case TransformAxis.X:
+                            newScale.x -= _scaleStep;
+                            newScale.x = Mathf.Clamp(newScale.x, _minScale.x, _maxScale.x);
+                            break;
+                        case TransformAxis.Y:
+                            newScale.y -= _scaleStep;
+                            newScale.y = Mathf.Clamp(newScale.y, _minScale.y, _maxScale.y);
+                            break;
+                        case TransformAxis.Z:
+                            newScale.z -= _scaleStep;
+                            newScale.z = Mathf.Clamp(newScale.z, _minScale.z, _maxScale.z);
+                            break;
+                        case TransformAxis.All:
+                            newScale -= Vector3.one * _scaleStep;
+                            newScale.x = Mathf.Clamp(newScale.x, _minScale.x, _maxScale.x);
+                            newScale.y = Mathf.Clamp(newScale.y, _minScale.y, _maxScale.y);
+                            newScale.z = Mathf.Clamp(newScale.z, _minScale.z, _maxScale.z);
+                            break;
+                    }
                     transform.localScale = newScale;
-                    Debug.Log($"[TransformableItem] Decreased scale by {_scaleStep} - new scale: {newScale}");
                     break;
             }
         }
@@ -497,7 +539,7 @@ namespace SceneSandbox.Core
             // Initially hide gizmo
             SetGizmoVisible(false);
             
-            Debug.Log($"[TransformableItem] Gizmo initialized for {name}");
+            // Gizmo initialized for item
         }
 
         /// <summary>

@@ -19,12 +19,14 @@ namespace SceneSandbox.Core
         [SerializeField] private Transform _stageArea;
 
         [Header("Input Action References")]
+        [SerializeField] private InputActionReference _toggleModeActionRef;
         [SerializeField] private InputActionReference _exitAllModesActionRef;
         [SerializeField] private InputActionReference _moveHotkeyActionRef;
         [SerializeField] private InputActionReference _rotateHotkeyActionRef;
         [SerializeField] private InputActionReference _scaleHotkeyActionRef;
         [SerializeField] private InputActionReference _transformModeIncreaseActionRef;
         [SerializeField] private InputActionReference _transformModeDecreaseActionRef;
+        [SerializeField] private InputActionReference _transformModeToggleAxisActionRef;
         
         [Header("Pointer Input Actions")]
         [SerializeField] private InputActionReference _pointerPositionActionRef;
@@ -43,6 +45,7 @@ namespace SceneSandbox.Core
 
         [Header("Placement Settings")]
         [SerializeField] private LayerMask _placementLayers = -1;
+        [SerializeField] private LayerMask _selectionLayers = -1;
         [SerializeField] private bool _snapToGrid = true;
         [SerializeField] private float _gridSize = 1f;
         [SerializeField] private Vector3 _gridOffset = Vector3.zero; // Grid offset from stage area (only X, Z used for 2D plane)
@@ -126,17 +129,22 @@ namespace SceneSandbox.Core
         private Camera _sceneCamera;
 
         // Input Actions
+        private InputAction _toggleModeAction;
         private InputAction _exitAllModesAction;
         private InputAction _moveHotkeyAction;
         private InputAction _rotateHotkeyAction;
         private InputAction _scaleHotkeyAction;
         private InputAction _transformModeIncreaseAction;
         private InputAction _transformModeDecreaseAction;
+        private InputAction _transformModeToggleAxisAction;
         private InputAction _pointerPositionAction;
         private InputAction _leftClickAction;
         private InputAction _rightClickAction;
         private InputAction _mouseScrollAction;
         private InputAction _cancelPlacementAction;
+
+        // Mode state
+        private SandboxMode _currentMode = SandboxMode.Build;
 
         // Input state
         private bool _isPointerDown = false;
@@ -171,6 +179,7 @@ namespace SceneSandbox.Core
         // Placement & Transform State
         private PlacementState _placementState = PlacementState.Idle;
         private TransformModeType _currentTransformMode = TransformModeType.Position;
+        private TransformAxis _currentTransformAxis = TransformAxis.All;
         private GameObject _currentPlacementObject; // The actual object being placed (no ghost)
         private string _currentPlacementObjectId;
         private Vector3 _currentPlacementPosition;
@@ -196,6 +205,7 @@ namespace SceneSandbox.Core
         public System.Action<GameObject> OnObjectSelected;
         public System.Action OnSceneCleared;
         public System.Action<bool> OnPreviewStateChanged;
+        public System.Action<SandboxMode> OnModeChanged;
 
         // Properties
         public SceneConfiguration CurrentScene => _currentScene;
@@ -214,11 +224,140 @@ namespace SceneSandbox.Core
         public PlacementState CurrentPlacementState => _placementState;
         public bool IsPlacementActive => _placementState == PlacementState.Active;
         public TransformModeType CurrentTransformMode => _currentTransformMode;
+        public TransformAxis CurrentTransformAxis => _currentTransformAxis;
+        public SandboxMode CurrentMode => _currentMode;
+        public bool IsInBuildMode => _currentMode == SandboxMode.Build;
 
         /// <summary>
         /// Set the current transform mode (Position/Rotation/Scale)
         /// </summary>
         public void SetTransformMode(TransformModeType mode)
+        {
+            _currentTransformMode = mode;
+            
+            // Reset axis to All when changing mode or entering Position mode
+            if (mode == TransformModeType.Position || mode == TransformModeType.None)
+            {
+                _currentTransformAxis = TransformAxis.All;
+            }
+            
+            // Update active transform items with new axis
+            UpdateActiveTransformItemsAxis();
+            
+            // Update visual feedback if in placement mode
+            if (IsPlacementActive && _currentPlacementObject != null)
+            {
+                UpdateGhostTransformMode();
+            }
+        }
+
+        /// <summary>
+        /// Toggle the current transform axis (X, Y, Z, All)
+        /// Only applicable for Rotation and Scale modes
+        /// </summary>
+        public void ToggleTransformAxis()
+        {
+            // Only allow axis toggle for Rotation and Scale modes
+            if (_currentTransformMode != TransformModeType.Rotation && _currentTransformMode != TransformModeType.Scale)
+            {
+                Debug.Log("[AXIS] Axis toggle only available in Rotation or Scale mode");
+                return;
+            }
+
+            // Cycle through axes: All -> X -> Y -> Z -> All
+            _currentTransformAxis = _currentTransformAxis switch
+            {
+                TransformAxis.All => TransformAxis.X,
+                TransformAxis.X => TransformAxis.Y,
+                TransformAxis.Y => TransformAxis.Z,
+                TransformAxis.Z => TransformAxis.All,
+                _ => TransformAxis.All
+            };
+
+            Debug.Log($"[AXIS] Transform axis changed to: {_currentTransformAxis}");
+            
+            // Update active transform items with new axis
+            UpdateActiveTransformItemsAxis();
+        }
+
+        /// <summary>
+        /// Update all active transform items with current axis selection
+        /// </summary>
+        private void UpdateActiveTransformItemsAxis()
+        {
+            foreach (var item in _activeTransformItems)
+            {
+                if (item != null)
+                {
+                    item.SetTransformAxis(_currentTransformAxis);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Toggle between Build Mode and Play Mode
+        /// Build Mode: All input actions enabled, can place/select/edit objects
+        /// Play Mode: Input actions disabled for performance, read-only preview
+        /// </summary>
+        public void ToggleMode()
+        {
+            if (_currentMode == SandboxMode.Build)
+            {
+                SetMode(SandboxMode.Play);
+            }
+            else
+            {
+                SetMode(SandboxMode.Build);
+            }
+        }
+
+        /// <summary>
+        /// Set the sandbox mode (Build or Play)
+        /// </summary>
+        public void SetMode(SandboxMode mode)
+        {
+            if (_currentMode == mode)
+                return;
+
+            SandboxMode previousMode = _currentMode;
+            _currentMode = mode;
+
+            Debug.Log($"[MODE] Sandbox mode changed: {previousMode} → {mode}");
+
+            if (mode == SandboxMode.Play)
+            {
+                // Entering Play Mode
+                Debug.Log("[MODE] Entering Play Mode - Disabling build input actions");
+                
+                // Cancel any active placement
+                if (IsPlacementActive)
+                {
+                    CancelPlacement();
+                }
+                
+                // Exit all transform modes
+                ExitAllTransformModes();
+                
+                // Disable build-related input actions
+                DisableBuildInputActions();
+            }
+            else
+            {
+                // Entering Build Mode
+                Debug.Log("[MODE] Entering Build Mode - Enabling build input actions");
+                
+                // Enable build-related input actions
+                EnableBuildInputActions();
+            }
+
+            // Invoke mode changed event
+            OnModeChanged?.Invoke(mode);
+        }
+
+        /// <summary>
+        /// Set the current transform mode (Position/Rotation/Scale)
+        /// </summary>
+        public void SetTransformMode_Legacy(TransformModeType mode)
         {
             _currentTransformMode = mode;
             
@@ -298,6 +437,12 @@ namespace SceneSandbox.Core
 
         private void Update()
         {
+            // Skip all build-related input handling in Play Mode for performance
+            if (_currentMode == SandboxMode.Play)
+            {
+                return;
+            }
+
             HandleRaycastInput();
             
             // Get current input position
@@ -2007,6 +2152,13 @@ namespace SceneSandbox.Core
         /// </summary>
         private void InitializeInputActions()
         {
+            // Mode toggle action - always active
+            if (_toggleModeActionRef != null)
+            {
+                _toggleModeAction = _toggleModeActionRef.action;
+                _toggleModeAction.performed += OnToggleModePerformed;
+            }
+
             // Subscribe to transform mode hotkey callbacks
             if (_exitAllModesActionRef != null)
             {
@@ -2041,6 +2193,12 @@ namespace SceneSandbox.Core
                     _transformModeDecreaseAction = _transformModeDecreaseActionRef.action;
                     _transformModeDecreaseAction.performed += OnTransformModeDecreasePerformed;
                 }
+                
+                if (_transformModeToggleAxisActionRef != null)
+                {
+                    _transformModeToggleAxisAction = _transformModeToggleAxisActionRef.action;
+                    _transformModeToggleAxisAction.performed += OnTransformModeToggleAxisPerformed;
+                }
             }
             
             // Initialize pointer input actions
@@ -2074,6 +2232,30 @@ namespace SceneSandbox.Core
 
         private void EnableInputActions()
         {
+            // Mode toggle is always enabled
+            _toggleModeAction?.Enable();
+
+            // Only enable build actions if in Build Mode
+            if (_currentMode == SandboxMode.Build)
+            {
+                EnableBuildInputActions();
+            }
+        }
+
+        private void DisableInputActions()
+        {
+            // Mode toggle is always enabled (even when component disabled)
+            _toggleModeAction?.Disable();
+            
+            // Disable all build actions
+            DisableBuildInputActions();
+        }
+
+        /// <summary>
+        /// Enable all build-related input actions (used in Build Mode)
+        /// </summary>
+        private void EnableBuildInputActions()
+        {
             _exitAllModesActionRef?.action?.Enable();
 
             if (_enableHotkeys)
@@ -2083,6 +2265,7 @@ namespace SceneSandbox.Core
                 _scaleHotkeyActionRef?.action?.Enable();
                 _transformModeIncreaseAction?.Enable();
                 _transformModeDecreaseAction?.Enable();
+                _transformModeToggleAxisAction?.Enable();
             }
             
             _pointerPositionAction?.Enable();
@@ -2092,7 +2275,10 @@ namespace SceneSandbox.Core
             _cancelPlacementAction?.Enable();
         }
 
-        private void DisableInputActions()
+        /// <summary>
+        /// Disable all build-related input actions (used in Play Mode)
+        /// </summary>
+        private void DisableBuildInputActions()
         {
             _exitAllModesActionRef?.action?.Disable();
             _moveHotkeyActionRef?.action?.Disable();
@@ -2100,6 +2286,7 @@ namespace SceneSandbox.Core
             _scaleHotkeyActionRef?.action?.Disable();
             _transformModeIncreaseAction?.Disable();
             _transformModeDecreaseAction?.Disable();
+            _transformModeToggleAxisAction?.Disable();
             
             _pointerPositionAction?.Disable();
             _leftClickAction?.Disable();
@@ -2111,6 +2298,11 @@ namespace SceneSandbox.Core
         #endregion
 
         #region Input Action Callbacks
+
+        private void OnToggleModePerformed(InputAction.CallbackContext context)
+        {
+            ToggleMode();
+        }
 
         private void OnExitAllModesPerformed(InputAction.CallbackContext context)
         {
@@ -2203,6 +2395,16 @@ namespace SceneSandbox.Core
             }
         }
 
+        private void OnTransformModeToggleAxisPerformed(InputAction.CallbackContext context)
+        {
+            if (!_enableHotkeys) return;
+            
+            // Toggle the axis
+            ToggleTransformAxis();
+            
+            Debug.Log($"[INPUT] Toggle axis performed - Current axis: {_currentTransformAxis}");
+        }
+
         private void OnCancelPlacementPerformed(InputAction.CallbackContext context)
         {
             if (IsPlacementActive)
@@ -2275,10 +2477,15 @@ namespace SceneSandbox.Core
         private TransformableItem RaycastForItem(Vector2 screenPosition)
         {
             Ray ray = _sceneCamera.ScreenPointToRay(screenPosition);
-            
-            if (Physics.Raycast(ray, out RaycastHit hit, _maxRaycastDistance, _placementLayers))
+
+            // Use selection layers when not in placement mode, otherwise use placement layers
+            LayerMask maskToUse = IsPlacementActive ? _placementLayers : _selectionLayers;
+
+            if (Physics.Raycast(ray, out RaycastHit hit, _maxRaycastDistance, maskToUse))
             {
-                return hit.collider.GetComponentInParent<TransformableItem>();
+                TransformableItem item = hit.collider.GetComponentInParent<TransformableItem>();
+
+                return item;
             }
 
             return null;
