@@ -736,10 +736,8 @@ namespace SceneSandbox.Core
 
             // Create the actual object using PlaceObject
             Vector3 position = _currentPlacementPosition;
-            if (_snapToGrid)
-            {
-                position = SnapToGrid(position);
-            }
+            
+            // Initial placement without snap (will be refined later)
             position = GetSurfacePosition(position);
 
             // Use PlaceObject to create the object properly
@@ -750,6 +748,12 @@ namespace SceneSandbox.Core
                 Debug.LogError("[Placement] Failed to create object for placement");
                 return;
             }
+
+            // Get TransformableItem and apply snap grid using SnapMode logic
+            var transformableItem = _currentPlacementObject.GetComponent<TransformableItem>();
+            position = SnapToGrid(position, transformableItem);
+            
+            _currentPlacementObject.transform.position = position;
 
             // Temporarily disable TransformableItem to prevent interaction during placement
             foreach (var transformable in _currentPlacementObject.GetComponentsInChildren<TransformableItem>())
@@ -779,15 +783,18 @@ namespace SceneSandbox.Core
             if (_currentPlacementObject == null)
                 return;
 
+            // Get TransformableItem if available
+            var transformableItem = _currentPlacementObject.GetComponent<TransformableItem>();
+
             // Apply transform based on current mode
             switch (_currentTransformMode)
             {
                 case TransformModeType.Position:
                     Vector3 targetPosition = _currentPlacementPosition;
-                    if (_snapToGrid)
-                    {
-                        targetPosition = SnapToGrid(targetPosition);
-                    }
+                    
+                    // Use the unified SnapToGrid method that respects SnapMode
+                    targetPosition = SnapToGrid(targetPosition, transformableItem);
+                    
                     _currentPlacementObject.transform.position = targetPosition;
                     break;
 
@@ -3043,6 +3050,37 @@ namespace SceneSandbox.Core
             float snappedX = Mathf.Round(position.x / _gridSize) * _gridSize;
             float snappedZ = Mathf.Round(position.z / _gridSize) * _gridSize;
             return new Vector3(snappedX, position.y, snappedZ);
+        }
+
+        /// <summary>
+        /// Snap position to grid, with optional TransformableItem override
+        /// Respects SnapMode: Extend uses global + local, Self uses only local
+        /// </summary>
+        private Vector3 SnapToGrid(Vector3 position, TransformableItem item)
+        {
+            if (item == null)
+            {
+                // No item, use global settings
+                return SnapToGrid(position);
+            }
+
+            // Check snap mode
+            switch (item.SnapMode)
+            {
+                case SnapMode.Self:
+                    // Self mode: Only use item's own settings, ignore global
+                    if (item.EnableSnapGrid)
+                    {
+                        return item.ApplySnapGrid(position);
+                    }
+                    // If item snap is disabled in Self mode, no snapping at all
+                    return position;
+
+                case SnapMode.Extend:
+                default:
+                    // Fall back to global snap grid if item doesn't have its own
+                    return SnapToGrid(position);
+            }
         }
 
         /// <summary>

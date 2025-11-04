@@ -36,6 +36,7 @@ namespace SceneSandbox.Core
         [SerializeField] private Color _gizmoHighlightColor = Color.yellow;
         
         [Header("Snap Grid Settings")]
+        [SerializeField] private SnapMode _snapMode = SnapMode.Extend;
         [SerializeField] private bool _enableSnapGrid = false;
         [SerializeField] private float _snapGridSize = 0.5f;
 
@@ -91,6 +92,12 @@ namespace SceneSandbox.Core
         {
             get => _enableTransformControls;
             set => _enableTransformControls = value;
+        }
+        
+        public SnapMode SnapMode
+        {
+            get => _snapMode;
+            set => _snapMode = value;
         }
         
         public bool EnableSnapGrid
@@ -414,6 +421,44 @@ namespace SceneSandbox.Core
         public void SetPosition(Vector3 position, bool applySnap = true)
         {
             transform.position = applySnap ? ApplySnapGrid(position) : position;
+        }
+
+        /// <summary>
+        /// Toggle snap grid on/off
+        /// </summary>
+        public void ToggleSnapGrid()
+        {
+            _enableSnapGrid = !_enableSnapGrid;
+            Debug.Log($"[TransformableItem] Snap grid {(_enableSnapGrid ? "enabled" : "disabled")} for {name}");
+        }
+
+        /// <summary>
+        /// Set snap grid settings
+        /// </summary>
+        public void SetSnapGridSettings(bool enabled, float gridSize, SnapMode snapMode = SnapMode.Extend)
+        {
+            _enableSnapGrid = enabled;
+            _snapGridSize = Mathf.Max(0.01f, gridSize); // Ensure minimum grid size
+            _snapMode = snapMode;
+            Debug.Log($"[TransformableItem] Snap grid settings updated: enabled={enabled}, size={_snapGridSize}, mode={snapMode} for {name}");
+        }
+
+        /// <summary>
+        /// Toggle between Extend and Self snap modes
+        /// </summary>
+        public void ToggleSnapMode()
+        {
+            _snapMode = (_snapMode == SnapMode.Extend) ? SnapMode.Self : SnapMode.Extend;
+            Debug.Log($"[TransformableItem] Snap mode changed to: {_snapMode} for {name}");
+        }
+
+        /// <summary>
+        /// Set snap mode explicitly
+        /// </summary>
+        public void SetSnapMode(SnapMode mode)
+        {
+            _snapMode = mode;
+            Debug.Log($"[TransformableItem] Snap mode set to: {mode} for {name}");
         }
 
         /// <summary>
