@@ -19,13 +19,10 @@ namespace SceneSandbox.Core
 
         [Header("Transform Control Settings")]
         [SerializeField] private bool _enableTransformControls = true;
-        [SerializeField] private float _rotationSensitivity = 2f;
-        [SerializeField] private float _scaleSensitivity = 0.01f;
         [SerializeField] private Vector3 _minScale = new Vector3(0.1f, 0.1f, 0.1f);
         [SerializeField] private Vector3 _maxScale = new Vector3(5f, 5f, 5f);
         
         [Header("Transform Step Settings")]
-        [SerializeField] private float _positionStep = 0.1f; // Step for position adjustment (not used in placement mode)
         [SerializeField] private float _rotationStep = 5f; // Degrees per step
         [SerializeField] private float _scaleStep = 0.1f; // Scale units per step
 
@@ -36,7 +33,11 @@ namespace SceneSandbox.Core
         [SerializeField] private Color _gizmoXColor = new Color(1, 0.2f, 0.2f);
         [SerializeField] private Color _gizmoYColor = new Color(0.2f, 1, 0.2f);
         [SerializeField] private Color _gizmoZColor = new Color(0.2f, 0.6f, 1f);
-        [SerializeField] private Color _gizmoHighlight = Color.yellow;
+        [SerializeField] private Color _gizmoHighlightColor = Color.yellow;
+        
+        [Header("Snap Grid Settings")]
+        [SerializeField] private bool _enableSnapGrid = false;
+        [SerializeField] private float _snapGridSize = 0.5f;
 
         // Transform control state
         [SerializeField] private TransformModeType _currentTransformModeType = TransformModeType.None;
@@ -44,7 +45,6 @@ namespace SceneSandbox.Core
         private Vector3 _originalScale;
         private Vector3 _originalRotation;
         private Vector3 _originalPosition;
-        private Vector2 _lastInputPosition;
         private bool _isInTransformModeType = false;
 
         // Gizmo state
@@ -66,8 +66,6 @@ namespace SceneSandbox.Core
         private Camera _camera;
 
         // Events
-        public System.Action<TransformableItem> OnItemClicked;
-        public System.Action<TransformableItem> OnItemSelected;
         public System.Action<TransformableItem, bool> OnSelectionChanged;
         public System.Action<TransformableItem, TransformModeType> OnTransformModeTypeChanged;
 
@@ -93,6 +91,18 @@ namespace SceneSandbox.Core
         {
             get => _enableTransformControls;
             set => _enableTransformControls = value;
+        }
+        
+        public bool EnableSnapGrid
+        {
+            get => _enableSnapGrid;
+            set => _enableSnapGrid = value;
+        }
+        
+        public float SnapGridSize
+        {
+            get => _snapGridSize;
+            set => _snapGridSize = value;
         }
 
         private void Awake()
@@ -384,6 +394,29 @@ namespace SceneSandbox.Core
         }
 
         /// <summary>
+        /// Apply snap grid to a position if snap grid is enabled
+        /// </summary>
+        public Vector3 ApplySnapGrid(Vector3 position)
+        {
+            if (!_enableSnapGrid || _snapGridSize <= 0)
+                return position;
+
+            return new Vector3(
+                Mathf.Round(position.x / _snapGridSize) * _snapGridSize,
+                Mathf.Round(position.y / _snapGridSize) * _snapGridSize,
+                Mathf.Round(position.z / _snapGridSize) * _snapGridSize
+            );
+        }
+
+        /// <summary>
+        /// Set position with optional snap grid
+        /// </summary>
+        public void SetPosition(Vector3 position, bool applySnap = true)
+        {
+            transform.position = applySnap ? ApplySnapGrid(position) : position;
+        }
+
+        /// <summary>
         /// Toggle transform control feature on/off
         /// </summary>
         public void ToggleTransformControls()
@@ -543,175 +576,6 @@ namespace SceneSandbox.Core
 
         #endregion
 
-        #region Editor Gizmos (Edit Mode)
-
-#if UNITY_EDITOR
-        /// <summary>
-        /// Draw gizmos when object is selected in editor (Edit Mode)
-        /// </summary>
-        private void OnDrawGizmosSelected()
-        {
-            Debug.Log($"[TransformableItem] OnDrawGizmosSelected called - isPlaying:{Application.isPlaying}, enableControls:{_enableTransformControls}, showGizmo:{_showGizmo}");
-            
-            // Only draw in edit mode when transform controls are enabled
-            if (Application.isPlaying || !_enableTransformControls || !_showGizmo)
-            {
-                Debug.Log($"[TransformableItem] Gizmo draw skipped");
-                return;
-            }
-
-            Debug.Log($"[TransformableItem] Drawing gizmo in Edit Mode, mode: {_currentTransformModeType}");
-            DrawEditorGizmo();
-        }
-
-        /// <summary>
-        /// Draw the gizmo in Edit Mode using Unity Gizmos API
-        /// </summary>
-        private void DrawEditorGizmo()
-        {
-            Vector3 position = transform.position;
-            float gizmoSize = HandleUtility.GetHandleSize(position) * _gizmoScreenScale;
-
-            Debug.Log($"[TransformableItem] DrawEditorGizmo - pos:{position}, size:{gizmoSize}, mode:{_currentTransformModeType}");
-
-            // Draw based on current transform mode (can be controlled via Inspector)
-            switch (_currentTransformModeType)
-            {
-                case TransformModeType.Position:
-                    DrawPositionGizmo(position, gizmoSize);
-                    break;
-                case TransformModeType.Rotation:
-                    DrawRotationGizmo(position, gizmoSize);
-                    break;
-                case TransformModeType.Scale:
-                    DrawScaleGizmo(position, gizmoSize);
-                    break;
-                default:
-                    // Default: show position gizmo when selected
-                    DrawPositionGizmo(position, gizmoSize);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Draw position mode arrows
-        /// </summary>
-        private void DrawPositionGizmo(Vector3 position, float size)
-        {
-            // X Axis (Red)
-            Gizmos.color = _gizmoXColor;
-            DrawArrow(position, Vector3.right, size);
-
-            // Y Axis (Green)
-            Gizmos.color = _gizmoYColor;
-            DrawArrow(position, Vector3.up, size);
-
-            // Z Axis (Blue)
-            Gizmos.color = _gizmoZColor;
-            DrawArrow(position, Vector3.forward, size);
-        }
-
-        /// <summary>
-        /// Draw rotation mode rings
-        /// </summary>
-        private void DrawRotationGizmo(Vector3 position, float size)
-        {
-            // X Axis Ring (Red)
-            Gizmos.color = _gizmoXColor;
-            DrawCircle(position, Vector3.right, size * 1.2f);
-
-            // Y Axis Ring (Green)
-            Gizmos.color = _gizmoYColor;
-            DrawCircle(position, Vector3.up, size * 1.2f);
-
-            // Z Axis Ring (Blue)
-            Gizmos.color = _gizmoZColor;
-            DrawCircle(position, Vector3.forward, size * 1.2f);
-        }
-
-        /// <summary>
-        /// Draw scale mode boxes
-        /// </summary>
-        private void DrawScaleGizmo(Vector3 position, float size)
-        {
-            float boxSize = size * 0.15f;
-
-            // X Axis (Red)
-            Gizmos.color = _gizmoXColor;
-            Gizmos.DrawCube(position + Vector3.right * size, Vector3.one * boxSize);
-            Gizmos.DrawLine(position, position + Vector3.right * size);
-
-            // Y Axis (Green)
-            Gizmos.color = _gizmoYColor;
-            Gizmos.DrawCube(position + Vector3.up * size, Vector3.one * boxSize);
-            Gizmos.DrawLine(position, position + Vector3.up * size);
-
-            // Z Axis (Blue)
-            Gizmos.color = _gizmoZColor;
-            Gizmos.DrawCube(position + Vector3.forward * size, Vector3.one * boxSize);
-            Gizmos.DrawLine(position, position + Vector3.forward * size);
-        }
-
-        /// <summary>
-        /// Helper to draw an arrow
-        /// </summary>
-        private void DrawArrow(Vector3 from, Vector3 direction, float size)
-        {
-            Vector3 to = from + direction * size;
-            
-            // Draw shaft
-            Gizmos.DrawLine(from, to);
-            
-            // Draw arrow head
-            Vector3 right = Vector3.Cross(direction, Vector3.up);
-            if (right.magnitude < 0.1f) right = Vector3.Cross(direction, Vector3.forward);
-            right = right.normalized;
-            
-            Vector3 arrowTip = to;
-            Vector3 arrowBase = to - direction * size * 0.2f;
-            
-            // Draw cone as arrow head
-            Vector3 up = Vector3.Cross(direction, right).normalized;
-            int segments = 8;
-            for (int i = 0; i < segments; i++)
-            {
-                float angle1 = (float)i / segments * Mathf.PI * 2;
-                float angle2 = (float)(i + 1) / segments * Mathf.PI * 2;
-                
-                Vector3 offset1 = (right * Mathf.Cos(angle1) + up * Mathf.Sin(angle1)) * size * 0.1f;
-                Vector3 offset2 = (right * Mathf.Cos(angle2) + up * Mathf.Sin(angle2)) * size * 0.1f;
-                
-                Gizmos.DrawLine(arrowBase + offset1, arrowTip);
-                Gizmos.DrawLine(arrowBase + offset1, arrowBase + offset2);
-            }
-        }
-
-        /// <summary>
-        /// Helper to draw a circle/ring
-        /// </summary>
-        private void DrawCircle(Vector3 center, Vector3 normal, float radius)
-        {
-            Vector3 right = Vector3.Cross(normal, Vector3.up);
-            if (right.magnitude < 0.1f) right = Vector3.Cross(normal, Vector3.forward);
-            right = right.normalized;
-            
-            Vector3 up = Vector3.Cross(normal, right).normalized;
-            
-            int segments = 32;
-            Vector3 prevPoint = center + right * radius;
-            
-            for (int i = 1; i <= segments; i++)
-            {
-                float angle = (float)i / segments * Mathf.PI * 2;
-                Vector3 point = center + (right * Mathf.Cos(angle) + up * Mathf.Sin(angle)) * radius;
-                Gizmos.DrawLine(prevPoint, point);
-                prevPoint = point;
-            }
-        }
-#endif
-
-        #endregion
-
         #region Gizmo Management
 
         /// <summary>
@@ -779,7 +643,8 @@ namespace SceneSandbox.Core
             var handle = new GizmoAxisHandle
             {
                 localAxis = localAxis,
-                baseColor = color
+                baseColor = color,
+                highlightColor = _gizmoHighlightColor
             };
 
             // Build arrow for Move mode
@@ -840,9 +705,9 @@ namespace SceneSandbox.Core
             if (!_gizmoInitialized)
                 return;
 
-            _xHandle?.Show(_currentTransformModeType);
-            _yHandle?.Show(_currentTransformModeType);
-            _zHandle?.Show(_currentTransformModeType);
+            _xHandle?.Show(_currentTransformModeType, _currentTransformAxis, _gizmoHighlightColor);
+            _yHandle?.Show(_currentTransformModeType, _currentTransformAxis, _gizmoHighlightColor);
+            _zHandle?.Show(_currentTransformModeType, _currentTransformAxis, _gizmoHighlightColor);
         }
 
         /// <summary>
@@ -898,11 +763,16 @@ namespace SceneSandbox.Core
         {
             public Vector3 localAxis;
             public Color baseColor;
+            public Color highlightColor;
 
             // Visual components
             private MeshRenderer _arrowRenderer;
             private MeshRenderer _ringRenderer;
             private MeshRenderer _boxRenderer;
+            
+            private Material _arrowMaterial;
+            private Material _ringMaterial;
+            private Material _boxMaterial;
 
             private Collider _arrowCollider;
             private Collider _ringCollider;
@@ -928,14 +798,14 @@ namespace SceneSandbox.Core
                 tip.transform.localScale = new Vector3(0.10f, 0.2f, 0.10f);
 
                 // Setup materials
-                var mat = new Material(Shader.Find("Unlit/Color"));
-                mat.color = color;
+                _arrowMaterial = new Material(Shader.Find("Unlit/Color"));
+                _arrowMaterial.color = color;
                 
                 _arrowRenderer = shaft.GetComponent<MeshRenderer>();
-                _arrowRenderer.material = mat;
+                _arrowRenderer.material = _arrowMaterial;
                 
                 var tipRenderer = tip.GetComponent<MeshRenderer>();
-                tipRenderer.material = mat;
+                tipRenderer.material = _arrowMaterial;
 
                 // Setup colliders
                 _arrowCollider = tip.GetComponent<Collider>();
@@ -953,11 +823,11 @@ namespace SceneSandbox.Core
                 ring.transform.localRotation = Quaternion.FromToRotation(Vector3.up, localAxis);
                 ring.transform.localScale = new Vector3(1.2f, 0.01f, 1.2f);
 
-                var mat = new Material(Shader.Find("Unlit/Color"));
-                mat.color = color;
+                _ringMaterial = new Material(Shader.Find("Unlit/Color"));
+                _ringMaterial.color = color;
                 
                 _ringRenderer = ring.GetComponent<MeshRenderer>();
-                _ringRenderer.material = mat;
+                _ringRenderer.material = _ringMaterial;
 
                 _ringCollider = ring.GetComponent<Collider>();
             }
@@ -972,19 +842,19 @@ namespace SceneSandbox.Core
                 box.transform.localPosition = localAxis * 1.0f;
                 box.transform.localScale = new Vector3(0.15f, 0.15f, 0.15f);
 
-                var mat = new Material(Shader.Find("Unlit/Color"));
-                mat.color = color;
+                _boxMaterial = new Material(Shader.Find("Unlit/Color"));
+                _boxMaterial.color = color;
                 
                 _boxRenderer = box.GetComponent<MeshRenderer>();
-                _boxRenderer.material = mat;
+                _boxRenderer.material = _boxMaterial;
 
                 _boxCollider = box.GetComponent<Collider>();
             }
 
             /// <summary>
-            /// Show/hide components based on current transform mode
+            /// Show/hide components based on current transform mode and highlight selected axis
             /// </summary>
-            public void Show(TransformModeType mode)
+            public void Show(TransformModeType mode, TransformAxis selectedAxis, Color highlightColor)
             {
                 bool showArrow = mode == TransformModeType.Position;
                 bool showRing = mode == TransformModeType.Rotation;
@@ -996,23 +866,64 @@ namespace SceneSandbox.Core
                     showArrow = showRing = showBox = false;
                 }
 
-                // Update arrow visibility
+                // Determine if this axis should be highlighted
+                bool isHighlighted = IsAxisHighlighted(selectedAxis);
+
+                // Update arrow visibility and color
                 if (_arrowRenderer != null)
+                {
                     _arrowRenderer.enabled = showArrow;
+                    if (showArrow && _arrowMaterial != null)
+                    {
+                        _arrowMaterial.color = isHighlighted ? highlightColor : baseColor;
+                    }
+                }
                 if (_arrowCollider != null)
                     _arrowCollider.enabled = showArrow;
 
-                // Update ring visibility
+                // Update ring visibility and color
                 if (_ringRenderer != null)
+                {
                     _ringRenderer.enabled = showRing;
+                    if (showRing && _ringMaterial != null)
+                    {
+                        _ringMaterial.color = isHighlighted ? highlightColor : baseColor;
+                    }
+                }
                 if (_ringCollider != null)
                     _ringCollider.enabled = showRing;
 
-                // Update box visibility
+                // Update box visibility and color
                 if (_boxRenderer != null)
+                {
                     _boxRenderer.enabled = showBox;
+                    if (showBox && _boxMaterial != null)
+                    {
+                        _boxMaterial.color = isHighlighted ? highlightColor : baseColor;
+                    }
+                }
                 if (_boxCollider != null)
                     _boxCollider.enabled = showBox;
+            }
+
+            /// <summary>
+            /// Determine if this axis should be highlighted based on selected axis
+            /// </summary>
+            private bool IsAxisHighlighted(TransformAxis selectedAxis)
+            {
+                // Always highlight when All is selected
+                if (selectedAxis == TransformAxis.All)
+                    return true;
+
+                // Check if this handle's axis matches the selected axis
+                if (selectedAxis == TransformAxis.X && Vector3.Dot(localAxis, Vector3.right) > 0.9f)
+                    return true;
+                if (selectedAxis == TransformAxis.Y && Vector3.Dot(localAxis, Vector3.up) > 0.9f)
+                    return true;
+                if (selectedAxis == TransformAxis.Z && Vector3.Dot(localAxis, Vector3.forward) > 0.9f)
+                    return true;
+
+                return false;
             }
         }
 
