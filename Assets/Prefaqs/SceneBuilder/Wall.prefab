@@ -127,22 +127,23 @@ MonoBehaviour:
   _hoverMaterial: {fileID: 0}
   _selectedMaterial: {fileID: 0}
   _enableTransformControls: 1
-  _rotationSensitivity: 2
-  _scaleSensitivity: 0.01
   _minScale: {x: 0.1, y: 0.1, z: 0.1}
   _maxScale: {x: 5, y: 5, z: 5}
-  _positionStep: 0.1
   _rotationStep: 45
   _scaleStep: 0.1
   _showGizmo: 1
   _gizmoScreenScale: 0.12
   _gizmoLayer:
     serializedVersion: 2
-    m_Bits: 4
+    m_Bits: 32
   _gizmoXColor: {r: 1, g: 0.2, b: 0.2, a: 1}
   _gizmoYColor: {r: 0.2, g: 1, b: 0.2, a: 1}
   _gizmoZColor: {r: 0.2, g: 0.6, b: 1, a: 1}
-  _gizmoHighlight: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _gizmoHighlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _snapMode: 0
+  _enableSnapGrid: 0
+  _snapGridSize: 0.5
   _currentTransformModeType: 0
+  _currentTransformAxis: 0
   _objectId: 
   _objectDataId: 

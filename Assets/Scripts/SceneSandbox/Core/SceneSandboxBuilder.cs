@@ -155,6 +155,7 @@ namespace SceneSandbox.Core
         private TransformableItem _currentDragItem;
         private float _lastClickTime = 0f;
         private int _clickCount = 0;
+        private bool _pointerUpProcessedThisFrame = false; // Prevent multiple pointer up events per frame
 
         // Selection state
         private readonly List<TransformableItem> _selectedItems = new List<TransformableItem>();
@@ -260,7 +261,6 @@ namespace SceneSandbox.Core
             // Only allow axis toggle for Rotation and Scale modes
             if (_currentTransformMode != TransformModeType.Rotation && _currentTransformMode != TransformModeType.Scale)
             {
-                Debug.Log("[AXIS] Axis toggle only available in Rotation or Scale mode");
                 return;
             }
 
@@ -273,8 +273,6 @@ namespace SceneSandbox.Core
                 TransformAxis.Z => TransformAxis.All,
                 _ => TransformAxis.All
             };
-
-            Debug.Log($"[AXIS] Transform axis changed to: {_currentTransformAxis}");
             
             // Update active transform items with new axis
             UpdateActiveTransformItemsAxis();
@@ -322,12 +320,9 @@ namespace SceneSandbox.Core
             SandboxMode previousMode = _currentMode;
             _currentMode = mode;
 
-            Debug.Log($"[MODE] Sandbox mode changed: {previousMode} → {mode}");
-
             if (mode == SandboxMode.Play)
             {
                 // Entering Play Mode
-                Debug.Log("[MODE] Entering Play Mode - Disabling build input actions");
                 
                 // Cancel any active placement
                 if (IsPlacementActive)
@@ -344,7 +339,6 @@ namespace SceneSandbox.Core
             else
             {
                 // Entering Build Mode
-                Debug.Log("[MODE] Entering Build Mode - Enabling build input actions");
                 
                 // Enable build-related input actions
                 EnableBuildInputActions();
@@ -437,6 +431,9 @@ namespace SceneSandbox.Core
 
         private void Update()
         {
+            // Reset frame-based flags
+            _pointerUpProcessedThisFrame = false;
+            
             // Skip all build-related input handling in Play Mode for performance
             if (_currentMode == SandboxMode.Play)
             {
@@ -694,9 +691,16 @@ namespace SceneSandbox.Core
             if (_placementState != PlacementState.Active)
                 return;
 
+            // If we're in edit mode (editing an existing object), call CancelObjectEdit instead
+            if (_selectedObjectForEdit != null)
+            {
+                CancelObjectEdit();
+                return;
+            }
+
             _placementState = PlacementState.Cancelling;
 
-            // Destroy the real object if placement is cancelled
+            // Destroy the real object if placement is cancelled (only for NEW placements, not edits)
             if (_currentPlacementObject != null)
             {
                 // Remove from scene configuration and placed objects dictionary
@@ -722,8 +726,6 @@ namespace SceneSandbox.Core
             _currentPlacementPosition = Vector3.zero;
             _isCurrentPlacementValid = false;
             _placementState = PlacementState.Idle;
-
-            Debug.Log("[Placement] ❌ Placement cancelled");
         }
 
         /// <summary>
@@ -844,7 +846,8 @@ namespace SceneSandbox.Core
         private bool ValidatePlacementPosition(Vector3 position)
         {
             // Check scene bounds
-            if (!IsPositionInSceneBounds(position))
+            bool inBounds = IsPositionInSceneBounds(position);
+            if (!inBounds)
             {
                 return false;
             }
@@ -1034,10 +1037,27 @@ namespace SceneSandbox.Core
                 return;
             }
 
-            // Cancel any existing placement/edit
-            if (IsPlacementActive)
+            // If we're already editing this same object, don't re-enter edit mode
+            if (_selectedObjectForEdit == targetObject && IsPlacementActive)
             {
-                CancelPlacement();
+                return;
+            }
+
+            // Cancel any existing placement/edit for DIFFERENT objects, but only if not in Confirming state
+            // (Confirming state means we're transitioning from placement to edit)
+            if (IsPlacementActive && _placementState != PlacementState.Confirming)
+            {
+                // Only cancel if we're editing a different object
+                if (_selectedObjectForEdit != targetObject)
+                {
+                    CancelPlacement();
+                }
+            }
+            
+            // Reset placement state if coming from Confirming
+            if (_placementState == PlacementState.Confirming)
+            {
+                _placementState = PlacementState.Idle;
             }
 
             _selectedObjectForEdit = targetObject;
@@ -1091,7 +1111,6 @@ namespace SceneSandbox.Core
             
             _placementState = PlacementState.Idle;
 
-            Debug.Log($"[Edit] ✅ Confirmed edit for {editedObject.name}");
             return editedObject;
         }
 
@@ -1101,7 +1120,9 @@ namespace SceneSandbox.Core
         public void CancelObjectEdit()
         {
             if (_selectedObjectForEdit == null)
+            {
                 return;
+            }
 
             _placementState = PlacementState.Cancelling;
 
@@ -1115,8 +1136,6 @@ namespace SceneSandbox.Core
             _selectedObjectForEdit = null;
             _originalObjectMaterials = null;
             _placementState = PlacementState.Idle;
-
-            Debug.Log("[Edit] ❌ Edit cancelled");
         }
 
         /// <summary>
@@ -2408,8 +2427,6 @@ namespace SceneSandbox.Core
             
             // Toggle the axis
             ToggleTransformAxis();
-            
-            Debug.Log($"[INPUT] Toggle axis performed - Current axis: {_currentTransformAxis}");
         }
 
         private void OnCancelPlacementPerformed(InputAction.CallbackContext context)
@@ -2461,7 +2478,12 @@ namespace SceneSandbox.Core
 
             if (leftButtonUp && _isPointerDown)
             {
-                HandlePointerUp(inputPosition, hitItem);
+                // Prevent processing pointer up multiple times in the same frame
+                if (!_pointerUpProcessedThisFrame)
+                {
+                    _pointerUpProcessedThisFrame = true;
+                    HandlePointerUp(inputPosition, hitItem);
+                }
             }
         }
 
@@ -2550,17 +2572,30 @@ namespace SceneSandbox.Core
             {
                 // Click detected (no drag)
                 
-                // If in placement mode, clicking anywhere confirms placement
-                if (IsPlacementActive)
+                // If in placement mode, check if clicking on the same object being edited
+                if (IsPlacementActive && _selectedObjectForEdit != null)
                 {
-                    if (_selectedObjectForEdit != null)
+                    // If clicked on the same object being edited, don't confirm edit (allow interaction)
+                    if (hitItem != null && hitItem.gameObject == _selectedObjectForEdit)
                     {
-                        ConfirmObjectEdit();
+                        // Clicking on the same object being edited - do nothing (stay in edit mode)
                     }
                     else
                     {
-                        ConfirmPlacement();
+                        // Clicked on different object or empty space - confirm edit
+                        ConfirmObjectEdit();
+                        
+                        // If clicked on another object, select it
+                        if (hitItem != null)
+                        {
+                            HandleClick(inputPosition, hitItem);
+                        }
                     }
+                }
+                // If in placement mode but not editing an object (new placement)
+                else if (IsPlacementActive)
+                {
+                    ConfirmPlacement();
                 }
                 // Normal selection mode
                 else if (hitItem != null)
@@ -2728,7 +2763,10 @@ namespace SceneSandbox.Core
                 _selectedObject = null;
                 OnObjectSelected?.Invoke(null);
                 
-                if (_autoEditOnSelect && IsPlacementActive && _selectedObjectForEdit != null)
+                // Cancel edit mode if active AND we're deselecting the object being edited
+                // Don't cancel if we're deselecting a different object
+                if (_autoEditOnSelect && IsPlacementActive && _selectedObjectForEdit != null 
+                    && _selectedObjectForEdit == item.gameObject)
                 {
                     CancelObjectEdit();
                 }
@@ -2753,6 +2791,13 @@ namespace SceneSandbox.Core
                     {
                         item.SetTransformModeType(TransformModeType.None);
                         UnregisterItemFromTransformControl(item);
+                    }
+                    
+                    // Check if we need to cancel edit for this specific item
+                    if (_autoEditOnSelect && IsPlacementActive && _selectedObjectForEdit != null 
+                        && _selectedObjectForEdit == item.gameObject)
+                    {
+                        CancelObjectEdit();
                     }
                 }
             }

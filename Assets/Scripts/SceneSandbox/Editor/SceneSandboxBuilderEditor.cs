@@ -88,6 +88,15 @@ namespace SceneSandbox.Editor
         private SerializedProperty _invalidDropColor;
         private SerializedProperty _dropIndicatorSize;
         
+        // Placement Validation Settings
+        private SerializedProperty _checkCollisions;
+        private SerializedProperty _collisionLayers;
+        private SerializedProperty _groundLayers;
+        private SerializedProperty _ignoreStaticObjects;
+        private SerializedProperty _requireSurfaceBelow;
+        private SerializedProperty _enableCostSystem;
+        private SerializedProperty _placementCost;
+        
         // Save/Load
         private SerializedProperty _defaultSavePath;
         private SerializedProperty _currentSceneName;
@@ -266,6 +275,7 @@ namespace SceneSandbox.Editor
             DrawConfiguration();
             DrawInputSettings(); // NEW: Input configuration section
             DrawPlacementSettings();
+            DrawPlacementValidationSettings(); // NEW: Placement validation section
             DrawPreviewSettings();
             DrawUnifiedGizmoSettings();
             DrawObjectLibraryBrowser();
@@ -351,6 +361,15 @@ namespace SceneSandbox.Editor
             _validDropColor = serializedObject.FindProperty("_validDropColor");
             _invalidDropColor = serializedObject.FindProperty("_invalidDropColor");
             _dropIndicatorSize = serializedObject.FindProperty("_dropIndicatorSize");
+            
+            // Placement Validation Settings
+            _checkCollisions = serializedObject.FindProperty("_checkCollisions");
+            _collisionLayers = serializedObject.FindProperty("_collisionLayers");
+            _groundLayers = serializedObject.FindProperty("_groundLayers");
+            _ignoreStaticObjects = serializedObject.FindProperty("_ignoreStaticObjects");
+            _requireSurfaceBelow = serializedObject.FindProperty("_requireSurfaceBelow");
+            _enableCostSystem = serializedObject.FindProperty("_enableCostSystem");
+            _placementCost = serializedObject.FindProperty("_placementCost");
             
             // Save/Load
             _defaultSavePath = serializedObject.FindProperty("_defaultSavePath");
@@ -1040,6 +1059,76 @@ namespace SceneSandbox.Editor
                 EditorGUILayout.PropertyField(_invalidDropColor, new GUIContent("Invalid Color"));
                 EditorGUILayout.PropertyField(_dropIndicatorSize, new GUIContent("Size"));
                 EditorGUI.indentLevel--;
+            }
+            
+            EditorGUILayout.EndVertical();
+        }
+        
+        private void DrawPlacementValidationSettings()
+        {
+            bool showValidationFoldout = true;
+            showValidationFoldout = EditorGUILayout.Foldout(showValidationFoldout, 
+                "Placement Validation", true, EditorStyles.foldoutHeader);
+            
+            if (!showValidationFoldout) return;
+            
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            
+            EditorGUILayout.HelpBox("Configure validation rules for object placement. These settings determine if a placement position is valid.", MessageType.Info);
+            
+            EditorGUILayout.Space(3);
+            
+            // Collision Checking
+            EditorGUILayout.LabelField("Collision Detection", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_checkCollisions, new GUIContent("Check Collisions", "Enable collision checking during placement"));
+            
+            if (_checkCollisions.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(_collisionLayers, new GUIContent("Collision Layers", "Layers to check for collisions"));
+                EditorGUILayout.PropertyField(_groundLayers, new GUIContent("Ground Layers", "Layers to ignore in collision checks (e.g., floor, terrain)"));
+                EditorGUILayout.PropertyField(_ignoreStaticObjects, new GUIContent("Ignore Static Objects", "Skip collision checks with static objects"));
+                
+                if (!_checkCollisions.boolValue)
+                {
+                    EditorGUILayout.HelpBox("Collision checking is disabled. Objects can be placed anywhere within scene bounds.", MessageType.Warning);
+                }
+                EditorGUI.indentLevel--;
+            }
+            
+            EditorGUILayout.Space(5);
+            
+            // Surface Requirements
+            EditorGUILayout.LabelField("Surface Requirements", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_requireSurfaceBelow, new GUIContent("Require Surface Below", "Objects must have a surface below them to be placed"));
+            
+            if (_requireSurfaceBelow.boolValue)
+            {
+                EditorGUILayout.HelpBox("Objects can only be placed where a surface exists below them.", MessageType.Info);
+            }
+            
+            EditorGUILayout.Space(5);
+            
+            // Cost System (Future Feature)
+            EditorGUILayout.LabelField("Resource System (Future)", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_enableCostSystem, new GUIContent("Enable Cost System", "Enable resource/cost system for placement"));
+            
+            if (_enableCostSystem.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(_placementCost, new GUIContent("Placement Cost", "Base cost for placing objects"));
+                EditorGUILayout.HelpBox("Cost system is a placeholder for future resource management features.", MessageType.Info);
+                EditorGUI.indentLevel--;
+            }
+            
+            EditorGUILayout.Space(5);
+            
+            // Debug Helper
+            if (Application.isPlaying)
+            {
+                EditorGUILayout.Space(5);
+                EditorGUILayout.LabelField("Debug Validation", EditorStyles.boldLabel);
+                EditorGUILayout.HelpBox("Validation logs are enabled. Check the Console for detailed placement validation information.", MessageType.Info);
             }
             
             EditorGUILayout.EndVertical();

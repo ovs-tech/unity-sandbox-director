@@ -656,6 +656,7 @@ namespace SceneSandbox.Core
             // Create gizmo root - DON'T parent it to the object to avoid scale/rotation dependency
             var gizmoObj = new GameObject($"{name}_Gizmo");
             _gizmoRoot = gizmoObj.transform;
+            _gizmoRoot.gameObject.layer = LayerMaskToLayer(_gizmoLayer);
             
             // Don't parent to this transform - keep it independent in world space
             // This ensures gizmo scale/rotation is not affected by object's transform
@@ -692,14 +693,16 @@ namespace SceneSandbox.Core
                 highlightColor = _gizmoHighlightColor
             };
 
+            int gizmoLayerIndex = LayerMaskToLayer(_gizmoLayer);
+
             // Build arrow for Move mode
-            handle.BuildArrow(handleObj.transform, color);
+            handle.BuildArrow(handleObj.transform, color, gizmoLayerIndex);
             
             // Build ring for Rotate mode
-            handle.BuildRing(handleObj.transform, color);
+            handle.BuildRing(handleObj.transform, color, gizmoLayerIndex);
             
             // Build box for Scale mode
-            handle.BuildBox(handleObj.transform, color);
+            handle.BuildBox(handleObj.transform, color, gizmoLayerIndex);
 
             return handle;
         }
@@ -826,10 +829,11 @@ namespace SceneSandbox.Core
             /// <summary>
             /// Build arrow visual for Move mode
             /// </summary>
-            public void BuildArrow(Transform parent, Color color)
+            public void BuildArrow(Transform parent, Color color, int layer)
             {
                 // Create shaft
                 var shaft = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                shaft.layer = layer;
                 shaft.transform.SetParent(parent, false);
                 shaft.transform.localRotation = Quaternion.FromToRotation(Vector3.up, localAxis);
                 shaft.transform.localPosition = localAxis * 0.6f;
@@ -837,6 +841,7 @@ namespace SceneSandbox.Core
 
                 // Create tip
                 var tip = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                tip.layer = layer;
                 tip.transform.SetParent(parent, false);
                 tip.transform.localRotation = Quaternion.FromToRotation(Vector3.up, localAxis);
                 tip.transform.localPosition = localAxis * 1.3f;
@@ -860,9 +865,10 @@ namespace SceneSandbox.Core
             /// <summary>
             /// Build ring visual for Rotate mode
             /// </summary>
-            public void BuildRing(Transform parent, Color color)
+            public void BuildRing(Transform parent, Color color, int layer)
             {
                 var ring = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                ring.layer = layer;
                 ring.transform.SetParent(parent, false);
                 ring.transform.localPosition = Vector3.zero;
                 ring.transform.localRotation = Quaternion.FromToRotation(Vector3.up, localAxis);
@@ -880,9 +886,10 @@ namespace SceneSandbox.Core
             /// <summary>
             /// Build box visual for Scale mode
             /// </summary>
-            public void BuildBox(Transform parent, Color color)
+            public void BuildBox(Transform parent, Color color, int layer)
             {
                 var box = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                box.layer = layer;
                 box.transform.SetParent(parent, false);
                 box.transform.localPosition = localAxis * 1.0f;
                 box.transform.localScale = new Vector3(0.15f, 0.15f, 0.15f);

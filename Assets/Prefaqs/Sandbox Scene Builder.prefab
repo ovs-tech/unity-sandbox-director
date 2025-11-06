@@ -99,10 +99,10 @@ MonoBehaviour:
   _checkCollisions: 1
   _collisionLayers:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 1
   _groundLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
   _ignoreStaticObjects: 1
   _requireSurfaceBelow: 0
   _enableCostSystem: 0
