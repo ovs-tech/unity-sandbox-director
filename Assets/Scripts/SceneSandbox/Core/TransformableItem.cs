@@ -7,6 +7,24 @@ using UnityEditor;
 namespace SceneSandbox.Core
 {
     /// <summary>
+    /// Grid information for snapping objects to a grid
+    /// </summary>
+    [System.Serializable]
+    public struct GridInfo
+    {
+        public bool enableSnap;
+        public float gridSize;
+        public Vector3 gridOffset;
+
+        public GridInfo(bool enableSnap, float gridSize, Vector3 gridOffset = default)
+        {
+            this.enableSnap = enableSnap;
+            this.gridSize = gridSize;
+            this.gridOffset = gridOffset;
+        }
+    }
+
+    /// <summary>
     /// Simplified component for objects in the scene sandbox.
     /// Handles selection, visual feedback, and integration with SelectionManager.
     /// Drag & drop placement is handled by SceneSandboxBuilder's ghost preview system.
@@ -23,6 +41,7 @@ namespace SceneSandbox.Core
         [SerializeField] private Vector3 _maxScale = new Vector3(5f, 5f, 5f);
         
         [Header("Transform Step Settings")]
+        [SerializeField] private float _positionStep = 0.1f; // Position units per step
         [SerializeField] private float _rotationStep = 5f; // Degrees per step
         [SerializeField] private float _scaleStep = 0.1f; // Scale units per step
 
@@ -39,6 +58,10 @@ namespace SceneSandbox.Core
         [SerializeField] private SnapMode _snapMode = SnapMode.Extend;
         [SerializeField] private bool _enableSnapGrid = false;
         [SerializeField] private float _snapGridSize = 0.5f;
+
+        [Header("Placement Settings")]
+        [SerializeField] private PivotPoint _pivotPoint = PivotPoint.Center; // Pivot point for placement
+        [SerializeField] private Vector3 _placementOffset = Vector3.zero; // Offset applied during placement
 
         // Transform control state
         [SerializeField] private TransformModeType _currentTransformModeType = TransformModeType.None;
@@ -112,6 +135,18 @@ namespace SceneSandbox.Core
             set => _snapGridSize = value;
         }
 
+        public PivotPoint PivotPoint
+        {
+            get => _pivotPoint;
+            set => _pivotPoint = value;
+        }
+
+        public Vector3 PlacementOffset
+        {
+            get => _placementOffset;
+            set => _placementOffset = value;
+        }
+
         private void Awake()
         {
             InitializeComponents();
@@ -149,25 +184,6 @@ namespace SceneSandbox.Core
         {
             UpdateGizmo();
         }
-
-#if UNITY_EDITOR
-        private void OnValidate()
-        {
-            // Reinitialize gizmo in editor when values change
-            if (_enableTransformControls && _showGizmo)
-            {
-                DestroyGizmo();
-                if (Application.isPlaying)
-                {
-                    InitializeGizmo();
-                }
-            }
-            else
-            {
-                DestroyGizmo();
-            }
-        }
-#endif
 
         private void InitializeComponents()
         {
@@ -346,8 +362,8 @@ namespace SceneSandbox.Core
         /// </summary>
         public void SetTransformAxis(TransformAxis axis)
         {
-            // Only allow axis change for Rotation and Scale modes
-            if (_currentTransformModeType != TransformModeType.Rotation && _currentTransformModeType != TransformModeType.Scale)
+            // Only allow axis change for Position, Rotation and Scale modes
+            if (_currentTransformModeType == TransformModeType.None)
             {
                 _currentTransformAxis = TransformAxis.All;
                 return;
@@ -401,6 +417,181 @@ namespace SceneSandbox.Core
         }
 
         /// <summary>
+        /// Convert PivotPoint enum to local Vector3 offset based on object bounds
+        /// </summary>
+        /// <param name="pivotPoint">Pivot point enum</param>
+        /// <returns>Local space offset for the pivot point</returns>
+        private Vector3 GetPivotPointOffset(PivotPoint pivotPoint)
+        {
+            // Calculate bounds in LOCAL SPACE to handle rotated objects correctly
+            Bounds localBounds = new Bounds(Vector3.zero, Vector3.zero);
+            bool hasBounds = false;
+
+            // Get local bounds from renderers
+            if (_renderers != null && _renderers.Length > 0)
+            {
+                foreach (var renderer in _renderers)
+                {
+                    if (renderer != null)
+                    {
+                        // Get mesh bounds in local space
+                        if (renderer is MeshRenderer meshRenderer)
+                        {
+                            var meshFilter = renderer.GetComponent<MeshFilter>();
+                            if (meshFilter != null && meshFilter.sharedMesh != null)
+                            {
+                                Bounds meshBounds = meshFilter.sharedMesh.bounds;
+                                
+                                // Transform mesh bounds to this object's local space
+                                Vector3 meshLocalCenter = transform.InverseTransformPoint(
+                                    renderer.transform.TransformPoint(meshBounds.center)
+                                );
+                                Vector3 meshLocalSize = new Vector3(
+                                    meshBounds.size.x * renderer.transform.lossyScale.x / transform.lossyScale.x,
+                                    meshBounds.size.y * renderer.transform.lossyScale.y / transform.lossyScale.y,
+                                    meshBounds.size.z * renderer.transform.lossyScale.z / transform.lossyScale.z
+                                );
+                                
+                                Bounds transformedBounds = new Bounds(meshLocalCenter, meshLocalSize);
+                                
+                                if (!hasBounds)
+                                {
+                                    localBounds = transformedBounds;
+                                    hasBounds = true;
+                                }
+                                else
+                                {
+                                    localBounds.Encapsulate(transformedBounds);
+                                }
+                            }
+                        }
+                        else if (renderer is SkinnedMeshRenderer skinnedRenderer)
+                        {
+                            // For skinned mesh, use local bounds
+                            if (!hasBounds)
+                            {
+                                localBounds = skinnedRenderer.localBounds;
+                                hasBounds = true;
+                            }
+                            else
+                            {
+                                localBounds.Encapsulate(skinnedRenderer.localBounds);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // If no bounds from renderers, try collider
+            if (!hasBounds && _collider != null)
+            {
+                if (_collider is BoxCollider boxCollider)
+                {
+                    localBounds = new Bounds(boxCollider.center, boxCollider.size);
+                    hasBounds = true;
+                }
+                else if (_collider is SphereCollider sphereCollider)
+                {
+                    float diameter = sphereCollider.radius * 2f;
+                    localBounds = new Bounds(sphereCollider.center, new Vector3(diameter, diameter, diameter));
+                    hasBounds = true;
+                }
+                else if (_collider is CapsuleCollider capsuleCollider)
+                {
+                    float diameter = capsuleCollider.radius * 2f;
+                    localBounds = new Bounds(capsuleCollider.center, new Vector3(diameter, capsuleCollider.height, diameter));
+                    hasBounds = true;
+                }
+            }
+
+            // If still no bounds, return zero
+            if (!hasBounds)
+            {
+                return Vector3.zero;
+            }
+
+            // Get local min, max, and center
+            Vector3 localMin = localBounds.min;
+            Vector3 localMax = localBounds.max;
+            Vector3 localCenter = localBounds.center;
+
+            // Calculate pivot offset based on enum
+            switch (pivotPoint)
+            {
+                // Center
+                case PivotPoint.Center:
+                    return localCenter;
+
+                // Face Centers
+                case PivotPoint.FrontCenter:
+                    return new Vector3(localCenter.x, localCenter.y, localMax.z);
+                case PivotPoint.BackCenter:
+                    return new Vector3(localCenter.x, localCenter.y, localMin.z);
+                case PivotPoint.LeftCenter:
+                    return new Vector3(localMin.x, localCenter.y, localCenter.z);
+                case PivotPoint.RightCenter:
+                    return new Vector3(localMax.x, localCenter.y, localCenter.z);
+                case PivotPoint.TopCenter:
+                    return new Vector3(localCenter.x, localMax.y, localCenter.z);
+                case PivotPoint.BottomCenter:
+                    return new Vector3(localCenter.x, localMin.y, localCenter.z);
+
+                // Bottom Edge Centers
+                case PivotPoint.BottomFrontEdge:
+                    return new Vector3(localCenter.x, localMin.y, localMax.z);
+                case PivotPoint.BottomBackEdge:
+                    return new Vector3(localCenter.x, localMin.y, localMin.z);
+                case PivotPoint.BottomLeftEdge:
+                    return new Vector3(localMin.x, localMin.y, localCenter.z);
+                case PivotPoint.BottomRightEdge:
+                    return new Vector3(localMax.x, localMin.y, localCenter.z);
+
+                // Top Edge Centers
+                case PivotPoint.TopFrontEdge:
+                    return new Vector3(localCenter.x, localMax.y, localMax.z);
+                case PivotPoint.TopBackEdge:
+                    return new Vector3(localCenter.x, localMax.y, localMin.z);
+                case PivotPoint.TopLeftEdge:
+                    return new Vector3(localMin.x, localMax.y, localCenter.z);
+                case PivotPoint.TopRightEdge:
+                    return new Vector3(localMax.x, localMax.y, localCenter.z);
+
+                // Vertical Edge Centers
+                case PivotPoint.FrontLeftEdge:
+                    return new Vector3(localMin.x, localCenter.y, localMax.z);
+                case PivotPoint.FrontRightEdge:
+                    return new Vector3(localMax.x, localCenter.y, localMax.z);
+                case PivotPoint.BackLeftEdge:
+                    return new Vector3(localMin.x, localCenter.y, localMin.z);
+                case PivotPoint.BackRightEdge:
+                    return new Vector3(localMax.x, localCenter.y, localMin.z);
+
+                // Bottom Corners
+                case PivotPoint.BottomFrontLeft:
+                    return new Vector3(localMin.x, localMin.y, localMax.z);
+                case PivotPoint.BottomFrontRight:
+                    return new Vector3(localMax.x, localMin.y, localMax.z);
+                case PivotPoint.BottomBackLeft:
+                    return localMin;
+                case PivotPoint.BottomBackRight:
+                    return new Vector3(localMax.x, localMin.y, localMin.z);
+
+                // Top Corners
+                case PivotPoint.TopFrontLeft:
+                    return new Vector3(localMin.x, localMax.y, localMax.z);
+                case PivotPoint.TopFrontRight:
+                    return new Vector3(localMax.x, localMax.y, localMax.z);
+                case PivotPoint.TopBackLeft:
+                    return new Vector3(localMin.x, localMax.y, localMin.z);
+                case PivotPoint.TopBackRight:
+                    return localMax;
+
+                default:
+                    return localCenter;
+            }
+        }
+
+        /// <summary>
         /// Apply snap grid to a position if snap grid is enabled
         /// </summary>
         public Vector3 ApplySnapGrid(Vector3 position)
@@ -416,11 +607,102 @@ namespace SceneSandbox.Core
         }
 
         /// <summary>
+        /// Snap position to grid with optional GridInfo override
+        /// Respects SnapMode: Extend uses global + local, Self uses only local
+        /// </summary>
+        /// <param name="position">Position to snap</param>
+        /// <param name="globalGridInfo">Optional global grid info from SceneSandboxBuilder</param>
+        /// <returns>Snapped position</returns>
+        public Vector3 SnapToGrid(Vector3 position, GridInfo? globalGridInfo = null)
+        {
+            switch (_snapMode)
+            {
+                case SnapMode.Self:
+                    // Self mode: Only use item's own settings, ignore global
+                    if (_enableSnapGrid && _snapGridSize > 0)
+                    {
+                        return ApplySnapGrid(position);
+                    }
+                    // If item snap is disabled in Self mode, no snapping at all
+                    return position;
+
+                case SnapMode.Extend:
+                default:
+                    // Extend mode: Use global grid if provided, otherwise use item's own
+                    if (globalGridInfo.HasValue && globalGridInfo.Value.enableSnap && globalGridInfo.Value.gridSize > 0)
+                    {
+                        // Apply global grid snap
+                        float gridSize = globalGridInfo.Value.gridSize;
+                        Vector3 offset = globalGridInfo.Value.gridOffset;
+                        
+                        float snappedX = Mathf.Round((position.x - offset.x) / gridSize) * gridSize + offset.x;
+                        float snappedZ = Mathf.Round((position.z - offset.z) / gridSize) * gridSize + offset.z;
+                        return new Vector3(snappedX, position.y, snappedZ);
+                    }
+                    
+                    // Fall back to item's own grid if no global grid or global is disabled
+                    if (_enableSnapGrid && _snapGridSize > 0)
+                    {
+                        return ApplySnapGrid(position);
+                    }
+                    
+                    return position;
+            }
+        }
+
+        /// <summary>
         /// Set position with optional snap grid
         /// </summary>
         public void SetPosition(Vector3 position, bool applySnap = true)
         {
             transform.position = applySnap ? ApplySnapGrid(position) : position;
+        }
+
+        /// <summary>
+        /// Set position with optional global grid info
+        /// Uses SnapToGrid which respects SnapMode (Extend/Self)
+        /// </summary>
+        /// <param name="position">Target position</param>
+        /// <param name="globalGridInfo">Optional global grid info from SceneSandboxBuilder</param>
+        public void SetPosition(Vector3 position, GridInfo? globalGridInfo)
+        {
+            transform.position = SnapToGrid(position, globalGridInfo);
+        }
+
+        /// <summary>
+        /// Set position with pivot point and placement offset applied
+        /// Useful for placing objects with a specific anchor point
+        /// </summary>
+        /// <param name="position">Target world position</param>
+        /// <param name="applyPivot">Whether to apply pivot point offset</param>
+        /// <param name="applyOffset">Whether to apply placement offset</param>
+        /// <param name="globalGridInfo">Optional global grid info for snapping</param>
+        public void SetPositionWithPivot(Vector3 position, bool applyPivot = true, bool applyOffset = true, GridInfo? globalGridInfo = null)
+        {
+            Vector3 finalPosition = position;
+            
+            // Apply placement offset
+            if (applyOffset)
+            {
+                finalPosition += _placementOffset;
+            }
+            
+            // Apply pivot point offset (relative to object's bounds)
+            if (applyPivot)
+            {
+                // Calculate pivot offset in world space using enum-based pivot point
+                Vector3 localPivot = GetPivotPointOffset(_pivotPoint);
+                Vector3 pivotOffset = transform.TransformVector(localPivot);
+                finalPosition -= pivotOffset;
+            }
+            
+            // Apply snapping if grid info is provided
+            if (globalGridInfo.HasValue)
+            {
+                finalPosition = SnapToGrid(finalPosition, globalGridInfo);
+            }
+            
+            transform.position = finalPosition;
         }
 
         /// <summary>
@@ -462,6 +744,18 @@ namespace SceneSandbox.Core
         }
 
         /// <summary>
+        /// Set placement settings (pivot point and offset)
+        /// </summary>
+        /// <param name="pivotPoint">Pivot point enum for the object</param>
+        /// <param name="placementOffset">Offset to apply during placement</param>
+        public void SetPlacementSettings(PivotPoint pivotPoint, Vector3 placementOffset)
+        {
+            _pivotPoint = pivotPoint;
+            _placementOffset = placementOffset;
+            Debug.Log($"[TransformableItem] Placement settings updated - Pivot: {pivotPoint}, Offset: {placementOffset} for {name}");
+        }
+
+        /// <summary>
         /// Toggle transform control feature on/off
         /// </summary>
         public void ToggleTransformControls()
@@ -498,9 +792,26 @@ namespace SceneSandbox.Core
             switch (_currentTransformModeType)
             {
                 case TransformModeType.Position:
-                    // Position is controlled by SceneSandboxBuilder during placement
-                    // This method is not used for position mode
-                    // Position mode does not support increase/decrease - controlled by SceneSandboxBuilder
+                    // Move position based on selected axis
+                    // Apply offset according to current transform axis
+                    Vector3 positionDelta = Vector3.zero;
+                    switch (_currentTransformAxis)
+                    {
+                        case TransformAxis.X:
+                            positionDelta = Vector3.right * _positionStep;
+                            break;
+                        case TransformAxis.Y:
+                            positionDelta = Vector3.up * _positionStep;
+                            break;
+                        case TransformAxis.Z:
+                            positionDelta = Vector3.forward * _positionStep;
+                            break;
+                        case TransformAxis.All:
+                            // For All, move in forward direction (Z) by default
+                            positionDelta = Vector3.forward * _positionStep;
+                            break;
+                    }
+                    transform.position += positionDelta;
                     break;
 
                 case TransformModeType.Rotation:
@@ -564,9 +875,26 @@ namespace SceneSandbox.Core
             switch (_currentTransformModeType)
             {
                 case TransformModeType.Position:
-                    // Position is controlled by SceneSandboxBuilder during placement
-                    // This method is not used for position mode
-                    // Position mode does not support increase/decrease - controlled by SceneSandboxBuilder
+                    // Move position based on selected axis (negative)
+                    // Apply offset according to current transform axis
+                    Vector3 positionDelta = Vector3.zero;
+                    switch (_currentTransformAxis)
+                    {
+                        case TransformAxis.X:
+                            positionDelta = Vector3.left * _positionStep;
+                            break;
+                        case TransformAxis.Y:
+                            positionDelta = Vector3.down * _positionStep;
+                            break;
+                        case TransformAxis.Z:
+                            positionDelta = Vector3.back * _positionStep;
+                            break;
+                        case TransformAxis.All:
+                            // For All, move in backward direction (Z) by default
+                            positionDelta = Vector3.back * _positionStep;
+                            break;
+                    }
+                    transform.position += positionDelta;
                     break;
 
                 case TransformModeType.Rotation:
@@ -977,6 +1305,74 @@ namespace SceneSandbox.Core
 
                 return false;
             }
+        }
+
+        #endregion
+
+        #region Gizmos
+
+        private void OnDrawGizmosSelected()
+        {
+            // Draw grid gizmo if snap grid is enabled
+            if (_enableSnapGrid && _snapGridSize > 0)
+            {
+                DrawSnapGridGizmo();
+            }
+        }
+
+        /// <summary>
+        /// Draw snap grid visualization
+        /// </summary>
+        private void DrawSnapGridGizmo()
+        {
+            Vector3 position = transform.position;
+            float gridSize = _snapGridSize;
+            Color gridColor = _snapMode == SnapMode.Self ? Color.yellow : Color.cyan;
+            gridColor.a = 0.3f;
+
+            // Draw grid lines around the object (5x5 grid)
+            int gridExtent = 5;
+            Vector3 snappedCenter = new Vector3(
+                Mathf.Round(position.x / gridSize) * gridSize,
+                position.y,
+                Mathf.Round(position.z / gridSize) * gridSize
+            );
+
+            Gizmos.color = gridColor;
+
+            // Draw horizontal lines (X direction)
+            for (int z = -gridExtent; z <= gridExtent; z++)
+            {
+                Vector3 start = snappedCenter + new Vector3(-gridExtent * gridSize, 0, z * gridSize);
+                Vector3 end = snappedCenter + new Vector3(gridExtent * gridSize, 0, z * gridSize);
+                Gizmos.DrawLine(start, end);
+            }
+
+            // Draw vertical lines (Z direction)
+            for (int x = -gridExtent; x <= gridExtent; x++)
+            {
+                Vector3 start = snappedCenter + new Vector3(x * gridSize, 0, -gridExtent * gridSize);
+                Vector3 end = snappedCenter + new Vector3(x * gridSize, 0, gridExtent * gridSize);
+                Gizmos.DrawLine(start, end);
+            }
+
+            // Draw snap point indicator at current snapped position
+            Gizmos.color = _snapMode == SnapMode.Self ? Color.yellow : Color.cyan;
+            Gizmos.DrawWireSphere(snappedCenter, gridSize * 0.1f);
+
+            // Draw label for snap mode
+#if UNITY_EDITOR
+            UnityEditor.Handles.Label(
+                snappedCenter + Vector3.up * 0.5f,
+                $"Snap: {_snapMode}\nGrid: {gridSize}m",
+                new GUIStyle()
+                {
+                    normal = new GUIStyleState() { textColor = gridColor * 2f },
+                    fontSize = 10,
+                    fontStyle = FontStyle.Bold
+                }
+            );
+#endif
         }
 
         #endregion

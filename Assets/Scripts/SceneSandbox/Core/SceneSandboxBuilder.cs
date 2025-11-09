@@ -124,6 +124,8 @@ namespace SceneSandbox.Core
         [SerializeField] private string _currentSceneName = "Untitled Scene";
         [Tooltip("Project save path (Read-Only). Automatically set to: persistentDataPath/SceneSandboxBuilder/SavedProjects")]
         [SerializeField] private string _defaultProjectSavePath = ""; // Force initialized to Application.persistentDataPath/SceneSandboxBuilder/SavedProjects
+        [Tooltip("Automatically load the first available project on start (Play mode only)")]
+        [SerializeField] private bool _autoLoadFirstProject = false;
 
         // Components
         private Camera _sceneCamera;
@@ -415,7 +417,18 @@ namespace SceneSandbox.Core
 
         private void Start()
         {
-            CreateNewScene();
+            // Auto-load first project if enabled
+            if (_autoLoadFirstProject && Application.isPlaying)
+            {
+                TryAutoLoadFirstProject();
+            }
+            
+            // Create new scene if no project was loaded
+            if (_currentProject == null)
+            {
+                CreateNewScene();
+            }
+            
             RegisterExistingTransformableItems();
         }
 
@@ -533,10 +546,19 @@ namespace SceneSandbox.Core
             GameObject newObject = Instantiate(objectData.prefab, _stageArea);
             newObject.name = objectData.displayName;
 
-            // Apply placement settings
-            Vector3 finalPosition = _snapToGrid ? SnapToGrid(position) : position;
-            finalPosition = GetSurfacePosition(finalPosition);
-            newObject.transform.position = finalPosition;
+            // Add draggable component if not present
+            var draggable = newObject.GetComponent<TransformableItem>();
+            if (draggable == null)
+            {
+                draggable = newObject.AddComponent<TransformableItem>();
+            }
+
+            // Apply placement settings with grid snapping and pivot point
+            GridInfo gridInfo = GetGlobalGridInfo();
+            Vector3 surfacePosition = GetSurfacePosition(position);
+            
+            // Use SetPositionWithPivot to properly apply pivot point and grid snapping
+            draggable.SetPositionWithPivot(surfacePosition, applyPivot: true, applyOffset: true, globalGridInfo: gridInfo);
 
             // Apply scale - preserve prefab scale if defaultScale is zero
             Vector3 targetScale = objectData.defaultScale;
@@ -546,13 +568,6 @@ namespace SceneSandbox.Core
             }
             newObject.transform.localScale = targetScale;
 
-            // Add draggable component if not present
-            var draggable = newObject.GetComponent<TransformableItem>();
-            if (draggable == null)
-            {
-                draggable = newObject.AddComponent<TransformableItem>();
-            }
-
             // Set up draggable item
             string placedObjectId = System.Guid.NewGuid().ToString();
             draggable.SetObjectData(objectDataId, placedObjectId);
@@ -560,8 +575,8 @@ namespace SceneSandbox.Core
             // Bind draggable events
             BindDraggableEvents(draggable);
 
-            // Add to scene configuration
-            var placedObjectData = new Data.PlacedObjectData(objectDataId, finalPosition)
+            // Add to scene configuration (use actual transform position after pivot adjustment)
+            var placedObjectData = new Data.PlacedObjectData(objectDataId, newObject.transform.position)
             {
                 id = placedObjectId,
                 rotation = newObject.transform.eulerAngles,
@@ -753,7 +768,8 @@ namespace SceneSandbox.Core
 
             // Get TransformableItem and apply snap grid using SnapMode logic
             var transformableItem = _currentPlacementObject.GetComponent<TransformableItem>();
-            position = SnapToGrid(position, transformableItem);
+            GridInfo gridInfo = GetGlobalGridInfo();
+            position = transformableItem.SnapToGrid(position, gridInfo);
             
             _currentPlacementObject.transform.position = position;
 
@@ -787,6 +803,7 @@ namespace SceneSandbox.Core
 
             // Get TransformableItem if available
             var transformableItem = _currentPlacementObject.GetComponent<TransformableItem>();
+            GridInfo gridInfo = GetGlobalGridInfo();
 
             // Apply transform based on current mode
             switch (_currentTransformMode)
@@ -794,10 +811,16 @@ namespace SceneSandbox.Core
                 case TransformModeType.Position:
                     Vector3 targetPosition = _currentPlacementPosition;
                     
-                    // Use the unified SnapToGrid method that respects SnapMode
-                    targetPosition = SnapToGrid(targetPosition, transformableItem);
-                    
-                    _currentPlacementObject.transform.position = targetPosition;
+                    // Use SetPositionWithPivot to properly apply pivot point and grid snapping
+                    if (transformableItem != null)
+                    {
+                        transformableItem.SetPositionWithPivot(targetPosition, applyPivot: true, applyOffset: true, globalGridInfo: gridInfo);
+                    }
+                    else
+                    {
+                        // Fallback if no transformable item
+                        _currentPlacementObject.transform.position = targetPosition;
+                    }
                     break;
 
                 case TransformModeType.Rotation:
@@ -1009,14 +1032,14 @@ namespace SceneSandbox.Core
         /// <summary>
         /// Select an object in the scene
         /// </summary>
-        public void SelectObject(GameObject obj)
+        public void SelectObject(GameObject obj, bool? overrideAutoEdit = null)
         {
             if (obj != null)
             {
                 var item = obj.GetComponent<TransformableItem>();
                 if (item != null)
                 {
-                    SelectItem(item);
+                    SelectItem(item, overrideAutoEdit);
                 }
             }
             else
@@ -1491,6 +1514,33 @@ namespace SceneSandbox.Core
         }
 
         /// <summary>
+        /// Attempt to automatically load the first available project
+        /// </summary>
+        private void TryAutoLoadFirstProject()
+        {
+            var availableProjects = GetAvailableProjects();
+            
+            if (availableProjects != null && availableProjects.Count > 0)
+            {
+                var firstProject = availableProjects[0];
+                Debug.Log($"[SceneSandboxBuilder] Auto-loading first project: {firstProject.projectName}");
+                
+                if (LoadProject(firstProject.filePath))
+                {
+                    Debug.Log($"[SceneSandboxBuilder] Successfully auto-loaded project: {firstProject.projectName}");
+                }
+                else
+                {
+                    Debug.LogWarning($"[SceneSandboxBuilder] Failed to auto-load project: {firstProject.projectName}");
+                }
+            }
+            else
+            {
+                Debug.Log("[SceneSandboxBuilder] No projects available to auto-load");
+            }
+        }
+
+        /// <summary>
         /// Get project information for display in UI
         /// </summary>
         public SandboxProjectMetadata GetCurrentProjectInfo()
@@ -1916,9 +1966,17 @@ namespace SceneSandbox.Core
                 customName = objectData.displayName
             };
 
-            // Apply positioning
-            placedObjectData.position = _snapToGrid ? SnapToGrid(position) : position;
+            // Create temporary draggable to use SnapToGrid
+            GameObject tempObject = new GameObject("TempSnapHelper");
+            var tempDraggable = tempObject.AddComponent<TransformableItem>();
+            
+            // Apply positioning with grid snapping
+            GridInfo gridInfo = GetGlobalGridInfo();
+            placedObjectData.position = tempDraggable.SnapToGrid(position, gridInfo);
             placedObjectData.position = GetSurfacePosition(placedObjectData.position);
+            
+            // Cleanup temp object
+            Destroy(tempObject);
 
             // Store factory-related properties in the existing properties dictionary
             placedObjectData.properties["objectType"] = SandboxObjectFactory.DetermineObjectType(objectData.prefab);
@@ -2705,7 +2763,7 @@ namespace SceneSandbox.Core
         /// <summary>
         /// Select an item
         /// </summary>
-        private void SelectItem(TransformableItem item)
+        private void SelectItem(TransformableItem item, bool? overrideAutoEdit = null)
         {
             if (item == null || _selectedItems.Contains(item))
                 return;
@@ -2730,7 +2788,9 @@ namespace SceneSandbox.Core
             }
             
             // Automatically start edit mode if enabled
-            if (_autoEditOnSelect)
+            // Use override parameter if provided, otherwise use _autoEditOnSelect
+            bool shouldAutoEdit = overrideAutoEdit ?? _autoEditOnSelect;
+            if (shouldAutoEdit)
             {
                 BeginObjectEdit(item.gameObject);
             }
@@ -3088,46 +3148,6 @@ namespace SceneSandbox.Core
             OnSceneLoaded?.Invoke(_currentScene);
         }
 
-        private Vector3 SnapToGrid(Vector3 position)
-        {
-            if (!_snapToGrid) return position;
-
-            float snappedX = Mathf.Round(position.x / _gridSize) * _gridSize;
-            float snappedZ = Mathf.Round(position.z / _gridSize) * _gridSize;
-            return new Vector3(snappedX, position.y, snappedZ);
-        }
-
-        /// <summary>
-        /// Snap position to grid, with optional TransformableItem override
-        /// Respects SnapMode: Extend uses global + local, Self uses only local
-        /// </summary>
-        private Vector3 SnapToGrid(Vector3 position, TransformableItem item)
-        {
-            if (item == null)
-            {
-                // No item, use global settings
-                return SnapToGrid(position);
-            }
-
-            // Check snap mode
-            switch (item.SnapMode)
-            {
-                case SnapMode.Self:
-                    // Self mode: Only use item's own settings, ignore global
-                    if (item.EnableSnapGrid)
-                    {
-                        return item.ApplySnapGrid(position);
-                    }
-                    // If item snap is disabled in Self mode, no snapping at all
-                    return position;
-
-                case SnapMode.Extend:
-                default:
-                    // Fall back to global snap grid if item doesn't have its own
-                    return SnapToGrid(position);
-            }
-        }
-
         /// <summary>
         /// Calculate the grid's Y position based on scene bounds and pivot offsets
         /// </summary>
@@ -3140,6 +3160,14 @@ namespace SceneSandbox.Core
             // Calculate grid Y: stageY + sceneBoundsOffsetY + gridOffsetY - sceneBoundsPivotY + gridPivotY
             float gridY = stageCenter.y + _sceneBoundsOffset.y + _gridOffset.y - sceneBoundsPivotOffset.y + gridPivotOffset.y;
             return gridY;
+        }
+
+        /// <summary>
+        /// Get the current global grid info for passing to TransformableItem
+        /// </summary>
+        private GridInfo GetGlobalGridInfo()
+        {
+            return new GridInfo(_snapToGrid, _gridSize, _gridOffset);
         }
 
         private Vector3 GetSurfacePosition(Vector3 position)
@@ -3316,7 +3344,13 @@ namespace SceneSandbox.Core
             }
 
             // Snap to grid if enabled
-            Vector3 finalPosition = _snapToGrid ? SnapToGrid(position) : position;
+            // Create temporary TransformableItem for snap logic
+            GameObject tempObject = new GameObject("TempSnapHelper");
+            var tempDraggable = tempObject.AddComponent<TransformableItem>();
+            GridInfo gridInfo = GetGlobalGridInfo();
+            Vector3 finalPosition = tempDraggable.SnapToGrid(position, gridInfo);
+            Destroy(tempObject);
+            
             // Note: GetWorldPositionFromScreen already handles surface detection, 
             // so we don't need to call GetSurfacePosition again here
 
@@ -3565,7 +3599,50 @@ namespace SceneSandbox.Core
             int gridLinesX = Mathf.RoundToInt(_sceneBounds.x / _gridSize);
             int gridLinesZ = Mathf.RoundToInt(_sceneBounds.z / _gridSize);
 
-            Gizmos.color = Color.gray;
+            // Create a set of occupied grid cells
+            HashSet<Vector2Int> occupiedCells = new HashSet<Vector2Int>();
+            if (_placedObjects != null && _placedObjects.Count > 0)
+            {
+                foreach (var kvp in _placedObjects)
+                {
+                    if (kvp.Value != null)
+                    {
+                        Vector3 objPos = kvp.Value.transform.position;
+                        // Calculate grid cell coordinates
+                        int cellX = Mathf.RoundToInt((objPos.x - (center.x - gridExtentX)) / _gridSize);
+                        int cellZ = Mathf.RoundToInt((objPos.z - (center.z - gridExtentZ)) / _gridSize);
+                        occupiedCells.Add(new Vector2Int(cellX, cellZ));
+                    }
+                }
+            }
+
+            // Draw occupied cells with wire cubes (more visible)
+            Gizmos.color = new Color(1f, 0.5f, 0f, 1f); // Orange color for occupied cells
+            foreach (var cell in occupiedCells)
+            {
+                float cellCenterX = center.x - gridExtentX + (cell.x * _gridSize) + (_gridSize * 0.5f);
+                float cellCenterZ = center.z - gridExtentZ + (cell.y * _gridSize) + (_gridSize * 0.5f);
+                Vector3 cellCenter = new Vector3(cellCenterX, center.y + 0.05f, cellCenterZ);
+                Vector3 cellSize = new Vector3(_gridSize * 0.95f, 0.1f, _gridSize * 0.95f);
+                
+                // Draw thicker wire cube
+                Gizmos.DrawWireCube(cellCenter, cellSize);
+                
+                // Draw cross pattern inside cell
+                float halfSize = _gridSize * 0.4f;
+                Gizmos.DrawLine(
+                    new Vector3(cellCenterX - halfSize, center.y, cellCenterZ - halfSize),
+                    new Vector3(cellCenterX + halfSize, center.y, cellCenterZ + halfSize)
+                );
+                Gizmos.DrawLine(
+                    new Vector3(cellCenterX - halfSize, center.y, cellCenterZ + halfSize),
+                    new Vector3(cellCenterX + halfSize, center.y, cellCenterZ - halfSize)
+                );
+            }
+
+            // Use different color based on snap mode
+            Color gridLineColor = _snapToGrid ? new Color(0f, 1f, 0f, 0.5f) : Color.gray;
+            Gizmos.color = gridLineColor;
 
             // Draw vertical lines (along Z-axis)
             for (int i = 0; i <= gridLinesX; i++)
@@ -3577,9 +3654,9 @@ namespace SceneSandbox.Core
                 // Center line in different color
                 if (Mathf.Approximately(x, center.x))
                 {
-                    Gizmos.color = Color.white;
+                    Gizmos.color = _snapToGrid ? Color.green : Color.white;
                     Gizmos.DrawLine(start, end);
-                    Gizmos.color = Color.gray;
+                    Gizmos.color = gridLineColor;
                 }
                 else
                 {
@@ -3597,9 +3674,9 @@ namespace SceneSandbox.Core
                 // Center line in different color
                 if (Mathf.Approximately(z, center.z))
                 {
-                    Gizmos.color = Color.white;
+                    Gizmos.color = _snapToGrid ? Color.green : Color.white;
                     Gizmos.DrawLine(start, end);
-                    Gizmos.color = Color.gray;
+                    Gizmos.color = gridLineColor;
                 }
                 else
                 {
@@ -3608,8 +3685,27 @@ namespace SceneSandbox.Core
             }
 
             // Draw origin marker
-            Gizmos.color = Color.white;
-            Gizmos.DrawWireSphere(center, 0.1f);
+            Gizmos.color = _snapToGrid ? Color.green : Color.white;
+            Gizmos.DrawWireSphere(center, _snapToGrid ? _gridSize * 0.15f : 0.1f);
+
+            // Draw grid info label when snap is enabled
+#if UNITY_EDITOR
+            if (_snapToGrid)
+            {
+                Vector3 labelPos = center + Vector3.up * 0.5f;
+                UnityEditor.Handles.Label(
+                    labelPos,
+                    $"Snap Grid: {_gridSize}m\nOffset: {_gridOffset}\nPivot: {_gridPivotOffset}",
+                    new GUIStyle()
+                    {
+                        normal = new GUIStyleState() { textColor = Color.green },
+                        fontSize = 10,
+                        fontStyle = FontStyle.Bold,
+                        alignment = TextAnchor.MiddleCenter
+                    }
+                );
+            }
+#endif
         }
 
         /// <summary>
@@ -3858,7 +3954,13 @@ namespace SceneSandbox.Core
             // Draw grid snap indicator if snapping is enabled
             if (_snapToGrid)
             {
-                Vector3 snappedPos = SnapToGrid(position);
+                // Create temporary TransformableItem for snap logic
+                GameObject tempObject = new GameObject("TempSnapHelper");
+                var tempDraggable = tempObject.AddComponent<TransformableItem>();
+                GridInfo gridInfo = GetGlobalGridInfo();
+                Vector3 snappedPos = tempDraggable.SnapToGrid(position, gridInfo);
+                DestroyImmediate(tempObject);
+                
                 Gizmos.color = Color.white;
                 Gizmos.DrawWireCube(snappedPos + Vector3.up * 0.05f, Vector3.one * _gridSize * 0.1f);
             }
@@ -3881,7 +3983,13 @@ namespace SceneSandbox.Core
             // Draw grid snap indicator if enabled
             if (_showGridSnapIndicator && _snapToGrid)
             {
-                Vector3 snappedPos = SnapToGrid(position);
+                // Get TransformableItem if available for snap logic
+                var transformableItem = _currentPlacementObject.GetComponent<TransformableItem>();
+                GridInfo gridInfo = GetGlobalGridInfo();
+                Vector3 snappedPos = transformableItem != null 
+                    ? transformableItem.SnapToGrid(position, gridInfo)
+                    : position;
+                    
                 Gizmos.color = Color.cyan;
                 Gizmos.DrawWireCube(snappedPos + Vector3.up * 0.05f, Vector3.one * _gridSize * 0.15f);
 

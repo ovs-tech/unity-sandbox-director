@@ -129,6 +129,7 @@ MonoBehaviour:
   _enableTransformControls: 1
   _minScale: {x: 0.1, y: 0.1, z: 0.1}
   _maxScale: {x: 5, y: 5, z: 5}
+  _positionStep: 0.1
   _rotationStep: 45
   _scaleStep: 0.1
   _showGizmo: 1
@@ -143,6 +144,8 @@ MonoBehaviour:
   _snapMode: 0
   _enableSnapGrid: 0
   _snapGridSize: 0.5
+  _pivotPoint: 6
+  _placementOffset: {x: 0, y: 0, z: 0}
   _currentTransformModeType: 0
   _currentTransformAxis: 0
   _objectId: 
