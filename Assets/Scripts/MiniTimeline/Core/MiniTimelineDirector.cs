@@ -27,6 +27,7 @@ namespace MiniTimeline.Core
         [SerializeField] private float playbackSpeed = 1f;
         [SerializeField] private bool loop = false;
         [SerializeField] private bool playOnAwake = false;
+        [SerializeField] private bool autoLoadFirstProject = false;
         [SerializeField] private bool autoCreateEmptyProject = false;
 
         [Header("Auto-Create Project Settings")]
@@ -159,6 +160,15 @@ namespace MiniTimeline.Core
         }
 
         /// <summary>
+        /// Whether to auto-load the first available project on Start if no project is loaded
+        /// </summary>
+        public bool AutoLoadFirstProject
+        {
+            get => autoLoadFirstProject;
+            set => autoLoadFirstProject = value;
+        }
+
+        /// <summary>
         /// Whether to auto-create an empty project on Start if no project is loaded
         /// </summary>
         public bool AutoCreateEmptyProject
@@ -216,6 +226,12 @@ namespace MiniTimeline.Core
 
         private void Start()
         {
+            // Auto-load first project if enabled and no project is loaded
+            if (autoLoadFirstProject && project == null)
+            {
+                TryAutoLoadFirstProject();
+            }
+            
             // Auto-create empty project if enabled and no project is loaded
             if (autoCreateEmptyProject && project == null)
             {
@@ -634,6 +650,37 @@ namespace MiniTimeline.Core
 
             if (debugMode)
                 Debug.Log($"[MiniTimelineDirector] Auto-created empty project '{emptyProject.name}' with length {emptyProject.length}s");
+        }
+
+        /// <summary>
+        /// Attempt to automatically load the first available project
+        /// </summary>
+        private void TryAutoLoadFirstProject()
+        {
+            var availableProjects = GetAvailableProjects();
+            
+            if (availableProjects != null && availableProjects.Length > 0)
+            {
+                var firstProjectName = availableProjects[0];
+                
+                if (debugMode)
+                    Debug.Log($"[MiniTimelineDirector] Auto-loading first project: {firstProjectName}");
+                
+                if (LoadProject(firstProjectName))
+                {
+                    if (debugMode)
+                        Debug.Log($"[MiniTimelineDirector] Successfully auto-loaded project: {firstProjectName}");
+                }
+                else
+                {
+                    Debug.LogWarning($"[MiniTimelineDirector] Failed to auto-load project: {firstProjectName}");
+                }
+            }
+            else
+            {
+                if (debugMode)
+                    Debug.Log("[MiniTimelineDirector] No projects available to auto-load");
+            }
         }
 
         #endregion

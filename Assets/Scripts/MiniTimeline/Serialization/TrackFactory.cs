@@ -186,6 +186,40 @@ namespace MiniTimeline.Serialization
                         payload["fadeOut"] = movementClip.fadeOut;
                         break;
                         
+                    case AnimatorClip animatorClip:
+                        // Add animator-specific properties
+                        payload["blendMode"] = animatorClip.blendMode.ToString();
+                        payload["fadeIn"] = animatorClip.fadeIn;
+                        payload["fadeOut"] = animatorClip.fadeOut;
+                        
+                        // Serialize parameter keys
+                        var parameterKeysString = new List<string>();
+                        foreach (var key in animatorClip.parameterKeys)
+                        {
+                            string keyData = $"{key.parameterName}:{key.parameterType}";
+                            
+                            switch (key.parameterType)
+                            {
+                                case AnimatorControllerParameterType.Float:
+                                    keyData += $":{key.startFloatValue}:{key.endFloatValue}";
+                                    break;
+                                case AnimatorControllerParameterType.Int:
+                                    keyData += $":{key.startIntValue}:{key.endIntValue}";
+                                    break;
+                                case AnimatorControllerParameterType.Bool:
+                                    keyData += $":{key.startBoolValue}:{key.endBoolValue}";
+                                    break;
+                                case AnimatorControllerParameterType.Trigger:
+                                    keyData += $":{key.triggerValue}";
+                                    break;
+                            }
+                            
+                            keyData += $":{key.curveType}";
+                            parameterKeysString.Add(keyData);
+                        }
+                        payload["parameterKeys"] = string.Join("|", parameterKeysString);
+                        break;
+                        
                     // Add more clip types as needed
                     default:
                         // For unknown clip types, try to extract basic properties via reflection

@@ -25,6 +25,7 @@ namespace MiniTimeline.Editor
         private SerializedProperty loopProp;
         private SerializedProperty playOnAwakeProp;
         private SerializedProperty debugModeProp;
+        private SerializedProperty autoLoadFirstProjectProp;
         private SerializedProperty autoCreateEmptyProjectProp;
         private SerializedProperty defaultProjectNameProp;
         private SerializedProperty defaultProjectLengthProp;
@@ -72,6 +73,7 @@ namespace MiniTimeline.Editor
             loopProp = serializedObject.FindProperty("loop");
             playOnAwakeProp = serializedObject.FindProperty("playOnAwake");
             debugModeProp = serializedObject.FindProperty("debugMode");
+            autoLoadFirstProjectProp = serializedObject.FindProperty("autoLoadFirstProject");
             autoCreateEmptyProjectProp = serializedObject.FindProperty("autoCreateEmptyProject");
             defaultProjectNameProp = serializedObject.FindProperty("defaultProjectName");
             defaultProjectLengthProp = serializedObject.FindProperty("defaultProjectLength");
@@ -222,9 +224,10 @@ namespace MiniTimeline.Editor
                 
                 EditorGUILayout.Space(10);
                 
-                // Auto-create project settings
-                EditorGUILayout.LabelField("Auto-Create Settings", EditorStyles.boldLabel);
-                EditorGUILayout.PropertyField(autoCreateEmptyProjectProp, new GUIContent("Auto Create Empty Project", "Automatically create an empty project on Start if no project is loaded"));
+                // Auto-load/create project settings
+                EditorGUILayout.LabelField("Auto-Load/Create Settings", EditorStyles.boldLabel);
+                EditorGUILayout.PropertyField(autoLoadFirstProjectProp, new GUIContent("Auto Load First Project", "Automatically load the first available project on Start if no project is loaded"));
+                EditorGUILayout.PropertyField(autoCreateEmptyProjectProp, new GUIContent("Auto Create Empty Project", "Automatically create an empty project on Start if no project is loaded (only if auto-load is disabled or no projects exist)"));
                 
                 // Show auto-create project settings only if enabled
                 if (autoCreateEmptyProjectProp.boolValue)
