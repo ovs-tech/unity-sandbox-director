@@ -3988,6 +3988,7 @@ GameObject:
   - component: {fileID: 1616998685246713268}
   - component: {fileID: 6026475256862203985}
   - component: {fileID: -1512878324442295830}
+  - component: {fileID: -4191668039463448983}
   m_Layer: 0
   m_Name: UMAMale
   m_TagString: Untagged
@@ -5820,6 +5821,7 @@ MonoBehaviour:
   _enableTransformControls: 1
   _minScale: {x: 0.1, y: 0.1, z: 0.1}
   _maxScale: {x: 5, y: 5, z: 5}
+  _positionStep: 0.1
   _rotationStep: 5
   _scaleStep: 0.1
   _showGizmo: 1
@@ -5834,10 +5836,34 @@ MonoBehaviour:
   _snapMode: 0
   _enableSnapGrid: 0
   _snapGridSize: 0.5
+  _pivotPoint: 0
+  _placementOffset: {x: 0, y: 0, z: 0}
   _currentTransformModeType: 0
   _currentTransformAxis: 0
   _objectId: 
   _objectDataId: 
+--- !u!195 &-4191668039463448983
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7578467819517741765}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.5
+  m_Speed: 3.5
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 2
+  m_BaseOffset: 0
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
 --- !u!1 &7616087334208230529
 GameObject:
   m_ObjectHideFlags: 0

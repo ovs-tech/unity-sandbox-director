@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using SceneSandbox.Data;
 using SceneSandbox.Serialization;
@@ -7,6 +8,18 @@ using MiniTimeline.Core;
 
 namespace SceneSandbox.Core
 {
+    // Custom UnityEvent classes for events with parameters
+    [System.Serializable]
+    public class SceneConfigurationEvent : UnityEvent<SceneConfiguration> { }
+    
+    [System.Serializable]
+    public class GameObjectEvent : UnityEvent<GameObject> { }
+    
+    [System.Serializable]
+    public class BoolEvent : UnityEvent<bool> { }
+    
+    [System.Serializable]
+    public class SandboxModeEvent : UnityEvent<SandboxMode> { }
     /// <summary>
     /// Main controller for the Scene Sandbox Builder system
     /// Manages the placement, interaction, and organization of scene objects
@@ -200,15 +213,25 @@ namespace SceneSandbox.Core
         private Vector3 _originalScale;
         private Dictionary<Renderer, Material[]> _originalObjectMaterials; // Store original materials to restore
 
-        // Events
-        public System.Action<SceneConfiguration> OnSceneLoaded;
-        public System.Action<SceneConfiguration> OnSceneSaved;
-        public System.Action<GameObject> OnObjectPlaced;
-        public System.Action<GameObject> OnObjectRemoved;
-        public System.Action<GameObject> OnObjectSelected;
-        public System.Action OnSceneCleared;
-        public System.Action<bool> OnPreviewStateChanged;
-        public System.Action<SandboxMode> OnModeChanged;
+        [Header("Events")]
+        [SerializeField] private SceneConfigurationEvent _onSceneLoaded = new SceneConfigurationEvent();
+        [SerializeField] private SceneConfigurationEvent _onSceneSaved = new SceneConfigurationEvent();
+        [SerializeField] private GameObjectEvent _onObjectPlaced = new GameObjectEvent();
+        [SerializeField] private GameObjectEvent _onObjectRemoved = new GameObjectEvent();
+        [SerializeField] private GameObjectEvent _onObjectSelected = new GameObjectEvent();
+        [SerializeField] private UnityEvent _onSceneCleared = new UnityEvent();
+        [SerializeField] private BoolEvent _onPreviewStateChanged = new BoolEvent();
+        [SerializeField] private SandboxModeEvent _onModeChanged = new SandboxModeEvent();
+        
+        // Public accessors for backward compatibility
+        public SceneConfigurationEvent OnSceneLoaded => _onSceneLoaded;
+        public SceneConfigurationEvent OnSceneSaved => _onSceneSaved;
+        public GameObjectEvent OnObjectPlaced => _onObjectPlaced;
+        public GameObjectEvent OnObjectRemoved => _onObjectRemoved;
+        public GameObjectEvent OnObjectSelected => _onObjectSelected;
+        public UnityEvent OnSceneCleared => _onSceneCleared;
+        public BoolEvent OnPreviewStateChanged => _onPreviewStateChanged;
+        public SandboxModeEvent OnModeChanged => _onModeChanged;
 
         // Properties
         public SceneConfiguration CurrentScene => _currentScene;
@@ -347,7 +370,7 @@ namespace SceneSandbox.Core
             }
 
             // Invoke mode changed event
-            OnModeChanged?.Invoke(mode);
+            _onModeChanged?.Invoke(mode);
         }
 
         /// <summary>
@@ -597,7 +620,7 @@ namespace SceneSandbox.Core
                 SelectObject(newObject);
             }
 
-            OnObjectPlaced?.Invoke(newObject);
+            _onObjectPlaced?.Invoke(newObject);
 
             return newObject;
         }
@@ -1009,7 +1032,7 @@ namespace SceneSandbox.Core
                 }
 
                 Destroy(obj);
-                OnObjectRemoved?.Invoke(obj);
+                _onObjectRemoved?.Invoke(obj);
 
                 return true;
             }
@@ -1212,7 +1235,7 @@ namespace SceneSandbox.Core
             }
 
             SelectObject(null);
-            OnSceneCleared?.Invoke();
+            _onSceneCleared?.Invoke();
         }
 
         /// <summary>
@@ -1225,7 +1248,7 @@ namespace SceneSandbox.Core
             _currentScene = new SceneConfiguration(sceneName ?? "New Scene");
             _currentSceneName = _currentScene.sceneName;
 
-            OnSceneLoaded?.Invoke(_currentScene);
+            _onSceneLoaded?.Invoke(_currentScene);
         }
 
         /// <summary>
@@ -1251,7 +1274,7 @@ namespace SceneSandbox.Core
                 string json = JsonUtility.ToJson(_currentScene, true);
                 System.IO.File.WriteAllText(savePath, json);
 
-                OnSceneSaved?.Invoke(_currentScene);
+                _onSceneSaved?.Invoke(_currentScene);
 
                 return true;
             }
@@ -1393,7 +1416,7 @@ namespace SceneSandbox.Core
             _currentScene = _currentProject.GetActiveScene();
             _currentSceneName = _currentScene.sceneName;
 
-            OnSceneLoaded?.Invoke(_currentScene);
+            _onSceneLoaded?.Invoke(_currentScene);
         }
 
         /// <summary>
@@ -1441,7 +1464,7 @@ namespace SceneSandbox.Core
                 
                 if (success)
                 {
-                    OnSceneSaved?.Invoke(_currentScene);
+                    _onSceneSaved?.Invoke(_currentScene);
                 }
                 
                 return success;
@@ -2034,7 +2057,7 @@ namespace SceneSandbox.Core
                 SelectObject(newObject);
             }
 
-            OnObjectPlaced?.Invoke(newObject);
+            _onObjectPlaced?.Invoke(newObject);
 
             return newObject;
         }
@@ -2057,7 +2080,7 @@ namespace SceneSandbox.Core
             // Start playback
             _timelineDirector.Play();
 
-            OnPreviewStateChanged?.Invoke(true);
+            _onPreviewStateChanged?.Invoke(true);
         }
 
         /// <summary>
@@ -2073,7 +2096,7 @@ namespace SceneSandbox.Core
             // Clean up preview objects
             CleanupPreviewObjects();
 
-            OnPreviewStateChanged?.Invoke(false);
+            _onPreviewStateChanged?.Invoke(false);
         }
 
         /// <summary>
@@ -2202,7 +2225,7 @@ namespace SceneSandbox.Core
             if (item != null)
             {
                 _selectedObject = item.gameObject;
-                OnObjectSelected?.Invoke(_selectedObject);
+                _onObjectSelected?.Invoke(_selectedObject);
                 
                 // Automatically start edit mode with ghost preview if enabled
                 if (_autoEditOnSelect)
@@ -2217,7 +2240,7 @@ namespace SceneSandbox.Core
             if (item != null && _selectedObject == item.gameObject)
             {
                 _selectedObject = null;
-                OnObjectSelected?.Invoke(null);
+                _onObjectSelected?.Invoke(null);
                 
                 // Cancel edit mode if active
                 if (_autoEditOnSelect && IsPlacementActive && _selectedObjectForEdit != null)
@@ -2776,7 +2799,7 @@ namespace SceneSandbox.Core
             item.SetSelectedState(true);
             
             _selectedObject = item.gameObject;
-            OnObjectSelected?.Invoke(_selectedObject);
+            _onObjectSelected?.Invoke(_selectedObject);
             
             // Enable transform controls for the item
             if (item.EnableTransformControls)
@@ -2821,7 +2844,7 @@ namespace SceneSandbox.Core
             if (_selectedObject == item.gameObject)
             {
                 _selectedObject = null;
-                OnObjectSelected?.Invoke(null);
+                _onObjectSelected?.Invoke(null);
                 
                 // Cancel edit mode if active AND we're deselecting the object being edited
                 // Don't cancel if we're deselecting a different object
@@ -3145,7 +3168,7 @@ namespace SceneSandbox.Core
                 }
             }
 
-            OnSceneLoaded?.Invoke(_currentScene);
+            _onSceneLoaded?.Invoke(_currentScene);
         }
 
         /// <summary>

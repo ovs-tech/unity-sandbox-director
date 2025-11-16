@@ -1484,14 +1484,14 @@ namespace MiniTimeline.Editor
             }
             
             // Use the director's AutoBindSceneObjects method which handles both binding and rebinding
-            int bindingsAdded = director.AutoBindSceneObjects();
+            director.AutoBindSceneObjects();
             
             // Repaint to show updated UI
             Repaint();
             
             int totalBindings = director.BindingContext.GetKeys().Count();
-            Debug.Log($"[MiniTimelineDirectorEditor] Auto-bound {bindingsAdded} BindableObject components (Total bindings: {totalBindings})");
-            EditorUtility.DisplayDialog("Auto-Binding Complete", $"Successfully auto-bound {bindingsAdded} BindableObject components.\n\nTotal bindings: {totalBindings}\n\nTip: Add BindableObject component to GameObjects you want to bind.", "OK");
+            Debug.Log($"[MiniTimelineDirectorEditor] Auto-bound BindableObject components (Total bindings: {totalBindings})");
+            EditorUtility.DisplayDialog("Auto-Binding Complete", $"Successfully auto-bound BindableObject components.\n\nTotal bindings: {totalBindings}\n\nTip: Add BindableObject component to GameObjects you want to bind.", "OK");
         }
         
         private void RebindAllTracks()

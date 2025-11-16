@@ -103,6 +103,16 @@ namespace SceneSandbox.Editor
         private SerializedProperty _defaultProjectSavePath;
         private SerializedProperty _autoLoadFirstProject;
         
+        // Events
+        private SerializedProperty _onSceneLoaded;
+        private SerializedProperty _onSceneSaved;
+        private SerializedProperty _onObjectPlaced;
+        private SerializedProperty _onObjectRemoved;
+        private SerializedProperty _onObjectSelected;
+        private SerializedProperty _onSceneCleared;
+        private SerializedProperty _onPreviewStateChanged;
+        private SerializedProperty _onModeChanged;
+        
         #endregion
         
         #region Editor State
@@ -118,6 +128,7 @@ namespace SceneSandbox.Editor
         private bool _showObjectLibraryFoldout = false;
         private bool _showRuntimeInfoFoldout = true;
         private bool _showTransformItemsFoldout = true;
+        private bool _showEventsFoldout = false;
         
         // Project Management
         private string _newProjectName = "New Sandbox Project";
@@ -284,6 +295,7 @@ namespace SceneSandbox.Editor
             DrawPlacementSettings();
             DrawPreviewSettings();
             DrawUnifiedGizmoSettings();
+            DrawEvents(); // NEW: Events section
             
             EditorGUILayout.Space(10);
             DrawToolbar();
@@ -359,6 +371,16 @@ namespace SceneSandbox.Editor
             _showPlacementHeightGizmo = serializedObject.FindProperty("_showPlacementHeightGizmo");
             _sceneBoundsColor = serializedObject.FindProperty("_sceneBoundsColor");
             _placementHeightColor = serializedObject.FindProperty("_placementHeightColor");
+            
+            // Events
+            _onSceneLoaded = serializedObject.FindProperty("_onSceneLoaded");
+            _onSceneSaved = serializedObject.FindProperty("_onSceneSaved");
+            _onObjectPlaced = serializedObject.FindProperty("_onObjectPlaced");
+            _onObjectRemoved = serializedObject.FindProperty("_onObjectRemoved");
+            _onObjectSelected = serializedObject.FindProperty("_onObjectSelected");
+            _onSceneCleared = serializedObject.FindProperty("_onSceneCleared");
+            _onPreviewStateChanged = serializedObject.FindProperty("_onPreviewStateChanged");
+            _onModeChanged = serializedObject.FindProperty("_onModeChanged");
             
             // Drop Indicator Settings
             _enableDropIndicator = serializedObject.FindProperty("_enableDropIndicator");
@@ -1679,6 +1701,39 @@ namespace SceneSandbox.Editor
                 EditorGUILayout.PropertyField(_placementHeightColor, new GUIContent("Placement Height Color"));
                 EditorGUI.indentLevel--;
             }
+            
+            EditorGUILayout.EndVertical();
+        }
+        
+        private void DrawEvents()
+        {
+            _showEventsFoldout = EditorGUILayout.BeginFoldoutHeaderGroup(_showEventsFoldout, "Events");
+            
+            if (!_showEventsFoldout) return;
+            
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            
+            EditorGUILayout.HelpBox("UnityEvents that are invoked when specific actions occur. You can add listeners in the Inspector or via code.", MessageType.Info);
+            
+            EditorGUILayout.Space(5);
+            
+            EditorGUILayout.LabelField("Scene Events", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_onSceneLoaded, new GUIContent("On Scene Loaded"));
+            EditorGUILayout.PropertyField(_onSceneSaved, new GUIContent("On Scene Saved"));
+            EditorGUILayout.PropertyField(_onSceneCleared, new GUIContent("On Scene Cleared"));
+            
+            EditorGUILayout.Space(10);
+            
+            EditorGUILayout.LabelField("Object Events", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_onObjectPlaced, new GUIContent("On Object Placed"));
+            EditorGUILayout.PropertyField(_onObjectRemoved, new GUIContent("On Object Removed"));
+            EditorGUILayout.PropertyField(_onObjectSelected, new GUIContent("On Object Selected"));
+            
+            EditorGUILayout.Space(10);
+            
+            EditorGUILayout.LabelField("Mode Events", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_onModeChanged, new GUIContent("On Mode Changed"));
+            EditorGUILayout.PropertyField(_onPreviewStateChanged, new GUIContent("On Preview State Changed"));
             
             EditorGUILayout.EndVertical();
         }

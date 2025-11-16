@@ -927,14 +927,13 @@ namespace MiniTimeline.Core
         /// Auto-bind all BindableObject components in the scene and rebind all tracks.
         /// This is a convenience method that calls BindingContext.AutoBind() and then RebindAllTracks().
         /// </summary>
-        /// <returns>Number of new bindings added</returns>
-        public int AutoBindSceneObjects()
+        public void AutoBindSceneObjects()
         {
             if (bindableObjectManager == null)
             {
                 if (debugMode)
                     Debug.LogWarning("[MiniTimelineDirector] Cannot auto-bind - no binding context available");
-                return 0;
+                return;
             }
             
             int existingCount = bindableObjectManager.GetKeys().Count();
@@ -947,8 +946,6 @@ namespace MiniTimeline.Core
             
             if (debugMode)
                 Debug.Log($"[MiniTimelineDirector] Auto-bound {bindingsAdded} scene objects (Total bindings: {newCount})");
-            
-            return bindingsAdded;
         }
 
         #endregion

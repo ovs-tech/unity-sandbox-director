@@ -526,6 +526,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5148817236446094103, guid: 2009be9c50c9b5e43895dd83b4b86af7, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1379408078}
+    - targetCorrespondingSourceObject: {fileID: 5148817236446094103, guid: 2009be9c50c9b5e43895dd83b4b86af7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1379408081}
   m_SourcePrefab: {fileID: 100100000, guid: 2009be9c50c9b5e43895dd83b4b86af7, type: 3}
 --- !u!114 &398228398 stripped
 MonoBehaviour:
@@ -1013,6 +1016,38 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 4579454407841743219, guid: 2009be9c50c9b5e43895dd83b4b86af7, type: 3}
+--- !u!114 &1379408081
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1379408074}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshSurface
+  m_SerializedVersion: 0
+  m_AgentTypeID: 0
+  m_CollectObjects: 0
+  m_Size: {x: 10, y: 10, z: 10}
+  m_Center: {x: 0, y: 2, z: 0}
+  m_LayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_UseGeometry: 0
+  m_DefaultArea: 0
+  m_GenerateLinks: 0
+  m_IgnoreNavMeshAgent: 1
+  m_IgnoreNavMeshObstacle: 1
+  m_OverrideTileSize: 0
+  m_TileSize: 256
+  m_OverrideVoxelSize: 0
+  m_VoxelSize: 0.16666667
+  m_MinRegionArea: 2
+  m_NavMeshData: {fileID: 23800000, guid: c634cce96cef44dfcbdf5886b2e2e61a, type: 2}
+  m_BuildHeightMesh: 0
 --- !u!1 &1388910598
 GameObject:
   m_ObjectHideFlags: 0
@@ -1198,6 +1233,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Mini Timeline Director
       objectReference: {fileID: 0}
+    - target: {fileID: 3751378087522260266, guid: 5ff9de63dbe2f394ca7ffdf4fe29dd55, type: 3}
+      propertyPath: autoLoadFirstProject
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3751378087522260266, guid: 5ff9de63dbe2f394ca7ffdf4fe29dd55, type: 3}
+      propertyPath: autoCreateEmptyProject
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8069204319789709471, guid: 5ff9de63dbe2f394ca7ffdf4fe29dd55, type: 3}
       propertyPath: m_LocalPosition.x
       value: -6.568401
@@ -1326,6 +1369,34 @@ PrefabInstance:
     - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
       propertyPath: _minimumPlacementHeight
       value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 398228398}
+    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: AutoBindSceneObjects
+      objectReference: {fileID: 0}
+    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: MiniTimeline.Core.MiniTimelineDirector, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
