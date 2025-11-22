@@ -45,7 +45,7 @@ namespace UMA.PoseTools
 		public float MaxSaccadeMagnitude = 15f;
 		public float minSaccade = -0.6f;
 		public float maxSaccade = 0.6f;
-		public bool allowUpDownSaccades = false;
+		public bool allowUpDownSaccades = true;
 
 		public Animator animator;
 		private float[] LastValues;

@@ -324,6 +324,7 @@ namespace SceneSandbox.Core
         /// </summary>
         public void ToggleMode()
         {
+            Debug.Log($"[SceneSandboxBuilder] Toggling mode from {_currentMode}");
             if (_currentMode == SandboxMode.Build)
             {
                 SetMode(SandboxMode.Play);
@@ -2593,6 +2594,7 @@ namespace SceneSandbox.Core
 
             if (Physics.Raycast(ray, out RaycastHit hit, _maxRaycastDistance, maskToUse))
             {
+                Debug.Log("Raycast hit: " + hit.collider.name);
                 TransformableItem item = hit.collider.GetComponentInParent<TransformableItem>();
 
                 return item;

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Animations;
+using UnityEngine.Playables;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using MiniTimeline.Core;
@@ -11,7 +13,7 @@ namespace MiniTimeline.Tracks
     /// <summary>
     /// Track for playing Unity Animation clips on timeline
     /// Supports multiple animation layers, blending, and timing control
-    /// Directly samples AnimationClip without requiring Animator component
+    /// Uses Unity's PlayableGraph API for optimal performance and blending
     /// 
     /// Asset Loading:
     /// - Supports Addressable assets with "addr:" prefix (e.g., "addr:Animations/WalkCycle")
@@ -23,13 +25,27 @@ namespace MiniTimeline.Tracks
     /// - Default: Continuous - samples animation every frame
     /// - OnEnter: Only triggers when animation starts
     /// - OnExit: Only triggers when animation ends
+    /// 
+    /// PlayableGraph:
+    /// - Creates a PlayableGraph for animation playback
+    /// - Supports animation blending via AnimationMixerPlayable
+    /// - Automatic layer management and weight control
+    /// - Proper cleanup on track destruction
     /// </summary>
     public class AnimTrack : MiniTrackBase<AnimClip>
     {
         public override int Order => 10; // Animation tracks run early, after events but before IK/morph
         
-        private GameObject targetGameObject;
-        private Transform targetTransform;
+        private GameObject _targetGameObject;
+        private Transform _targetTransform;
+        private Animator _animator;
+        
+        // PlayableGraph management
+        private PlayableGraph _playableGraph;
+        private AnimationMixerPlayable _mixerPlayable;
+        private AnimationPlayableOutput _output;
+        private readonly Dictionary<string, AnimationClipPlayable> _clipPlayables = new Dictionary<string, AnimationClipPlayable>();
+        private bool _graphInitialized = false;
         
         // Animation state management
         private readonly Dictionary<string, AnimationClip> loadedClips = new Dictionary<string, AnimationClip>();
@@ -51,68 +67,112 @@ namespace MiniTimeline.Tracks
             // Resolve target GameObject
             if (targetObject is GameObject go)
             {
-                targetGameObject = go;
-                targetTransform = go.transform;
+                _targetGameObject = go;
+                _targetTransform = go.transform;
             }
             else if (targetObject is Transform transform)
             {
-                targetTransform = transform;
-                targetGameObject = transform.gameObject;
+                _targetTransform = transform;
+                _targetGameObject = transform.gameObject;
             }
             else if (targetObject is Animator animator)
             {
-                targetGameObject = animator.gameObject;
-                targetTransform = animator.transform;
+                _targetGameObject = animator.gameObject;
+                _targetTransform = animator.transform;
+                _animator = animator;
             }
             else if (targetObject is Animation animation)
             {
-                targetGameObject = animation.gameObject;
-                targetTransform = animation.transform;
+                _targetGameObject = animation.gameObject;
+                _targetTransform = animation.transform;
             }
             
-            if (targetGameObject == null)
+            if (_targetGameObject == null)
             {
                 Debug.LogError($"[AnimTrack] Could not resolve target GameObject for track '{Id}' with bind key '{BindKey}'");
                 return;
             }
             
-            // Load animation assets
+            // Get or create Animator component for PlayableGraph
+            if (_animator == null)
+            {
+                // First try to get Animator on parent
+                _animator = _targetGameObject.GetComponent<Animator>();
+                
+                // If not found, search in children
+                if (_animator == null)
+                {
+                    _animator = _targetGameObject.GetComponentInChildren<Animator>();
+                }
+                
+                // If still not found, create new one on parent
+                if (_animator == null)
+                {
+                    _animator = _targetGameObject.AddComponent<Animator>();
+                    Debug.Log($"[AnimTrack] Created new Animator component on '{_targetGameObject.name}'");
+                }
+                else
+                {
+                    Debug.Log($"[AnimTrack] Found existing Animator on '{_animator.gameObject.name}'");
+                }
+            }
+            
+            // Load animation assets (will initialize PlayableGraph when done)
             LoadAnimationAssets();
         }
         
         protected override void OnEnter(float time, bool scrub)
         {
-            // Called when track enters active state
+            // Called when track enters active state (including on loop restart)
             Debug.Log($"[AnimTrack] OnEnter at time {time:F2}, scrub={scrub}");
+            
+            // Initialize PlayableGraph when entering the track
+            if (!_graphInitialized && hasLoadedAssets)
+            {
+                InitializePlayableGraph();
+            }
         }
         
         protected override void OnEvaluate(float time, bool scrub)
         {
-            if (targetGameObject == null) return;
+            if (_targetGameObject == null || !_graphInitialized) return;
             
             // Get all active clips at current time
             GetActiveClipsAtTime(time, activeClips);
+            
+            // Reset all mixer inputs
+            for (int i = 0; i < _mixerPlayable.GetInputCount(); i++)
+            {
+                _mixerPlayable.SetInputWeight(i, 0f);
+            }
             
             if (activeClips.Count == 0) return;
             
             // Sort clips by layer (higher layers have priority)
             activeClips.Sort((a, b) => a.layer.CompareTo(b.layer));
             
-            // Sample animations directly
+            // Update PlayableGraph with active clips
             foreach (var clip in activeClips)
             {
                 var state = clip.GetAnimationState(time);
                 if (!state.isActive) continue;
                 
-                if (loadedClips.TryGetValue(clip.animationAsset, out var animClip))
+                if (_clipPlayables.TryGetValue(clip.Id, out var playable))
                 {
                     // Apply weight for blending
                     float effectiveWeight = state.weight * clip.weight;
                     
-                    // Sample animation at specific time
-                    if (effectiveWeight > 0.01f) // Only sample if weight is significant
+                    if (effectiveWeight > 0.01f) // Only play if weight is significant
                     {
-                        animClip.SampleAnimation(targetGameObject, state.animationTime);
+                        // Set the time on the playable
+                        playable.SetTime(state.animationTime);
+                        
+                        // Update mixer input weight
+                        int inputIndex = GetMixerInputIndex(clip.Id);
+                        if (inputIndex >= 0)
+                        {
+                            _mixerPlayable.SetInputWeight(inputIndex, effectiveWeight);
+                        }
                     }
                     
                     // Store state
@@ -126,12 +186,22 @@ namespace MiniTimeline.Tracks
             // Called when track exits active state
             Debug.Log($"[AnimTrack] OnExit at time {time:F2}, scrub={scrub}");
             
+            // Destroy PlayableGraph when exiting to allow Animator default animation
+            if (_graphInitialized)
+            {
+                DestroyPlayableGraph();
+            }
+            
             // Clear animation states
             lastClipStates.Clear();
         }
         
         protected override void OnCleanup()
         {
+            // Destroy PlayableGraph first
+            DestroyPlayableGraph();
+            
+            // Then unload assets
             UnloadAnimationAssets();
             
             activeClips.Clear();
@@ -161,7 +231,21 @@ namespace MiniTimeline.Tracks
             await System.Threading.Tasks.Task.WhenAll(loadTasks);
             
             hasLoadedAssets = true;
-            // Debug.Log($"[AnimTrack] Finished loading {loadedClips.Count} animation clips");
+            Debug.Log($"[AnimTrack] Finished loading {loadedClips.Count} animation clips");
+            
+            // Re-verify animator is still valid before initializing PlayableGraph
+            if (_animator == null && _targetGameObject != null)
+            {
+                Debug.LogWarning($"[AnimTrack] Animator was lost after async load, attempting to find it again");
+                _animator = _targetGameObject.GetComponent<Animator>();
+                if (_animator == null)
+                {
+                    _animator = _targetGameObject.GetComponentInChildren<Animator>();
+                }
+            }
+            
+            // Don't initialize PlayableGraph yet - wait until we have active clips
+            // This allows the Animator's default animation to play
         }
         
         private async System.Threading.Tasks.Task LoadAnimationClipAsync(string assetPath)
@@ -223,11 +307,11 @@ namespace MiniTimeline.Tracks
                 {
                     loadedClips[assetPath] = animClip;
                     loadedHandles[assetPath] = handle;
-                    // Debug.Log($"[AnimTrack] Successfully loaded Addressable animation clip: {addressableKey}");
+                    Debug.Log($"[AnimTrack] Successfully loaded Addressable animation clip: {addressableKey}");
                 }
                 else
                 {
-                    // Debug.LogError($"[AnimTrack] Failed to load Addressable animation clip: {addressableKey}");
+                    Debug.LogError($"[AnimTrack] Failed to load Addressable animation clip: {addressableKey}");
                     Addressables.Release(handle);
                 }
             }
@@ -370,8 +454,8 @@ namespace MiniTimeline.Tracks
             // Load the asset if we're already prepared
             if (hasLoadedAssets && !string.IsNullOrEmpty(clip.animationAsset))
             {
-                // Use async loading for new clips
-                _ = LoadAnimationClipAsync(clip.animationAsset);
+                // Use async loading for new clips and rebuild after loading
+                LoadAndRebuildAsync(clip.animationAsset);
             }
         }
         
@@ -391,6 +475,9 @@ namespace MiniTimeline.Tracks
             if (hasLoadedAssets && !string.IsNullOrEmpty(clip.animationAsset))
             {
                 await LoadAnimationClipAsync(clip.animationAsset);
+                
+                // Rebuild PlayableGraph to include new clip (now that asset is loaded)
+                RebuildPlayableGraph();
             }
         }
         
@@ -405,6 +492,10 @@ namespace MiniTimeline.Tracks
             {
                 clips.Remove(clip);
                 lastClipStates.Remove(clipId);
+                
+                // Rebuild PlayableGraph after removing clip
+                RebuildPlayableGraph();
+                
                 return true;
             }
             return false;
@@ -519,6 +610,142 @@ namespace MiniTimeline.Tracks
             }
         }
         
+        /// <summary>
+        /// Helper method to load an animation clip and rebuild the PlayableGraph
+        /// </summary>
+        private async void LoadAndRebuildAsync(string assetPath)
+        {
+            await LoadAnimationClipAsync(assetPath);
+            RebuildPlayableGraph();
+        }
+        
+        #endregion
+        
+        #region PlayableGraph Management
+        
+        /// <summary>
+        /// Initialize the PlayableGraph for animation playback
+        /// </summary>
+        private void InitializePlayableGraph()
+        {
+            if (_graphInitialized)
+            {
+                Debug.LogWarning($"[AnimTrack] PlayableGraph already initialized, skipping");
+                return;
+            }
+            
+            if (_animator == null)
+            {
+                Debug.LogError($"[AnimTrack] Cannot initialize PlayableGraph - Animator is null");
+                return;
+            }
+            
+            Debug.Log($"[AnimTrack] Starting PlayableGraph initialization for track '{Id}' with {clips.Count} clips and {loadedClips.Count} loaded assets");
+            
+            try
+            {
+                // Create PlayableGraph
+                _playableGraph = PlayableGraph.Create($"AnimTrack_{Id}");
+                
+                // Create mixer playable for blending multiple animations
+                _mixerPlayable = AnimationMixerPlayable.Create(_playableGraph, clips.Count);
+                
+                // Create playables for each loaded clip
+                int inputIndex = 0;
+                foreach (var clip in clips)
+                {
+                    Debug.Log($"[AnimTrack] Processing clip '{clip.Id}' with asset '{clip.animationAsset}' - Asset loaded: {loadedClips.ContainsKey(clip.animationAsset)}");
+                    
+                    if (loadedClips.TryGetValue(clip.animationAsset, out var animClip))
+                    {
+                        Debug.Log($"[AnimTrack] Creating playable for clip '{clip.Id}' at input index {inputIndex}");
+                        
+                        var clipPlayable = AnimationClipPlayable.Create(_playableGraph, animClip);
+                        
+                        // Configure playable
+                        clipPlayable.SetApplyFootIK(false);
+                        clipPlayable.SetApplyPlayableIK(false);
+                        
+                        // Connect to mixer
+                        _playableGraph.Connect(clipPlayable, 0, _mixerPlayable, inputIndex);
+                        _mixerPlayable.SetInputWeight(inputIndex, 0f);
+                        
+                        // Store playable reference
+                        _clipPlayables[clip.Id] = clipPlayable;
+                        
+                        inputIndex++;
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[AnimTrack] Clip '{clip.Id}' asset '{clip.animationAsset}' not found in loadedClips dictionary");
+                    }
+                }
+                
+                // Create output and connect mixer
+                _output = AnimationPlayableOutput.Create(_playableGraph, $"AnimOutput_{Id}", _animator);
+                _output.SetSourcePlayable(_mixerPlayable);
+                
+                // Start the graph
+                _playableGraph.Play();
+                
+                _graphInitialized = true;
+                Debug.Log($"[AnimTrack] PlayableGraph initialized with {_clipPlayables.Count} clips");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[AnimTrack] Failed to initialize PlayableGraph: {e.Message}");
+                DestroyPlayableGraph();
+            }
+        }
+        
+        /// <summary>
+        /// Destroy the PlayableGraph and clean up resources
+        /// </summary>
+        private void DestroyPlayableGraph()
+        {
+            if (_graphInitialized)
+            {
+                if (_playableGraph.IsValid())
+                {
+                    _playableGraph.Destroy();
+                }
+                
+                _clipPlayables.Clear();
+                _graphInitialized = false;
+                
+                Debug.Log($"[AnimTrack] PlayableGraph destroyed");
+            }
+        }
+        
+        /// <summary>
+        /// Get the mixer input index for a clip ID
+        /// </summary>
+        private int GetMixerInputIndex(string clipId)
+        {
+            int index = 0;
+            foreach (var clip in clips)
+            {
+                if (clip.Id == clipId)
+                    return index;
+                    
+                if (loadedClips.ContainsKey(clip.animationAsset))
+                    index++;
+            }
+            return -1;
+        }
+        
+        /// <summary>
+        /// Rebuild the PlayableGraph when clips change
+        /// </summary>
+        private void RebuildPlayableGraph()
+        {
+            if (!_graphInitialized)
+                return;
+                
+            DestroyPlayableGraph();
+            InitializePlayableGraph();
+        }
+        
         #endregion
         
         #region Debug and Diagnostics
@@ -530,15 +757,19 @@ namespace MiniTimeline.Tracks
         {
             var info = $"AnimTrack '{Id}' (BindKey: '{BindKey}')\n";
             info += $"  Target: {targetObject?.name ?? "None"}\n";
-            info += $"  GameObject: {targetGameObject != null}\n";
-            info += $"  Transform: {targetTransform != null}\n";
+            info += $"  GameObject: {_targetGameObject != null}\n";
+            info += $"  Transform: {_targetTransform != null}\n";
+            info += $"  Animator: {_animator != null}\n";
             info += $"  Clips: {clips.Count}\n";
             info += $"  Loaded Assets: {loadedClips.Count}\n";
             info += $"  Loading Assets: {loadingOperations.Count}\n";
             info += $"  Addressable Handles: {loadedHandles.Count}\n";
             info += $"  Loading Progress: {GetLoadingProgress():P1}\n";
             info += $"  Active States: {lastClipStates.Count}\n";
-            info += $"  EvaluateMode: {EvaluateMode}";
+            info += $"  EvaluateMode: {EvaluateMode}\n";
+            info += $"  PlayableGraph Initialized: {_graphInitialized}\n";
+            info += $"  PlayableGraph Valid: {_playableGraph.IsValid()}\n";
+            info += $"  Clip Playables: {_clipPlayables.Count}";
             
             return info;
         }

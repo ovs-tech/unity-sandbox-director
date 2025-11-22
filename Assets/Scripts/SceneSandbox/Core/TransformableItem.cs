@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -92,6 +93,14 @@ namespace SceneSandbox.Core
         // Events
         public System.Action<TransformableItem, bool> OnSelectionChanged;
         public System.Action<TransformableItem, TransformModeType> OnTransformModeTypeChanged;
+
+        [Header("Unity Events")]
+        [SerializeField] private UnityEvent _onSelectItem = new UnityEvent();
+        [SerializeField] private UnityEvent _onDeselectItem = new UnityEvent();
+
+        // Public accessors for Unity Events
+        public UnityEvent OnSelectItem => _onSelectItem;
+        public UnityEvent OnDeselectItem => _onDeselectItem;
 
 
         // Properties
@@ -231,6 +240,16 @@ namespace SceneSandbox.Core
         {
             // Store the selection state
             _isSelected = isSelected;
+
+            // Invoke Unity Events
+            if (isSelected)
+            {
+                _onSelectItem?.Invoke();
+            }
+            else
+            {
+                _onDeselectItem?.Invoke();
+            }
 
             // Don't override transform mode visuals
             if (_isInTransformModeType && _currentTransformModeType != TransformModeType.None)

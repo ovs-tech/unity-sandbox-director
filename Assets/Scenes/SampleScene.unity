@@ -1371,6 +1371,10 @@ PrefabInstance:
       value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _selectionLayers.m_Bits
+      value: 513
+      objectReference: {fileID: 0}
+    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
       propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.size
       value: 1
       objectReference: {fileID: 0}
@@ -1414,14 +1418,6 @@ PrefabInstance:
     - target: {fileID: 6190135191795154413, guid: e5d223147dc0343edadb48ebce8b268a, type: 3}
       propertyPath: m_Name
       value: Camera
-      objectReference: {fileID: 0}
-    - target: {fileID: 7076836392809116713, guid: e5d223147dc0343edadb48ebce8b268a, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -1.43
-      objectReference: {fileID: 0}
-    - target: {fileID: 7076836392809116713, guid: e5d223147dc0343edadb48ebce8b268a, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: -5.14
       objectReference: {fileID: 0}
     - target: {fileID: 8253302287147373960, guid: e5d223147dc0343edadb48ebce8b268a, type: 3}
       propertyPath: m_LocalPosition.x
