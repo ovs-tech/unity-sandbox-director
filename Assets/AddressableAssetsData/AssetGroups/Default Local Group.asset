@@ -25,6 +25,16 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 364758fb2d3fd42a0b70a26e98757c42
+    m_Address: Animations/FemaleKiss1.anim
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 821ee21bcafad453b960fce9ed482a50
+    m_Address: Animations/MaleKiss1.anim
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a028a9eaf54f04e54b16d2b0fd1c8aa8
     m_Address: Animations/YmcaDance.anim
     m_ReadOnly: 0
@@ -32,6 +42,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b77e38a03998c4a7cb53a5658fe6bc8f
     m_Address: Animations/SnakeHipHopDance.anim
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c6bdba45a0def427b8b46b0841b151fb
+    m_Address: Animations/FemaleKiss.anim
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
