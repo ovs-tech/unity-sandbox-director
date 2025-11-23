@@ -50,14 +50,16 @@
     overflow: hidden;
 }
 
-/* Ruler background grid */
-.ruler::before {
+/* Note: Unity USS doesn't support ::before pseudo-element.
+   Use background-image directly on .ruler or create a child VisualElement with class "ruler-background" */
+.ruler-background {
     position: absolute;
     width: 100%;
     height: 100%;
     background-image: url('project://database/Assets/Scripts/MiniTimeline/UI/Textures/ruler-grid.png');
     background-repeat: repeat-x;
     opacity: 0.3;
+    pointer-events: none;
 }
 
 /* Hover effects for interactivity */

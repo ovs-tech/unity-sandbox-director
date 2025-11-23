@@ -1,51 +1,50 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using SceneSandbox.Input;
-using Core.UI.FormSubmit;
-using Core.UI.FormSubmit.Fields;
+using UnityEngine.Events;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace SceneSandbox.Core
 {
     /// <summary>
-    /// Transform control modes for enhanced manipulation
+    /// Grid information for snapping objects to a grid
     /// </summary>
-    public enum TransformMode
+    [System.Serializable]
+    public struct GridInfo
     {
-        None,
-        Move,
-        Rotate,
-        Scale
+        public bool enableSnap;
+        public float gridSize;
+        public Vector3 gridOffset;
+
+        public GridInfo(bool enableSnap, float gridSize, Vector3 gridOffset = default)
+        {
+            this.enableSnap = enableSnap;
+            this.gridSize = gridSize;
+            this.gridOffset = gridOffset;
+        }
     }
 
     /// <summary>
-    /// Component for objects that can be dragged in the scene sandbox
-    /// Uses Physics Raycast for selection and interaction instead of UI Event System
-    /// Supports both mouse and touch input, selection, form-based options, and transform controls
+    /// Simplified component for objects in the scene sandbox.
+    /// Handles selection, visual feedback, and integration with SelectionManager.
+    /// Drag & drop placement is handled by SceneSandboxBuilder's ghost preview system.
     /// </summary>
     public class TransformableItem : MonoBehaviour
     {
-        [Header("Drag Settings")]
-        [SerializeField] private bool _canDrag = true;
-        [SerializeField] private bool _snapToGrid = false;
-        [SerializeField] private float _gridSize = 1f;
-        [SerializeField] private LayerMask _dropLayers = -1;
-
         [Header("Visual Feedback")]
-        [SerializeField] private Material _dragMaterial;
         [SerializeField] private Material _hoverMaterial;
-        [SerializeField] private float _dragHeight = 0.5f;
-        [SerializeField] private bool _showDragPreview = true;
+        [SerializeField] private Material _selectedMaterial;
 
         [Header("Transform Control Settings")]
         [SerializeField] private bool _enableTransformControls = true;
-        [SerializeField] private Material _moveMaterial;
-        [SerializeField] private Material _rotateMaterial;
-        [SerializeField] private Material _scaleMaterial;
-        [SerializeField] private float _rotationSensitivity = 2f;
-        [SerializeField] private float _scaleSensitivity = 0.01f;
         [SerializeField] private Vector3 _minScale = new Vector3(0.1f, 0.1f, 0.1f);
         [SerializeField] private Vector3 _maxScale = new Vector3(5f, 5f, 5f);
+        
+        [Header("Transform Step Settings")]
+        [SerializeField] private float _positionStep = 0.1f; // Position units per step
+        [SerializeField] private float _rotationStep = 5f; // Degrees per step
+        [SerializeField] private float _scaleStep = 0.1f; // Scale units per step
 
         [Header("Gizmo Settings")]
         [SerializeField] private bool _showGizmo = true;
@@ -54,14 +53,24 @@ namespace SceneSandbox.Core
         [SerializeField] private Color _gizmoXColor = new Color(1, 0.2f, 0.2f);
         [SerializeField] private Color _gizmoYColor = new Color(0.2f, 1, 0.2f);
         [SerializeField] private Color _gizmoZColor = new Color(0.2f, 0.6f, 1f);
-        [SerializeField] private Color _gizmoHighlight = Color.yellow;
+        [SerializeField] private Color _gizmoHighlightColor = Color.yellow;
+        
+        [Header("Snap Grid Settings")]
+        [SerializeField] private SnapMode _snapMode = SnapMode.Extend;
+        [SerializeField] private bool _enableSnapGrid = false;
+        [SerializeField] private float _snapGridSize = 0.5f;
+
+        [Header("Placement Settings")]
+        [SerializeField] private PivotPoint _pivotPoint = PivotPoint.Center; // Pivot point for placement
+        [SerializeField] private Vector3 _placementOffset = Vector3.zero; // Offset applied during placement
 
         // Transform control state
-        [SerializeField] private TransformMode _currentTransformMode = TransformMode.None;
+        [SerializeField] private TransformModeType _currentTransformModeType = TransformModeType.None;
+        [SerializeField] private TransformAxis _currentTransformAxis = TransformAxis.All;
         private Vector3 _originalScale;
         private Vector3 _originalRotation;
-        private Vector2 _lastInputPosition;
-        private bool _isInTransformMode = false;
+        private Vector3 _originalPosition;
+        private bool _isInTransformModeType = false;
 
         // Gizmo state
         private Transform _gizmoRoot;
@@ -72,49 +81,29 @@ namespace SceneSandbox.Core
         [SerializeField] private string _objectId;
         [SerializeField] private string _objectDataId;
 
-        [Header("Long Press Settings")]
-        [SerializeField] private float _longPressDuration = 0.8f; // Time to trigger long press in seconds
-
         // Components
         private Renderer[] _renderers;
         private Material[] _originalMaterials;
         private Collider _collider;
-        private Rigidbody _rigidbody;
 
-        // Drag state
-        private bool _isDragging;
-        private bool _dragInitiated; // Track if OnBeginDrag was called but not actually dragging yet
+        // State
         private bool _isSelected;
-        private Vector3 _originalPosition;
-        private Vector3 _dragOffset;
         private Camera _camera;
-        private Plane _dragPlane;
-
-        // Long press detection
-        private bool _isLongPressing = false;
-        private bool _longPressTriggered = false;
-        private Coroutine _longPressCoroutine = null;
-        private Vector2 _longPressStartPosition;
-        private float _longPressMoveThreshold = 20f; // Pixels
 
         // Events
-        public System.Action<TransformableItem, Vector3> OnDragStarted;
-        public System.Action<TransformableItem, Vector3> OnDragMoved;
-        public System.Action<TransformableItem, Vector3> OnDragEnded;
-        public System.Action<TransformableItem> OnItemClicked;
-        public System.Action<TransformableItem> OnItemSelected;
         public System.Action<TransformableItem, bool> OnSelectionChanged;
-        public System.Action<TransformableItem, Vector2> OnItemLongPressed;
+        public System.Action<TransformableItem, TransformModeType> OnTransformModeTypeChanged;
 
-        public System.Action<TransformableItem, TransformMode> OnTransformModeChanged;
+        [Header("Unity Events")]
+        [SerializeField] private UnityEvent _onSelectItem = new UnityEvent();
+        [SerializeField] private UnityEvent _onDeselectItem = new UnityEvent();
+
+        // Public accessors for Unity Events
+        public UnityEvent OnSelectItem => _onSelectItem;
+        public UnityEvent OnDeselectItem => _onDeselectItem;
+
 
         // Properties
-        public bool CanDrag
-        {
-            get => _canDrag;
-            set => _canDrag = value;
-        }
-
         public string ObjectId
         {
             get => _objectId;
@@ -127,47 +116,77 @@ namespace SceneSandbox.Core
             set => _objectDataId = value;
         }
 
-        public bool IsDragging => _isDragging;
         public bool IsSelected => _isSelected;
-        public bool IsLongPressing => _isLongPressing;
-        public TransformMode CurrentTransformMode => _currentTransformMode;
-        public bool IsInTransformMode => _isInTransformMode;
+        public TransformModeType CurrentTransformModeType => _currentTransformModeType;
+        public TransformAxis CurrentTransformAxis => _currentTransformAxis;
+        public bool IsInTransformModeType => _isInTransformModeType;
         public bool EnableTransformControls
         {
             get => _enableTransformControls;
             set => _enableTransformControls = value;
         }
+        
+        public SnapMode SnapMode
+        {
+            get => _snapMode;
+            set => _snapMode = value;
+        }
+        
+        public bool EnableSnapGrid
+        {
+            get => _enableSnapGrid;
+            set => _enableSnapGrid = value;
+        }
+        
+        public float SnapGridSize
+        {
+            get => _snapGridSize;
+            set => _snapGridSize = value;
+        }
+
+        public PivotPoint PivotPoint
+        {
+            get => _pivotPoint;
+            set => _pivotPoint = value;
+        }
+
+        public Vector3 PlacementOffset
+        {
+            get => _placementOffset;
+            set => _placementOffset = value;
+        }
 
         private void Awake()
         {
-            Debug.Log($"[TransformableItem] Awake called for {gameObject.name}");
-            
             InitializeComponents();
+        }
+
+        private void OnEnable()
+        {
+            _camera = Camera.main ?? FindFirstObjectByType<Camera>();
+
+            if (string.IsNullOrEmpty(_objectId))
+            {
+                _objectId = System.Guid.NewGuid().ToString();
+            }
             
-            // Check collider for raycast interaction
-            if (_collider == null)
+            // Initialize gizmo if transform controls are enabled
+            if (_enableTransformControls && _showGizmo)
             {
-                Debug.LogWarning($"[TransformableItem] No collider on {gameObject.name}!");
+                InitializeGizmo();
             }
-            else
-            {
-                Debug.Log($"[TransformableItem] Collider found: {_collider.GetType().Name}, enabled: {_collider.enabled}");
-            }
+        }
+
+        private void OnDisable()
+        {
+            // Clean up gizmo when disabled
+            DestroyGizmo();
         }
 
         private void OnDestroy()
         {
-            // Clean up long press coroutine
-            StopLongPressDetection();
-            
             // Clean up gizmo
             DestroyGizmo();
-            
-            // Unregister from selection manager (handles both selection and transform control)
-            if (TransformableSelectionManager.Instance != null)
-            {
-                TransformableSelectionManager.Instance.UnregisterDraggableItem(this);
-            }
         }
 
         private void Update()
@@ -175,44 +194,10 @@ namespace SceneSandbox.Core
             UpdateGizmo();
         }
 
-        private void Start()
-        {
-            Debug.Log($"[TransformableItem] Start called for {gameObject.name}");
-            
-            _camera = Camera.main ?? FindFirstObjectByType<Camera>();
-
-            if (_camera == null)
-            {
-                Debug.LogError($"[TransformableItem] No camera found for {gameObject.name}!");
-            }
-            else
-            {
-                Debug.Log($"[TransformableItem] Camera found: {_camera.name}");
-            }
-
-            if (string.IsNullOrEmpty(_objectId))
-            {
-                _objectId = System.Guid.NewGuid().ToString();
-            }
-
-            // Register with selection manager (handles both selection and transform control)
-            Debug.Log($"[TransformableItem] Registering {gameObject.name} with SelectionManager");
-            TransformableSelectionManager.Instance.RegisterDraggableItem(this);
-            
-            // Initialize gizmo if transform controls are enabled
-            if (_enableTransformControls && _showGizmo)
-            {
-                InitializeGizmo();
-            }
-            
-            Debug.Log($"[TransformableItem] Initialization complete for {gameObject.name}");
-        }
-
         private void InitializeComponents()
         {
             _renderers = GetComponentsInChildren<Renderer>();
             _collider = GetComponent<Collider>();
-            _rigidbody = GetComponent<Rigidbody>();
 
             // Store original materials
             if (_renderers != null && _renderers.Length > 0)
@@ -231,272 +216,13 @@ namespace SceneSandbox.Core
             }
         }
 
-        #region Raycast Interaction Methods
-
-        /// <summary>
-        /// Handle click from raycast (replaces OnPointerClick)
-        /// </summary>
-        public void OnRaycastClick(Vector2 screenPosition, int clickCount = 1, bool isRightClick = false)
-        {
-            
-            // Handle right click for options form
-            if (isRightClick)
-            {
-                ShowOptionsForm(screenPosition, false);
-                return;
-            }
-            
-            // Don't handle click if long press was triggered or if we're dragging
-            if (!_longPressTriggered && !_isDragging)
-            {
-                OnItemClicked?.Invoke(this);
-
-                // Handle selection on single click using selection manager
-                TransformableSelectionManager.Instance.SelectItem(this);
-
-                if (clickCount >= 2)
-                {
-                    OnItemSelected?.Invoke(this);
-                }
-            }
-
-            // Reset long press triggered flag
-            _longPressTriggered = false;
-        }
-
-        /// <summary>
-        /// Handle drag start from raycast (replaces OnBeginDrag)
-        /// </summary>
-        public void OnRaycastDragStart(Vector2 screenPosition)
-        {
-            if (!_canDrag) 
-            {
-                return;
-            }
-
-            // Check if we should handle transform mode instead of regular drag
-            if (_isInTransformMode && _currentTransformMode != TransformMode.None)
-            {
-                StartTransformControl(screenPosition);
-                return;
-            }
-            
-            // Mark drag as initiated but don't set _isDragging yet
-            // This allows OnRaycastClick to still work if there's no actual movement
-            _dragInitiated = true;
-            _originalPosition = transform.position;
-            
-            // Calculate drag offset for later use
-            Ray ray = _camera.ScreenPointToRay(screenPosition);
-            _dragPlane = new Plane(Vector3.up, transform.position);
-            
-            if (_dragPlane.Raycast(ray, out float distance))
-            {
-                Vector3 worldPosition = ray.GetPoint(distance);
-                _dragOffset = transform.position - worldPosition;
-            }
-        }
-
-        /// <summary>
-        /// Handle drag continue from raycast (replaces OnDrag)
-        /// </summary>
-        public void OnRaycastDrag(Vector2 screenPosition)
-        {
-            if (!_canDrag) return;
-
-            // Handle transform mode
-            if (_isInTransformMode && _currentTransformMode != TransformMode.None)
-            {
-                ContinueTransformControl(screenPosition);
-                return;
-            }
-
-            // Start actual dragging on first OnRaycastDrag call after OnRaycastDragStart
-            if (_dragInitiated && !_isDragging)
-            {
-                _isDragging = true;
-                _dragInitiated = false;
-                
-                // Visual feedback
-                SetDragMaterial();
-                
-                // Disable physics during drag
-                if (_rigidbody != null)
-                {
-                    _rigidbody.isKinematic = true;
-                }
-                
-                OnDragStarted?.Invoke(this, _originalPosition);
-            }
-
-            // Handle regular drag
-            if (_isDragging)
-            {
-                ContinueDrag(screenPosition);
-            }
-        }
-
-        /// <summary>
-        /// Handle drag end from raycast (replaces OnEndDrag)
-        /// </summary>
-        public void OnRaycastDragEnd(Vector2 screenPosition)
-        {
-            if (!_canDrag) return;
-
-            // Handle transform mode
-            if (_isInTransformMode && _currentTransformMode != TransformMode.None)
-            {
-                EndTransformControl(screenPosition);
-                return;
-            }
-
-            // Reset drag initiated flag
-            _dragInitiated = false;
-
-            // Handle regular drag
-            if (_isDragging)
-            {
-                EndDrag(screenPosition);
-            }
-        }
-
-        /// <summary>
-        /// Handle pointer down from raycast (for long press detection)
-        /// </summary>
-        public void OnRaycastPointerDown(Vector2 screenPosition, bool isLeftButton = true)
-        {
-            if (isLeftButton)
-            {
-                StartLongPressDetection(screenPosition);
-            }
-        }
-
-        /// <summary>
-        /// Handle pointer up from raycast (for long press detection)
-        /// </summary>
-        public void OnRaycastPointerUp(Vector2 screenPosition)
-        {
-            StopLongPressDetection();
-            
-            if (_longPressTriggered)
-            {
-                // Reset long press triggered flag for next interaction
-                _longPressTriggered = false;
-            }
-        }
-
-        #endregion
-
-        /// <summary>
-        /// Start dragging the item programmatically
-        /// </summary>
-        public void StartDrag(Vector2 screenPosition)
-        {
-            
-            if (!_canDrag || _isDragging) 
-            {
-                return;
-            }
-
-            _isDragging = true;
-            _dragInitiated = false; // Clear initiated flag since we're now dragging
-            _originalPosition = transform.position;
-
-            // Calculate drag offset
-            Ray ray = _camera.ScreenPointToRay(screenPosition);
-            _dragPlane = new Plane(Vector3.up, transform.position);
-
-            if (_dragPlane.Raycast(ray, out float distance))
-            {
-                Vector3 worldPosition = ray.GetPoint(distance);
-                _dragOffset = transform.position - worldPosition;
-            }
-
-            // Visual feedback
-            SetDragMaterial();
-
-            // Disable physics during drag
-            if (_rigidbody != null)
-            {
-                _rigidbody.isKinematic = true;
-            }
-
-            OnDragStarted?.Invoke(this, _originalPosition);
-        }
-
-        /// <summary>
-        /// Continue dragging the item
-        /// </summary>
-        public void ContinueDrag(Vector2 screenPosition)
-        {
-            if (!_isDragging || _camera == null) return;
-
-            Ray ray = _camera.ScreenPointToRay(screenPosition);
-
-            if (_dragPlane.Raycast(ray, out float distance))
-            {
-                Vector3 targetPosition = ray.GetPoint(distance) + _dragOffset;
-
-                // Apply drag height offset
-                targetPosition.y += _dragHeight;
-
-                // Snap to grid if enabled
-                if (_snapToGrid)
-                {
-                    targetPosition = SnapToGrid(targetPosition);
-                }
-
-                transform.position = targetPosition;
-                OnDragMoved?.Invoke(this, targetPosition);
-            }
-        }
-
-        /// <summary>
-        /// End dragging the item
-        /// </summary>
-        public void EndDrag(Vector2 screenPosition)
-        {
-            
-            if (!_isDragging) return;
-
-            Vector3 finalPosition = transform.position;
-
-            // Check for valid drop position
-            if (IsValidDropPosition(finalPosition))
-            {
-                // Snap to surface
-                Vector3 snappedPosition = GetSurfacePosition(finalPosition);
-                transform.position = snappedPosition;
-                finalPosition = snappedPosition;
-            }
-            else
-            {
-                // Return to original position if invalid drop
-                transform.position = _originalPosition;
-                finalPosition = _originalPosition;
-            }
-
-            _isDragging = false;
-
-            // Restore visual feedback
-            RestoreOriginalMaterial();
-
-            // Re-enable physics
-            if (_rigidbody != null)
-            {
-                _rigidbody.isKinematic = false;
-            }
-
-            OnDragEnded?.Invoke(this, finalPosition);
-        }
+        #region Visual Feedback
 
         /// <summary>
         /// Set hover visual feedback
         /// </summary>
         public void SetHoverState(bool isHovered)
         {
-            if (_isDragging) return;
-
             if (isHovered && _hoverMaterial != null)
             {
                 SetMaterial(_hoverMaterial);
@@ -512,37 +238,41 @@ namespace SceneSandbox.Core
         /// </summary>
         public void SetSelectedState(bool isSelected)
         {
-            
-
-            // Store the selection state regardless of current drag state
+            // Store the selection state
             _isSelected = isSelected;
-            
-            // Don't change visual state if currently dragging - drag material takes priority
-            if (_isDragging) return;
+
+            // Invoke Unity Events
+            if (isSelected)
+            {
+                _onSelectItem?.Invoke();
+            }
+            else
+            {
+                _onDeselectItem?.Invoke();
+            }
 
             // Don't override transform mode visuals
-            if (_isInTransformMode && _currentTransformMode != TransformMode.None)
+            if (_isInTransformModeType && _currentTransformModeType != TransformModeType.None)
             {
                 UpdateTransformVisuals();
                 return;
             }
 
             // Update visual material feedback for selection
-            if (isSelected && _hoverMaterial != null)
+            if (isSelected)
             {
-                SetMaterial(_hoverMaterial);
+                if (_selectedMaterial != null)
+                {
+                    SetMaterial(_selectedMaterial);
+                }
+                else if (_hoverMaterial != null)
+                {
+                    SetMaterial(_hoverMaterial);
+                }
             }
-            else if (!isSelected)
+            else
             {
                 RestoreOriginalMaterial();
-            }
-        }
-
-        private void SetDragMaterial()
-        {
-            if (_dragMaterial != null)
-            {
-                SetMaterial(_dragMaterial);
             }
         }
 
@@ -561,69 +291,30 @@ namespace SceneSandbox.Core
             if (_renderers == null || _originalMaterials == null) return;
 
             // If in transform mode, show transform mode material instead
-            if (_isInTransformMode && _currentTransformMode != TransformMode.None)
+            if (_isInTransformModeType && _currentTransformModeType != TransformModeType.None)
             {
                 UpdateTransformVisuals();
                 return;
             }
 
             // If the item is selected, show selection material instead of original
-            if (_isSelected && _hoverMaterial != null)
+            if (_isSelected)
             {
-                SetMaterial(_hoverMaterial);
-            }
-            else
-            {
-                // Restore original materials
-                for (int i = 0; i < _renderers.Length && i < _originalMaterials.Length; i++)
+                if (_selectedMaterial != null)
                 {
-                    _renderers[i].material = _originalMaterials[i];
+                    SetMaterial(_selectedMaterial);
                 }
-            }
-        }
-
-        private Vector3 SnapToGrid(Vector3 position)
-        {
-            float snappedX = Mathf.Round(position.x / _gridSize) * _gridSize;
-            float snappedZ = Mathf.Round(position.z / _gridSize) * _gridSize;
-            return new Vector3(snappedX, position.y, snappedZ);
-        }
-
-        private bool IsValidDropPosition(Vector3 position)
-        {
-            // Check if the position is within valid drop zones
-            // For now, just check if it's not too far from the original position
-            float maxDistance = 50f; // Configurable max drag distance
-            return Vector3.Distance(_originalPosition, position) <= maxDistance;
-        }
-
-        private Vector3 GetSurfacePosition(Vector3 position)
-        {
-            // Cast down to find the surface to place the object on
-            if (Physics.Raycast(position + Vector3.up * 10f, Vector3.down, out RaycastHit hit, 20f, _dropLayers))
-            {
-                return hit.point;
+                else if (_hoverMaterial != null)
+                {
+                    SetMaterial(_hoverMaterial);
+                }
+                return;
             }
 
-            // If no surface found, just remove the drag height offset
-            return new Vector3(position.x, position.y - _dragHeight, position.z);
-        }
-
-        /// <summary>
-        /// Cancel current drag operation
-        /// </summary>
-        public void CancelDrag()
-        {
-            if (!_isDragging) return;
-
-            transform.position = _originalPosition;
-            _isDragging = false;
-
-            RestoreOriginalMaterial();
-
-            if (_rigidbody != null)
+            // Restore original materials
+            for (int i = 0; i < _renderers.Length && i < _originalMaterials.Length; i++)
             {
-                _rigidbody.isKinematic = false;
+                _renderers[i].material = _originalMaterials[i];
             }
         }
 
@@ -640,319 +331,6 @@ namespace SceneSandbox.Core
             }
         }
 
-        #region Long Press Detection
-
-        /// <summary>
-        /// Start long press detection
-        /// </summary>
-        private void StartLongPressDetection(Vector2 screenPosition)
-        {
-            if (_longPressCoroutine != null)
-                StopCoroutine(_longPressCoroutine);
-
-            _isLongPressing = true;
-            _longPressTriggered = false;
-            _longPressStartPosition = screenPosition;
-            _longPressCoroutine = StartCoroutine(LongPressCoroutine(screenPosition));
-        }
-
-        /// <summary>
-        /// Stop long press detection
-        /// </summary>
-        private void StopLongPressDetection()
-        {
-            if (_longPressCoroutine != null)
-            {
-                StopCoroutine(_longPressCoroutine);
-                _longPressCoroutine = null;
-            }
-            _isLongPressing = false;
-        }
-
-        /// <summary>
-        /// Check if current pointer position is still within long press threshold
-        /// </summary>
-        private bool IsWithinLongPressThreshold(Vector2 currentScreenPosition)
-        {
-            return Vector2.Distance(_longPressStartPosition, currentScreenPosition) <= _longPressMoveThreshold;
-        }
-
-        /// <summary>
-        /// Coroutine that handles long press timing
-        /// </summary>
-        private IEnumerator LongPressCoroutine(Vector2 screenPosition)
-        {
-            float elapsedTime = 0f;
-
-            while (elapsedTime < _longPressDuration)
-            {
-                yield return null;
-                elapsedTime += Time.unscaledDeltaTime;
-
-                // Check if we moved too far
-                if (!_isLongPressing)
-                {
-                    yield break;
-                }
-            }
-
-            // Long press triggered
-            if (_isLongPressing && !_longPressTriggered)
-            {
-                HandleLongPress(screenPosition);
-            }
-        }
-
-        /// <summary>
-        /// Handle long press event
-        /// </summary>
-        private void HandleLongPress(Vector2 screenPosition)
-        {
-            _longPressTriggered = true;
-            OnItemLongPressed?.Invoke(this, screenPosition);
-
-            // Show options form on long press
-            ShowOptionsForm(screenPosition, true);
-        }
-
-        #endregion
-
-        #region Options Form
-
-        /// <summary>
-        /// Show options form for this draggable item using FormSubmitPanel
-        /// </summary>
-        public void ShowOptionsForm(Vector2 screenPosition, bool fromLongPress = false)
-        {
-            var fieldDefinitions = new List<FormFieldDefinition>();
-
-            // Create form fields for the draggable item options
-            
-            // Selection actions
-            if (!_isSelected)
-            {
-                fieldDefinitions.Add(new FormFieldDefinition("select", "Select Item", "button", "Select")
-                {
-                    options = new Dictionary<string, object> { ["action"] = "select" }
-                });
-            }
-            else
-            {
-                fieldDefinitions.Add(new FormFieldDefinition("deselect", "Deselect Item", "button", "Deselect")
-                {
-                    options = new Dictionary<string, object> { ["action"] = "deselect" }
-                });
-            }
-
-            // Edit actions
-            fieldDefinitions.Add(new FormFieldDefinition("copy", "Copy Item", "button", "Copy")
-            {
-                options = new Dictionary<string, object> { ["action"] = "copy" }
-            });
-
-            fieldDefinitions.Add(new FormFieldDefinition("delete", "Delete Item", "button", "Delete")
-            {
-                options = new Dictionary<string, object> { ["action"] = "delete" }
-            });
-
-            // Position actions
-            fieldDefinitions.Add(new FormFieldDefinition("resetPosition", "Reset Position", "button", "Reset Position")
-            {
-                options = new Dictionary<string, object> { ["action"] = "resetPosition" }
-            });
-
-            fieldDefinitions.Add(new FormFieldDefinition("resetTransform", "Reset Transform", "button", "Reset All")
-            {
-                options = new Dictionary<string, object> { ["action"] = "resetTransform" }
-            });
-
-            // Transform control actions (only if enabled)
-            if (_enableTransformControls)
-            {
-                // Current mode display
-                string currentModeText = _currentTransformMode == TransformMode.None ? "None" : _currentTransformMode.ToString();
-                fieldDefinitions.Add(new FormFieldDefinition("currentMode", $"Current Mode: {currentModeText}", "info"));
-
-                if (_currentTransformMode == TransformMode.None)
-                {
-                    fieldDefinitions.Add(new FormFieldDefinition("enableMove", "Enable Move Mode", "button", "Move")
-                    {
-                        options = new Dictionary<string, object> { ["action"] = "enableMove" }
-                    });
-                    fieldDefinitions.Add(new FormFieldDefinition("enableRotate", "Enable Rotate Mode", "button", "Rotate")
-                    {
-                        options = new Dictionary<string, object> { ["action"] = "enableRotate" }
-                    });
-                    fieldDefinitions.Add(new FormFieldDefinition("enableScale", "Enable Scale Mode", "button", "Scale")
-                    {
-                        options = new Dictionary<string, object> { ["action"] = "enableScale" }
-                    });
-                }
-                else
-                {
-                    fieldDefinitions.Add(new FormFieldDefinition("disableTransform", "Exit Transform Mode", "button", "Exit")
-                    {
-                        options = new Dictionary<string, object> { ["action"] = "disableTransform" }
-                    });
-                }
-            }
-
-            // Lock/Unlock toggle
-            string lockText = _canDrag ? "Lock Item" : "Unlock Item";
-            fieldDefinitions.Add(new FormFieldDefinition("toggleLock", lockText, "button", lockText)
-            {
-                options = new Dictionary<string, object> { ["action"] = "toggleLock" }
-            });
-
-            // Transform controls toggle
-            string transformText = _enableTransformControls ? "Disable Transform Controls" : "Enable Transform Controls";
-            fieldDefinitions.Add(new FormFieldDefinition("toggleTransformControls", transformText, "button", transformText)
-            {
-                options = new Dictionary<string, object> { ["action"] = "toggleTransformControls" }
-            });
-
-            #if UNITY_EDITOR
-            fieldDefinitions.Add(new FormFieldDefinition("debugInfo", "Debug Info", "button", "Show Debug")
-            {
-                options = new Dictionary<string, object> { ["action"] = "debugInfo" }
-            });
-            #endif
-
-            // Show the form
-            string formTitle = $"Options: {name}";
-            FormSubmitPanel.Instance.Show(formTitle, fieldDefinitions, HandleOptionsFormSubmit, null);
-        }
-
-        /// <summary>
-        /// Handle form submission from the options form
-        /// </summary>
-        private void HandleOptionsFormSubmit(Dictionary<string, object> formData)
-        {
-            if (formData.ContainsKey("action"))
-            {
-                string action = formData["action"].ToString();
-                
-                switch (action)
-                {
-                    case "select":
-                        SelectItem();
-                        break;
-                    case "deselect":
-                        DeselectItem();
-                        break;
-                    case "copy":
-                        CopyItem();
-                        break;
-                    case "delete":
-                        DeleteItem();
-                        break;
-                    case "resetPosition":
-                        ResetPosition();
-                        break;
-                    case "resetTransform":
-                        ResetTransform();
-                        break;
-                    case "toggleLock":
-                        ToggleLock();
-                        break;
-                    case "enableMove":
-                        SetTransformMode(TransformMode.Move);
-                        break;
-                    case "enableRotate":
-                        SetTransformMode(TransformMode.Rotate);
-                        break;
-                    case "enableScale":
-                        SetTransformMode(TransformMode.Scale);
-                        break;
-                    case "disableTransform":
-                        SetTransformMode(TransformMode.None);
-                        break;
-                    case "toggleTransformControls":
-                        ToggleTransformControls();
-                        break;
-                    case "debugInfo":
-                        #if UNITY_EDITOR
-                        LogDebugInfo();
-                        #endif
-                        break;
-                    default:
-                        Debug.LogWarning($"Unknown action: {action}");
-                        break;
-                }
-            }
-        }
-
-        #endregion
-
-        #region Item Actions
-
-        private void SelectItem()
-        {
-            // Use selection manager to handle selection
-            // This will trigger the OnSelectionChanged event and update visual state
-            TransformableSelectionManager.Instance.SelectItem(this);
-        }
-
-        private void DeselectItem()
-        {
-            // Use selection manager to handle deselection
-            // This will trigger the OnSelectionChanged event and update visual state
-            TransformableSelectionManager.Instance.DeselectItem(this);
-        }
-
-        private void CopyItem()
-        {
-            Debug.Log($"Copying item: {name}");
-            // In a full implementation, this would copy the item to a clipboard or duplicate it
-        }
-
-        private void DeleteItem()
-        {
-            Debug.Log($"Deleting item: {name}");
-            
-            // Notify about deletion
-            OnSelectionChanged?.Invoke(this, false);
-            
-            // Destroy the game object
-            if (Application.isPlaying)
-            {
-                Destroy(gameObject);
-            }
-            else
-            {
-                DestroyImmediate(gameObject);
-            }
-        }
-
-        private void ResetPosition()
-        {
-            if (_originalPosition != Vector3.zero)
-            {
-                transform.position = _originalPosition;
-                Debug.Log($"Reset position for item: {name}");
-            }
-        }
-
-        private void ToggleLock()
-        {
-            _canDrag = !_canDrag;
-            string state = _canDrag ? "unlocked" : "locked";
-            Debug.Log($"Item {name} is now {state}");
-        }
-
-        #if UNITY_EDITOR
-        private void LogDebugInfo()
-        {
-            Debug.Log($"DraggableItem Debug Info for {name}:\n" +
-                     $"  ObjectId: {_objectId}\n" +
-                     $"  ObjectDataId: {_objectDataId}\n" +
-                     $"  CanDrag: {_canDrag}\n" +
-                     $"  IsDragging: {_isDragging}\n" +
-                     $"  IsSelected: {_isSelected}\n" +
-                     $"  Position: {transform.position}");
-        }
-        #endif
-
         #endregion
 
         #region Transform Control Methods
@@ -960,11 +338,19 @@ namespace SceneSandbox.Core
         /// <summary>
         /// Set the current transform mode
         /// </summary>
-        public void SetTransformMode(TransformMode mode)
+        public void SetTransformModeType(TransformModeType mode)
         {
-            TransformMode previousMode = _currentTransformMode;
-            _currentTransformMode = mode;
-            _isInTransformMode = mode != TransformMode.None;
+            TransformModeType previousMode = _currentTransformModeType;
+            _currentTransformModeType = mode;
+            _isInTransformModeType = mode != TransformModeType.None;
+
+            Debug.Log($"[TransformableItem] Transform mode changed to: {mode}, isInMode: {_isInTransformModeType}, isSelected: {_isSelected}");
+
+            // Reset axis to All when changing to Position mode or None
+            if (mode == TransformModeType.Position || mode == TransformModeType.None)
+            {
+                _currentTransformAxis = TransformAxis.All;
+            }
 
             // Update visual feedback
             UpdateTransformVisuals();
@@ -973,7 +359,7 @@ namespace SceneSandbox.Core
             UpdateGizmoVisuals();
 
             // Store original values when entering transform mode
-            if (mode != TransformMode.None && previousMode == TransformMode.None)
+            if (mode != TransformModeType.None && previousMode == TransformModeType.None)
             {
                 _originalPosition = transform.position;
                 _originalScale = transform.localScale;
@@ -981,128 +367,33 @@ namespace SceneSandbox.Core
             }
 
             // Restore original material when exiting transform mode
-            if (mode == TransformMode.None && previousMode != TransformMode.None)
+            if (mode == TransformModeType.None && previousMode != TransformModeType.None)
             {
                 RestoreOriginalMaterial();
             }
 
-            OnTransformModeChanged?.Invoke(this, mode);
-            Debug.Log($"Transform mode changed to: {mode}");
+            OnTransformModeTypeChanged?.Invoke(this, mode);
         }
 
         /// <summary>
-        /// Start transform control operation
+        /// Set the current transform axis (X, Y, Z, All)
+        /// Only applicable for Rotation and Scale modes
         /// </summary>
-        private void StartTransformControl(Vector2 screenPosition)
+        public void SetTransformAxis(TransformAxis axis)
         {
-            if (_currentTransformMode == TransformMode.None) return;
-
-            _lastInputPosition = screenPosition;
-            
-            // Store starting values
-            switch (_currentTransformMode)
+            // Only allow axis change for Position, Rotation and Scale modes
+            if (_currentTransformModeType == TransformModeType.None)
             {
-                case TransformMode.Move:
-                    _originalPosition = transform.position;
-                    break;
-                case TransformMode.Rotate:
-                    _originalRotation = transform.eulerAngles;
-                    break;
-                case TransformMode.Scale:
-                    _originalScale = transform.localScale;
-                    break;
+                _currentTransformAxis = TransformAxis.All;
+                return;
             }
 
-            Debug.Log($"Started {_currentTransformMode} control");
-        }
-
-        /// <summary>
-        /// Continue transform control operation
-        /// </summary>
-        private void ContinueTransformControl(Vector2 screenPosition)
-        {
-            if (_currentTransformMode == TransformMode.None) return;
-
-            Vector2 deltaInput = screenPosition - _lastInputPosition;
-
-            switch (_currentTransformMode)
-            {
-                case TransformMode.Move:
-                    HandleMoveControl(deltaInput);
-                    break;
-                case TransformMode.Rotate:
-                    HandleRotateControl(deltaInput);
-                    break;
-                case TransformMode.Scale:
-                    HandleScaleControl(deltaInput);
-                    break;
-            }
-
-            _lastInputPosition = screenPosition;
-        }
-
-        /// <summary>
-        /// End transform control operation
-        /// </summary>
-        private void EndTransformControl(Vector2 screenPosition)
-        {
-            if (_currentTransformMode == TransformMode.None) return;
-
-            Debug.Log($"Ended {_currentTransformMode} control");
+            _currentTransformAxis = axis;
             
-            // Optional: Auto-exit transform mode after operation
-            // SetTransformMode(TransformMode.None);
-        }
-
-        /// <summary>
-        /// Handle move control input
-        /// </summary>
-        private void HandleMoveControl(Vector2 deltaInput)
-        {
-            if (_camera == null) return;
-
-            // Convert screen delta to world movement
-            float movementScale = 0.01f; // Adjust sensitivity
-            Vector3 cameraRight = _camera.transform.right;
-            Vector3 cameraUp = Vector3.up; // Keep movement on horizontal plane
+            // Update gizmo to highlight selected axis
+            UpdateGizmoVisuals();
             
-            Vector3 movement = (cameraRight * deltaInput.x + cameraUp * deltaInput.y) * movementScale;
-            transform.position += movement;
-        }
-
-        /// <summary>
-        /// Handle rotation control input
-        /// </summary>
-        private void HandleRotateControl(Vector2 deltaInput)
-        {
-            // Convert screen delta to rotation
-            float rotationX = -deltaInput.y * _rotationSensitivity; // Pitch (around X axis)
-            float rotationY = deltaInput.x * _rotationSensitivity;  // Yaw (around Y axis)
-
-            // Apply rotation relative to current rotation
-            Vector3 currentRotation = transform.eulerAngles;
-            currentRotation.x += rotationX;
-            currentRotation.y += rotationY;
-
-            transform.eulerAngles = currentRotation;
-        }
-
-        /// <summary>
-        /// Handle scale control input
-        /// </summary>
-        private void HandleScaleControl(Vector2 deltaInput)
-        {
-            // Use Y delta for uniform scaling, or both X and Y for non-uniform
-            float scaleChange = deltaInput.y * _scaleSensitivity;
-            
-            Vector3 newScale = transform.localScale + Vector3.one * scaleChange;
-            
-            // Clamp to min/max values
-            newScale.x = Mathf.Clamp(newScale.x, _minScale.x, _maxScale.x);
-            newScale.y = Mathf.Clamp(newScale.y, _minScale.y, _maxScale.y);
-            newScale.z = Mathf.Clamp(newScale.z, _minScale.z, _maxScale.z);
-            
-            transform.localScale = newScale;
+            Debug.Log($"[TransformableItem] Axis set to: {axis}");
         }
 
         /// <summary>
@@ -1110,28 +401,17 @@ namespace SceneSandbox.Core
         /// </summary>
         private void UpdateTransformVisuals()
         {
-            if (_isDragging) return; // Don't override drag material
-
-            switch (_currentTransformMode)
+            switch (_currentTransformModeType)
             {
-                case TransformMode.None:
+                case TransformModeType.None:
                     RestoreOriginalMaterial();
                     break;
-                case TransformMode.Move:
-                    if (_moveMaterial != null)
-                        SetMaterial(_moveMaterial);
-                    else if (_dragMaterial != null)
-                        SetMaterial(_dragMaterial);
-                    break;
-                case TransformMode.Rotate:
-                    if (_rotateMaterial != null)
-                        SetMaterial(_rotateMaterial);
-                    else if (_hoverMaterial != null)
-                        SetMaterial(_hoverMaterial);
-                    break;
-                case TransformMode.Scale:
-                    if (_scaleMaterial != null)
-                        SetMaterial(_scaleMaterial);
+                case TransformModeType.Position:
+                case TransformModeType.Rotation:
+                case TransformModeType.Scale:
+                    // Use hover material or selected material for transform mode visual feedback
+                    if (_selectedMaterial != null)
+                        SetMaterial(_selectedMaterial);
                     else if (_hoverMaterial != null)
                         SetMaterial(_hoverMaterial);
                     break;
@@ -1152,7 +432,346 @@ namespace SceneSandbox.Core
             if (_originalRotation != Vector3.zero)
                 transform.eulerAngles = _originalRotation;
             
-            Debug.Log($"Reset transform for item: {name}");
+            // Reset transform for item
+        }
+
+        /// <summary>
+        /// Convert PivotPoint enum to local Vector3 offset based on object bounds
+        /// </summary>
+        /// <param name="pivotPoint">Pivot point enum</param>
+        /// <returns>Local space offset for the pivot point</returns>
+        private Vector3 GetPivotPointOffset(PivotPoint pivotPoint)
+        {
+            // Calculate bounds in LOCAL SPACE to handle rotated objects correctly
+            Bounds localBounds = new Bounds(Vector3.zero, Vector3.zero);
+            bool hasBounds = false;
+
+            // Get local bounds from renderers
+            if (_renderers != null && _renderers.Length > 0)
+            {
+                foreach (var renderer in _renderers)
+                {
+                    if (renderer != null)
+                    {
+                        // Get mesh bounds in local space
+                        if (renderer is MeshRenderer meshRenderer)
+                        {
+                            var meshFilter = renderer.GetComponent<MeshFilter>();
+                            if (meshFilter != null && meshFilter.sharedMesh != null)
+                            {
+                                Bounds meshBounds = meshFilter.sharedMesh.bounds;
+                                
+                                // Transform mesh bounds to this object's local space
+                                Vector3 meshLocalCenter = transform.InverseTransformPoint(
+                                    renderer.transform.TransformPoint(meshBounds.center)
+                                );
+                                Vector3 meshLocalSize = new Vector3(
+                                    meshBounds.size.x * renderer.transform.lossyScale.x / transform.lossyScale.x,
+                                    meshBounds.size.y * renderer.transform.lossyScale.y / transform.lossyScale.y,
+                                    meshBounds.size.z * renderer.transform.lossyScale.z / transform.lossyScale.z
+                                );
+                                
+                                Bounds transformedBounds = new Bounds(meshLocalCenter, meshLocalSize);
+                                
+                                if (!hasBounds)
+                                {
+                                    localBounds = transformedBounds;
+                                    hasBounds = true;
+                                }
+                                else
+                                {
+                                    localBounds.Encapsulate(transformedBounds);
+                                }
+                            }
+                        }
+                        else if (renderer is SkinnedMeshRenderer skinnedRenderer)
+                        {
+                            // For skinned mesh, use local bounds
+                            if (!hasBounds)
+                            {
+                                localBounds = skinnedRenderer.localBounds;
+                                hasBounds = true;
+                            }
+                            else
+                            {
+                                localBounds.Encapsulate(skinnedRenderer.localBounds);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // If no bounds from renderers, try collider
+            if (!hasBounds && _collider != null)
+            {
+                if (_collider is BoxCollider boxCollider)
+                {
+                    localBounds = new Bounds(boxCollider.center, boxCollider.size);
+                    hasBounds = true;
+                }
+                else if (_collider is SphereCollider sphereCollider)
+                {
+                    float diameter = sphereCollider.radius * 2f;
+                    localBounds = new Bounds(sphereCollider.center, new Vector3(diameter, diameter, diameter));
+                    hasBounds = true;
+                }
+                else if (_collider is CapsuleCollider capsuleCollider)
+                {
+                    float diameter = capsuleCollider.radius * 2f;
+                    localBounds = new Bounds(capsuleCollider.center, new Vector3(diameter, capsuleCollider.height, diameter));
+                    hasBounds = true;
+                }
+            }
+
+            // If still no bounds, return zero
+            if (!hasBounds)
+            {
+                return Vector3.zero;
+            }
+
+            // Get local min, max, and center
+            Vector3 localMin = localBounds.min;
+            Vector3 localMax = localBounds.max;
+            Vector3 localCenter = localBounds.center;
+
+            // Calculate pivot offset based on enum
+            switch (pivotPoint)
+            {
+                // Center
+                case PivotPoint.Center:
+                    return localCenter;
+
+                // Face Centers
+                case PivotPoint.FrontCenter:
+                    return new Vector3(localCenter.x, localCenter.y, localMax.z);
+                case PivotPoint.BackCenter:
+                    return new Vector3(localCenter.x, localCenter.y, localMin.z);
+                case PivotPoint.LeftCenter:
+                    return new Vector3(localMin.x, localCenter.y, localCenter.z);
+                case PivotPoint.RightCenter:
+                    return new Vector3(localMax.x, localCenter.y, localCenter.z);
+                case PivotPoint.TopCenter:
+                    return new Vector3(localCenter.x, localMax.y, localCenter.z);
+                case PivotPoint.BottomCenter:
+                    return new Vector3(localCenter.x, localMin.y, localCenter.z);
+
+                // Bottom Edge Centers
+                case PivotPoint.BottomFrontEdge:
+                    return new Vector3(localCenter.x, localMin.y, localMax.z);
+                case PivotPoint.BottomBackEdge:
+                    return new Vector3(localCenter.x, localMin.y, localMin.z);
+                case PivotPoint.BottomLeftEdge:
+                    return new Vector3(localMin.x, localMin.y, localCenter.z);
+                case PivotPoint.BottomRightEdge:
+                    return new Vector3(localMax.x, localMin.y, localCenter.z);
+
+                // Top Edge Centers
+                case PivotPoint.TopFrontEdge:
+                    return new Vector3(localCenter.x, localMax.y, localMax.z);
+                case PivotPoint.TopBackEdge:
+                    return new Vector3(localCenter.x, localMax.y, localMin.z);
+                case PivotPoint.TopLeftEdge:
+                    return new Vector3(localMin.x, localMax.y, localCenter.z);
+                case PivotPoint.TopRightEdge:
+                    return new Vector3(localMax.x, localMax.y, localCenter.z);
+
+                // Vertical Edge Centers
+                case PivotPoint.FrontLeftEdge:
+                    return new Vector3(localMin.x, localCenter.y, localMax.z);
+                case PivotPoint.FrontRightEdge:
+                    return new Vector3(localMax.x, localCenter.y, localMax.z);
+                case PivotPoint.BackLeftEdge:
+                    return new Vector3(localMin.x, localCenter.y, localMin.z);
+                case PivotPoint.BackRightEdge:
+                    return new Vector3(localMax.x, localCenter.y, localMin.z);
+
+                // Bottom Corners
+                case PivotPoint.BottomFrontLeft:
+                    return new Vector3(localMin.x, localMin.y, localMax.z);
+                case PivotPoint.BottomFrontRight:
+                    return new Vector3(localMax.x, localMin.y, localMax.z);
+                case PivotPoint.BottomBackLeft:
+                    return localMin;
+                case PivotPoint.BottomBackRight:
+                    return new Vector3(localMax.x, localMin.y, localMin.z);
+
+                // Top Corners
+                case PivotPoint.TopFrontLeft:
+                    return new Vector3(localMin.x, localMax.y, localMax.z);
+                case PivotPoint.TopFrontRight:
+                    return new Vector3(localMax.x, localMax.y, localMax.z);
+                case PivotPoint.TopBackLeft:
+                    return new Vector3(localMin.x, localMax.y, localMin.z);
+                case PivotPoint.TopBackRight:
+                    return localMax;
+
+                default:
+                    return localCenter;
+            }
+        }
+
+        /// <summary>
+        /// Apply snap grid to a position if snap grid is enabled
+        /// </summary>
+        public Vector3 ApplySnapGrid(Vector3 position)
+        {
+            if (!_enableSnapGrid || _snapGridSize <= 0)
+                return position;
+
+            return new Vector3(
+                Mathf.Round(position.x / _snapGridSize) * _snapGridSize,
+                Mathf.Round(position.y / _snapGridSize) * _snapGridSize,
+                Mathf.Round(position.z / _snapGridSize) * _snapGridSize
+            );
+        }
+
+        /// <summary>
+        /// Snap position to grid with optional GridInfo override
+        /// Respects SnapMode: Extend uses global + local, Self uses only local
+        /// </summary>
+        /// <param name="position">Position to snap</param>
+        /// <param name="globalGridInfo">Optional global grid info from SceneSandboxBuilder</param>
+        /// <returns>Snapped position</returns>
+        public Vector3 SnapToGrid(Vector3 position, GridInfo? globalGridInfo = null)
+        {
+            switch (_snapMode)
+            {
+                case SnapMode.Self:
+                    // Self mode: Only use item's own settings, ignore global
+                    if (_enableSnapGrid && _snapGridSize > 0)
+                    {
+                        return ApplySnapGrid(position);
+                    }
+                    // If item snap is disabled in Self mode, no snapping at all
+                    return position;
+
+                case SnapMode.Extend:
+                default:
+                    // Extend mode: Use global grid if provided, otherwise use item's own
+                    if (globalGridInfo.HasValue && globalGridInfo.Value.enableSnap && globalGridInfo.Value.gridSize > 0)
+                    {
+                        // Apply global grid snap
+                        float gridSize = globalGridInfo.Value.gridSize;
+                        Vector3 offset = globalGridInfo.Value.gridOffset;
+                        
+                        float snappedX = Mathf.Round((position.x - offset.x) / gridSize) * gridSize + offset.x;
+                        float snappedZ = Mathf.Round((position.z - offset.z) / gridSize) * gridSize + offset.z;
+                        return new Vector3(snappedX, position.y, snappedZ);
+                    }
+                    
+                    // Fall back to item's own grid if no global grid or global is disabled
+                    if (_enableSnapGrid && _snapGridSize > 0)
+                    {
+                        return ApplySnapGrid(position);
+                    }
+                    
+                    return position;
+            }
+        }
+
+        /// <summary>
+        /// Set position with optional snap grid
+        /// </summary>
+        public void SetPosition(Vector3 position, bool applySnap = true)
+        {
+            transform.position = applySnap ? ApplySnapGrid(position) : position;
+        }
+
+        /// <summary>
+        /// Set position with optional global grid info
+        /// Uses SnapToGrid which respects SnapMode (Extend/Self)
+        /// </summary>
+        /// <param name="position">Target position</param>
+        /// <param name="globalGridInfo">Optional global grid info from SceneSandboxBuilder</param>
+        public void SetPosition(Vector3 position, GridInfo? globalGridInfo)
+        {
+            transform.position = SnapToGrid(position, globalGridInfo);
+        }
+
+        /// <summary>
+        /// Set position with pivot point and placement offset applied
+        /// Useful for placing objects with a specific anchor point
+        /// </summary>
+        /// <param name="position">Target world position</param>
+        /// <param name="applyPivot">Whether to apply pivot point offset</param>
+        /// <param name="applyOffset">Whether to apply placement offset</param>
+        /// <param name="globalGridInfo">Optional global grid info for snapping</param>
+        public void SetPositionWithPivot(Vector3 position, bool applyPivot = true, bool applyOffset = true, GridInfo? globalGridInfo = null)
+        {
+            Vector3 finalPosition = position;
+            
+            // Apply placement offset
+            if (applyOffset)
+            {
+                finalPosition += _placementOffset;
+            }
+            
+            // Apply pivot point offset (relative to object's bounds)
+            if (applyPivot)
+            {
+                // Calculate pivot offset in world space using enum-based pivot point
+                Vector3 localPivot = GetPivotPointOffset(_pivotPoint);
+                Vector3 pivotOffset = transform.TransformVector(localPivot);
+                finalPosition -= pivotOffset;
+            }
+            
+            // Apply snapping if grid info is provided
+            if (globalGridInfo.HasValue)
+            {
+                finalPosition = SnapToGrid(finalPosition, globalGridInfo);
+            }
+            
+            transform.position = finalPosition;
+        }
+
+        /// <summary>
+        /// Toggle snap grid on/off
+        /// </summary>
+        public void ToggleSnapGrid()
+        {
+            _enableSnapGrid = !_enableSnapGrid;
+            Debug.Log($"[TransformableItem] Snap grid {(_enableSnapGrid ? "enabled" : "disabled")} for {name}");
+        }
+
+        /// <summary>
+        /// Set snap grid settings
+        /// </summary>
+        public void SetSnapGridSettings(bool enabled, float gridSize, SnapMode snapMode = SnapMode.Extend)
+        {
+            _enableSnapGrid = enabled;
+            _snapGridSize = Mathf.Max(0.01f, gridSize); // Ensure minimum grid size
+            _snapMode = snapMode;
+            Debug.Log($"[TransformableItem] Snap grid settings updated: enabled={enabled}, size={_snapGridSize}, mode={snapMode} for {name}");
+        }
+
+        /// <summary>
+        /// Toggle between Extend and Self snap modes
+        /// </summary>
+        public void ToggleSnapMode()
+        {
+            _snapMode = (_snapMode == SnapMode.Extend) ? SnapMode.Self : SnapMode.Extend;
+            Debug.Log($"[TransformableItem] Snap mode changed to: {_snapMode} for {name}");
+        }
+
+        /// <summary>
+        /// Set snap mode explicitly
+        /// </summary>
+        public void SetSnapMode(SnapMode mode)
+        {
+            _snapMode = mode;
+            Debug.Log($"[TransformableItem] Snap mode set to: {mode} for {name}");
+        }
+
+        /// <summary>
+        /// Set placement settings (pivot point and offset)
+        /// </summary>
+        /// <param name="pivotPoint">Pivot point enum for the object</param>
+        /// <param name="placementOffset">Offset to apply during placement</param>
+        public void SetPlacementSettings(PivotPoint pivotPoint, Vector3 placementOffset)
+        {
+            _pivotPoint = pivotPoint;
+            _placementOffset = placementOffset;
+            Debug.Log($"[TransformableItem] Placement settings updated - Pivot: {pivotPoint}, Offset: {placementOffset} for {name}");
         }
 
         /// <summary>
@@ -1164,16 +783,10 @@ namespace SceneSandbox.Core
             
             if (!_enableTransformControls)
             {
-                SetTransformMode(TransformMode.None);
+                SetTransformModeType(TransformModeType.None);
                 
                 // Destroy gizmo
                 DestroyGizmo();
-                
-                // Unregister from transform control
-                if (TransformableSelectionManager.Instance != null)
-                {
-                    TransformableSelectionManager.Instance.UnregisterItemFromTransformControl(this);
-                }
             }
             else
             {
@@ -1182,15 +795,175 @@ namespace SceneSandbox.Core
                 {
                     InitializeGizmo();
                 }
-                
-                // Register with transform control
-                if (TransformableSelectionManager.Instance != null)
-                {
-                    TransformableSelectionManager.Instance.RegisterItemForTransformControl(this);
-                }
             }
             
-            Debug.Log($"Transform controls {(_enableTransformControls ? "enabled" : "disabled")} for item: {name}");
+            // Transform controls toggled for item
+        }
+
+        /// <summary>
+        /// Increase transform value based on current mode (step-based adjustment)
+        /// </summary>
+        public void IncreaseTransformValue()
+        {
+            if (!_enableTransformControls || _currentTransformModeType == TransformModeType.None)
+                return;
+
+            switch (_currentTransformModeType)
+            {
+                case TransformModeType.Position:
+                    // Move position based on selected axis
+                    // Apply offset according to current transform axis
+                    Vector3 positionDelta = Vector3.zero;
+                    switch (_currentTransformAxis)
+                    {
+                        case TransformAxis.X:
+                            positionDelta = Vector3.right * _positionStep;
+                            break;
+                        case TransformAxis.Y:
+                            positionDelta = Vector3.up * _positionStep;
+                            break;
+                        case TransformAxis.Z:
+                            positionDelta = Vector3.forward * _positionStep;
+                            break;
+                        case TransformAxis.All:
+                            // For All, move in forward direction (Z) by default
+                            positionDelta = Vector3.forward * _positionStep;
+                            break;
+                    }
+                    transform.position += positionDelta;
+                    break;
+
+                case TransformModeType.Rotation:
+                    // Rotate based on selected axis
+                    Vector3 currentRotation = transform.eulerAngles;
+                    switch (_currentTransformAxis)
+                    {
+                        case TransformAxis.X:
+                            currentRotation.x += _rotationStep;
+                            break;
+                        case TransformAxis.Y:
+                            currentRotation.y += _rotationStep;
+                            break;
+                        case TransformAxis.Z:
+                            currentRotation.z += _rotationStep;
+                            break;
+                        case TransformAxis.All:
+                            currentRotation.y += _rotationStep; // Default to Y for All
+                            break;
+                    }
+                    transform.eulerAngles = currentRotation;
+                    break;
+
+                case TransformModeType.Scale:
+                    // Scale based on selected axis
+                    Vector3 newScale = transform.localScale;
+                    switch (_currentTransformAxis)
+                    {
+                        case TransformAxis.X:
+                            newScale.x += _scaleStep;
+                            newScale.x = Mathf.Clamp(newScale.x, _minScale.x, _maxScale.x);
+                            break;
+                        case TransformAxis.Y:
+                            newScale.y += _scaleStep;
+                            newScale.y = Mathf.Clamp(newScale.y, _minScale.y, _maxScale.y);
+                            break;
+                        case TransformAxis.Z:
+                            newScale.z += _scaleStep;
+                            newScale.z = Mathf.Clamp(newScale.z, _minScale.z, _maxScale.z);
+                            break;
+                        case TransformAxis.All:
+                            newScale += Vector3.one * _scaleStep;
+                            newScale.x = Mathf.Clamp(newScale.x, _minScale.x, _maxScale.x);
+                            newScale.y = Mathf.Clamp(newScale.y, _minScale.y, _maxScale.y);
+                            newScale.z = Mathf.Clamp(newScale.z, _minScale.z, _maxScale.z);
+                            break;
+                    }
+                    transform.localScale = newScale;
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Decrease transform value based on current mode (step-based adjustment)
+        /// </summary>
+        public void DecreaseTransformValue()
+        {
+            if (!_enableTransformControls || _currentTransformModeType == TransformModeType.None)
+                return;
+
+            switch (_currentTransformModeType)
+            {
+                case TransformModeType.Position:
+                    // Move position based on selected axis (negative)
+                    // Apply offset according to current transform axis
+                    Vector3 positionDelta = Vector3.zero;
+                    switch (_currentTransformAxis)
+                    {
+                        case TransformAxis.X:
+                            positionDelta = Vector3.left * _positionStep;
+                            break;
+                        case TransformAxis.Y:
+                            positionDelta = Vector3.down * _positionStep;
+                            break;
+                        case TransformAxis.Z:
+                            positionDelta = Vector3.back * _positionStep;
+                            break;
+                        case TransformAxis.All:
+                            // For All, move in backward direction (Z) by default
+                            positionDelta = Vector3.back * _positionStep;
+                            break;
+                    }
+                    transform.position += positionDelta;
+                    break;
+
+                case TransformModeType.Rotation:
+                    // Rotate based on selected axis (negative)
+                    Vector3 currentRotation = transform.eulerAngles;
+                    switch (_currentTransformAxis)
+                    {
+                        case TransformAxis.X:
+                            currentRotation.x -= _rotationStep;
+                            break;
+                        case TransformAxis.Y:
+                            currentRotation.y -= _rotationStep;
+                            break;
+                        case TransformAxis.Z:
+                            currentRotation.z -= _rotationStep;
+                            break;
+                        case TransformAxis.All:
+                            currentRotation.y -= _rotationStep; // Default to Y for All
+                            break;
+                    }
+                    transform.eulerAngles = currentRotation;
+                    break;
+
+                case TransformModeType.Scale:
+                    // Scale based on selected axis (decrease)
+                    Vector3 newScale = transform.localScale;
+                    switch (_currentTransformAxis)
+                    {
+                        case TransformAxis.X:
+                            newScale.x -= _scaleStep;
+                            newScale.x = Mathf.Clamp(newScale.x, _minScale.x, _maxScale.x);
+                            break;
+                        case TransformAxis.Y:
+                            newScale.y -= _scaleStep;
+                            newScale.y = Mathf.Clamp(newScale.y, _minScale.y, _maxScale.y);
+                            break;
+                        case TransformAxis.Z:
+                            newScale.z -= _scaleStep;
+                            newScale.z = Mathf.Clamp(newScale.z, _minScale.z, _maxScale.z);
+                            break;
+                        case TransformAxis.All:
+                            newScale -= Vector3.one * _scaleStep;
+                            newScale.x = Mathf.Clamp(newScale.x, _minScale.x, _maxScale.x);
+                            newScale.y = Mathf.Clamp(newScale.y, _minScale.y, _maxScale.y);
+                            newScale.z = Mathf.Clamp(newScale.z, _minScale.z, _maxScale.z);
+                            break;
+                    }
+                    transform.localScale = newScale;
+                    break;
+            }
         }
 
         #endregion
@@ -1198,19 +971,45 @@ namespace SceneSandbox.Core
         #region Gizmo Management
 
         /// <summary>
+        /// Manually show/hide gizmo for testing
+        /// </summary>
+        public void ToggleGizmo(bool show)
+        {
+            if (!_enableTransformControls)
+                return;
+
+            if (show && !_gizmoInitialized)
+            {
+                InitializeGizmo();
+            }
+
+            SetGizmoVisible(show);
+            Debug.Log($"[TransformableItem] Gizmo toggled: {show}");
+        }
+
+        /// <summary>
         /// Initialize the visual gizmo for transform manipulation
         /// </summary>
         private void InitializeGizmo()
         {
             if (_gizmoInitialized || !_enableTransformControls || !_showGizmo)
+            {
+                Debug.Log($"[TransformableItem] Gizmo init skipped - initialized:{_gizmoInitialized}, controls:{_enableTransformControls}, show:{_showGizmo}");
                 return;
+            }
 
-            // Create gizmo root
+            Debug.Log($"[TransformableItem] Initializing gizmo for {name}");
+
+            // Create gizmo root - DON'T parent it to the object to avoid scale/rotation dependency
             var gizmoObj = new GameObject($"{name}_Gizmo");
             _gizmoRoot = gizmoObj.transform;
-            _gizmoRoot.SetParent(transform, false);
-            _gizmoRoot.localPosition = Vector3.zero;
-            _gizmoRoot.localRotation = Quaternion.identity;
+            _gizmoRoot.gameObject.layer = LayerMaskToLayer(_gizmoLayer);
+            
+            // Don't parent to this transform - keep it independent in world space
+            // This ensures gizmo scale/rotation is not affected by object's transform
+            _gizmoRoot.position = transform.position;
+            _gizmoRoot.rotation = Quaternion.identity;
+            _gizmoRoot.localScale = Vector3.one;
 
             // Create axis handles
             _xHandle = CreateAxisHandle("X", Vector3.right, _gizmoXColor);
@@ -1222,7 +1021,7 @@ namespace SceneSandbox.Core
             // Initially hide gizmo
             SetGizmoVisible(false);
             
-            Debug.Log($"[TransformableItem] Gizmo initialized for {name}");
+            Debug.Log($"[TransformableItem] Gizmo initialized successfully for {name}");
         }
 
         /// <summary>
@@ -1237,17 +1036,20 @@ namespace SceneSandbox.Core
             var handle = new GizmoAxisHandle
             {
                 localAxis = localAxis,
-                baseColor = color
+                baseColor = color,
+                highlightColor = _gizmoHighlightColor
             };
 
+            int gizmoLayerIndex = LayerMaskToLayer(_gizmoLayer);
+
             // Build arrow for Move mode
-            handle.BuildArrow(handleObj.transform, color);
+            handle.BuildArrow(handleObj.transform, color, gizmoLayerIndex);
             
             // Build ring for Rotate mode
-            handle.BuildRing(handleObj.transform, color);
+            handle.BuildRing(handleObj.transform, color, gizmoLayerIndex);
             
             // Build box for Scale mode
-            handle.BuildBox(handleObj.transform, color);
+            handle.BuildBox(handleObj.transform, color, gizmoLayerIndex);
 
             return handle;
         }
@@ -1257,25 +1059,34 @@ namespace SceneSandbox.Core
         /// </summary>
         private void UpdateGizmo()
         {
-            if (!_gizmoInitialized || !_showGizmo || _gizmoRoot == null || _camera == null)
+            if (!_gizmoInitialized || !_showGizmo || _gizmoRoot == null)
                 return;
 
-            // Show/hide gizmo based on transform mode
-            bool shouldShow = _isInTransformMode && _currentTransformMode != TransformMode.None;
+            // Find camera if not cached
+            if (_camera == null)
+            {
+                _camera = Camera.main ?? FindFirstObjectByType<Camera>();
+                if (_camera == null)
+                    return;
+            }
+
+            // Show gizmo when selected AND in transform mode
+            bool shouldShow = _isSelected && _isInTransformModeType && _currentTransformModeType != TransformModeType.None;
             SetGizmoVisible(shouldShow);
 
             if (!shouldShow)
                 return;
 
-            // Keep gizmo at object position
+            // Keep gizmo at object position (independent of object's transform)
             _gizmoRoot.position = transform.position;
             
-            // Gizmo rotation (always world space for now)
+            // Gizmo rotation (always world space - not affected by object rotation)
             _gizmoRoot.rotation = Quaternion.identity;
 
-            // Scale gizmo based on distance to camera
+            // Scale gizmo based on distance to camera (independent of object scale)
             float dist = Vector3.Distance(_camera.transform.position, transform.position);
-            _gizmoRoot.localScale = Vector3.one * Mathf.Max(0.0001f, dist * _gizmoScreenScale);
+            float gizmoWorldScale = Mathf.Max(0.0001f, dist * _gizmoScreenScale);
+            _gizmoRoot.localScale = Vector3.one * gizmoWorldScale;
 
             // Update visibility of axis handles based on current mode
             UpdateGizmoVisuals();
@@ -1289,9 +1100,9 @@ namespace SceneSandbox.Core
             if (!_gizmoInitialized)
                 return;
 
-            _xHandle?.Show(_currentTransformMode);
-            _yHandle?.Show(_currentTransformMode);
-            _zHandle?.Show(_currentTransformMode);
+            _xHandle?.Show(_currentTransformModeType, _currentTransformAxis, _gizmoHighlightColor);
+            _yHandle?.Show(_currentTransformModeType, _currentTransformAxis, _gizmoHighlightColor);
+            _zHandle?.Show(_currentTransformModeType, _currentTransformAxis, _gizmoHighlightColor);
         }
 
         /// <summary>
@@ -1347,11 +1158,16 @@ namespace SceneSandbox.Core
         {
             public Vector3 localAxis;
             public Color baseColor;
+            public Color highlightColor;
 
             // Visual components
             private MeshRenderer _arrowRenderer;
             private MeshRenderer _ringRenderer;
             private MeshRenderer _boxRenderer;
+            
+            private Material _arrowMaterial;
+            private Material _ringMaterial;
+            private Material _boxMaterial;
 
             private Collider _arrowCollider;
             private Collider _ringCollider;
@@ -1360,10 +1176,11 @@ namespace SceneSandbox.Core
             /// <summary>
             /// Build arrow visual for Move mode
             /// </summary>
-            public void BuildArrow(Transform parent, Color color)
+            public void BuildArrow(Transform parent, Color color, int layer)
             {
                 // Create shaft
                 var shaft = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                shaft.layer = layer;
                 shaft.transform.SetParent(parent, false);
                 shaft.transform.localRotation = Quaternion.FromToRotation(Vector3.up, localAxis);
                 shaft.transform.localPosition = localAxis * 0.6f;
@@ -1371,20 +1188,21 @@ namespace SceneSandbox.Core
 
                 // Create tip
                 var tip = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                tip.layer = layer;
                 tip.transform.SetParent(parent, false);
                 tip.transform.localRotation = Quaternion.FromToRotation(Vector3.up, localAxis);
                 tip.transform.localPosition = localAxis * 1.3f;
                 tip.transform.localScale = new Vector3(0.10f, 0.2f, 0.10f);
 
                 // Setup materials
-                var mat = new Material(Shader.Find("Unlit/Color"));
-                mat.color = color;
+                _arrowMaterial = new Material(Shader.Find("Unlit/Color"));
+                _arrowMaterial.color = color;
                 
                 _arrowRenderer = shaft.GetComponent<MeshRenderer>();
-                _arrowRenderer.material = mat;
+                _arrowRenderer.material = _arrowMaterial;
                 
                 var tipRenderer = tip.GetComponent<MeshRenderer>();
-                tipRenderer.material = mat;
+                tipRenderer.material = _arrowMaterial;
 
                 // Setup colliders
                 _arrowCollider = tip.GetComponent<Collider>();
@@ -1394,19 +1212,20 @@ namespace SceneSandbox.Core
             /// <summary>
             /// Build ring visual for Rotate mode
             /// </summary>
-            public void BuildRing(Transform parent, Color color)
+            public void BuildRing(Transform parent, Color color, int layer)
             {
                 var ring = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                ring.layer = layer;
                 ring.transform.SetParent(parent, false);
                 ring.transform.localPosition = Vector3.zero;
                 ring.transform.localRotation = Quaternion.FromToRotation(Vector3.up, localAxis);
                 ring.transform.localScale = new Vector3(1.2f, 0.01f, 1.2f);
 
-                var mat = new Material(Shader.Find("Unlit/Color"));
-                mat.color = color;
+                _ringMaterial = new Material(Shader.Find("Unlit/Color"));
+                _ringMaterial.color = color;
                 
                 _ringRenderer = ring.GetComponent<MeshRenderer>();
-                _ringRenderer.material = mat;
+                _ringRenderer.material = _ringMaterial;
 
                 _ringCollider = ring.GetComponent<Collider>();
             }
@@ -1414,55 +1233,165 @@ namespace SceneSandbox.Core
             /// <summary>
             /// Build box visual for Scale mode
             /// </summary>
-            public void BuildBox(Transform parent, Color color)
+            public void BuildBox(Transform parent, Color color, int layer)
             {
                 var box = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                box.layer = layer;
                 box.transform.SetParent(parent, false);
                 box.transform.localPosition = localAxis * 1.0f;
                 box.transform.localScale = new Vector3(0.15f, 0.15f, 0.15f);
 
-                var mat = new Material(Shader.Find("Unlit/Color"));
-                mat.color = color;
+                _boxMaterial = new Material(Shader.Find("Unlit/Color"));
+                _boxMaterial.color = color;
                 
                 _boxRenderer = box.GetComponent<MeshRenderer>();
-                _boxRenderer.material = mat;
+                _boxRenderer.material = _boxMaterial;
 
                 _boxCollider = box.GetComponent<Collider>();
             }
 
             /// <summary>
-            /// Show/hide components based on current transform mode
+            /// Show/hide components based on current transform mode and highlight selected axis
             /// </summary>
-            public void Show(TransformMode mode)
+            public void Show(TransformModeType mode, TransformAxis selectedAxis, Color highlightColor)
             {
-                bool showArrow = mode == TransformMode.Move;
-                bool showRing = mode == TransformMode.Rotate;
-                bool showBox = mode == TransformMode.Scale;
+                bool showArrow = mode == TransformModeType.Position;
+                bool showRing = mode == TransformModeType.Rotation;
+                bool showBox = mode == TransformModeType.Scale;
 
                 // Hide all when mode is None
-                if (mode == TransformMode.None)
+                if (mode == TransformModeType.None)
                 {
                     showArrow = showRing = showBox = false;
                 }
 
-                // Update arrow visibility
+                // Determine if this axis should be highlighted
+                bool isHighlighted = IsAxisHighlighted(selectedAxis);
+
+                // Update arrow visibility and color
                 if (_arrowRenderer != null)
+                {
                     _arrowRenderer.enabled = showArrow;
+                    if (showArrow && _arrowMaterial != null)
+                    {
+                        _arrowMaterial.color = isHighlighted ? highlightColor : baseColor;
+                    }
+                }
                 if (_arrowCollider != null)
                     _arrowCollider.enabled = showArrow;
 
-                // Update ring visibility
+                // Update ring visibility and color
                 if (_ringRenderer != null)
+                {
                     _ringRenderer.enabled = showRing;
+                    if (showRing && _ringMaterial != null)
+                    {
+                        _ringMaterial.color = isHighlighted ? highlightColor : baseColor;
+                    }
+                }
                 if (_ringCollider != null)
                     _ringCollider.enabled = showRing;
 
-                // Update box visibility
+                // Update box visibility and color
                 if (_boxRenderer != null)
+                {
                     _boxRenderer.enabled = showBox;
+                    if (showBox && _boxMaterial != null)
+                    {
+                        _boxMaterial.color = isHighlighted ? highlightColor : baseColor;
+                    }
+                }
                 if (_boxCollider != null)
                     _boxCollider.enabled = showBox;
             }
+
+            /// <summary>
+            /// Determine if this axis should be highlighted based on selected axis
+            /// </summary>
+            private bool IsAxisHighlighted(TransformAxis selectedAxis)
+            {
+                // Always highlight when All is selected
+                if (selectedAxis == TransformAxis.All)
+                    return true;
+
+                // Check if this handle's axis matches the selected axis
+                if (selectedAxis == TransformAxis.X && Vector3.Dot(localAxis, Vector3.right) > 0.9f)
+                    return true;
+                if (selectedAxis == TransformAxis.Y && Vector3.Dot(localAxis, Vector3.up) > 0.9f)
+                    return true;
+                if (selectedAxis == TransformAxis.Z && Vector3.Dot(localAxis, Vector3.forward) > 0.9f)
+                    return true;
+
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region Gizmos
+
+        private void OnDrawGizmosSelected()
+        {
+            // Draw grid gizmo if snap grid is enabled
+            if (_enableSnapGrid && _snapGridSize > 0)
+            {
+                DrawSnapGridGizmo();
+            }
+        }
+
+        /// <summary>
+        /// Draw snap grid visualization
+        /// </summary>
+        private void DrawSnapGridGizmo()
+        {
+            Vector3 position = transform.position;
+            float gridSize = _snapGridSize;
+            Color gridColor = _snapMode == SnapMode.Self ? Color.yellow : Color.cyan;
+            gridColor.a = 0.3f;
+
+            // Draw grid lines around the object (5x5 grid)
+            int gridExtent = 5;
+            Vector3 snappedCenter = new Vector3(
+                Mathf.Round(position.x / gridSize) * gridSize,
+                position.y,
+                Mathf.Round(position.z / gridSize) * gridSize
+            );
+
+            Gizmos.color = gridColor;
+
+            // Draw horizontal lines (X direction)
+            for (int z = -gridExtent; z <= gridExtent; z++)
+            {
+                Vector3 start = snappedCenter + new Vector3(-gridExtent * gridSize, 0, z * gridSize);
+                Vector3 end = snappedCenter + new Vector3(gridExtent * gridSize, 0, z * gridSize);
+                Gizmos.DrawLine(start, end);
+            }
+
+            // Draw vertical lines (Z direction)
+            for (int x = -gridExtent; x <= gridExtent; x++)
+            {
+                Vector3 start = snappedCenter + new Vector3(x * gridSize, 0, -gridExtent * gridSize);
+                Vector3 end = snappedCenter + new Vector3(x * gridSize, 0, gridExtent * gridSize);
+                Gizmos.DrawLine(start, end);
+            }
+
+            // Draw snap point indicator at current snapped position
+            Gizmos.color = _snapMode == SnapMode.Self ? Color.yellow : Color.cyan;
+            Gizmos.DrawWireSphere(snappedCenter, gridSize * 0.1f);
+
+            // Draw label for snap mode
+#if UNITY_EDITOR
+            UnityEditor.Handles.Label(
+                snappedCenter + Vector3.up * 0.5f,
+                $"Snap: {_snapMode}\nGrid: {gridSize}m",
+                new GUIStyle()
+                {
+                    normal = new GUIStyleState() { textColor = gridColor * 2f },
+                    fontSize = 10,
+                    fontStyle = FontStyle.Bold
+                }
+            );
+#endif
         }
 
         #endregion

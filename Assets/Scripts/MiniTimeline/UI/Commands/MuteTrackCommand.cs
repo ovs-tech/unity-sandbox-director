@@ -15,15 +15,15 @@ namespace MiniTimeline.UI.Commands
         private readonly IMiniTrack track;
         private readonly bool oldEnabledState;
         private readonly bool newEnabledState;
-        private readonly TrackUI trackUI;
+        private readonly ITimelineEditorUI editorUI;
 
-        public MuteTrackCommand(IMiniTrack trackToMute, bool oldEnabled, bool newEnabled, TrackUI trackInterface)
+        public MuteTrackCommand(IMiniTrack trackToMute, bool oldEnabled, bool newEnabled, ITimelineEditorUI timelineEditor)
             : base(newEnabled ? $"Unmute {TrackUIHelper.GetTrackDisplayName(trackToMute)}" : $"Mute {TrackUIHelper.GetTrackDisplayName(trackToMute)}")
         {
             track = trackToMute;
             oldEnabledState = oldEnabled;
             newEnabledState = newEnabled;
-            trackUI = trackInterface;
+            editorUI = timelineEditor;
         }
 
         protected override void ExecuteInternal()
@@ -91,10 +91,10 @@ namespace MiniTimeline.UI.Commands
 
         private void UpdateTrackUI()
         {
-            if (trackUI != null)
+            if (editorUI != null)
             {
-                // Update the track header to reflect the new mute state
-                trackUI.RefreshUI();
+                // Update the timeline to reflect the new mute state
+                editorUI.BuildTimelineUI();
             }
         }
     }

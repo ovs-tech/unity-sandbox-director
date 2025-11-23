@@ -1,0 +1,133 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &444325856237096281
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3697700392935551172}
+  - component: {fileID: 6108783902824427292}
+  m_Layer: 0
+  m_Name: Sandbox Scene Builder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3697700392935551172
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 444325856237096281}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6108783902824427292
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 444325856237096281}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c60d480f8ad344cb89f55067d22bb81, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneSandbox.Core.SceneSandboxBuilder
+  _objectLibrary: {fileID: 11400000, guid: 2b589a7f8785049958954ff918693f0c, type: 2}
+  _sceneRoot: {fileID: 0}
+  _stageArea: {fileID: 0}
+  _toggleModeActionRef: {fileID: 7225520603179111591, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _exitAllModesActionRef: {fileID: -8120193850246896430, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _moveHotkeyActionRef: {fileID: 2843508185504223957, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _rotateHotkeyActionRef: {fileID: -8373456726477787857, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _scaleHotkeyActionRef: {fileID: 1537150768674875410, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _transformModeIncreaseActionRef: {fileID: 3099720330267465567, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _transformModeDecreaseActionRef: {fileID: 8128551554140899369, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _transformModeToggleAxisActionRef: {fileID: 1544176395740903846, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _pointerPositionActionRef: {fileID: 1622428205235823346, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _leftClickActionRef: {fileID: 846087269551105390, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _rightClickActionRef: {fileID: 7782487072623700467, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _mouseScrollActionRef: {fileID: -957748281948142360, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _cancelPlacementActionRef: {fileID: -8120193850246896430, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _maxRaycastDistance: 1000
+  _dragThreshold: 5
+  _doubleClickTime: 0.3
+  _enableHotkeys: 1
+  _placementLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  _selectionLayers:
+    serializedVersion: 2
+    m_Bits: 1
+  _snapToGrid: 1
+  _gridSize: 1
+  _gridOffset: {x: 0, y: 0, z: 0}
+  _gridPivotOffset: 6
+  _defaultPlacementHeight: 0.2
+  _minimumPlacementHeight: 0.1
+  _useRaycastForPlacement: 1
+  _useConsistentHeight: 1
+  _sceneBounds: {x: 18.6, y: 6.39, z: 9.93}
+  _sceneBoundsOffset: {x: 0, y: -0.8, z: -1.8}
+  _sceneBoundsPivot: 7
+  _enableDropIndicator: 0
+  _dropIndicatorPrefab: {fileID: 6146250282420367473, guid: c74f2cc9675f9492c9b82bc18b1ebb61, type: 3}
+  _validDropColor: {r: 0, g: 1, b: 0, a: 0.8}
+  _invalidDropColor: {r: 1, g: 0, b: 0, a: 0.8}
+  _dropIndicatorSize: 1
+  _enableGhostPreview: 1
+  _validGhostColor: {r: 0, g: 1, b: 0, a: 0.5}
+  _invalidGhostColor: {r: 1, g: 0, b: 0, a: 0.5}
+  _showGridSnapIndicator: 1
+  _showSurfaceNormal: 1
+  _surfaceNormalLength: 1
+  _positionModeColor: {r: 0, g: 1, b: 1, a: 0.5}
+  _rotationModeColor: {r: 1, g: 1, b: 0, a: 0.5}
+  _scaleModeColor: {r: 1, g: 0, b: 1, a: 0.5}
+  _autoEditOnSelect: 1
+  _checkCollisions: 1
+  _collisionLayers:
+    serializedVersion: 2
+    m_Bits: 1
+  _groundLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  _ignoreStaticObjects: 1
+  _requireSurfaceBelow: 0
+  _enableCostSystem: 0
+  _placementCost: 10
+  _rotationSensitivity: 1
+  _scaleSensitivity: 0.01
+  _scrollScaleSensitivity: 0.1
+  _minScale: {x: 0.1, y: 0.1, z: 0.1}
+  _maxScale: {x: 10, y: 10, z: 10}
+  _timelineDirector: {fileID: 0}
+  _autoPreview: 1
+  _previewDuration: 10
+  _enableGizmos: 0
+  _showBoundsGizmo: 1
+  _showAxesGizmo: 1
+  _showHandlesGizmo: 1
+  _gizmoBoundsColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _gizmoAxisLength: 1
+  _enableSceneGizmos: 1
+  _showSceneGrid: 1
+  _showSceneBounds: 1
+  _showStageAreaGizmo: 1
+  _showPlacementHeightGizmo: 1
+  _sceneBoundsColor: {r: 0, g: 1, b: 1, a: 1}
+  _placementHeightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _defaultSavePath: Assets/SceneSandboxBuilder/SavedScenes/
+  _currentSceneName: Untitled Scene
+  _defaultProjectSavePath: Assets/SceneSandboxBuilder/SavedProjects/

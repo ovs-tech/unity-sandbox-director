@@ -257,7 +257,9 @@
     pointer-events: none;
 }
 
-.track-lane:last-child {
+/* Note: Unity USS doesn't support :last-child pseudo-class.
+   Handle this in C# by adding a "last-lane" USS class to the last lane element. */
+.track-lane.last-lane {
     border-bottom-width: 0;
 }
 

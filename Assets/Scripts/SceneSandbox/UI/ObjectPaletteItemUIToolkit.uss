@@ -196,25 +196,10 @@
     height: 36px;
 }
 
-/* Animation States */
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.7;
-    }
-}
-
-.palette-item--loading {
-    animation: pulse 1.5s ease-in-out infinite;
-}
-
 /* Selection Highlight */
 .palette-item--highlight {
     border-width: 3px;
     border-color: rgb(255, 200, 50);
-    box-shadow: 0 0 10px rgba(255, 200, 50, 0.5);
 }
 
 /* Error State */

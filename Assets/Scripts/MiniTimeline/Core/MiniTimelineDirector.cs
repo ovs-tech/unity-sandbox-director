@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
@@ -14,7 +15,7 @@ namespace MiniTimeline.Core
         Playing,
         Paused
     }
-    
+
     /// <summary>
     /// Main director class that manages Mini Timeline playback
     /// Controls time, state, and coordinates all tracks
@@ -26,39 +27,42 @@ namespace MiniTimeline.Core
         [SerializeField] private float playbackSpeed = 1f;
         [SerializeField] private bool loop = false;
         [SerializeField] private bool playOnAwake = false;
+        [SerializeField] private bool autoLoadFirstProject = false;
         [SerializeField] private bool autoCreateEmptyProject = false;
-        
+
         [Header("Auto-Create Project Settings")]
         [SerializeField] private string defaultProjectName = "New Timeline Project";
         [SerializeField] private float defaultProjectLength = 10f;
         [SerializeField] private float defaultFrameRate = 30f;
-        
+
+        [Header("Binding")]
+        [SerializeField] private BindableObjectManager bindableObjectManager;
+
         [Header("Debug")]
         [SerializeField] private bool debugMode = false;
-        
+
         // Events
         public event Action<float> OnTimeChanged;
         public event Action<PlaybackState> OnStateChanged;
         public event Action OnProjectLoaded;
         public event Action OnProjectClosed;
-        
+
         // State
         private PlaybackState state = PlaybackState.Stopped;
         private float currentTime = 0f;
         private float previousTime = 0f;
         private bool isDirty = false;
-        
+
         // Project data
         private MiniTimelineProject project;
-        private BindingContext bindingContext;
         private List<IMiniTrack> tracks = new List<IMiniTrack>();
         private Dictionary<string, IMiniTrack> trackLookup = new Dictionary<string, IMiniTrack>();
-        
+
         // Performance optimization
         private static readonly List<IMiniTrack> tempTrackList = new List<IMiniTrack>();
-        
+
         #region Properties
-        
+
         /// <summary>
         /// Total length of timeline in seconds
         /// </summary>
@@ -77,7 +81,7 @@ namespace MiniTimeline.Core
                 }
             }
         }
-        
+
         /// <summary>
         /// Current playback time in seconds
         /// </summary>
@@ -91,12 +95,12 @@ namespace MiniTimeline.Core
                 OnTimeChanged?.Invoke(currentTime);
             }
         }
-        
+
         /// <summary>
         /// Previous frame time (for event detection)
         /// </summary>
         public float PreviousTime => previousTime;
-        
+
         /// <summary>
         /// Playback speed multiplier
         /// </summary>
@@ -105,7 +109,7 @@ namespace MiniTimeline.Core
             get => playbackSpeed;
             set => playbackSpeed = Mathf.Clamp(value, 0.1f, 2f);
         }
-        
+
         /// <summary>
         /// Whether timeline loops
         /// </summary>
@@ -114,7 +118,7 @@ namespace MiniTimeline.Core
             get => loop;
             set => loop = value;
         }
-        
+
         /// <summary>
         /// Current playback state
         /// </summary>
@@ -130,27 +134,40 @@ namespace MiniTimeline.Core
                 }
             }
         }
-        
+
         /// <summary>
         /// Whether timeline is currently playing
         /// </summary>
         public bool IsPlaying => state == PlaybackState.Playing;
-        
+
         /// <summary>
         /// All tracks (read-only)
         /// </summary>
         public IReadOnlyList<IMiniTrack> Tracks => tracks;
-        
+
         /// <summary>
         /// Current project
         /// </summary>
         public MiniTimelineProject Project => project;
-        
+
         /// <summary>
         /// Binding context
         /// </summary>
-        public BindingContext BindingContext => bindingContext;
-        
+        public BindableObjectManager BindingContext
+        {
+            get => bindableObjectManager;
+            set => bindableObjectManager = value;
+        }
+
+        /// <summary>
+        /// Whether to auto-load the first available project on Start if no project is loaded
+        /// </summary>
+        public bool AutoLoadFirstProject
+        {
+            get => autoLoadFirstProject;
+            set => autoLoadFirstProject = value;
+        }
+
         /// <summary>
         /// Whether to auto-create an empty project on Start if no project is loaded
         /// </summary>
@@ -159,7 +176,7 @@ namespace MiniTimeline.Core
             get => autoCreateEmptyProject;
             set => autoCreateEmptyProject = value;
         }
-        
+
         /// <summary>
         /// Default name for auto-created projects
         /// </summary>
@@ -168,7 +185,7 @@ namespace MiniTimeline.Core
             get => defaultProjectName;
             set => defaultProjectName = value;
         }
-        
+
         /// <summary>
         /// Default length for auto-created projects
         /// </summary>
@@ -177,7 +194,7 @@ namespace MiniTimeline.Core
             get => defaultProjectLength;
             set => defaultProjectLength = Mathf.Max(0.1f, value);
         }
-        
+
         /// <summary>
         /// Default frame rate for auto-created projects
         /// </summary>
@@ -186,30 +203,47 @@ namespace MiniTimeline.Core
             get => defaultFrameRate;
             set => defaultFrameRate = Mathf.Max(1f, value);
         }
-        
+
         #endregion
-        
+
         #region Unity Lifecycle
-        
+
         private void Awake()
         {
-            bindingContext = new BindingContext();
+            // If no BindingContext is assigned, try to find one or create one
+            if (bindableObjectManager == null)
+            {
+                bindableObjectManager = GetComponent<BindableObjectManager>();
+
+                if (bindableObjectManager == null)
+                {
+                    bindableObjectManager = gameObject.AddComponent<BindableObjectManager>();
+                    if (debugMode)
+                        Debug.Log("[MiniTimelineDirector] Auto-created BindingContext component");
+                }
+            }
         }
-        
+
         private void Start()
         {
+            // Auto-load first project if enabled and no project is loaded
+            if (autoLoadFirstProject && project == null)
+            {
+                TryAutoLoadFirstProject();
+            }
+            
             // Auto-create empty project if enabled and no project is loaded
             if (autoCreateEmptyProject && project == null)
             {
                 CreateDefaultEmptyProject();
             }
-            
+
             if (playOnAwake && project != null)
             {
                 Play();
             }
         }
-        
+
         private void Update()
         {
             if (IsPlaying)
@@ -217,10 +251,7 @@ namespace MiniTimeline.Core
                 // Advance time
                 float deltaTime = UnityEngine.Time.deltaTime * playbackSpeed;
                 float newTime = currentTime + deltaTime;
-                
-                if (debugMode && UnityEngine.Time.frameCount % 30 == 0) // Log every 30 frames to avoid spam
-                    Debug.Log($"[MiniTimelineDirector] Update - deltaTime: {deltaTime:F4}, currentTime: {currentTime:F3}, newTime: {newTime:F3}, length: {length:F3}");
-                
+
                 // Handle looping or stopping at end
                 if (newTime >= length)
                 {
@@ -238,21 +269,21 @@ namespace MiniTimeline.Core
                         Stop();
                     }
                 }
-                
+
                 Time = newTime;
                 Evaluate(false);
             }
         }
-        
+
         private void OnDestroy()
         {
             CloseProject();
         }
-        
+
         #endregion
-        
+
         #region Playback Control
-        
+
         /// <summary>
         /// Start or resume playback
         /// </summary>
@@ -263,29 +294,29 @@ namespace MiniTimeline.Core
                 Debug.LogWarning("[MiniTimelineDirector] Cannot play without a loaded project");
                 return;
             }
-            
+
             if (currentTime >= length && !loop)
             {
                 Seek(0f);
             }
-            
+
             State = PlaybackState.Playing;
-            
+
             if (debugMode)
                 Debug.Log($"[MiniTimelineDirector] Playing from time {currentTime:F2}");
         }
-        
+
         /// <summary>
         /// Pause playback
         /// </summary>
         public void Pause()
         {
             State = PlaybackState.Paused;
-            
+
             if (debugMode)
                 Debug.Log($"[MiniTimelineDirector] Paused at time {currentTime:F2}");
         }
-        
+
         /// <summary>
         /// Stop playback and reset to beginning
         /// </summary>
@@ -293,11 +324,11 @@ namespace MiniTimeline.Core
         {
             State = PlaybackState.Stopped;
             Seek(0f);
-            
+
             if (debugMode)
                 Debug.Log("[MiniTimelineDirector] Stopped");
         }
-        
+
         /// <summary>
         /// Seek to specific time
         /// </summary>
@@ -306,7 +337,7 @@ namespace MiniTimeline.Core
         {
             Time = time;
         }
-        
+
         /// <summary>
         /// Jump to normalized position (0-1)
         /// </summary>
@@ -315,72 +346,284 @@ namespace MiniTimeline.Core
         {
             Seek(normalizedTime * length);
         }
-        
+
         #endregion
-        
+
         #region Project Management
-        
+
+        /// <summary>
+        /// Get the projects folder path (uses Application.persistentDataPath)
+        /// </summary>
+        /// <returns>Full path to projects folder</returns>
+        public static string GetProjectsFolder()
+        {
+            string projectsPath = Path.Combine(Application.persistentDataPath, "TimelineProjects");
+
+            // Ensure directory exists
+            if (!Directory.Exists(projectsPath))
+            {
+                Directory.CreateDirectory(projectsPath);
+                Debug.Log($"[MiniTimelineDirector] Created projects folder: {projectsPath}");
+            }
+
+            return projectsPath;
+        }
+
+        /// <summary>
+        /// Get full path for a project file
+        /// </summary>
+        /// <param name="projectName">Name of the project (without extension)</param>
+        /// <returns>Full file path</returns>
+        public static string GetProjectFilePath(string projectName)
+        {
+            return Path.Combine(GetProjectsFolder(), projectName + ".json");
+        }
+
+        /// <summary>
+        /// Create a new empty project
+        /// </summary>
+        /// <param name="projectName">Name for the new project</param>
+        /// <param name="length">Length in seconds</param>
+        /// <param name="frameRate">Frame rate</param>
+        /// <returns>True if successful</returns>
+        public bool CreateNewProject(string projectName, float length = 10f, float frameRate = 30f)
+        {
+            try
+            {
+                var newProject = new MiniTimelineProject
+                {
+                    name = projectName,
+                    version = 1,
+                    length = length,
+                    frameRate = frameRate,
+                    tracks = new List<TrackData>()
+                };
+
+                SetProject(newProject);
+
+                if (debugMode)
+                    Debug.Log($"[MiniTimelineDirector] Created new project '{projectName}' with length {length}s");
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[MiniTimelineDirector] Failed to create new project: {e.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Save current project to persistent data path
+        /// </summary>
+        /// <param name="projectName">Name to save as (optional, uses current project name if null)</param>
+        /// <returns>True if successful</returns>
+        public bool SaveProject(string projectName = null)
+        {
+            if (project == null)
+            {
+                Debug.LogWarning("[MiniTimelineDirector] Cannot save: No project loaded");
+                return false;
+            }
+
+            try
+            {
+                // Use provided name or current project name
+                string saveName = string.IsNullOrEmpty(projectName) ? project.name : projectName;
+
+                // Update project name if changed
+                if (projectName != null && projectName != project.name)
+                {
+                    project.name = projectName;
+                }
+
+                string filePath = GetProjectFilePath(saveName);
+
+                // Save with runtime tracks
+                bool success = Serialization.ProjectSerializer.SaveToFile(project, this, filePath);
+
+                if (success && debugMode)
+                    Debug.Log($"[MiniTimelineDirector] Saved project '{saveName}' to: {filePath}");
+
+                return success;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[MiniTimelineDirector] Failed to save project: {e.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Load a project from persistent data path
+        /// </summary>
+        /// <param name="projectName">Name of the project to load (without extension)</param>
+        /// <returns>True if successful</returns>
+        public bool LoadProject(string projectName)
+        {
+            try
+            {
+                string filePath = GetProjectFilePath(projectName);
+
+                if (!File.Exists(filePath))
+                {
+                    Debug.LogWarning($"[MiniTimelineDirector] Project file not found: {filePath}");
+                    return false;
+                }
+
+                var loadedProject = Serialization.ProjectSerializer.LoadFromFile(filePath);
+
+                if (loadedProject != null)
+                {
+                    SetProject(loadedProject);
+
+                    if (debugMode)
+                        Debug.Log($"[MiniTimelineDirector] Loaded project '{projectName}' from: {filePath}");
+
+                    return true;
+                }
+
+                return false;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[MiniTimelineDirector] Failed to load project: {e.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Get list of all available project names
+        /// </summary>
+        /// <returns>Array of project names (without extension)</returns>
+        public static string[] GetAvailableProjects()
+        {
+            try
+            {
+                string projectsFolder = GetProjectsFolder();
+
+                if (!Directory.Exists(projectsFolder))
+                {
+                    return new string[0];
+                }
+
+                var jsonFiles = Directory.GetFiles(projectsFolder, "*.json");
+                var projectNames = new string[jsonFiles.Length];
+
+                for (int i = 0; i < jsonFiles.Length; i++)
+                {
+                    projectNames[i] = Path.GetFileNameWithoutExtension(jsonFiles[i]);
+                }
+
+                return projectNames;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[MiniTimelineDirector] Failed to get available projects: {e.Message}");
+                return new string[0];
+            }
+        }
+
+        /// <summary>
+        /// Delete a project file
+        /// </summary>
+        /// <param name="projectName">Name of the project to delete (without extension)</param>
+        /// <returns>True if successful</returns>
+        public static bool DeleteProject(string projectName)
+        {
+            try
+            {
+                string filePath = GetProjectFilePath(projectName);
+
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                    Debug.Log($"[MiniTimelineDirector] Deleted project: {filePath}");
+                    return true;
+                }
+
+                Debug.LogWarning($"[MiniTimelineDirector] Project file not found: {filePath}");
+                return false;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[MiniTimelineDirector] Failed to delete project: {e.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Check if a project exists
+        /// </summary>
+        /// <param name="projectName">Name of the project (without extension)</param>
+        /// <returns>True if project file exists</returns>
+        public static bool ProjectExists(string projectName)
+        {
+            string filePath = GetProjectFilePath(projectName);
+            return File.Exists(filePath);
+        }
+
         /// <summary>
         /// Load a timeline project
         /// </summary>
         /// <param name="newProject">Project data to load</param>
         /// <param name="context">Binding context (optional, will create new if null)</param>
-        public void SetProject(MiniTimelineProject newProject, BindingContext context = null)
+        public void SetProject(MiniTimelineProject newProject, BindableObjectManager context = null)
         {
             if (newProject == null)
             {
                 Debug.LogError("[MiniTimelineDirector] Cannot set null project");
                 return;
             }
-            
+
             // Close existing project
             CloseProject();
-            
+
             // Set new project
             project = newProject;
             length = project.length;
-            
+
             if (context != null)
-                bindingContext = context;
-            
+                bindableObjectManager = context;
+
             // Build tracks from project data
             BuildTracks();
-            
+
             // Reset state
             Stop();
             isDirty = false;
-            
+
             OnProjectLoaded?.Invoke();
-            
+
             if (debugMode)
                 Debug.Log($"[MiniTimelineDirector] Loaded project '{project.name}' with {tracks.Count} tracks");
         }
-        
+
         /// <summary>
         /// Close current project and cleanup
         /// </summary>
         public void CloseProject()
         {
             if (project == null) return;
-            
+
             Stop();
-            
+
             // Cleanup all tracks
             foreach (var track in tracks)
             {
                 track.OnProjectClosed();
             }
-            
+
             tracks.Clear();
             trackLookup.Clear();
             project = null;
-            
+
             OnProjectClosed?.Invoke();
-            
+
             if (debugMode)
                 Debug.Log("[MiniTimelineDirector] Project closed");
         }
-        
+
         /// <summary>
         /// Mark project as dirty (needs rebuild)
         /// </summary>
@@ -388,7 +631,7 @@ namespace MiniTimeline.Core
         {
             isDirty = true;
         }
-        
+
         /// <summary>
         /// Create a default empty project with configured settings
         /// </summary>
@@ -402,17 +645,48 @@ namespace MiniTimeline.Core
                 frameRate = defaultFrameRate,
                 tracks = new System.Collections.Generic.List<TrackData>()
             };
-            
+
             SetProject(emptyProject);
-            
+
             if (debugMode)
                 Debug.Log($"[MiniTimelineDirector] Auto-created empty project '{emptyProject.name}' with length {emptyProject.length}s");
         }
-        
+
+        /// <summary>
+        /// Attempt to automatically load the first available project
+        /// </summary>
+        private void TryAutoLoadFirstProject()
+        {
+            var availableProjects = GetAvailableProjects();
+            
+            if (availableProjects != null && availableProjects.Length > 0)
+            {
+                var firstProjectName = availableProjects[0];
+                
+                if (debugMode)
+                    Debug.Log($"[MiniTimelineDirector] Auto-loading first project: {firstProjectName}");
+                
+                if (LoadProject(firstProjectName))
+                {
+                    if (debugMode)
+                        Debug.Log($"[MiniTimelineDirector] Successfully auto-loaded project: {firstProjectName}");
+                }
+                else
+                {
+                    Debug.LogWarning($"[MiniTimelineDirector] Failed to auto-load project: {firstProjectName}");
+                }
+            }
+            else
+            {
+                if (debugMode)
+                    Debug.Log("[MiniTimelineDirector] No projects available to auto-load");
+            }
+        }
+
         #endregion
-        
+
         #region Track Management
-        
+
         /// <summary>
         /// Get track by ID
         /// </summary>
@@ -423,7 +697,7 @@ namespace MiniTimeline.Core
             trackLookup.TryGetValue(id, out var track);
             return track;
         }
-        
+
         /// <summary>
         /// Get track by type
         /// </summary>
@@ -433,7 +707,7 @@ namespace MiniTimeline.Core
         {
             return tracks.OfType<T>().FirstOrDefault();
         }
-        
+
         /// <summary>
         /// Get track by ID and type
         /// </summary>
@@ -444,7 +718,7 @@ namespace MiniTimeline.Core
         {
             return GetTrack(id) as T;
         }
-        
+
         /// <summary>
         /// Get all tracks of specific type
         /// </summary>
@@ -454,27 +728,27 @@ namespace MiniTimeline.Core
         {
             return tracks.OfType<T>();
         }
-        
+
         #endregion
-        
+
         #region Evaluation
-        
+
         /// <summary>
         /// Evaluate all tracks at current time
         /// </summary>
         /// <param name="scrub">Whether this is a scrub operation</param>
         private void Evaluate(bool scrub)
         {
-            if (debugMode)
-                Debug.Log($"[MiniTimelineDirector] Starting evaluation at time {currentTime:F3}, scrub: {scrub}, project: {(project != null ? project.name : "null")}, tracks: {tracks.Count}");
-            
+            // Randomly log (5% chance) to reduce spam
+            bool shouldLog = debugMode && UnityEngine.Random.value < 0.05f;
+
             if (project == null || tracks.Count == 0)
             {
-                if (debugMode)
+                if (debugMode && UnityEngine.Random.value < 0.1f) // 10% chance for warnings
                     Debug.LogWarning($"[MiniTimelineDirector] Cannot evaluate - project: {(project != null ? "loaded" : "null")}, track count: {tracks.Count}");
                 return;
             }
-            
+
             // Rebuild tracks if dirty
             if (isDirty)
             {
@@ -483,30 +757,27 @@ namespace MiniTimeline.Core
                 BuildTracks();
                 isDirty = false;
             }
-            
+
             // Sort tracks by evaluation order and evaluate
             tempTrackList.Clear();
             tempTrackList.AddRange(tracks.Where(t => t.Enabled));
             tempTrackList.Sort((a, b) => a.Order.CompareTo(b.Order));
-            
-            if (debugMode)
+
+            if (shouldLog)
                 Debug.Log($"[MiniTimelineDirector] Evaluating {tempTrackList.Count} enabled tracks out of {tracks.Count} total tracks");
-            
+
             int successCount = 0;
             int errorCount = 0;
-            
+
             foreach (var track in tempTrackList)
             {
                 try
                 {
-                    if (debugMode)
+                    if (shouldLog)
                         Debug.Log($"[MiniTimelineDirector] Evaluating track '{track.Id}' (Order: {track.Order}, Type: {track.GetType().Name})");
-                    
+
                     track.Evaluate(currentTime, scrub);
                     successCount++;
-                    
-                    if (debugMode)
-                        Debug.Log($"[MiniTimelineDirector] Successfully evaluated track '{track.Id}'");
                 }
                 catch (Exception e)
                 {
@@ -514,17 +785,17 @@ namespace MiniTimeline.Core
                     Debug.LogError($"[MiniTimelineDirector] Error evaluating track '{track.Id}': {e.Message}\nStackTrace: {e.StackTrace}");
                 }
             }
-            
-            if (debugMode)
+
+            if (shouldLog)
                 Debug.Log($"[MiniTimelineDirector] Evaluation complete - Success: {successCount}, Errors: {errorCount}");
-            
+
             tempTrackList.Clear();
         }
-        
+
         #endregion
-        
+
         #region Private Methods
-        
+
         /// <summary>
         /// Build tracks from project data
         /// </summary>
@@ -536,10 +807,10 @@ namespace MiniTimeline.Core
                     Debug.LogWarning("[MiniTimelineDirector] Cannot build tracks - no project loaded");
                 return;
             }
-            
+
             if (debugMode)
                 Debug.Log($"[MiniTimelineDirector] Building tracks from project '{project.name}' with {project.tracks.Count} track definitions");
-            
+
             // Clear existing tracks
             foreach (var track in tracks)
             {
@@ -549,33 +820,33 @@ namespace MiniTimeline.Core
             }
             tracks.Clear();
             trackLookup.Clear();
-            
+
             int successCount = 0;
             int failureCount = 0;
-            
+
             // Create tracks from project data
             foreach (var trackData in project.tracks)
             {
                 if (debugMode)
                     Debug.Log($"[MiniTimelineDirector] Creating track '{trackData.id}' of type '{trackData.type}'");
-                
+
                 var track = CreateTrack(trackData);
                 if (track != null)
                 {
                     tracks.Add(track);
                     trackLookup[track.Id] = track;
-                    
+
                     try
                     {
                         // Bind and prepare track
                         if (debugMode)
                             Debug.Log($"[MiniTimelineDirector] Binding track '{track.Id}' with bind key '{track.BindKey}'");
-                        track.Bind(bindingContext);
-                        
+                        track.Bind(bindableObjectManager);
+
                         if (debugMode)
                             Debug.Log($"[MiniTimelineDirector] Preparing track '{track.Id}'");
                         track.Prepare();
-                        
+
                         successCount++;
                         if (debugMode)
                             Debug.Log($"[MiniTimelineDirector] Successfully created and prepared track '{track.Id}'");
@@ -584,7 +855,7 @@ namespace MiniTimeline.Core
                     {
                         failureCount++;
                         Debug.LogError($"[MiniTimelineDirector] Failed to bind/prepare track '{track.Id}': {e.Message}\nStackTrace: {e.StackTrace}");
-                        
+
                         // Remove failed track
                         tracks.Remove(track);
                         trackLookup.Remove(track.Id);
@@ -596,11 +867,11 @@ namespace MiniTimeline.Core
                     Debug.LogError($"[MiniTimelineDirector] Failed to create track '{trackData.id}' of type '{trackData.type}'");
                 }
             }
-            
+
             if (debugMode)
                 Debug.Log($"[MiniTimelineDirector] Track building complete - Success: {successCount}, Failures: {failureCount}, Total tracks: {tracks.Count}");
         }
-        
+
         /// <summary>
         /// Create a track instance from track data
         /// </summary>
@@ -611,10 +882,76 @@ namespace MiniTimeline.Core
             return Serialization.TrackFactory.CreateTrack(data);
         }
         
+        /// <summary>
+        /// Rebind all tracks to the current binding context.
+        /// Useful when bindings have changed and tracks need to re-resolve their bound objects.
+        /// This will also re-prepare tracks if their target object has changed.
+        /// </summary>
+        public void RebindAllTracks()
+        {
+            if (bindableObjectManager == null)
+            {
+                if (debugMode)
+                    Debug.LogWarning("[MiniTimelineDirector] Cannot rebind tracks - no binding context available");
+                return;
+            }
+            
+            int reboundCount = 0;
+            int repreparedCount = 0;
+            
+            foreach (var track in tracks)
+            {
+                track.Bind(bindableObjectManager);
+                reboundCount++;
+                
+                // Re-prepare track if it's bound (Bind() sets isPrepared=false if target changed)
+                if (track.IsBound)
+                {
+                    try
+                    {
+                        track.Prepare();
+                        repreparedCount++;
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogError($"[MiniTimelineDirector] Failed to re-prepare track '{track.Id}' after rebinding: {e.Message}");
+                    }
+                }
+            }
+            
+            if (debugMode)
+                Debug.Log($"[MiniTimelineDirector] Rebound {reboundCount} tracks, re-prepared {repreparedCount} tracks");
+        }
+        
+        /// <summary>
+        /// Auto-bind all BindableObject components in the scene and rebind all tracks.
+        /// This is a convenience method that calls BindingContext.AutoBind() and then RebindAllTracks().
+        /// </summary>
+        public void AutoBindSceneObjects()
+        {
+            if (bindableObjectManager == null)
+            {
+                if (debugMode)
+                    Debug.LogWarning("[MiniTimelineDirector] Cannot auto-bind - no binding context available");
+                return;
+            }
+            
+            int existingCount = bindableObjectManager.GetKeys().Count();
+            bindableObjectManager.AutoBind();
+            int newCount = bindableObjectManager.GetKeys().Count();
+            int bindingsAdded = newCount - existingCount;
+            
+            // Rebind all tracks to update their IsBound status with the new bindings
+            RebindAllTracks();
+            
+            if (debugMode)
+                Debug.Log($"[MiniTimelineDirector] Auto-bound {bindingsAdded} scene objects (Total bindings: {newCount})");
+        }
+
         #endregion
-        
+
         #region Utility
-        
+
         /// <summary>
         /// Convert time to frame number
         /// </summary>
@@ -625,7 +962,7 @@ namespace MiniTimeline.Core
             float frameRate = project?.frameRate ?? MiniTimelineConstants.DEFAULT_FRAME_RATE;
             return Mathf.RoundToInt(time * frameRate);
         }
-        
+
         /// <summary>
         /// Convert frame number to time
         /// </summary>
@@ -636,7 +973,7 @@ namespace MiniTimeline.Core
             float frameRate = project?.frameRate ?? MiniTimelineConstants.DEFAULT_FRAME_RATE;
             return frame / frameRate;
         }
-        
+
         /// <summary>
         /// Snap time to nearest frame
         /// </summary>

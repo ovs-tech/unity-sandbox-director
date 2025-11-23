@@ -4277,7 +4277,6 @@ GameObject:
   - component: {fileID: 5407191932664788229}
   - component: {fileID: 2417837638629289029}
   - component: {fileID: 4405283125306478741}
-  - component: {fileID: 4917106743087086849}
   - component: {fileID: 4667227131455200300}
   - component: {fileID: 3816339506941256997}
   - component: {fileID: -9015318289523129792}
@@ -4296,7 +4295,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6960119122640606369}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 1, z: -0, w: -0.00000016292068}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -6.568401, y: 3.6282578, z: -4.485832}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -4305,7 +4304,7 @@ Transform:
   - {fileID: 289845710992536271}
   - {fileID: 3906969835526676683}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: -180, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6705525581990697057
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4324,6 +4323,9 @@ MonoBehaviour:
   umaRecipe: {fileID: 11400000, guid: d3995223b7bbc2345a73ede40763c8d4, type: 2}
   umaAdditionalRecipes:
   - {fileID: 11400000, guid: 1f292487d7383514f97c491cadfb0442, type: 2}
+  - {fileID: 11400000, guid: 920d59ac577b2d9449aa36a4d9e86f10, type: 2}
+  - {fileID: 11400000, guid: b8f097e9dd7c12f41be671d16d75804d, type: 2}
+  - {fileID: 11400000, guid: b4240924c651c4f1b840a7e4707660ac, type: 2}
   umaGenerator: {fileID: 0}
   animationController: {fileID: 9100000, guid: eb280940c811fab4a9e3ddf09381c343, type: 2}
   CharacterCreated:
@@ -4388,7 +4390,7 @@ MonoBehaviour:
   hide: 0
   markNotReadable: 1
   markDynamic: 1
-  loadBlendShapes: 0
+  loadBlendShapes: 1
   loadOnlyUsedBlendshapes: 1
   loadBlendshapeNormals: 1
   loadBlendshapeTangents: 1
@@ -4948,7 +4950,7 @@ MonoBehaviour:
   BoundsOffset: {x: 0, y: 0, z: 0}
   editorTimeGeneration: 1
   showPlaceholder: 1
-  previewModel: 0
+  previewModel: 1
   customModel: {fileID: 0}
   customRotation: {x: 0, y: 0, z: 0}
   previewColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
@@ -5974,93 +5976,6 @@ MonoBehaviour:
   characterHeight: 2
   characterRadius: 0.25
   characterMass: 50
---- !u!114 &4917106743087086849
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6960119122640606369}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 05c88fba981e04b49b91569af1c372a6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UMA_Core::UMA.PoseTools.UMAExpressionPlayer
-  enableBlinking: 1
-  blinkDuration: 0.15
-  minBlinkDelay: 3
-  maxBlinkDelay: 15
-  enableSaccades: 1
-  gazeTarget: {x: 0, y: 0, z: 0}
-  gazeWeight: 0
-  gazeMode: 0
-  overrideMecanimEyes: 1
-  overrideMecanimJaw: 0
-  overrideMecanimNeck: 0
-  overrideMecanimHead: 0
-  overrideMecanimHands: 0
-  Expressions: []
-  neckUp_Down: 0
-  neckLeft_Right: 0
-  neckTiltLeft_Right: 0
-  headUp_Down: 0
-  headLeft_Right: 0
-  headTiltLeft_Right: 0
-  jawOpen_Close: 0
-  jawForward_Back: 0
-  jawLeft_Right: 0
-  mouthLeft_Right: 0
-  mouthUp_Down: 0
-  mouthNarrow_Pucker: 0
-  tongueOut: 0
-  tongueCurl: 0
-  tongueUp_Down: 0
-  tongueLeft_Right: 0
-  tongueWide_Narrow: 0
-  leftMouthSmile_Frown: 0
-  rightMouthSmile_Frown: 0
-  leftLowerLipUp_Down: 0
-  rightLowerLipUp_Down: 0
-  leftUpperLipUp_Down: 0
-  rightUpperLipUp_Down: 0
-  leftCheekPuff_Squint: 0
-  rightCheekPuff_Squint: 0
-  noseSneer: 0
-  leftEyeOpen_Close: 0
-  rightEyeOpen_Close: 0
-  leftEyeUp_Down: 0
-  rightEyeUp_Down: 0
-  leftEyeIn_Out: -0.22166532
-  rightEyeIn_Out: 0.22166532
-  browsIn: 0
-  leftBrowUp_Down: 0
-  rightBrowUp_Down: 0
-  midBrowUp_Down: 0
-  leftGrasp: 0
-  rightGrasp: 0
-  leftPeace: 0
-  rightPeace: 0
-  leftRude: 0
-  rightRude: 0
-  leftPoint: 0
-  rightPoint: 0
-  expressionSet: {fileID: 11400000, guid: 5912431641bbc4d858ffd8e14168c56a, type: 2}
-  minWeight: 0
-  logResetErrors: 0
-  useDisableDistance: 0
-  processing: 1
-  disableDistance: 10
-  eyeMovementRange: 30
-  mutualGazeRange: 0.1
-  MinSaccadeDelay: 0.25
-  MaxSaccadeMagnitude: 15
-  minSaccade: -0.6
-  maxSaccade: 0.6
-  allowUpDownSaccades: 0
-  animator: {fileID: 0}
-  ExpressionChanged:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!114 &4667227131455200300
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6111,37 +6026,38 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2914408d8fd64384b2a25ebd6019c77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneSandbox.Core.TransformableItem
-  _canDrag: 1
-  _snapToGrid: 0
-  _gridSize: 1
-  _dropLayers:
-    serializedVersion: 2
-    m_Bits: 64
-  _dragMaterial: {fileID: 0}
   _hoverMaterial: {fileID: 0}
-  _dragHeight: 0.5
-  _showDragPreview: 1
+  _selectedMaterial: {fileID: 0}
   _enableTransformControls: 1
-  _moveMaterial: {fileID: 0}
-  _rotateMaterial: {fileID: 0}
-  _scaleMaterial: {fileID: 0}
-  _rotationSensitivity: 2
-  _scaleSensitivity: 0.01
   _minScale: {x: 0.1, y: 0.1, z: 0.1}
   _maxScale: {x: 5, y: 5, z: 5}
+  _positionStep: 0.1
+  _rotationStep: 5
+  _scaleStep: 0.1
   _showGizmo: 1
   _gizmoScreenScale: 0.12
   _gizmoLayer:
     serializedVersion: 2
-    m_Bits: 4
+    m_Bits: 32
   _gizmoXColor: {r: 1, g: 0.2, b: 0.2, a: 1}
   _gizmoYColor: {r: 0.2, g: 1, b: 0.2, a: 1}
   _gizmoZColor: {r: 0.2, g: 0.6, b: 1, a: 1}
-  _gizmoHighlight: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  _currentTransformMode: 0
+  _gizmoHighlightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _snapMode: 0
+  _enableSnapGrid: 0
+  _snapGridSize: 0.5
+  _pivotPoint: 0
+  _placementOffset: {x: 0, y: 0, z: 0}
+  _currentTransformModeType: 0
+  _currentTransformAxis: 0
   _objectId: 
   _objectDataId: 
-  _longPressDuration: 0.8
+  _onSelectItem:
+    m_PersistentCalls:
+      m_Calls: []
+  _onDeselectItem:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &6965570121932428646
 GameObject:
   m_ObjectHideFlags: 0

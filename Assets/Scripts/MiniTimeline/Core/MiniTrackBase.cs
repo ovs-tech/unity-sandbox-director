@@ -1,0 +1,267 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace MiniTimeline.Core
+{
+    /// <summary>
+    /// Base implementation of IMiniTrack with common functionality
+    /// </summary>
+    public abstract class MiniTrackBase<TClip> : IMiniTrack 
+        where TClip : IMiniClip
+    {
+        public string Id { get; set; }
+        public string BindKey { get; set; }
+        public bool Enabled { get; set; } = true;
+        public virtual int Order => 0;
+        public bool IsBound => isBound;
+        public bool IsReady => Enabled && isPrepared;
+        public EvaluateMode EvaluateMode { get; set; } = EvaluateMode.Continuous;
+        
+        protected List<TClip> clips = new List<TClip>();
+        protected UnityEngine.Object targetObject;
+        protected bool isBound;
+        protected bool isPrepared;
+        protected bool wasActive; // Track previous active state for OnEnter/OnExit detection
+        
+        public virtual void Bind(BindableObjectManager context)
+        {
+            if (context == null)
+            {
+                Debug.LogWarning($"[MiniTrack] Cannot bind track '{Id}': BindingContext is null");
+                isBound = false;
+                isPrepared = false;
+                return;
+            }
+            
+            // Store previous target to detect changes
+            var previousTarget = targetObject;
+            
+            if (!string.IsNullOrEmpty(BindKey))
+            {
+                targetObject = context.Resolve<Object>(BindKey);
+                isBound = targetObject != null;
+                
+                if (!isBound)
+                {
+                    Debug.LogWarning($"[MiniTrack] Failed to bind track '{Id}' with key '{BindKey}'");
+                    isPrepared = false;
+                }
+                else if (previousTarget != targetObject)
+                {
+                    // Target changed, need to re-prepare
+                    isPrepared = false;
+                }
+            }
+            else
+            {
+                // Track doesn't require binding (e.g., global tracks)
+                isBound = true;
+            }
+        }
+        
+        public virtual void Prepare()
+        {
+            if (!isBound)
+            {
+                Debug.LogWarning($"[MiniTrack] Cannot prepare unbound track '{Id}'");
+                return;
+            }
+            
+            OnPrepare();
+            isPrepared = true;
+            wasActive = false; // Reset state when preparing
+        }
+        
+        public virtual void Evaluate(float time, bool scrub)
+        {
+            if (!IsReady)
+            {
+                Debug.LogWarning($"[MiniTrack] Track '{Id}' is not ready (Enabled={Enabled}, IsPrepared={isPrepared})");
+                return;
+            }
+            
+            // Determine if track is active (has active clips at this time)
+            bool isActive = IsActiveAtTime(time);
+            
+            // State transition detection
+            bool justEntered = isActive && !wasActive;
+            bool justExited = !isActive && wasActive;
+            
+            // Debug state transitions
+            if (justEntered)
+            {
+                Debug.Log($"[MiniTrack] Track '{Id}' entered active state at time {time:F2}s (mode: {EvaluateMode})");
+            }
+            else if (justExited)
+            {
+                Debug.Log($"[MiniTrack] Track '{Id}' exited active state at time {time:F2}s (mode: {EvaluateMode})");
+            }
+            
+            // Trigger callbacks based on EvaluateMode
+            switch (EvaluateMode)
+            {
+                case EvaluateMode.OnEnter:
+                    if (justEntered)
+                    {
+                        Debug.Log($"[MiniTrack] OnEnter triggered for track '{Id}' at {time:F2}s");
+                        OnEnter(time, scrub);
+                    }
+                    break;
+                    
+                case EvaluateMode.OnExit:
+                    if (justExited)
+                    {
+                        Debug.Log($"[MiniTrack] OnExit triggered for track '{Id}' at {time:F2}s");
+                        OnExit(time, scrub);
+                    }
+                    break;
+                    
+                case EvaluateMode.OnEnterAndExit:
+                    if (justEntered)
+                    {
+                        Debug.Log($"[MiniTrack] OnEnter triggered for track '{Id}' at {time:F2}s");
+                        OnEnter(time, scrub);
+                    }
+                    else if (justExited)
+                    {
+                        Debug.Log($"[MiniTrack] OnExit triggered for track '{Id}' at {time:F2}s");
+                        OnExit(time, scrub);
+                    }
+                    break;
+                    
+                case EvaluateMode.Continuous:
+                default:
+                    if (justEntered)
+                    {
+                        Debug.Log($"[MiniTrack] OnEnter triggered for track '{Id}' at {time:F2}s");
+                        OnEnter(time, scrub);
+                    }
+                    
+                    if (isActive)
+                    {
+                        // Only log every 60th frame to avoid spam
+                        if (Time.frameCount % 60 == 0)
+                        {
+                            Debug.Log($"[MiniTrack] OnEvaluate for track '{Id}' at {time:F2}s (continuous)");
+                        }
+                        OnEvaluate(time, scrub);
+                    }
+                    
+                    if (justExited)
+                    {
+                        Debug.Log($"[MiniTrack] OnExit triggered for track '{Id}' at {time:F2}s");
+                        OnExit(time, scrub);
+                    }
+                    break;
+            }
+            
+            // Update state for next frame
+            wasActive = isActive;
+        }
+        
+        public virtual IEnumerable<IMiniClip> GetClips()
+        {
+            foreach (var clip in clips)
+                yield return clip;
+        }
+        
+        public virtual void AddClip(IMiniClip clip)
+        {
+            if (clip is TClip typedClip)
+            {
+                clips.Add(typedClip);
+                // Sort clips by start time to maintain order
+                clips.Sort((a, b) => a.Start.CompareTo(b.Start));
+            }
+            else
+            {
+                Debug.LogError($"[MiniTrack] Cannot add clip of type {clip?.GetType()} to track that expects {typeof(TClip)}");
+            }
+        }
+        
+        public virtual bool RemoveClip(IMiniClip clip)
+        {
+            if (clip is TClip typedClip)
+            {
+                return clips.Remove(typedClip);
+            }
+            return false;
+        }
+        
+        public virtual void OnProjectClosed()
+        {
+            OnCleanup();
+            isPrepared = false;
+            isBound = false;
+            targetObject = null;
+            wasActive = false; // Reset active state
+        }
+        
+        /// <summary>
+        /// Set clips for this track
+        /// </summary>
+        public virtual void SetClips(List<TClip> newClips)
+        {
+            clips = newClips ?? new List<TClip>();
+        }
+        
+        /// <summary>
+        /// Get active clips at given time
+        /// </summary>
+        protected virtual List<TClip> GetActiveClips(float time)
+        {
+            var activeClips = new List<TClip>();
+            
+            foreach (var clip in clips)
+            {
+                if (clip.Contains(time))
+                {
+                    activeClips.Add(clip);
+                }
+            }
+            
+            return activeClips;
+        }
+        
+        /// <summary>
+        /// Check if track is active at given time (has active clips)
+        /// </summary>
+        protected virtual bool IsActiveAtTime(float time)
+        {
+            foreach (var clip in clips)
+            {
+                if (clip.Contains(time))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        /// <summary>
+        /// Override this to implement track-specific preparation
+        /// </summary>
+        protected virtual void OnPrepare() { }
+        
+        /// <summary>
+        /// Called when track enters active state (first active clip starts)
+        /// </summary>
+        protected virtual void OnEnter(float time, bool scrub) { }
+        
+        /// <summary>
+        /// Called when track exits active state (all clips finished)
+        /// </summary>
+        protected virtual void OnExit(float time, bool scrub) { }
+        
+        /// <summary>
+        /// Override this to implement track-specific evaluation
+        /// Called continuously during Continuous mode when track is active
+        /// </summary>
+        protected abstract void OnEvaluate(float time, bool scrub);
+        
+        /// <summary>
+        /// Override this to implement track-specific cleanup
+        /// </summary>
+        protected virtual void OnCleanup() { }
+    }
+}

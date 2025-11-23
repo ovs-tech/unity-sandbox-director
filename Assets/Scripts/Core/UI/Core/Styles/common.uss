@@ -1,0 +1,273 @@
+/* Common UI Toolkit Styles */
+
+/* Root Variables (Unity USS doesn't support CSS variables, but we can define common classes) */
+
+/* Common Button Styles */
+Button {
+    background-color: rgba(70, 70, 70, 1);
+    border-width: 1px;
+    border-color: rgba(90, 90, 90, 1);
+    border-radius: 3px;
+    color: rgb(255, 255, 255);
+    padding: 6px 12px;
+    margin: 2px;
+    cursor: link;
+}
+
+Button:hover {
+    background-color: rgba(90, 90, 90, 1);
+    border-color: rgba(110, 110, 110, 1);
+}
+
+Button:active {
+    background-color: rgba(60, 60, 60, 1);
+}
+
+Button:disabled {
+    background-color: rgba(50, 50, 50, 1);
+    color: rgba(120, 120, 120, 1);
+    border-color: rgba(70, 70, 70, 1);
+    cursor: default;
+}
+
+/* Common Text Field Styles */
+TextField {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+TextField .unity-text-field__input {
+    background-color: rgba(50, 50, 50, 1);
+    border-width: 1px;
+    border-color: rgba(70, 70, 70, 1);
+    border-radius: 3px;
+    color: rgb(255, 255, 255);
+    padding: 4px;
+}
+
+TextField .unity-text-field__input:hover {
+    border-color: rgba(100, 100, 100, 1);
+}
+
+TextField .unity-text-field__input:focus {
+    border-color: rgb(77, 150, 255);
+    border-width: 2px;
+}
+
+/* Common Label Styles */
+Label {
+    color: rgb(200, 200, 200);
+    font-size: 12px;
+}
+
+/* Common Scroll View Styles */
+ScrollView {
+    flex-grow: 1;
+}
+
+.unity-scroll-view__content-viewport {
+    background-color: rgba(35, 35, 35, 1);
+}
+
+.unity-scroller {
+    background-color: rgba(30, 30, 30, 1);
+}
+
+.unity-scroller--vertical {
+    width: 12px;
+}
+
+.unity-scroller--horizontal {
+    height: 12px;
+}
+
+.unity-scroller__slider {
+    background-color: rgba(50, 50, 50, 1);
+    border-radius: 6px;
+}
+
+.unity-scroller__slider:hover {
+    background-color: rgba(70, 70, 70, 1);
+}
+
+.unity-scroller__low-button,
+.unity-scroller__high-button {
+    display: none;
+}
+
+/* Common Toggle Styles */
+Toggle {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+Toggle .unity-toggle__input {
+    background-color: rgba(50, 50, 50, 1);
+    border-width: 1px;
+    border-color: rgba(70, 70, 70, 1);
+    border-radius: 2px;
+}
+
+Toggle .unity-toggle__input:checked {
+    background-color: rgb(77, 150, 255);
+    border-color: rgb(97, 170, 255);
+}
+
+Toggle .unity-toggle__label {
+    color: rgb(200, 200, 200);
+    font-size: 12px;
+}
+
+/* Common Slider Styles */
+Slider {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+Slider .unity-slider__tracker {
+    background-color: rgba(50, 50, 50, 1);
+    border-radius: 3px;
+    height: 6px;
+}
+
+Slider .unity-slider__dragger {
+    background-color: rgb(77, 150, 255);
+    border-radius: 8px;
+    width: 16px;
+    height: 16px;
+    border-width: 0;
+}
+
+Slider .unity-slider__dragger:hover {
+    background-color: rgb(97, 170, 255);
+}
+
+/* Common Dropdown Styles */
+DropdownField {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+DropdownField .unity-dropdown-field__input {
+    background-color: rgba(50, 50, 50, 1);
+    border-width: 1px;
+    border-color: rgba(70, 70, 70, 1);
+    border-radius: 3px;
+    color: rgb(255, 255, 255);
+    padding: 4px;
+}
+
+DropdownField .unity-dropdown-field__input:hover {
+    border-color: rgba(100, 100, 100, 1);
+}
+
+DropdownField .unity-dropdown-field__input:focus {
+    border-color: rgb(77, 150, 255);
+}
+
+/* Common Panel Styles */
+.panel {
+    background-color: rgba(40, 40, 40, 0.95);
+    border-width: 1px;
+    border-color: rgba(60, 60, 60, 1);
+    border-radius: 4px;
+    padding: 8px;
+}
+
+.panel__header {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: rgb(255, 255, 255);
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(80, 80, 80, 1);
+}
+
+/* Utility Classes */
+.hidden {
+    display: none;
+}
+
+.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.text-center {
+    -unity-text-align: middle-center;
+}
+
+.text-left {
+    -unity-text-align: middle-left;
+}
+
+.text-right {
+    -unity-text-align: middle-right;
+}
+
+/* Color Utilities */
+.color-primary {
+    color: rgb(77, 150, 255);
+}
+
+.color-success {
+    color: rgb(40, 167, 69);
+}
+
+.color-warning {
+    color: rgb(255, 193, 7);
+}
+
+.color-danger {
+    color: rgb(220, 53, 69);
+}
+
+.bg-primary {
+    background-color: rgba(77, 150, 255, 1);
+}
+
+.bg-success {
+    background-color: rgba(40, 167, 69, 1);
+}
+
+.bg-warning {
+    background-color: rgba(255, 193, 7, 1);
+}
+
+.bg-danger {
+    background-color: rgba(220, 53, 69, 1);
+}
+
+/* Spacing Utilities */
+.m-0 {
+    margin: 0;
+}
+
+.p-0 {
+    padding: 0;
+}
+
+.m-small {
+    margin: 4px;
+}
+
+.p-small {
+    padding: 4px;
+}
+
+.m-medium {
+    margin: 8px;
+}
+
+.p-medium {
+    padding: 8px;
+}
+
+.m-large {
+    margin: 12px;
+}
+
+.p-large {
+    padding: 12px;
+}

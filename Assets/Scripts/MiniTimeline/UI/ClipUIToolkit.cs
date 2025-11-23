@@ -65,6 +65,7 @@ namespace MiniTimeline.UI
         private float dragStartTime;
         private float dragStartDuration;
         private float clipDragOffset;
+        private float currentDragNewStartTime; // Track current drag position
         private float resizeDragStartTime;
         private float resizeDragStartDuration;
         private float resizeStartMouseX;
@@ -146,22 +147,8 @@ namespace MiniTimeline.UI
             
             parentContainer.Add(clipElement);
             UpdatePosition();
-            
-            // Ensure TimelineContextMenu is available for context menu support
-            EnsureContextMenuInitialized();
         }
         
-        /// <summary>
-        /// Ensures TimelineContextMenu is properly initialized for this clip
-        /// </summary>
-        private void EnsureContextMenuInitialized()
-        {
-            if (!TimelineContextMenu.HasInstance)
-            {
-                Debug.LogWarning("TimelineContextMenu instance not found. Context menus may not work properly.");
-            }
-        }
-
         private void LoadClipTemplateIfNeeded()
         {
             // Try to load clip template from Resources if not provided
@@ -523,7 +510,7 @@ namespace MiniTimeline.UI
             // Only check for drag start if mouse is down and not already dragging/resizing
             if (isMouseDown && !isDragging && !isResizing && Vector2.Distance(evt.localMousePosition, dragStartPosition) > 5f)
             {
-                // Debug.Log($"[ClipUI] Starting drag, distance: {Vector2.Distance(evt.localMousePosition, dragStartPosition)}");
+                Debug.Log($"[ClipUI] Starting drag, distance: {Vector2.Distance(evt.localMousePosition, dragStartPosition)}");
                 // Stop long press when drag begins
                 StopLongPressDetection();
                 
@@ -544,7 +531,7 @@ namespace MiniTimeline.UI
 
         private void OnClipMouseUp(MouseUpEvent evt)
         {
-            // Debug.Log($"[ClipUI] MouseUp: isDragging={isDragging}, isResizing={isResizing}");
+            Debug.Log($"[ClipUI] MouseUp: isDragging={isDragging}, isResizing={isResizing}");
             
             // Release mouse capture
             if (clipElement?.panel != null)
@@ -566,9 +553,13 @@ namespace MiniTimeline.UI
             
             if (isDragging)
             {
+                HandleDragEnd();
                 isDragging = false;
                 clipElement?.RemoveFromClassList("dragging");
-                HandleDragEnd();
+                if (clipElement != null)
+                {
+                    clipElement.style.opacity = 1f;
+                }
                 OnEndInteraction?.Invoke(this);
             }
             else if (isResizing)
@@ -658,29 +649,17 @@ namespace MiniTimeline.UI
         }
         
         /// <summary>
-        /// Show context menu for this clip using FormSubmitPanelUIToolkit directly
+        /// Show context menu for this clip using TimelineEditorUIToolkit
         /// </summary>
         private void ShowClipContextMenu(Vector2 screenPosition, bool fromLongPress = false)
         {
-            // Debug.Log($"Showing context menu for clip: {clip?.Id} (long press: {fromLongPress})");
-            
-            // Create form fields for clip actions
-            var formFields = CreateClipActionFields();
-            
-            // Show form panel directly
-            if (FormSubmitPanelUIToolkit.HasInstance)
+            if (editorUI != null)
             {
-                FormSubmitPanelUIToolkit.Instance.Show(
-                    "Clip Actions",
-                    formFields,
-                    onSubmit: OnClipActionSubmitted,
-                    onCancel: OnClipActionCancelled,
-                    editorUI?.transform
-                );
+                editorUI.ShowClipMenu(this, screenPosition);
             }
             else
             {
-                Debug.LogWarning("FormSubmitPanelUIToolkit not available");
+                Debug.LogWarning("TimelineEditorUIToolkit not available");
             }
         }
         
@@ -903,65 +882,6 @@ namespace MiniTimeline.UI
         
         #endregion
         
-        /// <summary>
-        /// Creates a ClipUI wrapper for compatibility with TimelineContextMenu
-        /// </summary>
-        private ClipUI CreateClipUIWrapper()
-        {
-            try
-            {
-                // Create a minimal wrapper GameObject with ClipUI component
-                var wrapperGO = new GameObject($"ClipUIWrapper_{clip.Id}");
-                var wrapper = wrapperGO.AddComponent<ClipUI>();
-                
-                // Initialize the wrapper with our clip data using reflection
-                InitializeClipUIWrapper(wrapper);
-                
-                return wrapper;
-            }
-            catch (System.Exception ex)
-            {
-                Debug.LogError($"Failed to create ClipUI wrapper: {ex.Message}");
-                return null;
-            }
-        }
-        
-        /// <summary>
-        /// Initialize the ClipUI wrapper with minimal required data
-        /// </summary>
-        private void InitializeClipUIWrapper(ClipUI wrapper)
-        {
-            if (wrapper == null || clip == null) return;
-            
-            // Set the clip reference using reflection
-            var clipField = typeof(ClipUI).GetField("clip", 
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            
-            if (clipField != null)
-            {
-                clipField.SetValue(wrapper, clip);
-            }
-            
-            // Set the parent track reference if available
-            if (parentTrack != null)
-            {
-                var parentTrackField = typeof(ClipUI).GetField("parentTrack", 
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                
-                if (parentTrackField != null)
-                {
-                    // We'd need to create a TrackUI wrapper too, but for now, set to null
-                    parentTrackField.SetValue(wrapper, null);
-                }
-            }
-            
-            // Set the wrapper name for debugging
-            wrapper.name = $"ClipUIWrapper_{clip.Id}";
-            
-            // Hide the wrapper GameObject since it's just for context menu compatibility
-            wrapper.gameObject.SetActive(false);
-        }
-        
         #endregion
         
         #region Drag and Resize Handling
@@ -972,6 +892,11 @@ namespace MiniTimeline.UI
             
             dragStartTime = clip.Start;
             dragStartDuration = clip.Duration;
+            
+            // Initialize current drag position to original position
+            currentDragNewStartTime = dragStartTime;
+            
+            Debug.Log($"[ClipUI] HandleDragStart: dragStartTime={dragStartTime}, localPos={localPos}");
             
             // Calculate drag offset based on where we clicked relative to the clip's left edge
             clipDragOffset = localPos.x;
@@ -1004,7 +929,8 @@ namespace MiniTimeline.UI
             newStartTime = editorUI.SnapTimePublic(newStartTime);
             newStartTime = Mathf.Max(0f, newStartTime);
             
-            // Debug.Log($"[ClipUI] Dragging: mousePos={mousePosition}, localPos={localPos}, targetX={targetX}, newTime={newStartTime}");
+            // Store current drag position for command execution
+            currentDragNewStartTime = newStartTime;
             
             // Update visual position
             UpdateClipVisualTiming(newStartTime, clip.Duration);
@@ -1017,29 +943,42 @@ namespace MiniTimeline.UI
         {
             if (!isDragging) return;
             
-            // Remove visual feedback
-            clipElement?.RemoveFromClassList("dragging");
-            if (clipElement != null)
-            {
-                clipElement.style.opacity = 1f;
-            }
+            isDragging = false;
             
-            // Calculate final position and create command if position changed
+            // Use the stored current drag position
             if (editorUI != null && parentTrack != null)
             {
-                float finalStartTime = clip.Start; // This would be calculated from current visual position
+                float finalStartTime = currentDragNewStartTime;
+                
+                Debug.Log($"[ClipUI] HandleDragEnd: editorUI={editorUI != null}, parentTrack={parentTrack != null}, dragStartTime={dragStartTime}, finalStartTime={finalStartTime}, delta={Mathf.Abs(finalStartTime - dragStartTime)}");
                 
                 // Only create command if position actually changed
                 if (Mathf.Abs(finalStartTime - dragStartTime) > 0.001f)
                 {
-                    // TODO: Create move command through the timeline editor
-                    // Debug.Log($"Clip moved from {dragStartTime} to {finalStartTime}");
+                    Debug.Log($"[ClipUI] Creating MoveClipCommand: {dragStartTime} → {finalStartTime}");
+                    
+                    // Create and execute move command for undo/redo support
+                    var moveCommand = new MoveClipCommand(
+                        clip,
+                        dragStartTime,
+                        finalStartTime,
+                        editorUI
+                    );
+                    
+                    editorUI.ExecuteCommand(moveCommand);
+                    
+                    Debug.Log($"[ClipUI] Move command executed successfully");
                 }
                 else
                 {
-                    // Restore original position
+                    Debug.Log($"[ClipUI] No significant movement detected, restoring original position");
+                    // Restore original position if no significant change
                     UpdateClipVisualTiming(dragStartTime, dragStartDuration);
                 }
+            }
+            else
+            {
+                Debug.Log($"[ClipUI] Command not created - editorUI={editorUI != null}, parentTrack={parentTrack != null}");
             }
         }
         
@@ -1103,6 +1042,10 @@ namespace MiniTimeline.UI
                 resizeDragStartDuration = clip.Duration;
                 resizeStartMouseX = containerLocalPos.x;
                 
+                // Initialize current resize values to original clip values
+                currentResizeNewStart = resizeDragStartTime;
+                currentResizeNewDuration = resizeDragStartDuration;
+                
                 // Debug.Log($"[ClipUI] Resize started: handle={handle}, startTime={resizeDragStartTime}, duration={resizeDragStartDuration}, mouseX={resizeStartMouseX}");
                 
                 // Visual feedback
@@ -1144,7 +1087,7 @@ namespace MiniTimeline.UI
                 newStart = editorUI.SnapTimePublic(newStart);
                 newDuration = Mathf.Max(0.1f, originalEnd - newStart);
                 
-                // Debug.Log($"[ClipUI] Resizing LEFT: newStart={newStart}, newDuration={newDuration}");
+                Debug.Log($"[ClipUI] Resizing LEFT: newStart={newStart}, newDuration={newDuration}");
                 
                 // Store for command execution on mouse up
                 currentResizeNewStart = newStart;
@@ -1162,7 +1105,7 @@ namespace MiniTimeline.UI
                 endTime = editorUI.SnapTimePublic(endTime);
                 newDuration = Mathf.Max(0.1f, endTime - resizeDragStartTime);
                 
-                // Debug.Log($"[ClipUI] Resizing RIGHT: newDuration={newDuration}");
+                Debug.Log($"[ClipUI] Resizing RIGHT: newDuration={newDuration}");
                 
                 // Store for command execution on mouse up
                 currentResizeNewStart = resizeDragStartTime;
@@ -1190,8 +1133,12 @@ namespace MiniTimeline.UI
             bool hasChanged = Mathf.Abs(currentResizeNewStart - resizeDragStartTime) > 0.01f ||
                             Mathf.Abs(currentResizeNewDuration - resizeDragStartDuration) > 0.01f;
             
+            Debug.Log($"[ClipUI] HandleResizeEnd: hasChanged={hasChanged}, editorUI={editorUI != null}, parentTrack={parentTrack != null}, startDelta={Mathf.Abs(currentResizeNewStart - resizeDragStartTime)}, durationDelta={Mathf.Abs(currentResizeNewDuration - resizeDragStartDuration)}");
+            
             if (hasChanged && editorUI != null && parentTrack != null)
             {
+                Debug.Log($"[ClipUI] Creating ResizeClipCommand: ({resizeDragStartTime}, {resizeDragStartDuration}) → ({currentResizeNewStart}, {currentResizeNewDuration})");
+                
                 // Create and execute resize command for undo/redo support
                 var resizeCommand = new ResizeClipCommand(
                     clip,
@@ -1204,11 +1151,11 @@ namespace MiniTimeline.UI
                 
                 editorUI.ExecuteCommand(resizeCommand);
                 
-                // Debug.Log($"[ClipUI] Resize command executed: {resizeDragStartTime},{resizeDragStartDuration} → {currentResizeNewStart},{currentResizeNewDuration}");
+                Debug.Log($"[ClipUI] Resize command executed successfully");
             }
             else
             {
-                // Debug.Log($"[ClipUI] Clip resize completed without significant change");
+                Debug.Log($"[ClipUI] Command not created - hasChanged={hasChanged}, editorUI={editorUI != null}, parentTrack={parentTrack != null}");
             }
         }
         

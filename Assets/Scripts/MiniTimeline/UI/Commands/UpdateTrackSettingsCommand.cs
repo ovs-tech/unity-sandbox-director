@@ -16,16 +16,18 @@ namespace MiniTimeline.UI.Commands
         private readonly IMiniTrack track;
         private readonly Dictionary<string, object> oldSettings;
         private readonly Dictionary<string, object> newSettings;
-        private readonly TrackUI trackUI;
+        private readonly ITimelineEditorUI editorUI;
+        private readonly MiniTimelineDirector director;
 
         public UpdateTrackSettingsCommand(IMiniTrack targetTrack, Dictionary<string, object> previousSettings, 
-            Dictionary<string, object> updatedSettings, TrackUI trackInterface)
+            Dictionary<string, object> updatedSettings, ITimelineEditorUI timelineEditor, MiniTimelineDirector timelineDirector)
             : base($"Update {TrackUIHelper.GetTrackDisplayName(targetTrack)} Settings")
         {
             track = targetTrack;
             oldSettings = new Dictionary<string, object>(previousSettings);
             newSettings = new Dictionary<string, object>(updatedSettings);
-            trackUI = trackInterface;
+            editorUI = timelineEditor;
+            director = timelineDirector;
         }
 
         protected override void ExecuteInternal()
@@ -134,9 +136,9 @@ namespace MiniTimeline.UI.Commands
         {
             // Track order is typically managed at the project level
             // This would need to be implemented based on your project structure
-            if (trackUI?.TimelineEditor?.Director?.Project != null)
+            if (director?.Project != null)
             {
-                var project = trackUI.TimelineEditor.Director.Project;
+                var project = director.Project;
                 var trackData = project.tracks?.FirstOrDefault(t => t.id == track.Id);
                 if (trackData != null)
                 {
@@ -197,16 +199,8 @@ namespace MiniTimeline.UI.Commands
 
         private void UpdateUI()
         {
-            if (trackUI != null)
-            {
-                trackUI.RefreshUI();
-            }
-
-            // Also trigger a timeline UI rebuild if track order changed
-            if (newSettings.ContainsKey("trackOrder") && trackUI?.TimelineEditor != null)
-            {
-                trackUI.TimelineEditor.BuildTimelineUI();
-            }
+            // Rebuild the timeline UI to reflect changes
+            editorUI?.BuildTimelineUI();
         }
 
         public override bool CanMergeWith(ITimelineCommand other)

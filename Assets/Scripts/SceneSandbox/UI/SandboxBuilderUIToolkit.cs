@@ -460,13 +460,13 @@ namespace SceneSandbox.UI
         {
             if (_sandboxBuilder == null) return;
             
-            _sandboxBuilder.OnSceneLoaded += OnSceneLoaded;
-            _sandboxBuilder.OnSceneSaved += OnSceneSaved;
-            _sandboxBuilder.OnObjectPlaced += OnObjectPlaced;
-            _sandboxBuilder.OnObjectRemoved += OnObjectRemoved;
-            _sandboxBuilder.OnObjectSelected += OnObjectSelected;
-            _sandboxBuilder.OnSceneCleared += OnSceneCleared;
-            _sandboxBuilder.OnPreviewStateChanged += OnPreviewStateChanged;
+            _sandboxBuilder.OnSceneLoaded.AddListener(OnSceneLoaded);
+            _sandboxBuilder.OnSceneSaved.AddListener(OnSceneSaved);
+            _sandboxBuilder.OnObjectPlaced.AddListener(OnObjectPlaced);
+            _sandboxBuilder.OnObjectRemoved.AddListener(OnObjectRemoved);
+            _sandboxBuilder.OnObjectSelected.AddListener(OnObjectSelected);
+            _sandboxBuilder.OnSceneCleared.AddListener(OnSceneCleared);
+            _sandboxBuilder.OnPreviewStateChanged.AddListener(OnPreviewStateChanged);
         }
         
         #region Public Interface
@@ -1049,13 +1049,13 @@ namespace SceneSandbox.UI
             // Unsubscribe from sandbox builder events
             if (_sandboxBuilder != null)
             {
-                _sandboxBuilder.OnSceneLoaded -= OnSceneLoaded;
-                _sandboxBuilder.OnSceneSaved -= OnSceneSaved;
-                _sandboxBuilder.OnObjectPlaced -= OnObjectPlaced;
-                _sandboxBuilder.OnObjectRemoved -= OnObjectRemoved;
-                _sandboxBuilder.OnObjectSelected -= OnObjectSelected;
-                _sandboxBuilder.OnSceneCleared -= OnSceneCleared;
-                _sandboxBuilder.OnPreviewStateChanged -= OnPreviewStateChanged;
+                _sandboxBuilder.OnSceneLoaded.RemoveListener(OnSceneLoaded);
+                _sandboxBuilder.OnSceneSaved.RemoveListener(OnSceneSaved);
+                _sandboxBuilder.OnObjectPlaced.RemoveListener(OnObjectPlaced);
+                _sandboxBuilder.OnObjectRemoved.RemoveListener(OnObjectRemoved);
+                _sandboxBuilder.OnObjectSelected.RemoveListener(OnObjectSelected);
+                _sandboxBuilder.OnSceneCleared.RemoveListener(OnSceneCleared);
+                _sandboxBuilder.OnPreviewStateChanged.RemoveListener(OnPreviewStateChanged);
             }
             
             // Unsubscribe from palette events

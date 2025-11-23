@@ -23,21 +23,48 @@ namespace SceneSandbox.Editor
         private SerializedProperty _sceneRoot;
         private SerializedProperty _stageArea;
         
+        // Input Action References
+        private SerializedProperty _toggleModeActionRef;
+        private SerializedProperty _exitAllModesActionRef;
+        private SerializedProperty _moveHotkeyActionRef;
+        private SerializedProperty _rotateHotkeyActionRef;
+        private SerializedProperty _scaleHotkeyActionRef;
+        private SerializedProperty _transformModeIncreaseActionRef;
+        private SerializedProperty _transformModeDecreaseActionRef;
+        private SerializedProperty _transformModeToggleAxisActionRef;
+        private SerializedProperty _pointerPositionActionRef;
+        private SerializedProperty _leftClickActionRef;
+        private SerializedProperty _rightClickActionRef;
+        private SerializedProperty _mouseScrollActionRef;
+        private SerializedProperty _cancelPlacementActionRef;
+        
+        // Raycast & Input Settings
+        private SerializedProperty _maxRaycastDistance;
+        private SerializedProperty _dragThreshold;
+        private SerializedProperty _doubleClickTime;
+        private SerializedProperty _enableHotkeys;
+        
         // Placement Settings
         private SerializedProperty _placementLayers;
+        private SerializedProperty _selectionLayers;
         private SerializedProperty _snapToGrid;
         private SerializedProperty _gridSize;
+        private SerializedProperty _gridOffset;
+        private SerializedProperty _gridPivotOffset;
         private SerializedProperty _defaultPlacementHeight;
         private SerializedProperty _minimumPlacementHeight;
         private SerializedProperty _useRaycastForPlacement;
         private SerializedProperty _useConsistentHeight;
+        private SerializedProperty _sceneBounds;
+        private SerializedProperty _sceneBoundsOffset;
+        private SerializedProperty _sceneBoundsPivot;
         
         // Preview Settings
         private SerializedProperty _timelineDirector;
         private SerializedProperty _autoPreview;
         private SerializedProperty _previewDuration;
         
-        // Gizmo Settings
+        // Unified Gizmo Settings
         private SerializedProperty _enableGizmos;
         private SerializedProperty _showBoundsGizmo;
         private SerializedProperty _showAxesGizmo;
@@ -51,7 +78,6 @@ namespace SceneSandbox.Editor
         private SerializedProperty _showSceneBounds;
         private SerializedProperty _showStageAreaGizmo;
         private SerializedProperty _showPlacementHeightGizmo;
-        private SerializedProperty _sceneBounds;
         private SerializedProperty _sceneBoundsColor;
         private SerializedProperty _placementHeightColor;
         
@@ -62,10 +88,30 @@ namespace SceneSandbox.Editor
         private SerializedProperty _invalidDropColor;
         private SerializedProperty _dropIndicatorSize;
         
+        // Placement Validation Settings
+        private SerializedProperty _checkCollisions;
+        private SerializedProperty _collisionLayers;
+        private SerializedProperty _groundLayers;
+        private SerializedProperty _ignoreStaticObjects;
+        private SerializedProperty _requireSurfaceBelow;
+        private SerializedProperty _enableCostSystem;
+        private SerializedProperty _placementCost;
+        
         // Save/Load
         private SerializedProperty _defaultSavePath;
         private SerializedProperty _currentSceneName;
         private SerializedProperty _defaultProjectSavePath;
+        private SerializedProperty _autoLoadFirstProject;
+        
+        // Events
+        private SerializedProperty _onSceneLoaded;
+        private SerializedProperty _onSceneSaved;
+        private SerializedProperty _onObjectPlaced;
+        private SerializedProperty _onObjectRemoved;
+        private SerializedProperty _onObjectSelected;
+        private SerializedProperty _onSceneCleared;
+        private SerializedProperty _onPreviewStateChanged;
+        private SerializedProperty _onModeChanged;
         
         #endregion
         
@@ -74,14 +120,15 @@ namespace SceneSandbox.Editor
         private SceneSandboxBuilder _target;
         private bool _showConfigurationFoldout = true;
         private bool _showPlacementFoldout = true;
+        private bool _showPlacementValidationFoldout = true;
+        private bool _showInputSettingsFoldout = true;
         private bool _showPreviewFoldout = false;
-        private bool _showGizmoFoldout = false;
-        private bool _showSceneGizmoFoldout = false;
-        private bool _showDropIndicatorFoldout = false;
-        private bool _showSaveLoadFoldout = false;
+        private bool _showAllGizmosFoldout = false;
         private bool _showProjectManagementFoldout = true;
         private bool _showObjectLibraryFoldout = false;
         private bool _showRuntimeInfoFoldout = true;
+        private bool _showTransformItemsFoldout = true;
+        private bool _showEventsFoldout = false;
         
         // Project Management
         private string _newProjectName = "New Sandbox Project";
@@ -102,6 +149,9 @@ namespace SceneSandbox.Editor
         // Runtime Info
         private Vector2 _runtimeInfoScrollPos;
         
+        // Transform Items Manager
+        private Vector2 _transformItemsScrollPos;
+        
         #endregion
         
         #region Unity Editor Callbacks
@@ -116,12 +166,117 @@ namespace SceneSandbox.Editor
             // Subscribe to scene changes for auto-refresh
             EditorSceneManager.sceneOpened += OnSceneOpened;
             EditorSceneManager.sceneSaved += OnSceneSaved;
+            
+            // Subscribe to SceneView events for placement handling
+            SceneView.duringSceneGui += HandleSceneGUI;
         }
         
         private void OnDisable()
         {
             EditorSceneManager.sceneOpened -= OnSceneOpened;
             EditorSceneManager.sceneSaved -= OnSceneSaved;
+            
+            // Unsubscribe from SceneView events
+            SceneView.duringSceneGui -= HandleSceneGUI;
+        }
+        
+        private void HandleSceneGUI(SceneView sceneView)
+        {
+            if (_target == null || !_target.IsPlacementActive)
+                return;
+
+            // Disable Unity's built-in tools during placement
+            Tools.current = Tool.None;
+            
+            // Handle input in Scene view during placement
+            Event e = Event.current;
+            
+            // Get control ID for this handler
+            int controlID = GUIUtility.GetControlID(FocusType.Passive);
+            
+            // Get mouse position in scene view
+            Vector2 mousePos = e.mousePosition;
+            mousePos.y = sceneView.camera.pixelHeight - mousePos.y; // Flip Y for screen space
+            
+            EventType eventType = e.GetTypeForControl(controlID);
+            
+            // Debug current event
+            if (eventType == EventType.MouseDown || eventType == EventType.MouseUp)
+            {
+                Debug.Log($"[HandleSceneGUI] Event: {eventType}, button: {e.button}, controlID: {controlID}, hotControl: {GUIUtility.hotControl}");
+            }
+            
+            switch (eventType)
+            {
+                case EventType.MouseMove:
+                case EventType.MouseDrag:
+                    // Update ghost position
+                    _target.UpdatePlacement(mousePos);
+                    HandleUtility.Repaint();
+                    break;
+                    
+                case EventType.MouseDown:
+                    if (e.button == 0) // Left click
+                    {
+                        Debug.Log($"[HandleSceneGUI] MouseDown detected at {mousePos}");
+                        
+                        // Take control to prevent other handlers from processing this event
+                        GUIUtility.hotControl = controlID;
+                        
+                        // Confirm placement on left click
+                        GameObject placed = _target.ConfirmPlacement();
+                        if (placed != null)
+                        {
+                            Debug.Log($"[Editor] Placed object: {placed.name}");
+                            Selection.activeGameObject = placed;
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"[Editor] ConfirmPlacement returned null");
+                        }
+                        
+                        e.Use();
+                        HandleUtility.Repaint();
+                    }
+                    break;
+                    
+                case EventType.MouseUp:
+                    if (GUIUtility.hotControl == controlID)
+                    {
+                        GUIUtility.hotControl = 0;
+                        e.Use();
+                    }
+                    break;
+                    
+                case EventType.KeyDown:
+                    if (e.keyCode == KeyCode.Escape)
+                    {
+                        // Cancel placement on ESC
+                        _target.CancelPlacement();
+                        Debug.Log("[Editor] Placement cancelled");
+                        e.Use();
+                        HandleUtility.Repaint();
+                    }
+                    break;
+                    
+                case EventType.Layout:
+                    // Add control during layout to receive events
+                    HandleUtility.AddDefaultControl(controlID);
+                    break;
+                    
+                case EventType.Repaint:
+                    // Draw instruction overlay
+                    Handles.BeginGUI();
+                    GUIStyle style = new GUIStyle(GUI.skin.box);
+                    style.normal.textColor = Color.yellow;
+                    style.fontSize = 14;
+                    style.alignment = TextAnchor.MiddleCenter;
+                    
+                    // Use GUI.Box instead of GUILayout to avoid layout issues during repaint
+                    GUI.Box(new Rect(10, 10, 300, 60), "PLACEMENT MODE\nLeft Click: Place | ESC: Cancel", style);
+                    Handles.EndGUI();
+                    break;
+            }
         }
         
         public override void OnInspectorGUI()
@@ -132,17 +287,15 @@ namespace SceneSandbox.Editor
             
             EditorGUILayout.Space(10);
             
-            DrawProjectManagement();
-            DrawSceneManagement(); // NEW: Multi-scene management
-            DrawRuntimeInfo();
+            DrawProjectAndSceneManagement();
+            DrawObjectLibraryBrowser();
+            DrawRuntimeInfoAndTransformItems();
             DrawConfiguration();
+            DrawInputSettings(); // NEW: Input configuration section
             DrawPlacementSettings();
             DrawPreviewSettings();
-            DrawGizmoSettings();
-            DrawSceneGizmoSettings();
-            DrawDropIndicatorSettings();
-            DrawSaveLoadSettings();
-            DrawObjectLibraryBrowser();
+            DrawUnifiedGizmoSettings();
+            DrawEvents(); // NEW: Events section
             
             EditorGUILayout.Space(10);
             DrawToolbar();
@@ -161,21 +314,48 @@ namespace SceneSandbox.Editor
             _sceneRoot = serializedObject.FindProperty("_sceneRoot");
             _stageArea = serializedObject.FindProperty("_stageArea");
             
+            // Input Action References
+            _toggleModeActionRef = serializedObject.FindProperty("_toggleModeActionRef");
+            _exitAllModesActionRef = serializedObject.FindProperty("_exitAllModesActionRef");
+            _moveHotkeyActionRef = serializedObject.FindProperty("_moveHotkeyActionRef");
+            _rotateHotkeyActionRef = serializedObject.FindProperty("_rotateHotkeyActionRef");
+            _scaleHotkeyActionRef = serializedObject.FindProperty("_scaleHotkeyActionRef");
+            _transformModeIncreaseActionRef = serializedObject.FindProperty("_transformModeIncreaseActionRef");
+            _transformModeDecreaseActionRef = serializedObject.FindProperty("_transformModeDecreaseActionRef");
+            _transformModeToggleAxisActionRef = serializedObject.FindProperty("_transformModeToggleAxisActionRef");
+            _pointerPositionActionRef = serializedObject.FindProperty("_pointerPositionActionRef");
+            _leftClickActionRef = serializedObject.FindProperty("_leftClickActionRef");
+            _rightClickActionRef = serializedObject.FindProperty("_rightClickActionRef");
+            _mouseScrollActionRef = serializedObject.FindProperty("_mouseScrollActionRef");
+            _cancelPlacementActionRef = serializedObject.FindProperty("_cancelPlacementActionRef");
+            
+            // Raycast & Input Settings
+            _maxRaycastDistance = serializedObject.FindProperty("_maxRaycastDistance");
+            _dragThreshold = serializedObject.FindProperty("_dragThreshold");
+            _doubleClickTime = serializedObject.FindProperty("_doubleClickTime");
+            _enableHotkeys = serializedObject.FindProperty("_enableHotkeys");
+            
             // Placement Settings
             _placementLayers = serializedObject.FindProperty("_placementLayers");
+            _selectionLayers = serializedObject.FindProperty("_selectionLayers");
             _snapToGrid = serializedObject.FindProperty("_snapToGrid");
             _gridSize = serializedObject.FindProperty("_gridSize");
+            _gridOffset = serializedObject.FindProperty("_gridOffset");
+            _gridPivotOffset = serializedObject.FindProperty("_gridPivotOffset");
             _defaultPlacementHeight = serializedObject.FindProperty("_defaultPlacementHeight");
             _minimumPlacementHeight = serializedObject.FindProperty("_minimumPlacementHeight");
             _useRaycastForPlacement = serializedObject.FindProperty("_useRaycastForPlacement");
             _useConsistentHeight = serializedObject.FindProperty("_useConsistentHeight");
+            _sceneBounds = serializedObject.FindProperty("_sceneBounds");
+            _sceneBoundsOffset = serializedObject.FindProperty("_sceneBoundsOffset");
+            _sceneBoundsPivot = serializedObject.FindProperty("_sceneBoundsPivot");
             
             // Preview Settings
             _timelineDirector = serializedObject.FindProperty("_timelineDirector");
             _autoPreview = serializedObject.FindProperty("_autoPreview");
             _previewDuration = serializedObject.FindProperty("_previewDuration");
             
-            // Gizmo Settings
+            // Unified Gizmo Settings
             _enableGizmos = serializedObject.FindProperty("_enableGizmos");
             _showBoundsGizmo = serializedObject.FindProperty("_showBoundsGizmo");
             _showAxesGizmo = serializedObject.FindProperty("_showAxesGizmo");
@@ -189,9 +369,18 @@ namespace SceneSandbox.Editor
             _showSceneBounds = serializedObject.FindProperty("_showSceneBounds");
             _showStageAreaGizmo = serializedObject.FindProperty("_showStageAreaGizmo");
             _showPlacementHeightGizmo = serializedObject.FindProperty("_showPlacementHeightGizmo");
-            _sceneBounds = serializedObject.FindProperty("_sceneBounds");
             _sceneBoundsColor = serializedObject.FindProperty("_sceneBoundsColor");
             _placementHeightColor = serializedObject.FindProperty("_placementHeightColor");
+            
+            // Events
+            _onSceneLoaded = serializedObject.FindProperty("_onSceneLoaded");
+            _onSceneSaved = serializedObject.FindProperty("_onSceneSaved");
+            _onObjectPlaced = serializedObject.FindProperty("_onObjectPlaced");
+            _onObjectRemoved = serializedObject.FindProperty("_onObjectRemoved");
+            _onObjectSelected = serializedObject.FindProperty("_onObjectSelected");
+            _onSceneCleared = serializedObject.FindProperty("_onSceneCleared");
+            _onPreviewStateChanged = serializedObject.FindProperty("_onPreviewStateChanged");
+            _onModeChanged = serializedObject.FindProperty("_onModeChanged");
             
             // Drop Indicator Settings
             _enableDropIndicator = serializedObject.FindProperty("_enableDropIndicator");
@@ -200,10 +389,20 @@ namespace SceneSandbox.Editor
             _invalidDropColor = serializedObject.FindProperty("_invalidDropColor");
             _dropIndicatorSize = serializedObject.FindProperty("_dropIndicatorSize");
             
+            // Placement Validation Settings
+            _checkCollisions = serializedObject.FindProperty("_checkCollisions");
+            _collisionLayers = serializedObject.FindProperty("_collisionLayers");
+            _groundLayers = serializedObject.FindProperty("_groundLayers");
+            _ignoreStaticObjects = serializedObject.FindProperty("_ignoreStaticObjects");
+            _requireSurfaceBelow = serializedObject.FindProperty("_requireSurfaceBelow");
+            _enableCostSystem = serializedObject.FindProperty("_enableCostSystem");
+            _placementCost = serializedObject.FindProperty("_placementCost");
+            
             // Save/Load
             _defaultSavePath = serializedObject.FindProperty("_defaultSavePath");
             _currentSceneName = serializedObject.FindProperty("_currentSceneName");
             _defaultProjectSavePath = serializedObject.FindProperty("_defaultProjectSavePath");
+            _autoLoadFirstProject = serializedObject.FindProperty("_autoLoadFirstProject");
         }
         
         #endregion
@@ -216,6 +415,27 @@ namespace SceneSandbox.Editor
             
             GUILayout.Label("Scene Sandbox Builder", EditorStyles.largeLabel);
             GUILayout.Label("Ero Director - Mobile & AR Sandbox Edition", EditorStyles.miniLabel);
+            
+            EditorGUILayout.Space(5);
+            
+            // Mode indicator
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Current Mode:", GUILayout.Width(100));
+            
+            var modeColor = _target.CurrentMode == SandboxMode.Build ? Color.green : Color.cyan;
+            var prevColor = GUI.backgroundColor;
+            GUI.backgroundColor = modeColor;
+            
+            string modeText = _target.CurrentMode == SandboxMode.Build ? "BUILD MODE" : "PLAY MODE";
+            GUILayout.Label(modeText, EditorStyles.helpBox, GUILayout.Height(25));
+            
+            GUI.backgroundColor = prevColor;
+            EditorGUILayout.EndHorizontal();
+            
+            if (_target.CurrentMode == SandboxMode.Play)
+            {
+                EditorGUILayout.HelpBox("Play Mode: Input actions disabled, read-only preview", MessageType.Info);
+            }
             
             EditorGUILayout.Space(5);
             
@@ -259,7 +479,427 @@ namespace SceneSandbox.Editor
             EditorGUILayout.EndVertical();
         }
         
-        private void DrawProjectManagement()
+        private void DrawProjectAndSceneManagement()
+        {
+            _showProjectManagementFoldout = EditorGUILayout.Foldout(_showProjectManagementFoldout, 
+                "Project & Scene Management", true, EditorStyles.foldoutHeader);
+            
+            if (!_showProjectManagementFoldout) return;
+            
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            
+            // ===== PROJECT MANAGEMENT SECTION =====
+            EditorGUILayout.LabelField("PROJECT MANAGEMENT", EditorStyles.boldLabel);
+            EditorGUILayout.Space(3);
+            
+            // Auto-Load Settings
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(_autoLoadFirstProject, new GUIContent("Auto Load First Project", 
+                "Automatically load the first available project when entering Play mode"));
+            if (EditorGUI.EndChangeCheck())
+            {
+                serializedObject.ApplyModifiedProperties();
+            }
+            
+            EditorGUILayout.Space(5);
+            
+            // New Project Section
+            EditorGUILayout.LabelField("Create New Project", EditorStyles.miniBoldLabel);
+            EditorGUILayout.BeginHorizontal();
+            _newProjectName = EditorGUILayout.TextField("Project Name:", _newProjectName);
+            
+            GUI.enabled = !string.IsNullOrEmpty(_newProjectName) && Application.isPlaying;
+            if (GUILayout.Button("Create", GUILayout.Width(80)))
+            {
+                _target.CreateNewProject(_newProjectName);
+                RefreshAvailableProjects();
+                RefreshCurrentProjectScenes();
+                _newProjectName = "New Sandbox Project";
+            }
+            GUI.enabled = true;
+            EditorGUILayout.EndHorizontal();
+            
+            EditorGUILayout.Space(5);
+            
+            // Current Project Section
+            if (_target.CurrentProject != null)
+            {
+                EditorGUILayout.LabelField("Current Project", EditorStyles.miniBoldLabel);
+                var projectInfo = _target.GetCurrentProjectInfo();
+                
+                if (projectInfo != null)
+                {
+                    EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                    EditorGUILayout.LabelField($"Name: {projectInfo.projectName}", EditorStyles.boldLabel);
+                    EditorGUILayout.LabelField($"Objects: {projectInfo.objectCount} | Scenes: {_target.GetSceneCount()}");
+                    EditorGUILayout.LabelField($"Created: {projectInfo.created:yyyy-MM-dd HH:mm}");
+                    EditorGUILayout.LabelField($"Last Modified: {projectInfo.lastModified:yyyy-MM-dd HH:mm}");
+                    
+                    // Display key settings
+                    if (_target.CurrentProject.settings != null)
+                    {
+                        var settings = _target.CurrentProject.settings;
+                        EditorGUILayout.Space(3);
+                        EditorGUILayout.LabelField("Project Settings:", EditorStyles.miniBoldLabel);
+                        EditorGUI.indentLevel++;
+                        EditorGUILayout.LabelField($"Grid: {(settings.snapToGrid ? $"Enabled ({settings.gridSize}m)" : "Disabled")}");
+                        EditorGUILayout.LabelField($"Scene Bounds: {settings.sceneBounds.x} × {settings.sceneBounds.y} × {settings.sceneBounds.z}");
+                        EditorGUILayout.LabelField($"Raycast Placement: {(settings.useRaycastForPlacement ? "Enabled" : "Disabled")}");
+                        EditorGUI.indentLevel--;
+                    }
+                    EditorGUILayout.EndVertical();
+                    
+                    EditorGUILayout.Space(3);
+                    EditorGUILayout.BeginHorizontal();
+                    _projectSaveFileName = EditorGUILayout.TextField("File Name:", _projectSaveFileName);
+                    
+                    GUI.enabled = Application.isPlaying;
+                    if (GUILayout.Button("Save", GUILayout.Width(80)))
+                    {
+                        string savePath = string.IsNullOrEmpty(_projectSaveFileName) 
+                            ? null 
+                            : System.IO.Path.Combine(_target.CurrentProject.projectName, _projectSaveFileName + ".sbproj");
+                        
+                        if (_target.SaveProject(savePath))
+                        {
+                            EditorUtility.DisplayDialog("Success", "Project saved successfully!", "OK");
+                            RefreshAvailableProjects();
+                            RefreshCurrentProjectScenes();
+                        }
+                        else
+                        {
+                            EditorUtility.DisplayDialog("Error", "Failed to save project.", "OK");
+                        }
+                    }
+                    GUI.enabled = true;
+                    EditorGUILayout.EndHorizontal();
+                    
+                    // Quick Actions
+                    EditorGUILayout.Space(3);
+                    EditorGUILayout.BeginHorizontal();
+                    GUI.enabled = Application.isPlaying;
+                    if (GUILayout.Button("Save As Copy"))
+                    {
+                        string newName = EditorUtility.SaveFilePanel(
+                            "Save Project Copy",
+                            _target.CurrentProject.projectName,
+                            _projectSaveFileName + "_copy.sbproj",
+                            "sbproj");
+                        
+                        if (!string.IsNullOrEmpty(newName))
+                        {
+                            if (_target.SaveProject(newName))
+                            {
+                                EditorUtility.DisplayDialog("Success", "Project copy saved!", "OK");
+                                RefreshAvailableProjects();
+                            }
+                        }
+                    }
+                    
+                    if (GUILayout.Button("Export Settings"))
+                    {
+                        // Export just the settings to JSON
+                        string exportPath = EditorUtility.SaveFilePanel(
+                            "Export Project Settings",
+                            _target.CurrentProject.projectName,
+                            _target.CurrentProject.projectName + "_settings.json",
+                            "json");
+                        
+                        if (!string.IsNullOrEmpty(exportPath))
+                        {
+                            string json = JsonUtility.ToJson(_target.CurrentProject.settings, true);
+                            System.IO.File.WriteAllText(exportPath, json);
+                            EditorUtility.DisplayDialog("Success", "Settings exported!", "OK");
+                        }
+                    }
+                    GUI.enabled = true;
+                    EditorGUILayout.EndHorizontal();
+                }
+            }
+            
+            EditorGUILayout.Space(5);
+            
+            // Available Projects Section
+            EditorGUILayout.LabelField("Available Projects", EditorStyles.miniBoldLabel);
+            
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Refresh List", GUILayout.Width(100)))
+            {
+                RefreshAvailableProjects();
+            }
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.EndHorizontal();
+            
+            if (_availableProjects != null && _availableProjects.Count > 0)
+            {
+                _projectListScrollPos = EditorGUILayout.BeginScrollView(_projectListScrollPos, GUILayout.Height(150));
+                
+                foreach (var project in _availableProjects)
+                {
+                    EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                    
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField(project.projectName, EditorStyles.boldLabel);
+                    
+                    GUI.enabled = Application.isPlaying;
+                    if (GUILayout.Button("Load", GUILayout.Width(60)))
+                    {
+                        if (_target.LoadProject(project.filePath))
+                        {
+                            EditorUtility.DisplayDialog("Success", $"Project '{project.projectName}' loaded successfully!", "OK");
+                            RefreshCurrentProjectScenes();
+                        }
+                        else
+                        {
+                            EditorUtility.DisplayDialog("Error", "Failed to load project.", "OK");
+                        }
+                    }
+                    
+                    GUI.enabled = true;
+                    if (GUILayout.Button("Delete", GUILayout.Width(60)))
+                    {
+                        if (EditorUtility.DisplayDialog("Delete Project", 
+                            $"Are you sure you want to delete project '{project.projectName}'?\n\nThis action cannot be undone.", 
+                            "Delete", "Cancel"))
+                        {
+                            if (_target.DeleteProject(project.filePath))
+                            {
+                                EditorUtility.DisplayDialog("Success", $"Project '{project.projectName}' deleted successfully!", "OK");
+                                RefreshAvailableProjects();
+                            }
+                            else
+                            {
+                                EditorUtility.DisplayDialog("Error", "Failed to delete project.", "OK");
+                            }
+                        }
+                    }
+                    GUI.enabled = true;
+                    EditorGUILayout.EndHorizontal();
+                    
+                    EditorGUILayout.LabelField($"Objects: {project.objectCount} | Created: {project.created:MM/dd/yyyy}");
+                    if (!string.IsNullOrEmpty(project.description))
+                    {
+                        EditorGUILayout.LabelField($"Description: {project.description}", EditorStyles.wordWrappedMiniLabel);
+                    }
+                    
+                    EditorGUILayout.EndVertical();
+                }
+                
+                EditorGUILayout.EndScrollView();
+            }
+            else
+            {
+                EditorGUILayout.HelpBox("No saved projects found.", MessageType.Info);
+            }
+            
+            EditorGUILayout.Space(10);
+            
+            // Save/Load Path Settings (Read-Only)
+            EditorGUILayout.LabelField("Save/Load Path Settings (Read-Only)", EditorStyles.miniBoldLabel);
+            EditorGUILayout.HelpBox(
+                "Save paths are automatically managed using Application.persistentDataPath for cross-platform compatibility.\n" +
+                "Root folder is locked to ensure data consistency across all platforms.\n\n" +
+                $"Root: {Application.persistentDataPath}", 
+                MessageType.Info);
+            
+            // Display current paths as read-only
+            GUI.enabled = false;
+            EditorGUILayout.TextField("Scene Save Path", _defaultSavePath.stringValue);
+            EditorGUILayout.TextField("Project Save Path", _defaultProjectSavePath.stringValue);
+            GUI.enabled = true;
+            
+            EditorGUILayout.PropertyField(_currentSceneName, new GUIContent("Current Scene Name", "Name for the current scene configuration"));
+            
+            EditorGUILayout.Space(5);
+            
+            // Quick access buttons
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Open Scenes Folder"))
+            {
+                string scenesPath = System.IO.Path.Combine(Application.persistentDataPath, "SceneSandboxBuilder", "SavedScenes");
+                if (System.IO.Directory.Exists(scenesPath))
+                {
+                    Application.OpenURL("file://" + scenesPath);
+                }
+                else
+                {
+                    EditorUtility.DisplayDialog("Folder Not Found", 
+                        "Scenes folder doesn't exist yet. It will be created when you save your first scene.", 
+                        "OK");
+                }
+            }
+            
+            if (GUILayout.Button("Open Projects Folder"))
+            {
+                string projectsPath = System.IO.Path.Combine(Application.persistentDataPath, "SceneSandboxBuilder", "SavedProjects");
+                if (System.IO.Directory.Exists(projectsPath))
+                {
+                    Application.OpenURL("file://" + projectsPath);
+                }
+                else
+                {
+                    EditorUtility.DisplayDialog("Folder Not Found", 
+                        "Projects folder doesn't exist yet. It will be created when you save your first project.", 
+                        "OK");
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+            
+            if (GUILayout.Button("Open Root Data Folder"))
+            {
+                Application.OpenURL("file://" + Application.persistentDataPath);
+            }
+            
+            // ===== SCENE MANAGEMENT SECTION =====
+            if (_target.CurrentProject != null && Application.isPlaying)
+            {
+                EditorGUILayout.Space(15);
+                EditorGUILayout.LabelField("SCENE MANAGEMENT", EditorStyles.boldLabel);
+                EditorGUILayout.Space(3);
+                
+                // Create New Scene
+                EditorGUILayout.LabelField("Create New Scene", EditorStyles.miniBoldLabel);
+                EditorGUILayout.BeginHorizontal();
+                _newSceneName = EditorGUILayout.TextField("Scene Name:", _newSceneName);
+                
+                GUI.enabled = !string.IsNullOrEmpty(_newSceneName);
+                if (GUILayout.Button("Create Scene", GUILayout.Width(100)))
+                {
+                    _target.CreateNewSceneInProject(_newSceneName);
+                    RefreshCurrentProjectScenes();
+                    _newSceneName = "New Scene";
+                }
+                GUI.enabled = true;
+                EditorGUILayout.EndHorizontal();
+                
+                EditorGUILayout.Space(5);
+                
+                // Current Scene Actions
+                if (_target.CurrentScene != null)
+                {
+                    EditorGUILayout.LabelField("Current Scene Actions", EditorStyles.miniBoldLabel);
+                    EditorGUILayout.BeginHorizontal();
+                    
+                    if (GUILayout.Button("Duplicate Scene"))
+                    {
+                        var duplicate = _target.DuplicateCurrentScene();
+                        if (duplicate != null)
+                        {
+                            EditorUtility.DisplayDialog("Success", $"Scene duplicated: {duplicate.sceneName}", "OK");
+                            RefreshCurrentProjectScenes();
+                        }
+                    }
+                    
+                    if (GUILayout.Button("Rename Scene"))
+                    {
+                        string newName = EditorUtility.SaveFilePanel("Rename Scene", "", _target.CurrentScene.sceneName, "");
+                        if (!string.IsNullOrEmpty(newName))
+                        {
+                            newName = System.IO.Path.GetFileNameWithoutExtension(newName);
+                            _target.RenameCurrentScene(newName);
+                            RefreshCurrentProjectScenes();
+                        }
+                    }
+                    
+                    EditorGUILayout.EndHorizontal();
+                }
+                
+                EditorGUILayout.Space(5);
+                
+                // Scene List
+                EditorGUILayout.LabelField($"Scenes in Project ({_target.GetSceneCount()})", EditorStyles.miniBoldLabel);
+                
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button("Refresh", GUILayout.Width(80)))
+                {
+                    RefreshCurrentProjectScenes();
+                }
+                GUILayout.FlexibleSpace();
+                EditorGUILayout.EndHorizontal();
+                
+                if (_currentProjectScenes != null && _currentProjectScenes.Count > 0)
+                {
+                    _sceneListScrollPos = EditorGUILayout.BeginScrollView(_sceneListScrollPos, GUILayout.Height(200));
+                    
+                    foreach (var sceneMetadata in _currentProjectScenes)
+                    {
+                        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                        
+                        // Scene header
+                        EditorGUILayout.BeginHorizontal();
+                        
+                        // Active indicator
+                        if (sceneMetadata.isActive)
+                        {
+                            GUIStyle activeStyle = new GUIStyle(EditorStyles.boldLabel);
+                            activeStyle.normal.textColor = Color.green;
+                            EditorGUILayout.LabelField("● " + sceneMetadata.sceneName, activeStyle);
+                        }
+                        else
+                        {
+                            EditorGUILayout.LabelField(sceneMetadata.sceneName, EditorStyles.boldLabel);
+                        }
+                        
+                        GUILayout.FlexibleSpace();
+                        
+                        // Switch button
+                        if (!sceneMetadata.isActive)
+                        {
+                            if (GUILayout.Button("Switch", GUILayout.Width(60)))
+                            {
+                                if (_target.SwitchToScene(sceneMetadata.sceneId))
+                                {
+                                    RefreshCurrentProjectScenes();
+                                    Repaint();
+                                }
+                            }
+                        }
+                        
+                        // Delete button (can't delete if only one scene)
+                        GUI.enabled = _target.GetSceneCount() > 1;
+                        if (GUILayout.Button("Delete", GUILayout.Width(60)))
+                        {
+                            if (EditorUtility.DisplayDialog("Delete Scene", 
+                                $"Are you sure you want to delete scene '{sceneMetadata.sceneName}'?\n\nThis action cannot be undone.", 
+                                "Delete", "Cancel"))
+                            {
+                                if (_target.DeleteSceneFromProject(sceneMetadata.sceneId))
+                                {
+                                    EditorUtility.DisplayDialog("Success", $"Scene '{sceneMetadata.sceneName}' deleted!", "OK");
+                                    RefreshCurrentProjectScenes();
+                                }
+                            }
+                        }
+                        GUI.enabled = true;
+                        
+                        EditorGUILayout.EndHorizontal();
+                        
+                        // Scene details
+                        EditorGUILayout.BeginHorizontal();
+                        EditorGUILayout.LabelField($"Objects: {sceneMetadata.objectCount}", EditorStyles.miniLabel, GUILayout.Width(100));
+                        EditorGUILayout.LabelField($"Modified: {sceneMetadata.lastModified:MM/dd HH:mm}", EditorStyles.miniLabel);
+                        EditorGUILayout.EndHorizontal();
+                        
+                        if (!string.IsNullOrEmpty(sceneMetadata.description))
+                        {
+                            EditorGUILayout.LabelField($"Description: {sceneMetadata.description}", EditorStyles.wordWrappedMiniLabel);
+                        }
+                        
+                        EditorGUILayout.EndVertical();
+                    }
+                    
+                    EditorGUILayout.EndScrollView();
+                }
+                else
+                {
+                    EditorGUILayout.HelpBox("No scenes in project.", MessageType.Info);
+                }
+            }
+            
+            EditorGUILayout.EndVertical();
+        }
+        
+        private void DrawSceneManagement()
         {
             _showProjectManagementFoldout = EditorGUILayout.Foldout(_showProjectManagementFoldout, 
                 "Project Management", true, EditorStyles.foldoutHeader);
@@ -294,12 +934,27 @@ namespace SceneSandbox.Editor
                 
                 if (projectInfo != null)
                 {
-                    EditorGUILayout.LabelField($"Name: {projectInfo.projectName}");
-                    EditorGUILayout.LabelField($"Objects: {projectInfo.objectCount}");
-                    EditorGUILayout.LabelField($"Scenes: {_target.GetSceneCount()}");
+                    EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                    EditorGUILayout.LabelField($"Name: {projectInfo.projectName}", EditorStyles.boldLabel);
+                    EditorGUILayout.LabelField($"Objects: {projectInfo.objectCount} | Scenes: {_target.GetSceneCount()}");
                     EditorGUILayout.LabelField($"Created: {projectInfo.created:yyyy-MM-dd HH:mm}");
-                    EditorGUILayout.LabelField($"Modified: {projectInfo.lastModified:yyyy-MM-dd HH:mm}");
+                    EditorGUILayout.LabelField($"Last Modified: {projectInfo.lastModified:yyyy-MM-dd HH:mm}");
                     
+                    // Display key settings
+                    if (_target.CurrentProject.settings != null)
+                    {
+                        var settings = _target.CurrentProject.settings;
+                        EditorGUILayout.Space(3);
+                        EditorGUILayout.LabelField("Project Settings:", EditorStyles.miniBoldLabel);
+                        EditorGUI.indentLevel++;
+                        EditorGUILayout.LabelField($"Grid: {(settings.snapToGrid ? $"Enabled ({settings.gridSize}m)" : "Disabled")}");
+                        EditorGUILayout.LabelField($"Scene Bounds: {settings.sceneBounds.x} × {settings.sceneBounds.y} × {settings.sceneBounds.z}");
+                        EditorGUILayout.LabelField($"Raycast Placement: {(settings.useRaycastForPlacement ? "Enabled" : "Disabled")}");
+                        EditorGUI.indentLevel--;
+                    }
+                    EditorGUILayout.EndVertical();
+                    
+                    EditorGUILayout.Space(3);
                     EditorGUILayout.BeginHorizontal();
                     _projectSaveFileName = EditorGUILayout.TextField("File Name:", _projectSaveFileName);
                     
@@ -319,6 +974,47 @@ namespace SceneSandbox.Editor
                         else
                         {
                             EditorUtility.DisplayDialog("Error", "Failed to save project.", "OK");
+                        }
+                    }
+                    GUI.enabled = true;
+                    EditorGUILayout.EndHorizontal();
+                    
+                    // Quick Actions
+                    EditorGUILayout.Space(3);
+                    EditorGUILayout.BeginHorizontal();
+                    GUI.enabled = Application.isPlaying;
+                    if (GUILayout.Button("Save As Copy"))
+                    {
+                        string newName = EditorUtility.SaveFilePanel(
+                            "Save Project Copy",
+                            _target.CurrentProject.projectName,
+                            _projectSaveFileName + "_copy.sbproj",
+                            "sbproj");
+                        
+                        if (!string.IsNullOrEmpty(newName))
+                        {
+                            if (_target.SaveProject(newName))
+                            {
+                                EditorUtility.DisplayDialog("Success", "Project copy saved!", "OK");
+                                RefreshAvailableProjects();
+                            }
+                        }
+                    }
+                    
+                    if (GUILayout.Button("Export Settings"))
+                    {
+                        // Export just the settings to JSON
+                        string exportPath = EditorUtility.SaveFilePanel(
+                            "Export Project Settings",
+                            _target.CurrentProject.projectName,
+                            _target.CurrentProject.projectName + "_settings.json",
+                            "json");
+                        
+                        if (!string.IsNullOrEmpty(exportPath))
+                        {
+                            string json = JsonUtility.ToJson(_target.CurrentProject.settings, true);
+                            System.IO.File.WriteAllText(exportPath, json);
+                            EditorUtility.DisplayDialog("Success", "Settings exported!", "OK");
                         }
                     }
                     GUI.enabled = true;
@@ -401,174 +1097,84 @@ namespace SceneSandbox.Editor
                 EditorGUILayout.HelpBox("No saved projects found.", MessageType.Info);
             }
             
-            EditorGUILayout.EndVertical();
-        }
-        
-        private void DrawSceneManagement()
-        {
-            if (_target.CurrentProject == null || !Application.isPlaying) return;
+            EditorGUILayout.Space(10);
             
-            _showSceneManagementFoldout = EditorGUILayout.Foldout(_showSceneManagementFoldout, 
-                "Scene Management", true, EditorStyles.foldoutHeader);
+            // Save/Load Path Settings (Read-Only)
+            EditorGUILayout.LabelField("Save/Load Path Settings (Read-Only)", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox(
+                "Save paths are automatically managed using Application.persistentDataPath for cross-platform compatibility.\n" +
+                "Root folder is locked to ensure data consistency across all platforms.\n\n" +
+                $"Root: {Application.persistentDataPath}", 
+                MessageType.Info);
             
-            if (!_showSceneManagementFoldout) return;
-            
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-            
-            // Create New Scene
-            EditorGUILayout.LabelField("Create New Scene", EditorStyles.boldLabel);
-            EditorGUILayout.BeginHorizontal();
-            _newSceneName = EditorGUILayout.TextField("Scene Name:", _newSceneName);
-            
-            GUI.enabled = !string.IsNullOrEmpty(_newSceneName);
-            if (GUILayout.Button("Create Scene", GUILayout.Width(100)))
-            {
-                _target.CreateNewSceneInProject(_newSceneName);
-                RefreshCurrentProjectScenes();
-                _newSceneName = "New Scene";
-            }
+            // Display current paths as read-only
+            GUI.enabled = false;
+            EditorGUILayout.TextField("Scene Save Path", _defaultSavePath.stringValue);
+            EditorGUILayout.TextField("Project Save Path", _defaultProjectSavePath.stringValue);
             GUI.enabled = true;
-            EditorGUILayout.EndHorizontal();
+            
+            EditorGUILayout.PropertyField(_currentSceneName, new GUIContent("Current Scene Name", "Name for the current scene configuration"));
             
             EditorGUILayout.Space(5);
             
-            // Current Scene Actions
-            if (_target.CurrentScene != null)
-            {
-                EditorGUILayout.LabelField("Current Scene Actions", EditorStyles.boldLabel);
-                EditorGUILayout.BeginHorizontal();
-                
-                if (GUILayout.Button("Duplicate Scene"))
-                {
-                    var duplicate = _target.DuplicateCurrentScene();
-                    if (duplicate != null)
-                    {
-                        EditorUtility.DisplayDialog("Success", $"Scene duplicated: {duplicate.sceneName}", "OK");
-                        RefreshCurrentProjectScenes();
-                    }
-                }
-                
-                if (GUILayout.Button("Rename Scene"))
-                {
-                    string newName = EditorUtility.SaveFilePanel("Rename Scene", "", _target.CurrentScene.sceneName, "");
-                    if (!string.IsNullOrEmpty(newName))
-                    {
-                        newName = System.IO.Path.GetFileNameWithoutExtension(newName);
-                        _target.RenameCurrentScene(newName);
-                        RefreshCurrentProjectScenes();
-                    }
-                }
-                
-                EditorGUILayout.EndHorizontal();
-            }
-            
-            EditorGUILayout.Space(5);
-            
-            // Scene List
-            EditorGUILayout.LabelField($"Scenes in Project ({_target.GetSceneCount()})", EditorStyles.boldLabel);
-            
+            // Quick access buttons
             EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Refresh", GUILayout.Width(80)))
+            if (GUILayout.Button("Open Scenes Folder"))
             {
-                RefreshCurrentProjectScenes();
+                string scenesPath = System.IO.Path.Combine(Application.persistentDataPath, "SceneSandboxBuilder", "SavedScenes");
+                if (System.IO.Directory.Exists(scenesPath))
+                {
+                    Application.OpenURL("file://" + scenesPath);
+                }
+                else
+                {
+                    EditorUtility.DisplayDialog("Folder Not Found", 
+                        "Scenes folder doesn't exist yet. It will be created when you save your first scene.", 
+                        "OK");
+                }
             }
-            GUILayout.FlexibleSpace();
+            
+            if (GUILayout.Button("Open Projects Folder"))
+            {
+                string projectsPath = System.IO.Path.Combine(Application.persistentDataPath, "SceneSandboxBuilder", "SavedProjects");
+                if (System.IO.Directory.Exists(projectsPath))
+                {
+                    Application.OpenURL("file://" + projectsPath);
+                }
+                else
+                {
+                    EditorUtility.DisplayDialog("Folder Not Found", 
+                        "Projects folder doesn't exist yet. It will be created when you save your first project.", 
+                        "OK");
+                }
+            }
             EditorGUILayout.EndHorizontal();
             
-            if (_currentProjectScenes != null && _currentProjectScenes.Count > 0)
+            if (GUILayout.Button("Open Root Data Folder"))
             {
-                _sceneListScrollPos = EditorGUILayout.BeginScrollView(_sceneListScrollPos, GUILayout.Height(200));
-                
-                foreach (var sceneMetadata in _currentProjectScenes)
-                {
-                    EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-                    
-                    // Scene header
-                    EditorGUILayout.BeginHorizontal();
-                    
-                    // Active indicator
-                    if (sceneMetadata.isActive)
-                    {
-                        GUIStyle activeStyle = new GUIStyle(EditorStyles.boldLabel);
-                        activeStyle.normal.textColor = Color.green;
-                        EditorGUILayout.LabelField("● " + sceneMetadata.sceneName, activeStyle);
-                    }
-                    else
-                    {
-                        EditorGUILayout.LabelField(sceneMetadata.sceneName, EditorStyles.boldLabel);
-                    }
-                    
-                    GUILayout.FlexibleSpace();
-                    
-                    // Switch button
-                    if (!sceneMetadata.isActive)
-                    {
-                        if (GUILayout.Button("Switch", GUILayout.Width(60)))
-                        {
-                            if (_target.SwitchToScene(sceneMetadata.sceneId))
-                            {
-                                RefreshCurrentProjectScenes();
-                                Repaint();
-                            }
-                        }
-                    }
-                    
-                    // Delete button (can't delete if only one scene)
-                    GUI.enabled = _target.GetSceneCount() > 1;
-                    if (GUILayout.Button("Delete", GUILayout.Width(60)))
-                    {
-                        if (EditorUtility.DisplayDialog("Delete Scene", 
-                            $"Are you sure you want to delete scene '{sceneMetadata.sceneName}'?\n\nThis action cannot be undone.", 
-                            "Delete", "Cancel"))
-                        {
-                            if (_target.DeleteSceneFromProject(sceneMetadata.sceneId))
-                            {
-                                EditorUtility.DisplayDialog("Success", $"Scene '{sceneMetadata.sceneName}' deleted!", "OK");
-                                RefreshCurrentProjectScenes();
-                            }
-                        }
-                    }
-                    GUI.enabled = true;
-                    
-                    EditorGUILayout.EndHorizontal();
-                    
-                    // Scene details
-                    EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField($"Objects: {sceneMetadata.objectCount}", EditorStyles.miniLabel, GUILayout.Width(100));
-                    EditorGUILayout.LabelField($"Modified: {sceneMetadata.lastModified:MM/dd HH:mm}", EditorStyles.miniLabel);
-                    EditorGUILayout.EndHorizontal();
-                    
-                    if (!string.IsNullOrEmpty(sceneMetadata.description))
-                    {
-                        EditorGUILayout.LabelField($"Description: {sceneMetadata.description}", EditorStyles.wordWrappedMiniLabel);
-                    }
-                    
-                    EditorGUILayout.EndVertical();
-                }
-                
-                EditorGUILayout.EndScrollView();
-            }
-            else
-            {
-                EditorGUILayout.HelpBox("No scenes in project.", MessageType.Info);
+                Application.OpenURL("file://" + Application.persistentDataPath);
             }
             
             EditorGUILayout.EndVertical();
         }
         
-        private void DrawRuntimeInfo()
+        private void DrawRuntimeInfoAndTransformItems()
         {
             if (!Application.isPlaying) return;
             
             _showRuntimeInfoFoldout = EditorGUILayout.Foldout(_showRuntimeInfoFoldout, 
-                "Runtime Information", true, EditorStyles.foldoutHeader);
+                "Runtime Info & Transform Items", true, EditorStyles.foldoutHeader);
             
             if (!_showRuntimeInfoFoldout) return;
             
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             
+            // ===== RUNTIME INFORMATION SECTION =====
+            EditorGUILayout.LabelField("RUNTIME INFORMATION", EditorStyles.boldLabel);
+            EditorGUILayout.Space(3);
+            
             // Current state
-            EditorGUILayout.LabelField("Current State", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Current State", EditorStyles.miniBoldLabel);
             EditorGUILayout.LabelField($"Selected Object: {(_target.SelectedObject != null ? _target.SelectedObject.name : "None")}");
             EditorGUILayout.LabelField($"Gizmos Enabled: {_target.GizmosEnabled}");
             EditorGUILayout.LabelField($"Scene Gizmos Enabled: {_target.SceneGizmosEnabled}");
@@ -578,7 +1184,7 @@ namespace SceneSandbox.Editor
             EditorGUILayout.Space(5);
             
             // Quick actions
-            EditorGUILayout.LabelField("Quick Actions", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Quick Actions", EditorStyles.miniBoldLabel);
             EditorGUILayout.BeginHorizontal();
             
             if (GUILayout.Button("Clear Scene"))
@@ -618,6 +1224,191 @@ namespace SceneSandbox.Editor
             
             EditorGUILayout.EndHorizontal();
             
+            // ===== TRANSFORM ITEMS MANAGER SECTION =====
+            EditorGUILayout.Space(15);
+            EditorGUILayout.LabelField("TRANSFORM ITEMS MANAGER", EditorStyles.boldLabel);
+            EditorGUILayout.Space(3);
+            
+            // Get managed objects from SceneSandboxBuilder
+            if (_target.CurrentScene == null || _target.CurrentScene.placedObjects == null || _target.CurrentScene.placedObjects.Count == 0)
+            {
+                EditorGUILayout.HelpBox("No managed objects in current scene.", MessageType.Info);
+            }
+            else
+            {
+                EditorGUILayout.LabelField($"Managed Objects: {_target.CurrentScene.placedObjects.Count}", EditorStyles.miniBoldLabel);
+                EditorGUILayout.Space(5);
+                
+                // Scroll view for item list
+                _transformItemsScrollPos = EditorGUILayout.BeginScrollView(_transformItemsScrollPos, GUILayout.Height(300));
+                
+                foreach (var placedObj in _target.CurrentScene.placedObjects)
+                {
+                    if (placedObj == null || string.IsNullOrEmpty(placedObj.id)) continue;
+                    
+                    // Find the GameObject - need to access SceneSandboxBuilder's internal dictionary
+                    // Since GetPlacedObjectById might not be public, we'll iterate through scene objects
+                    GameObject go = GameObject.Find(placedObj.id);
+                    if (go == null)
+                    {
+                        // Try to find by matching TransformableItem.ObjectId
+                        TransformableItem[] allItems = FindObjectsByType<TransformableItem>(FindObjectsSortMode.None);
+                        foreach (var testItem in allItems)
+                        {
+                            if (testItem.ObjectId == placedObj.id)
+                            {
+                                go = testItem.gameObject;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (go == null) continue;
+                    
+                    // Get TransformableItem component
+                    TransformableItem item = go.GetComponent<TransformableItem>();
+                    if (item == null) continue;
+                    
+                    // Draw compact item row
+                    EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
+                    
+                    // Object name (truncated if too long)
+                    string displayName = go.name.Length > 20 ? go.name.Substring(0, 17) + "..." : go.name;
+                    EditorGUILayout.LabelField(displayName, GUILayout.Width(150));
+
+                    // Select button
+                    if (GUILayout.Button("Select", EditorStyles.miniButton, GUILayout.Width(50)))
+                    {
+                        _target.SelectObject(go, false);
+                    }
+                    
+                    if (GUILayout.Button("Select (Focus)", EditorStyles.miniButton, GUILayout.Width(50)))
+                    {
+                        _target.SelectObject(go, false);
+                        Selection.activeGameObject = go;
+                        SceneView.FrameLastActiveSceneView();
+                    }
+                    
+                    // Transform Mode buttons (compact)
+                    EditorGUILayout.LabelField("|", GUILayout.Width(10));
+                    
+                    Color originalBg = GUI.backgroundColor;
+                    
+                    // None
+                    GUI.backgroundColor = item.CurrentTransformModeType == TransformModeType.None ? Color.green : originalBg;
+                    if (GUILayout.Button("N", EditorStyles.miniButton, GUILayout.Width(25)))
+                    {
+                        item.SetTransformModeType(TransformModeType.None);
+                    }
+                    
+                    // Position
+                    GUI.backgroundColor = item.CurrentTransformModeType == TransformModeType.Position ? Color.green : originalBg;
+                    if (GUILayout.Button("P", EditorStyles.miniButton, GUILayout.Width(25)))
+                    {
+                        item.SetTransformModeType(TransformModeType.Position);
+                    }
+                    
+                    // Rotation
+                    GUI.backgroundColor = item.CurrentTransformModeType == TransformModeType.Rotation ? Color.green : originalBg;
+                    if (GUILayout.Button("R", EditorStyles.miniButton, GUILayout.Width(25)))
+                    {
+                        item.SetTransformModeType(TransformModeType.Rotation);
+                    }
+                    
+                    // Scale
+                    GUI.backgroundColor = item.CurrentTransformModeType == TransformModeType.Scale ? Color.green : originalBg;
+                    if (GUILayout.Button("S", EditorStyles.miniButton, GUILayout.Width(25)))
+                    {
+                        item.SetTransformModeType(TransformModeType.Scale);
+                    }
+                    
+                    GUI.backgroundColor = originalBg;
+                    
+                    // Transform Axis buttons (only show if in Position, Rotation or Scale mode)
+                    if (item.CurrentTransformModeType == TransformModeType.Position || 
+                        item.CurrentTransformModeType == TransformModeType.Rotation || 
+                        item.CurrentTransformModeType == TransformModeType.Scale)
+                    {
+                        EditorGUILayout.LabelField("|", GUILayout.Width(10));
+                        
+                        // All axes
+                        GUI.backgroundColor = item.CurrentTransformAxis == TransformAxis.All ? Color.magenta : originalBg;
+                        if (GUILayout.Button("All", EditorStyles.miniButton, GUILayout.Width(30)))
+                        {
+                            item.SetTransformAxis(TransformAxis.All);
+                        }
+                        
+                        // X axis
+                        GUI.backgroundColor = item.CurrentTransformAxis == TransformAxis.X ? Color.red : originalBg;
+                        if (GUILayout.Button("X", EditorStyles.miniButton, GUILayout.Width(25)))
+                        {
+                            item.SetTransformAxis(TransformAxis.X);
+                        }
+                        
+                        // Y axis
+                        GUI.backgroundColor = item.CurrentTransformAxis == TransformAxis.Y ? Color.green : originalBg;
+                        if (GUILayout.Button("Y", EditorStyles.miniButton, GUILayout.Width(25)))
+                        {
+                            item.SetTransformAxis(TransformAxis.Y);
+                        }
+                        
+                        // Z axis
+                        GUI.backgroundColor = item.CurrentTransformAxis == TransformAxis.Z ? Color.blue : originalBg;
+                        if (GUILayout.Button("Z", EditorStyles.miniButton, GUILayout.Width(25)))
+                        {
+                            item.SetTransformAxis(TransformAxis.Z);
+                        }
+                        
+                        GUI.backgroundColor = originalBg;
+                    }
+                    
+                    // Snap Mode buttons
+                    EditorGUILayout.LabelField("|", GUILayout.Width(10));
+                    
+                    // Extend
+                    GUI.backgroundColor = item.SnapMode == SnapMode.Extend ? Color.cyan : originalBg;
+                    if (GUILayout.Button("Ext", EditorStyles.miniButton, GUILayout.Width(35)))
+                    {
+                        item.SetSnapMode(SnapMode.Extend);
+                        EditorUtility.SetDirty(item);
+                    }
+                    
+                    // Self
+                    GUI.backgroundColor = item.SnapMode == SnapMode.Self ? Color.yellow : originalBg;
+                    if (GUILayout.Button("Self", EditorStyles.miniButton, GUILayout.Width(35)))
+                    {
+                        item.SetSnapMode(SnapMode.Self);
+                        EditorUtility.SetDirty(item);
+                    }
+                    
+                    GUI.backgroundColor = originalBg;
+                    
+                    // Snap Grid toggle
+                    EditorGUILayout.LabelField("|", GUILayout.Width(10));
+                    bool newSnapEnabled = EditorGUILayout.Toggle(item.EnableSnapGrid, GUILayout.Width(20));
+                    if (newSnapEnabled != item.EnableSnapGrid)
+                    {
+                        item.EnableSnapGrid = newSnapEnabled;
+                        EditorUtility.SetDirty(item);
+                    }
+                    
+                    // Grid size (if snap enabled)
+                    if (item.EnableSnapGrid)
+                    {
+                        float newGridSize = EditorGUILayout.FloatField(item.SnapGridSize, GUILayout.Width(50));
+                        if (!Mathf.Approximately(newGridSize, item.SnapGridSize))
+                        {
+                            item.SnapGridSize = Mathf.Max(0.01f, newGridSize);
+                            EditorUtility.SetDirty(item);
+                        }
+                    }
+                    
+                    EditorGUILayout.EndHorizontal();
+                }
+                
+                EditorGUILayout.EndScrollView();
+            }
+            
             EditorGUILayout.EndVertical();
         }
         
@@ -634,8 +1425,62 @@ namespace SceneSandbox.Editor
             EditorGUILayout.PropertyField(_sceneRoot);
             EditorGUILayout.PropertyField(_stageArea);
             
+            EditorGUILayout.EndVertical();
+        }
+        
+        private void DrawInputSettings()
+        {
+            _showInputSettingsFoldout = EditorGUILayout.Foldout(_showInputSettingsFoldout, 
+                "Input Settings", true, EditorStyles.foldoutHeader);
+            
+            if (!_showInputSettingsFoldout) return;
+            
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            
+            EditorGUILayout.HelpBox("Input actions are managed directly by SceneSandboxBuilder. All input handling, selection, and transform controls are integrated.", MessageType.Info);
+            
             EditorGUILayout.Space(5);
-            EditorGUILayout.HelpBox("Input handling is managed by TransformableSelectionManager (singleton)", MessageType.Info);
+            
+            // Mode Toggle
+            EditorGUILayout.LabelField("Mode Control", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_toggleModeActionRef, new GUIContent("Toggle Build/Play Mode", "Toggle between Build Mode (editing enabled) and Play Mode (read-only, performance optimized)"));
+            
+            EditorGUILayout.Space(5);
+            
+            // Transform Mode Hotkeys
+            EditorGUILayout.LabelField("Transform Mode Hotkeys", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_exitAllModesActionRef, new GUIContent("Exit All Modes"));
+            EditorGUILayout.PropertyField(_moveHotkeyActionRef, new GUIContent("Move Mode (Position)"));
+            EditorGUILayout.PropertyField(_rotateHotkeyActionRef, new GUIContent("Rotate Mode"));
+            EditorGUILayout.PropertyField(_scaleHotkeyActionRef, new GUIContent("Scale Mode"));
+            EditorGUILayout.PropertyField(_transformModeIncreaseActionRef, new GUIContent("Increase Transform"));
+            EditorGUILayout.PropertyField(_transformModeDecreaseActionRef, new GUIContent("Decrease Transform"));
+            EditorGUILayout.PropertyField(_transformModeToggleAxisActionRef, new GUIContent("Toggle Axis", "Toggle between X, Y, Z, and All axes for Rotation/Scale modes"));
+            
+            EditorGUILayout.Space(5);
+            
+            // Pointer Input Actions
+            EditorGUILayout.LabelField("Pointer Input Actions", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_pointerPositionActionRef, new GUIContent("Pointer Position"));
+            EditorGUILayout.PropertyField(_leftClickActionRef, new GUIContent("Left Click"));
+            EditorGUILayout.PropertyField(_rightClickActionRef, new GUIContent("Right Click"));
+            EditorGUILayout.PropertyField(_mouseScrollActionRef, new GUIContent("Mouse Scroll"));
+            
+            EditorGUILayout.Space(5);
+            
+            // Placement Input Actions
+            EditorGUILayout.LabelField("Placement Input Actions", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_cancelPlacementActionRef, new GUIContent("Cancel Placement"));
+            
+            EditorGUILayout.Space(5);
+            
+            // Raycast & Input Settings
+            EditorGUILayout.LabelField("Raycast & Detection Settings", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_selectionLayers, new GUIContent("Selection Layers", "Layers used for object selection raycasts (separate from placement layers)"));
+            EditorGUILayout.PropertyField(_maxRaycastDistance, new GUIContent("Max Raycast Distance"));
+            EditorGUILayout.PropertyField(_dragThreshold, new GUIContent("Drag Threshold (pixels)"));
+            EditorGUILayout.PropertyField(_doubleClickTime, new GUIContent("Double Click Time (seconds)"));
+            EditorGUILayout.PropertyField(_enableHotkeys, new GUIContent("Enable Hotkeys"));
             
             EditorGUILayout.EndVertical();
         }
@@ -643,26 +1488,128 @@ namespace SceneSandbox.Editor
         private void DrawPlacementSettings()
         {
             _showPlacementFoldout = EditorGUILayout.Foldout(_showPlacementFoldout, 
-                "Placement Settings", true, EditorStyles.foldoutHeader);
+                "Placement Settings & Validation", true, EditorStyles.foldoutHeader);
             
             if (!_showPlacementFoldout) return;
             
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             
-            EditorGUILayout.PropertyField(_placementLayers);
-            EditorGUILayout.PropertyField(_snapToGrid);
+            // ===== PLACEMENT SETTINGS SECTION =====
+            EditorGUILayout.LabelField("PLACEMENT SETTINGS", EditorStyles.boldLabel);
+            EditorGUILayout.Space(3);
+            
+            EditorGUILayout.PropertyField(_placementLayers, new GUIContent("Placement Layers"));
+            
+            EditorGUILayout.Space(3);
+            EditorGUILayout.LabelField("Grid Settings", EditorStyles.miniBoldLabel);
+            EditorGUILayout.PropertyField(_snapToGrid, new GUIContent("Snap to Grid"));
             
             if (_snapToGrid.boolValue)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(_gridSize);
+                EditorGUILayout.PropertyField(_gridSize, new GUIContent("Grid Cell Size", "Size of each grid cell"));
+                EditorGUILayout.PropertyField(_gridOffset, new GUIContent("Grid Offset", "Additional offset from stage area (X,Z for 2D plane)"));
+                EditorGUILayout.PropertyField(_gridPivotOffset, new GUIContent("Grid Pivot Offset", "Pivot offset relative to Scene Bounds Pivot"));
+                EditorGUILayout.HelpBox("Grid is a 2D plane based on Scene Bounds (X,Z). Grid position = Scene Bounds Pivot + Grid Pivot Offset.", MessageType.Info);
                 EditorGUI.indentLevel--;
             }
             
-            EditorGUILayout.PropertyField(_defaultPlacementHeight);
-            EditorGUILayout.PropertyField(_minimumPlacementHeight);
-            EditorGUILayout.PropertyField(_useRaycastForPlacement);
-            EditorGUILayout.PropertyField(_useConsistentHeight);
+            EditorGUILayout.Space(3);
+            EditorGUILayout.LabelField("Height Settings", EditorStyles.miniBoldLabel);
+            EditorGUILayout.HelpBox("Height values are relative to the Grid's Y position (calculated from Scene Bounds + Pivots + Offsets).", MessageType.Info);
+            EditorGUILayout.PropertyField(_defaultPlacementHeight, new GUIContent("Default Height", "Default Y offset from grid when placing objects (relative to grid)"));
+            EditorGUILayout.PropertyField(_minimumPlacementHeight, new GUIContent("Minimum Height", "Minimum Y offset from grid (relative to grid)"));
+            
+            // Validation: Ensure default >= minimum
+            if (_defaultPlacementHeight.floatValue < _minimumPlacementHeight.floatValue)
+            {
+                EditorGUILayout.HelpBox($"Warning: Default Height ({_defaultPlacementHeight.floatValue:F2}) is less than Minimum Height ({_minimumPlacementHeight.floatValue:F2}). This may cause unexpected behavior.", MessageType.Warning);
+            }
+            
+            EditorGUILayout.PropertyField(_useRaycastForPlacement, new GUIContent("Use Raycast"));
+            EditorGUILayout.PropertyField(_useConsistentHeight, new GUIContent("Use Consistent Height"));
+            
+            EditorGUILayout.Space(3);
+            EditorGUILayout.LabelField("Scene Bounds", EditorStyles.miniBoldLabel);
+            EditorGUILayout.PropertyField(_sceneBounds, new GUIContent("Bounds Size", "The size of the scene bounds (X, Y, Z)"));
+            EditorGUILayout.PropertyField(_sceneBoundsOffset, new GUIContent("Bounds Offset", "Offset from stage area center (X, Y, Z)"));
+            EditorGUILayout.PropertyField(_sceneBoundsPivot, new GUIContent("Bounds Pivot", "Pivot point for scene bounds positioning"));
+            
+            EditorGUILayout.Space(3);
+            EditorGUILayout.LabelField("Drop Indicator", EditorStyles.miniBoldLabel);
+            EditorGUILayout.PropertyField(_enableDropIndicator, new GUIContent("Enable Drop Indicator"));
+            
+            if (_enableDropIndicator.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(_dropIndicatorPrefab, new GUIContent("Prefab"));
+                EditorGUILayout.PropertyField(_validDropColor, new GUIContent("Valid Color"));
+                EditorGUILayout.PropertyField(_invalidDropColor, new GUIContent("Invalid Color"));
+                EditorGUILayout.PropertyField(_dropIndicatorSize, new GUIContent("Size"));
+                EditorGUI.indentLevel--;
+            }
+            
+            // ===== PLACEMENT VALIDATION SECTION =====
+            EditorGUILayout.Space(15);
+            EditorGUILayout.LabelField("PLACEMENT VALIDATION", EditorStyles.boldLabel);
+            EditorGUILayout.Space(3);
+            
+            EditorGUILayout.HelpBox("Configure validation rules for object placement. These settings determine if a placement position is valid.", MessageType.Info);
+            
+            EditorGUILayout.Space(3);
+            
+            // Collision Checking
+            EditorGUILayout.LabelField("Collision Detection", EditorStyles.miniBoldLabel);
+            EditorGUILayout.PropertyField(_checkCollisions, new GUIContent("Check Collisions", "Enable collision checking during placement"));
+            
+            if (_checkCollisions.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(_collisionLayers, new GUIContent("Collision Layers", "Layers to check for collisions"));
+                EditorGUILayout.PropertyField(_groundLayers, new GUIContent("Ground Layers", "Layers to ignore in collision checks (e.g., floor, terrain)"));
+                EditorGUILayout.PropertyField(_ignoreStaticObjects, new GUIContent("Ignore Static Objects", "Skip collision checks with static objects"));
+                
+                if (!_checkCollisions.boolValue)
+                {
+                    EditorGUILayout.HelpBox("Collision checking is disabled. Objects can be placed anywhere within scene bounds.", MessageType.Warning);
+                }
+                EditorGUI.indentLevel--;
+            }
+            
+            EditorGUILayout.Space(5);
+            
+            // Surface Requirements
+            EditorGUILayout.LabelField("Surface Requirements", EditorStyles.miniBoldLabel);
+            EditorGUILayout.PropertyField(_requireSurfaceBelow, new GUIContent("Require Surface Below", "Objects must have a surface below them to be placed"));
+            
+            if (_requireSurfaceBelow.boolValue)
+            {
+                EditorGUILayout.HelpBox("Objects can only be placed where a surface exists below them.", MessageType.Info);
+            }
+            
+            EditorGUILayout.Space(5);
+            
+            // Cost System (Future Feature)
+            EditorGUILayout.LabelField("Resource System (Future)", EditorStyles.miniBoldLabel);
+            EditorGUILayout.PropertyField(_enableCostSystem, new GUIContent("Enable Cost System", "Enable resource/cost system for placement"));
+            
+            if (_enableCostSystem.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(_placementCost, new GUIContent("Placement Cost", "Base cost for placing objects"));
+                EditorGUILayout.HelpBox("Cost system is a placeholder for future resource management features.", MessageType.Info);
+                EditorGUI.indentLevel--;
+            }
+            
+            EditorGUILayout.Space(5);
+            
+            // Debug Helper
+            if (Application.isPlaying)
+            {
+                EditorGUILayout.Space(5);
+                EditorGUILayout.LabelField("Debug Validation", EditorStyles.miniBoldLabel);
+                EditorGUILayout.HelpBox("Validation logs are enabled. Check the Console for detailed placement validation information.", MessageType.Info);
+            }
             
             EditorGUILayout.EndVertical();
         }
@@ -683,94 +1630,110 @@ namespace SceneSandbox.Editor
             EditorGUILayout.EndVertical();
         }
         
-        private void DrawGizmoSettings()
+        private void DrawUnifiedGizmoSettings()
         {
-            _showGizmoFoldout = EditorGUILayout.Foldout(_showGizmoFoldout, 
+            _showAllGizmosFoldout = EditorGUILayout.Foldout(_showAllGizmosFoldout, 
                 "Gizmo Settings", true, EditorStyles.foldoutHeader);
             
-            if (!_showGizmoFoldout) return;
+            if (!_showAllGizmosFoldout) return;
             
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             
-            EditorGUILayout.PropertyField(_enableGizmos);
+            // Master toggle for all gizmos
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Enable All Gizmos", EditorStyles.boldLabel, GUILayout.Width(150));
+            
+            if (!Application.isPlaying)
+            {
+                GUI.enabled = false;
+            }
+            
+            // Toggle shows ON only when ALL gizmos are enabled
+            bool enableAllGizmos = _target.GizmosEnabled && _target.SceneGizmosEnabled && _target.DropIndicatorEnabled;
+            bool newEnableAllGizmos = EditorGUILayout.Toggle(enableAllGizmos);
+            
+            if (newEnableAllGizmos != enableAllGizmos && Application.isPlaying)
+            {
+                _target.SetGizmoVisibility(newEnableAllGizmos);
+                _target.SetSceneGizmoVisibility(newEnableAllGizmos);
+                _target.SetDropIndicatorEnabled(newEnableAllGizmos);
+            }
+            
+            GUI.enabled = true;
+            EditorGUILayout.EndHorizontal();
+            
+            if (!Application.isPlaying)
+            {
+                EditorGUILayout.HelpBox("Gizmo controls are only available in Play Mode", MessageType.Info);
+            }
+            
+            EditorGUILayout.Space(10);
+            
+            // Object Gizmos
+            EditorGUILayout.LabelField("Object Gizmos", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_enableGizmos, new GUIContent("Enable Object Gizmos"));
             
             if (_enableGizmos.boolValue)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(_showBoundsGizmo);
-                EditorGUILayout.PropertyField(_showAxesGizmo);
-                EditorGUILayout.PropertyField(_showHandlesGizmo);
-                EditorGUILayout.PropertyField(_gizmoBoundsColor);
-                EditorGUILayout.PropertyField(_gizmoAxisLength);
+                EditorGUILayout.PropertyField(_showBoundsGizmo, new GUIContent("Show Bounds"));
+                EditorGUILayout.PropertyField(_showAxesGizmo, new GUIContent("Show Axes"));
+                EditorGUILayout.PropertyField(_showHandlesGizmo, new GUIContent("Show Handles"));
+                EditorGUILayout.PropertyField(_gizmoBoundsColor, new GUIContent("Bounds Color"));
+                EditorGUILayout.PropertyField(_gizmoAxisLength, new GUIContent("Axis Length"));
                 EditorGUI.indentLevel--;
             }
             
-            EditorGUILayout.EndVertical();
-        }
-        
-        private void DrawSceneGizmoSettings()
-        {
-            _showSceneGizmoFoldout = EditorGUILayout.Foldout(_showSceneGizmoFoldout, 
-                "Scene Gizmo Settings", true, EditorStyles.foldoutHeader);
+            EditorGUILayout.Space(10);
             
-            if (!_showSceneGizmoFoldout) return;
-            
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-            
-            EditorGUILayout.PropertyField(_enableSceneGizmos);
+            // Scene Gizmos
+            EditorGUILayout.LabelField("Scene Gizmos", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_enableSceneGizmos, new GUIContent("Enable Scene Gizmos"));
             
             if (_enableSceneGizmos.boolValue)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(_showSceneGrid);
-                EditorGUILayout.PropertyField(_showSceneBounds);
-                EditorGUILayout.PropertyField(_showStageAreaGizmo);
-                EditorGUILayout.PropertyField(_showPlacementHeightGizmo);
-                EditorGUILayout.PropertyField(_sceneBounds);
-                EditorGUILayout.PropertyField(_sceneBoundsColor);
-                EditorGUILayout.PropertyField(_placementHeightColor);
+                EditorGUILayout.PropertyField(_showSceneGrid, new GUIContent("Show Grid"));
+                EditorGUILayout.PropertyField(_showSceneBounds, new GUIContent("Show Scene Bounds"));
+                EditorGUILayout.PropertyField(_showStageAreaGizmo, new GUIContent("Show Stage Area"));
+                EditorGUILayout.PropertyField(_showPlacementHeightGizmo, new GUIContent("Show Placement Height"));
+                EditorGUILayout.PropertyField(_sceneBoundsColor, new GUIContent("Bounds Color"));
+                EditorGUILayout.PropertyField(_placementHeightColor, new GUIContent("Placement Height Color"));
                 EditorGUI.indentLevel--;
             }
             
             EditorGUILayout.EndVertical();
         }
         
-        private void DrawDropIndicatorSettings()
+        private void DrawEvents()
         {
-            _showDropIndicatorFoldout = EditorGUILayout.Foldout(_showDropIndicatorFoldout, 
-                "Drop Indicator Settings", true, EditorStyles.foldoutHeader);
+            _showEventsFoldout = EditorGUILayout.BeginFoldoutHeaderGroup(_showEventsFoldout, "Events");
             
-            if (!_showDropIndicatorFoldout) return;
+            if (!_showEventsFoldout) return;
             
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             
-            EditorGUILayout.PropertyField(_enableDropIndicator);
+            EditorGUILayout.HelpBox("UnityEvents that are invoked when specific actions occur. You can add listeners in the Inspector or via code.", MessageType.Info);
             
-            if (_enableDropIndicator.boolValue)
-            {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(_dropIndicatorPrefab);
-                EditorGUILayout.PropertyField(_validDropColor);
-                EditorGUILayout.PropertyField(_invalidDropColor);
-                EditorGUILayout.PropertyField(_dropIndicatorSize);
-                EditorGUI.indentLevel--;
-            }
+            EditorGUILayout.Space(5);
             
-            EditorGUILayout.EndVertical();
-        }
-        
-        private void DrawSaveLoadSettings()
-        {
-            _showSaveLoadFoldout = EditorGUILayout.Foldout(_showSaveLoadFoldout, 
-                "Save/Load Settings", true, EditorStyles.foldoutHeader);
+            EditorGUILayout.LabelField("Scene Events", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_onSceneLoaded, new GUIContent("On Scene Loaded"));
+            EditorGUILayout.PropertyField(_onSceneSaved, new GUIContent("On Scene Saved"));
+            EditorGUILayout.PropertyField(_onSceneCleared, new GUIContent("On Scene Cleared"));
             
-            if (!_showSaveLoadFoldout) return;
+            EditorGUILayout.Space(10);
             
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.LabelField("Object Events", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_onObjectPlaced, new GUIContent("On Object Placed"));
+            EditorGUILayout.PropertyField(_onObjectRemoved, new GUIContent("On Object Removed"));
+            EditorGUILayout.PropertyField(_onObjectSelected, new GUIContent("On Object Selected"));
             
-            EditorGUILayout.PropertyField(_defaultSavePath);
-            EditorGUILayout.PropertyField(_currentSceneName);
-            EditorGUILayout.PropertyField(_defaultProjectSavePath);
+            EditorGUILayout.Space(10);
+            
+            EditorGUILayout.LabelField("Mode Events", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(_onModeChanged, new GUIContent("On Mode Changed"));
+            EditorGUILayout.PropertyField(_onPreviewStateChanged, new GUIContent("On Preview State Changed"));
             
             EditorGUILayout.EndVertical();
         }
@@ -819,12 +1782,20 @@ namespace SceneSandbox.Editor
                     EditorGUILayout.LabelField($"Category: {objectData.category}", EditorStyles.miniLabel);
                     EditorGUILayout.EndVertical();
                     
-                    // Place button
+                    // Place button - triggers drag&drop flow
                     GUI.enabled = Application.isPlaying && _target.CurrentScene != null;
                     if (GUILayout.Button("Place", GUILayout.Width(60), GUILayout.Height(40)))
                     {
-                        Vector3 placePosition = _target.transform.position + Vector3.forward * 2f;
-                        _target.PlaceObject(objectData.id, placePosition);
+                        Debug.Log($"[Editor] Place button clicked for {objectData.displayName}, isPlaying={Application.isPlaying}");
+                        
+                        // Trigger drag&drop flow - ghost will appear at screen center
+                        // User can then:
+                        // - Move mouse to reposition ghost (follows cursor automatically)
+                        // - Click to confirm placement (triggers OnEmptySpaceClicked event)
+                        // - Press ESC to cancel (triggers OnCancelRequested event)
+                        _target.BeginPlacement(objectData.id);
+                        
+                        Debug.Log($"[Editor] Started placement for {objectData.displayName}. Move mouse, click to place, ESC to cancel.");
                     }
                     GUI.enabled = true;
                     

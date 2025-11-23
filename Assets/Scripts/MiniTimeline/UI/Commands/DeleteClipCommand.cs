@@ -15,14 +15,14 @@ namespace MiniTimeline.UI.Commands
         private readonly IMiniTrack track;
         private readonly IMiniClip clip;
         private readonly ClipData clipBackup;
-        private readonly TrackUI trackUI;
+        private readonly ITimelineEditorUI editorUI;
 
-        public DeleteClipCommand(IMiniTrack sourceTrack, IMiniClip clipToDelete, TrackUI trackInterface)
+        public DeleteClipCommand(IMiniTrack sourceTrack, IMiniClip clipToDelete, ITimelineEditorUI timelineEditor)
             : base($"Delete {clipToDelete.Id}")
         {
             track = sourceTrack;
             clip = clipToDelete;
-            trackUI = trackInterface;
+            editorUI = timelineEditor;
 
             // Backup clip data for undo
             clipBackup = new ClipData
@@ -61,8 +61,8 @@ namespace MiniTimeline.UI.Commands
 
             if (success)
             {
-                // Update UI - rebuild the entire track UI to ensure consistency
-                trackUI?.RebuildClipUIs();
+                // Update UI - rebuild the entire timeline UI to ensure consistency
+                editorUI?.BuildTimelineUI();
                 Debug.Log($"Successfully deleted clip {clip.Id}");
             }
             else
@@ -79,8 +79,8 @@ namespace MiniTimeline.UI.Commands
             
             Debug.LogWarning($"Undo delete clip not fully implemented yet for {clip.Id}");
             
-            // For now, just refresh the UI in case anything changed
-            trackUI?.RefreshUI();
+            // Refresh the UI in case anything changed
+            editorUI?.BuildTimelineUI();
         }
     }
 

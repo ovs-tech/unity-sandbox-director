@@ -13,17 +13,17 @@ namespace MiniTimeline.UI.Commands
     public class EditClipCommand : TimelineCommandBase
     {
         private readonly IMiniClip clip;
-        private readonly TrackUI trackUI;
+        private readonly ITimelineEditorUI editorUI;
         
         // Store original and new values for all properties
         private readonly Dictionary<string, object> originalValues;
         private readonly Dictionary<string, object> newValues;
 
-        public EditClipCommand(IMiniClip clipToEdit, Dictionary<string, object> newFormData, TrackUI track)
+        public EditClipCommand(IMiniClip clipToEdit, Dictionary<string, object> newFormData, ITimelineEditorUI timelineEditor)
             : base($"Edit {clipToEdit.Id}")
         {
             clip = clipToEdit;
-            trackUI = track;
+            editorUI = timelineEditor;
             newValues = new Dictionary<string, object>(newFormData);
             originalValues = new Dictionary<string, object>();
             
@@ -225,19 +225,9 @@ namespace MiniTimeline.UI.Commands
         /// </summary>
         private void UpdateUI()
         {
-            // Update the specific clip UI
-            var clipUI = trackUI?.GetClipUI(clip.Id);
-            if (clipUI != null)
-            {
-                clipUI.UpdateClipAppearance();
-                clipUI.UpdateLayout();
-            }
-            
-            // If timing changed, rebuild the entire track layout
-            if (newValues.ContainsKey("start") || newValues.ContainsKey("duration"))
-            {
-                trackUI?.RebuildClipUIs();
-            }
+            // Rebuild the timeline UI to reflect changes
+            // This ensures all clips and tracks are properly updated
+            editorUI?.BuildTimelineUI();
         }
     }
 }

@@ -10,7 +10,7 @@
 .left-panel,
 .right-panel {
     padding: 12px;
-    margin: 8px
+    margin: 8px;
 }
 
 .left-panel {

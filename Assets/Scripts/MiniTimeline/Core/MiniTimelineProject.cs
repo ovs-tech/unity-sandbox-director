@@ -73,6 +73,11 @@ namespace MiniTimeline.Core
         public int order = 0;
         
         /// <summary>
+        /// Evaluation mode (when callbacks are triggered)
+        /// </summary>
+        public int evaluateMode = 3; // Default to Continuous (EvaluateMode.Continuous = 3)
+        
+        /// <summary>
         /// All clips in this track
         /// </summary>
         public List<ClipData> clips = new List<ClipData>();

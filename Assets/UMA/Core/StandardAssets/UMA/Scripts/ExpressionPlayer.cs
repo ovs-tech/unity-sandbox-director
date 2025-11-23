@@ -45,7 +45,7 @@ namespace UMA.PoseTools
 		/// generated. Only recommended if the eyes are being controlled
 		/// by IK or tracking rather than high resolution animated data.
 		/// </remarks>
-		public bool enableSaccades = false;
+		public bool enableSaccades = true;
 		protected float saccadeDelay = 5f;
 		protected float saccadeDuration = 0f;
 		protected float saccadeProgress = 1f;
