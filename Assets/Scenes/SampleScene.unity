@@ -1379,6 +1379,10 @@ PrefabInstance:
       value: 513
       objectReference: {fileID: 0}
     - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _pointerPositionActionRef
+      value: 
+      objectReference: {fileID: 1622428205235823346, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
       propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.size
       value: 1
       objectReference: {fileID: 0}

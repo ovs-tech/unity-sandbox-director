@@ -13,7 +13,7 @@ namespace SceneSandbox.Core
     public class TransformController : MonoBehaviour
     {
         [Header("Debugging")]
-        [SerializeField] private bool _debugLogs = true;
+        [SerializeField] private bool _debugLogs = false;
         [Header("Dependencies")]
         [SerializeField] private SelectionManager _selectionManager;
         [SerializeField] private GridManager _gridManager;

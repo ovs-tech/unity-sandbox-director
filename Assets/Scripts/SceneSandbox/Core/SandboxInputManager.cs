@@ -53,11 +53,13 @@ namespace SceneSandbox.Core
 
         [Header("Flags")]
         [SerializeField] private bool _enableHotkeys = true;
+        [SerializeField] private bool _debugLogs = false;
 
         // Events (foundation signatures)
         public event Action<Vector2> OnPointerMoved;
         public event Action<Vector2> OnPointerDown;
         public event Action<Vector2> OnPointerUp;
+        public event Action<Vector2, float> OnPointerDrag;
         public event Action<float> OnScroll;
 
         public event Action OnToggleMode;
@@ -71,11 +73,50 @@ namespace SceneSandbox.Core
         public event Action OnCancelPlacement;
 
         private bool _initialized;
+        private bool _isPointerDown;
+        private float _dragDistance;
+        private Vector2 _cachedPointerPosition = Vector2.zero;
+
+        void Update()
+        {
+            if (_leftClickActionRef == null || !_leftClickActionRef.action.enabled) return;
+
+            bool leftButtonDown = _leftClickActionRef.action.WasPressedThisFrame();
+            bool leftButtonUp = _leftClickActionRef.action.WasReleasedThisFrame();
+            bool leftButtonHeld = _leftClickActionRef.action.IsPressed();
+
+            if (leftButtonDown)
+            {
+                if (_debugLogs) Debug.Log($"[SandboxInputManager] Pointer Down at {_cachedPointerPosition}");
+                OnPointerDown?.Invoke(_cachedPointerPosition);
+                _isPointerDown = true;
+            }
+
+            if (leftButtonHeld)
+            {
+                if (_isPointerDown) {
+                    _dragDistance += Vector2.Distance(_cachedPointerPosition, GetPointer());
+                    if (_debugLogs) Debug.Log($"[SandboxInputManager] Pointer Drag at {_cachedPointerPosition}, distance: {_dragDistance}");
+                    OnPointerDrag?.Invoke(_cachedPointerPosition, _dragDistance);
+                } else {
+                    OnPointerDown?.Invoke(_cachedPointerPosition);
+                }
+            }
+
+             if (leftButtonUp && _isPointerDown)
+            {
+                if (_debugLogs) Debug.Log($"[SandboxInputManager] Pointer Up at {_cachedPointerPosition}");
+                OnPointerUp?.Invoke(_cachedPointerPosition);
+                _isPointerDown = false;
+            }
+        }
 
         public void Initialize(bool enableHotkeys)
         {
             _enableHotkeys = enableHotkeys;
             _initialized = true;
+            
+            if (_debugLogs) Debug.Log($"[SandboxInputManager] Initialized with hotkeys: {enableHotkeys}");
             
             // Enable actions immediately after initialization
             EnableActions();
@@ -99,6 +140,8 @@ namespace SceneSandbox.Core
             InputActionReference mouseScroll,
             InputActionReference cancelPlacement)
         {
+            if (_debugLogs) Debug.Log("[SandboxInputManager] Setting input action references");
+            
             _toggleModeActionRef = toggleMode;
             _exitAllModesActionRef = exitAllModes;
             _moveHotkeyActionRef = moveHotkey;
@@ -127,6 +170,8 @@ namespace SceneSandbox.Core
 
         public void EnableActions()
         {
+            if (_debugLogs) Debug.Log("[SandboxInputManager] Enabling actions");
+            
             // Pointer + mouse
             _pointerPositionActionRef?.action.Enable();
             _leftClickActionRef?.action.Enable();
@@ -154,6 +199,8 @@ namespace SceneSandbox.Core
 
         public void DisableActions()
         {
+            if (_debugLogs) Debug.Log("[SandboxInputManager] Disabling actions");
+            
             UnregisterCallbacks();
 
             _pointerPositionActionRef?.action.Disable();
@@ -179,49 +226,107 @@ namespace SceneSandbox.Core
             // Pointer position changes (performed acts like a stream for value actions)
             if (_pointerPositionActionRef != null)
             {
-                _pointerPositionActionRef.action.performed += ctx => OnPointerMoved?.Invoke(ctx.ReadValue<Vector2>());
+                _pointerPositionActionRef.action.performed += ctx => 
+                {
+                    _cachedPointerPosition = ctx.ReadValue<Vector2>();
+                    if (_debugLogs) Debug.Log($"[SandboxInputManager] Pointer Moved to {_cachedPointerPosition}");
+                    OnPointerMoved?.Invoke(_cachedPointerPosition);
+                };
             }
 
             if (_leftClickActionRef != null)
             {
-                _leftClickActionRef.action.started += ctx => OnPointerDown?.Invoke(GetPointer());
-                _leftClickActionRef.action.canceled += ctx => OnPointerUp?.Invoke(GetPointer());
+                // For button-type actions: started = press down, canceled = release
+                // For press-release actions: performed may also fire on press
+                _leftClickActionRef.action.started += ctx => 
+                {
+                    OnPointerDown?.Invoke(_cachedPointerPosition);
+                };
+                _leftClickActionRef.action.performed += ctx => 
+                {
+                    // Only invoke if started didn't fire (some action types)
+                };
+                _leftClickActionRef.action.canceled += ctx => 
+                {
+                    OnPointerUp?.Invoke(_cachedPointerPosition);
+                };
             }
 
             if (_mouseScrollActionRef != null)
             {
-                _mouseScrollActionRef.action.performed += ctx => OnScroll?.Invoke(ctx.ReadValue<Vector2>().y);
+                _mouseScrollActionRef.action.performed += ctx =>
+                {
+                    float scrollValue = ctx.ReadValue<Vector2>().y;
+                    if (_debugLogs) Debug.Log($"[SandboxInputManager] Scroll: {scrollValue}");
+                    OnScroll?.Invoke(scrollValue);
+                };
             }
 
             if (_toggleModeActionRef != null)
             {
-                _toggleModeActionRef.action.performed += ctx => OnToggleMode?.Invoke();
+                _toggleModeActionRef.action.performed += ctx =>
+                {
+                    if (_debugLogs) Debug.Log("[SandboxInputManager] Toggle Mode triggered");
+                    OnToggleMode?.Invoke();
+                };
             }
 
             if (_exitAllModesActionRef != null)
             {
-                _exitAllModesActionRef.action.performed += ctx => OnExitAllModes?.Invoke();
+                _exitAllModesActionRef.action.performed += ctx =>
+                {
+                    if (_debugLogs) Debug.Log("[SandboxInputManager] Exit All Modes triggered");
+                    OnExitAllModes?.Invoke();
+                };
             }
 
             if (_enableHotkeys)
             {
                 if (_moveHotkeyActionRef != null)
-                    _moveHotkeyActionRef.action.performed += ctx => OnMoveHotkey?.Invoke();
+                    _moveHotkeyActionRef.action.performed += ctx =>
+                    {
+                        if (_debugLogs) Debug.Log("[SandboxInputManager] Move Hotkey triggered");
+                        OnMoveHotkey?.Invoke();
+                    };
                 if (_rotateHotkeyActionRef != null)
-                    _rotateHotkeyActionRef.action.performed += ctx => OnRotateHotkey?.Invoke();
+                    _rotateHotkeyActionRef.action.performed += ctx =>
+                    {
+                        if (_debugLogs) Debug.Log("[SandboxInputManager] Rotate Hotkey triggered");
+                        OnRotateHotkey?.Invoke();
+                    };
                 if (_scaleHotkeyActionRef != null)
-                    _scaleHotkeyActionRef.action.performed += ctx => OnScaleHotkey?.Invoke();
+                    _scaleHotkeyActionRef.action.performed += ctx =>
+                    {
+                        if (_debugLogs) Debug.Log("[SandboxInputManager] Scale Hotkey triggered");
+                        OnScaleHotkey?.Invoke();
+                    };
                 if (_transformModeIncreaseActionRef != null)
-                    _transformModeIncreaseActionRef.action.performed += ctx => OnTransformIncrease?.Invoke();
+                    _transformModeIncreaseActionRef.action.performed += ctx =>
+                    {
+                        if (_debugLogs) Debug.Log("[SandboxInputManager] Transform Increase triggered");
+                        OnTransformIncrease?.Invoke();
+                    };
                 if (_transformModeDecreaseActionRef != null)
-                    _transformModeDecreaseActionRef.action.performed += ctx => OnTransformDecrease?.Invoke();
+                    _transformModeDecreaseActionRef.action.performed += ctx =>
+                    {
+                        if (_debugLogs) Debug.Log("[SandboxInputManager] Transform Decrease triggered");
+                        OnTransformDecrease?.Invoke();
+                    };
                 if (_transformModeToggleAxisActionRef != null)
-                    _transformModeToggleAxisActionRef.action.performed += ctx => OnToggleAxis?.Invoke();
+                    _transformModeToggleAxisActionRef.action.performed += ctx =>
+                    {
+                        if (_debugLogs) Debug.Log("[SandboxInputManager] Toggle Axis triggered");
+                        OnToggleAxis?.Invoke();
+                    };
             }
 
             if (_cancelPlacementActionRef != null)
             {
-                _cancelPlacementActionRef.action.performed += ctx => OnCancelPlacement?.Invoke();
+                _cancelPlacementActionRef.action.performed += ctx =>
+                {
+                    if (_debugLogs) Debug.Log("[SandboxInputManager] Cancel Placement triggered");
+                    OnCancelPlacement?.Invoke();
+                };
             }
         }
 

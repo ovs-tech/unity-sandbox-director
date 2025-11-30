@@ -210,8 +210,6 @@ namespace SceneSandbox.Editor
             {
                 case EventType.MouseMove:
                 case EventType.MouseDrag:
-                    // Update ghost position
-                    _target.UpdatePlacement(mousePos);
                     HandleUtility.Repaint();
                     break;
                     
@@ -1793,7 +1791,8 @@ namespace SceneSandbox.Editor
                         // - Move mouse to reposition ghost (follows cursor automatically)
                         // - Click to confirm placement (triggers OnEmptySpaceClicked event)
                         // - Press ESC to cancel (triggers OnCancelRequested event)
-                        _target.BeginPlacement(objectData.id);
+                        Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+                        _target.StartPlacement(objectData.id, screenCenter);
                         
                         Debug.Log($"[Editor] Started placement for {objectData.displayName}. Move mouse, click to place, ESC to cancel.");
                     }

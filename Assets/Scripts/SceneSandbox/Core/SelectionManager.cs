@@ -13,7 +13,7 @@ namespace SceneSandbox.Core
     public class SelectionManager : MonoBehaviour
     {
         [Header("Debugging")]
-        [SerializeField] private bool _debugLogs = true;
+        [SerializeField] private bool _debugLogs = false;
         [Header("Dependencies")]
         [SerializeField] private CameraRaycaster _cameraRaycaster;
 
@@ -128,6 +128,14 @@ namespace SceneSandbox.Core
             _selectedItems.Add(item);
             _lastSelectedItem = item;
             item.SetSelectedState(true);
+            if (item.EnableTransformControls)
+            {
+                bool effectiveAutoEdit = GetEffectiveAutoEdit(overrideAutoEdit);
+                if (effectiveAutoEdit)
+                {
+                    item.SetTransformModeType(TransformModeType.Position);
+                }
+            }
 
             OnObjectSelected?.Invoke(item.gameObject);
             OnSelectionChanged?.Invoke(GetSelectedObjects());
@@ -191,6 +199,8 @@ namespace SceneSandbox.Core
                 if (item != null)
                 {
                     item.SetSelectedState(false);
+                    if(item.EnableTransformControls)
+                        item.SetTransformModeType(TransformModeType.None);
                     OnObjectDeselected?.Invoke(item.gameObject);
                 }
             }
@@ -269,6 +279,51 @@ namespace SceneSandbox.Core
         #endregion
 
         #region Hover Detection
+
+        /// <summary>
+        /// Process raycast input for hover detection and interaction.
+        /// Called per-frame to update hover state and detect clickable objects.
+        /// </summary>
+        /// <param name="screenPosition">Current screen position to raycast from</param>
+        /// <param name="onObjectFound">Callback when an object is found under the cursor</param>
+        /// <returns>The TransformableItem hit, or null if nothing was hit</returns>
+        public TransformableItem ProcessRaycastInput(Vector2 screenPosition, System.Action<TransformableItem> onObjectFound = null)
+        {
+            if (_cameraRaycaster == null) return null;
+
+            TransformableItem hitItem = null;
+
+            if (_cameraRaycaster.TryRaycast(screenPosition, out RaycastHit hit))
+            {
+                // Check if hit object is on selection layers
+                if (((1 << hit.collider.gameObject.layer) & _selectionLayers) != 0)
+                {
+                    hitItem = hit.collider.GetComponent<TransformableItem>();
+                    if (hitItem == null)
+                    {
+                        hitItem = hit.collider.GetComponentInParent<TransformableItem>();
+                    }
+
+                    // Update hover state
+                    UpdateHoverState(hitItem?.gameObject);
+
+                    // Notify callback if object found
+                    onObjectFound?.Invoke(hitItem);
+                }
+                else
+                {
+                    // Not on selection layer, clear hover
+                    UpdateHoverState(null);
+                }
+            }
+            else
+            {
+                // No hit, clear hover
+                UpdateHoverState(null);
+            }
+
+            return hitItem;
+        }
 
         /// <summary>
         /// Update hover detection from screen position

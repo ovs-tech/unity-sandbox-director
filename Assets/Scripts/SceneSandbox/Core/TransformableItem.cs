@@ -344,8 +344,6 @@ namespace SceneSandbox.Core
             _currentTransformModeType = mode;
             _isInTransformModeType = mode != TransformModeType.None;
 
-            Debug.Log($"[TransformableItem] Transform mode changed to: {mode}, isInMode: {_isInTransformModeType}, isSelected: {_isSelected}");
-
             // Reset axis to All when changing to Position mode or None
             if (mode == TransformModeType.Position || mode == TransformModeType.None)
             {
@@ -381,7 +379,6 @@ namespace SceneSandbox.Core
         /// </summary>
         public void SetTransformAxis(TransformAxis axis)
         {
-            Debug.Log($"[TransformableItem] Setting Transform Axis to: {axis} for mode: {_currentTransformModeType}");
             // Only allow axis change for Position, Rotation and Scale modes
             if (_currentTransformModeType == TransformModeType.None)
             {
@@ -393,8 +390,6 @@ namespace SceneSandbox.Core
             
             // Update gizmo to highlight selected axis
             UpdateGizmoVisuals();
-            
-            Debug.Log($"[TransformableItem] Axis set to: {axis}");
         }
 
         /// <summary>
@@ -731,7 +726,6 @@ namespace SceneSandbox.Core
         public void ToggleSnapGrid()
         {
             _enableSnapGrid = !_enableSnapGrid;
-            Debug.Log($"[TransformableItem] Snap grid {(_enableSnapGrid ? "enabled" : "disabled")} for {name}");
         }
 
         /// <summary>
@@ -742,7 +736,6 @@ namespace SceneSandbox.Core
             _enableSnapGrid = enabled;
             _snapGridSize = Mathf.Max(0.01f, gridSize); // Ensure minimum grid size
             _snapMode = snapMode;
-            Debug.Log($"[TransformableItem] Snap grid settings updated: enabled={enabled}, size={_snapGridSize}, mode={snapMode} for {name}");
         }
 
         /// <summary>
@@ -751,7 +744,6 @@ namespace SceneSandbox.Core
         public void ToggleSnapMode()
         {
             _snapMode = (_snapMode == SnapMode.Extend) ? SnapMode.Self : SnapMode.Extend;
-            Debug.Log($"[TransformableItem] Snap mode changed to: {_snapMode} for {name}");
         }
 
         /// <summary>
@@ -760,7 +752,6 @@ namespace SceneSandbox.Core
         public void SetSnapMode(SnapMode mode)
         {
             _snapMode = mode;
-            Debug.Log($"[TransformableItem] Snap mode set to: {mode} for {name}");
         }
 
         /// <summary>
@@ -772,7 +763,6 @@ namespace SceneSandbox.Core
         {
             _pivotPoint = pivotPoint;
             _placementOffset = placementOffset;
-            Debug.Log($"[TransformableItem] Placement settings updated - Pivot: {pivotPoint}, Offset: {placementOffset} for {name}");
         }
 
         /// <summary>
@@ -985,7 +975,6 @@ namespace SceneSandbox.Core
             }
 
             SetGizmoVisible(show);
-            Debug.Log($"[TransformableItem] Gizmo toggled: {show}");
         }
 
         /// <summary>
@@ -995,11 +984,8 @@ namespace SceneSandbox.Core
         {
             if (_gizmoInitialized || !_enableTransformControls || !_showGizmo)
             {
-                Debug.Log($"[TransformableItem] Gizmo init skipped - initialized:{_gizmoInitialized}, controls:{_enableTransformControls}, show:{_showGizmo}");
                 return;
             }
-
-            Debug.Log($"[TransformableItem] Initializing gizmo for {name}");
 
             // Create gizmo root - DON'T parent it to the object to avoid scale/rotation dependency
             var gizmoObj = new GameObject($"{name}_Gizmo");
@@ -1021,8 +1007,6 @@ namespace SceneSandbox.Core
             
             // Initially hide gizmo
             SetGizmoVisible(false);
-            
-            Debug.Log($"[TransformableItem] Gizmo initialized successfully for {name}");
         }
 
         /// <summary>
