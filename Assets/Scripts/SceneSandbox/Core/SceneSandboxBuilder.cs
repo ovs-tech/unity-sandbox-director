@@ -28,6 +28,7 @@ namespace SceneSandbox.Core
     {
         // Phase 1: non-breaking extraction hooks
         [SerializeField] private SceneSandbox.Core.CameraRaycaster _cameraRaycaster;
+            [SerializeField] private SceneSandbox.Core.SandboxInputManager _inputManager;
         [SerializeField] private SceneSandbox.Core.GridManager _gridManager;
         [SerializeField] private SceneSandbox.Core.PlacementSystem _placementSystem;
         [SerializeField] private SceneSandbox.Core.SelectionManager _selectionManager;
@@ -564,6 +565,34 @@ namespace SceneSandbox.Core
             }
 
             // Ensure helper components exist with safe defaults
+            // Input Manager (Phase 3.3 foundation)
+            var existingInputManager = GetComponent<SceneSandbox.Core.SandboxInputManager>();
+            if (existingInputManager == null)
+            {
+                existingInputManager = gameObject.AddComponent<SceneSandbox.Core.SandboxInputManager>();
+            }
+            _inputManager = existingInputManager;
+            
+            // Copy input action references BEFORE initializing (so they're available when EnableActions is called)
+            _inputManager.SetInputActionReferences(
+                _toggleModeActionRef,
+                _exitAllModesActionRef,
+                _moveHotkeyActionRef,
+                _rotateHotkeyActionRef,
+                _scaleHotkeyActionRef,
+                _transformModeIncreaseActionRef,
+                _transformModeDecreaseActionRef,
+                _transformModeToggleAxisActionRef,
+                _pointerPositionActionRef,
+                _leftClickActionRef,
+                _rightClickActionRef,
+                _mouseScrollActionRef,
+                _cancelPlacementActionRef
+            );
+            
+            // Initialize AFTER setting references
+            _inputManager.Initialize(_enableHotkeys);
+
             if (_cameraRaycaster == null)
             {
                 _cameraRaycaster = GetComponent<SceneSandbox.Core.CameraRaycaster>();
@@ -745,6 +774,26 @@ namespace SceneSandbox.Core
                     // Sync with builder's current axis tracking
                     _currentTransformAxis = axis;
                 });
+
+                // Wire SandboxInputManager events to existing handlers (non-breaking)
+                if (_inputManager != null)
+                {
+                    _inputManager.OnToggleMode += () => { Debug.Log("[InputManager] ToggleMode"); ToggleMode(); };
+                    _inputManager.OnExitAllModes += () => ExitAllTransformModes();
+                    _inputManager.OnMoveHotkey += () => OnMoveHotkeyPerformed(default);
+                    _inputManager.OnRotateHotkey += () => OnRotateHotkeyPerformed(default);
+                    _inputManager.OnScaleHotkey += () => OnScaleHotkeyPerformed(default);
+                    _inputManager.OnTransformIncrease += () => OnTransformModeIncreasePerformed(default);
+                    _inputManager.OnTransformDecrease += () => OnTransformModeDecreasePerformed(default);
+                    _inputManager.OnToggleAxis += () => OnTransformModeToggleAxisPerformed(default);
+                    _inputManager.OnCancelPlacement += () => OnCancelPlacementPerformed(default);
+
+                    // Pointer events routed to existing pointer handlers
+                    _inputManager.OnPointerDown += (pos) => { _isPointerDown = true; _pointerDownPosition = pos; HandlePointerDown(pos, _lastSelectedItem); };
+                    _inputManager.OnPointerUp += (pos) => { _isPointerDown = false; _pointerUpProcessedThisFrame = true; HandlePointerUp(pos, _lastSelectedItem); };
+                    _inputManager.OnPointerMoved += (pos) => { if (_isPointerDown) { HandlePointerDrag(pos); } _lastPointerPosition = pos; };
+                    _inputManager.OnScroll += (delta) => { /* existing scroll handling occurs in Update; foundation only */ };
+                }
             }
         }
 
@@ -2645,59 +2694,36 @@ namespace SceneSandbox.Core
 
         /// <summary>
         /// Initialize input actions and bind events
+        /// NOTE: Input handling now delegated to SandboxInputManager (Phase 3.3)
+        /// This method is kept for backward compatibility but actions are no longer subscribed here
         /// </summary>
         private void InitializeInputActions()
         {
-            // Mode toggle action - always active
+            // DEPRECATED: Input actions are now managed by SandboxInputManager
+            // Keeping this method for compatibility but no longer subscribing to actions
+            // The SandboxInputManager handles all input and routes events to existing handlers
+            
+            // Store action references for legacy code that might check them
             if (_toggleModeActionRef != null)
             {
                 _toggleModeAction = _toggleModeActionRef.action;
-                _toggleModeAction.performed += OnToggleModePerformed;
             }
 
-            // Subscribe to transform mode hotkey callbacks
-            if (_exitAllModesActionRef != null)
+            if (_transformModeIncreaseActionRef != null)
             {
-                _exitAllModesActionRef.action.performed += OnExitAllModesPerformed;
-            }
-
-            if (_enableHotkeys)
-            {
-                if (_moveHotkeyActionRef != null)
-                {
-                    _moveHotkeyActionRef.action.performed += OnMoveHotkeyPerformed;
-                }
-
-                if (_rotateHotkeyActionRef != null)
-                {
-                    _rotateHotkeyActionRef.action.performed += OnRotateHotkeyPerformed;
-                }
-
-                if (_scaleHotkeyActionRef != null)
-                {
-                    _scaleHotkeyActionRef.action.performed += OnScaleHotkeyPerformed;
-                }
-                
-                if (_transformModeIncreaseActionRef != null)
-                {
-                    _transformModeIncreaseAction = _transformModeIncreaseActionRef.action;
-                    _transformModeIncreaseAction.performed += OnTransformModeIncreasePerformed;
-                }
-                
-                if (_transformModeDecreaseActionRef != null)
-                {
-                    _transformModeDecreaseAction = _transformModeDecreaseActionRef.action;
-                    _transformModeDecreaseAction.performed += OnTransformModeDecreasePerformed;
-                }
-                
-                if (_transformModeToggleAxisActionRef != null)
-                {
-                    _transformModeToggleAxisAction = _transformModeToggleAxisActionRef.action;
-                    _transformModeToggleAxisAction.performed += OnTransformModeToggleAxisPerformed;
-                }
+                _transformModeIncreaseAction = _transformModeIncreaseActionRef.action;
             }
             
-            // Initialize pointer input actions
+            if (_transformModeDecreaseActionRef != null)
+            {
+                _transformModeDecreaseAction = _transformModeDecreaseActionRef.action;
+            }
+            
+            if (_transformModeToggleAxisActionRef != null)
+            {
+                _transformModeToggleAxisAction = _transformModeToggleAxisActionRef.action;
+            }
+            
             if (_pointerPositionActionRef != null)
             {
                 _pointerPositionAction = _pointerPositionActionRef.action;
@@ -2718,11 +2744,9 @@ namespace SceneSandbox.Core
                 _mouseScrollAction = _mouseScrollActionRef.action;
             }
 
-            // Initialize placement input actions
             if (_cancelPlacementActionRef != null)
             {
                 _cancelPlacementAction = _cancelPlacementActionRef.action;
-                _cancelPlacementAction.performed += OnCancelPlacementPerformed;
             }
         }
 

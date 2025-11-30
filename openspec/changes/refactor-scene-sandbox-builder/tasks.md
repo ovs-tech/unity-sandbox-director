@@ -178,25 +178,25 @@
   - **Validation:** Timeline preview works
 
 ### 3.3 Implement SandboxInputManager
-- [ ] Complete input action initialization
+- [x] Complete input action initialization
   - Resolve all InputActionReferences
   - Enable/disable actions based on mode
   - Register callbacks for each action
   - **Validation:** All input actions trigger correctly
 
-- [ ] Implement gesture detection
+- [x] Implement gesture detection
   - Add drag detection with threshold
   - Add double-click detection with timing
   - Add right-click context menu detection
   - **Validation:** All gestures detected accurately
 
-- [ ] Implement hotkey system
+- [x] Implement hotkey system
   - Wire up transform mode hotkeys (Q/W/E/R)
   - Wire up axis toggle hotkey (X)
   - Add hotkey enable/disable flag
   - **Validation:** Hotkeys switch modes correctly
 
-- [ ] Optimize input performance
+- [x] Optimize input performance
   - Profile Update() overhead
   - Eliminate unnecessary allocations
   - Add input debouncing where needed

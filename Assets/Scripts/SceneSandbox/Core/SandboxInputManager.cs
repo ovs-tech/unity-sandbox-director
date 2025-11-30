@@ -1,0 +1,239 @@
+using System;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
+
+namespace SceneSandbox.Core
+{
+    /// <summary>
+    /// Centralizes input actions for the Scene Sandbox and exposes events for pointer and hotkey interactions.
+    /// Minimal foundation per OpenSpec Phase 3.3 (non-breaking).
+    /// </summary>
+    public class SandboxInputManager : MonoBehaviour
+    {
+        [Header("Input Action References")]
+        [FormerlySerializedAs("_toggleModeActionRef")]
+        [SerializeField] private InputActionReference _toggleModeActionRef;
+
+        [FormerlySerializedAs("_exitAllModesActionRef")]
+        [SerializeField] private InputActionReference _exitAllModesActionRef;
+
+        [FormerlySerializedAs("_moveHotkeyActionRef")]
+        [SerializeField] private InputActionReference _moveHotkeyActionRef;
+
+        [FormerlySerializedAs("_rotateHotkeyActionRef")]
+        [SerializeField] private InputActionReference _rotateHotkeyActionRef;
+
+        [FormerlySerializedAs("_scaleHotkeyActionRef")]
+        [SerializeField] private InputActionReference _scaleHotkeyActionRef;
+
+        [FormerlySerializedAs("_transformModeIncreaseActionRef")]
+        [SerializeField] private InputActionReference _transformModeIncreaseActionRef;
+
+        [FormerlySerializedAs("_transformModeDecreaseActionRef")]
+        [SerializeField] private InputActionReference _transformModeDecreaseActionRef;
+
+        [FormerlySerializedAs("_transformModeToggleAxisActionRef")]
+        [SerializeField] private InputActionReference _transformModeToggleAxisActionRef;
+
+        [FormerlySerializedAs("_pointerPositionActionRef")]
+        [SerializeField] private InputActionReference _pointerPositionActionRef;
+
+        [FormerlySerializedAs("_leftClickActionRef")]
+        [SerializeField] private InputActionReference _leftClickActionRef;
+
+        [FormerlySerializedAs("_rightClickActionRef")]
+        [SerializeField] private InputActionReference _rightClickActionRef;
+
+        [FormerlySerializedAs("_mouseScrollActionRef")]
+        [SerializeField] private InputActionReference _mouseScrollActionRef;
+
+        [FormerlySerializedAs("_cancelPlacementActionRef")]
+        [SerializeField] private InputActionReference _cancelPlacementActionRef;
+
+        [Header("Flags")]
+        [SerializeField] private bool _enableHotkeys = true;
+
+        // Events (foundation signatures)
+        public event Action<Vector2> OnPointerMoved;
+        public event Action<Vector2> OnPointerDown;
+        public event Action<Vector2> OnPointerUp;
+        public event Action<float> OnScroll;
+
+        public event Action OnToggleMode;
+        public event Action OnExitAllModes;
+        public event Action OnMoveHotkey;
+        public event Action OnRotateHotkey;
+        public event Action OnScaleHotkey;
+        public event Action OnTransformIncrease;
+        public event Action OnTransformDecrease;
+        public event Action OnToggleAxis;
+        public event Action OnCancelPlacement;
+
+        private bool _initialized;
+
+        public void Initialize(bool enableHotkeys)
+        {
+            _enableHotkeys = enableHotkeys;
+            _initialized = true;
+            
+            // Enable actions immediately after initialization
+            EnableActions();
+        }
+
+        /// <summary>
+        /// Set input action references from SceneSandboxBuilder (runtime initialization)
+        /// </summary>
+        public void SetInputActionReferences(
+            InputActionReference toggleMode,
+            InputActionReference exitAllModes,
+            InputActionReference moveHotkey,
+            InputActionReference rotateHotkey,
+            InputActionReference scaleHotkey,
+            InputActionReference transformIncrease,
+            InputActionReference transformDecrease,
+            InputActionReference transformToggleAxis,
+            InputActionReference pointerPosition,
+            InputActionReference leftClick,
+            InputActionReference rightClick,
+            InputActionReference mouseScroll,
+            InputActionReference cancelPlacement)
+        {
+            _toggleModeActionRef = toggleMode;
+            _exitAllModesActionRef = exitAllModes;
+            _moveHotkeyActionRef = moveHotkey;
+            _rotateHotkeyActionRef = rotateHotkey;
+            _scaleHotkeyActionRef = scaleHotkey;
+            _transformModeIncreaseActionRef = transformIncrease;
+            _transformModeDecreaseActionRef = transformDecrease;
+            _transformModeToggleAxisActionRef = transformToggleAxis;
+            _pointerPositionActionRef = pointerPosition;
+            _leftClickActionRef = leftClick;
+            _rightClickActionRef = rightClick;
+            _mouseScrollActionRef = mouseScroll;
+            _cancelPlacementActionRef = cancelPlacement;
+        }
+
+        private void OnEnable()
+        {
+            if (!_initialized) return;
+            EnableActions();
+        }
+
+        private void OnDisable()
+        {
+            DisableActions();
+        }
+
+        public void EnableActions()
+        {
+            // Pointer + mouse
+            _pointerPositionActionRef?.action.Enable();
+            _leftClickActionRef?.action.Enable();
+            _rightClickActionRef?.action.Enable();
+            _mouseScrollActionRef?.action.Enable();
+
+            // Mode + hotkeys
+            _toggleModeActionRef?.action.Enable();
+            _exitAllModesActionRef?.action.Enable();
+
+            if (_enableHotkeys)
+            {
+                _moveHotkeyActionRef?.action.Enable();
+                _rotateHotkeyActionRef?.action.Enable();
+                _scaleHotkeyActionRef?.action.Enable();
+                _transformModeIncreaseActionRef?.action.Enable();
+                _transformModeDecreaseActionRef?.action.Enable();
+                _transformModeToggleAxisActionRef?.action.Enable();
+            }
+
+            _cancelPlacementActionRef?.action.Enable();
+
+            RegisterCallbacks();
+        }
+
+        public void DisableActions()
+        {
+            UnregisterCallbacks();
+
+            _pointerPositionActionRef?.action.Disable();
+            _leftClickActionRef?.action.Disable();
+            _rightClickActionRef?.action.Disable();
+            _mouseScrollActionRef?.action.Disable();
+
+            _toggleModeActionRef?.action.Disable();
+            _exitAllModesActionRef?.action.Disable();
+
+            _moveHotkeyActionRef?.action.Disable();
+            _rotateHotkeyActionRef?.action.Disable();
+            _scaleHotkeyActionRef?.action.Disable();
+            _transformModeIncreaseActionRef?.action.Disable();
+            _transformModeDecreaseActionRef?.action.Disable();
+            _transformModeToggleAxisActionRef?.action.Disable();
+
+            _cancelPlacementActionRef?.action.Disable();
+        }
+
+        private void RegisterCallbacks()
+        {
+            // Pointer position changes (performed acts like a stream for value actions)
+            if (_pointerPositionActionRef != null)
+            {
+                _pointerPositionActionRef.action.performed += ctx => OnPointerMoved?.Invoke(ctx.ReadValue<Vector2>());
+            }
+
+            if (_leftClickActionRef != null)
+            {
+                _leftClickActionRef.action.started += ctx => OnPointerDown?.Invoke(GetPointer());
+                _leftClickActionRef.action.canceled += ctx => OnPointerUp?.Invoke(GetPointer());
+            }
+
+            if (_mouseScrollActionRef != null)
+            {
+                _mouseScrollActionRef.action.performed += ctx => OnScroll?.Invoke(ctx.ReadValue<Vector2>().y);
+            }
+
+            if (_toggleModeActionRef != null)
+            {
+                _toggleModeActionRef.action.performed += ctx => OnToggleMode?.Invoke();
+            }
+
+            if (_exitAllModesActionRef != null)
+            {
+                _exitAllModesActionRef.action.performed += ctx => OnExitAllModes?.Invoke();
+            }
+
+            if (_enableHotkeys)
+            {
+                if (_moveHotkeyActionRef != null)
+                    _moveHotkeyActionRef.action.performed += ctx => OnMoveHotkey?.Invoke();
+                if (_rotateHotkeyActionRef != null)
+                    _rotateHotkeyActionRef.action.performed += ctx => OnRotateHotkey?.Invoke();
+                if (_scaleHotkeyActionRef != null)
+                    _scaleHotkeyActionRef.action.performed += ctx => OnScaleHotkey?.Invoke();
+                if (_transformModeIncreaseActionRef != null)
+                    _transformModeIncreaseActionRef.action.performed += ctx => OnTransformIncrease?.Invoke();
+                if (_transformModeDecreaseActionRef != null)
+                    _transformModeDecreaseActionRef.action.performed += ctx => OnTransformDecrease?.Invoke();
+                if (_transformModeToggleAxisActionRef != null)
+                    _transformModeToggleAxisActionRef.action.performed += ctx => OnToggleAxis?.Invoke();
+            }
+
+            if (_cancelPlacementActionRef != null)
+            {
+                _cancelPlacementActionRef.action.performed += ctx => OnCancelPlacement?.Invoke();
+            }
+        }
+
+        private void UnregisterCallbacks()
+        {
+            // Unity Input System does not provide a direct unsubscribe API for lambda handlers.
+            // To avoid duplicate registrations, disable actions before re-enabling and do not register multiple times.
+        }
+
+        private Vector2 GetPointer()
+        {
+            return _pointerPositionActionRef != null ? _pointerPositionActionRef.action.ReadValue<Vector2>() : Vector2.zero;
+        }
+    }
+}
