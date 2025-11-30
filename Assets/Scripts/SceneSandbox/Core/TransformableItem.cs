@@ -381,6 +381,7 @@ namespace SceneSandbox.Core
         /// </summary>
         public void SetTransformAxis(TransformAxis axis)
         {
+            Debug.Log($"[TransformableItem] Setting Transform Axis to: {axis} for mode: {_currentTransformModeType}");
             // Only allow axis change for Position, Rotation and Scale modes
             if (_currentTransformModeType == TransformModeType.None)
             {

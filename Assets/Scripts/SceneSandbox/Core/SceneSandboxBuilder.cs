@@ -26,6 +26,14 @@ namespace SceneSandbox.Core
     /// </summary>
     public class SceneSandboxBuilder : MonoBehaviour
     {
+        // Phase 1: non-breaking extraction hooks
+        [SerializeField] private SceneSandbox.Core.CameraRaycaster _cameraRaycaster;
+        [SerializeField] private SceneSandbox.Core.GridManager _gridManager;
+        [SerializeField] private SceneSandbox.Core.PlacementSystem _placementSystem;
+        [SerializeField] private SceneSandbox.Core.SelectionManager _selectionManager;
+        [SerializeField] private SceneSandbox.Core.TransformController _transformController;
+
+        
         [Header("Configuration")]
         [SerializeField] private SceneObjectLibrary _objectLibrary;
         [SerializeField] private Transform _sceneRoot;
@@ -105,6 +113,7 @@ namespace SceneSandbox.Core
         [SerializeField] private float _rotationSensitivity = 1.0f; // Degrees per pixel
         [SerializeField] private float _scaleSensitivity = 0.01f; // Scale units per pixel
         [SerializeField] private float _scrollScaleSensitivity = 0.1f; // Scale units per scroll notch
+        [SerializeField] private float _rotationSnapDegrees = 15f; // Snap increment for rotation when grid snapping is enabled
         [SerializeField] private Vector3 _minScale = new Vector3(0.1f, 0.1f, 0.1f);
         [SerializeField] private Vector3 _maxScale = new Vector3(10f, 10f, 10f);
 
@@ -259,6 +268,24 @@ namespace SceneSandbox.Core
         /// </summary>
         public void SetTransformMode(TransformModeType mode)
         {
+            // Route through TransformController when available (Phase 2.3)
+            if (_transformController != null)
+            {
+                _transformController.SetTransformMode(mode);
+                // TransformController event will sync _currentTransformMode
+                
+                // Update active transform items with new axis
+                UpdateActiveTransformItemsAxis();
+                
+                // Update visual feedback if in placement mode
+                if (IsPlacementActive && _currentPlacementObject != null)
+                {
+                    UpdateGhostTransformMode();
+                }
+                return;
+            }
+
+            // Fallback to existing logic
             _currentTransformMode = mode;
             
             // Reset axis to All when changing mode or entering Position mode
@@ -283,6 +310,15 @@ namespace SceneSandbox.Core
         /// </summary>
         public void ToggleTransformAxis()
         {
+            // Route through TransformController when available (Phase 2.3)
+            if (_transformController != null)
+            {
+                _transformController.ToggleTransformAxis();
+                // TransformController event will sync _currentTransformAxis
+                return;
+            }
+
+            // Fallback to existing logic
             // Only allow axis toggle for Rotation and Scale modes
             if (_currentTransformMode != TransformModeType.Rotation && _currentTransformMode != TransformModeType.Scale)
             {
@@ -526,6 +562,229 @@ namespace SceneSandbox.Core
                 dropZone.ZoneSize = new Vector3(20f, 5f, 20f);
                 dropZone.AcceptAllTypes = true;
             }
+
+            // Ensure helper components exist with safe defaults
+            if (_cameraRaycaster == null)
+            {
+                _cameraRaycaster = GetComponent<SceneSandbox.Core.CameraRaycaster>();
+                if (_cameraRaycaster == null)
+                {
+                    _cameraRaycaster = gameObject.AddComponent<SceneSandbox.Core.CameraRaycaster>();
+                }
+            }
+
+            if (_gridManager == null)
+            {
+                _gridManager = GetComponent<SceneSandbox.Core.GridManager>();
+                if (_gridManager == null)
+                {
+                    _gridManager = gameObject.AddComponent<SceneSandbox.Core.GridManager>();
+                }
+            }
+
+            if (_placementSystem == null)
+            {
+                _placementSystem = GetComponent<SceneSandbox.Core.PlacementSystem>();
+                if (_placementSystem == null)
+                {
+                    _placementSystem = gameObject.AddComponent<SceneSandbox.Core.PlacementSystem>();
+                }
+                // Initialize with current builder dependencies
+                _placementSystem.Initialize(_objectLibrary, _gridManager, _cameraRaycaster, _stageArea, _snapToGrid, _rotationSnapDegrees);
+
+                // Subscribe to placement events (non-breaking: delegate to existing methods)
+                _placementSystem.OnPlacementStarted.RemoveAllListeners();
+                _placementSystem.OnPlacementStarted.AddListener((string objectId) =>
+                {
+                    // Keep existing behavior; StartPlacement already handled via builder UI methods
+                    // This subscription is a no-op for now.
+                });
+
+                _placementSystem.OnPlacementUpdated.RemoveAllListeners();
+                _placementSystem.OnPlacementUpdated.AddListener((Vector2 screenPos) =>
+                {
+                    // Delegate to existing update method
+                    UpdatePlacement(screenPos);
+                });
+
+                _placementSystem.OnPlacementConfirmed.RemoveAllListeners();
+                _placementSystem.OnPlacementConfirmed.AddListener((GameObject placed) =>
+                {
+                    // Avoid double invocation; select object for consistency
+                    if (placed != null)
+                    {
+                        SelectObject(placed);
+                    }
+                });
+
+                _placementSystem.OnPlacementCancelled.RemoveAllListeners();
+                _placementSystem.OnPlacementCancelled.AddListener(() =>
+                {
+                    // Delegate to existing cancel
+                    CancelPlacement();
+                });
+
+                // Drop indicator events -> delegate to existing builder visuals
+                _placementSystem.OnDropIndicatorShown.RemoveAllListeners();
+                _placementSystem.OnDropIndicatorShown.AddListener((Vector3 worldPos) =>
+                {
+                    if (_enableDropIndicator)
+                    {
+                        ShowDropIndicator(worldPos);
+                    }
+                });
+
+                _placementSystem.OnDropIndicatorUpdated.RemoveAllListeners();
+                _placementSystem.OnDropIndicatorUpdated.AddListener((Vector3 worldPos) =>
+                {
+                    if (_enableDropIndicator)
+                    {
+                        UpdateDropIndicator(worldPos);
+                    }
+                });
+
+                _placementSystem.OnDropIndicatorHidden.RemoveAllListeners();
+                _placementSystem.OnDropIndicatorHidden.AddListener(() =>
+                {
+                    if (_enableDropIndicator)
+                    {
+                        HideDropIndicator();
+                        _isDraggingObject = false;
+                    }
+                });
+            }
+
+            // Phase 2.2: SelectionManager
+            if (_selectionManager == null)
+            {
+                _selectionManager = GetComponent<SceneSandbox.Core.SelectionManager>();
+                if (_selectionManager == null)
+                {
+                    _selectionManager = gameObject.AddComponent<SceneSandbox.Core.SelectionManager>();
+                }
+                // Initialize with current builder settings
+                _selectionManager.Initialize(_cameraRaycaster, _selectionLayers, _autoEditOnSelect);
+
+                // Subscribe to selection events (non-breaking: integrate with existing behavior)
+                _selectionManager.OnObjectSelected.RemoveAllListeners();
+                _selectionManager.OnObjectSelected.AddListener((GameObject obj) =>
+                {
+                    // Notify existing event system
+                    _onObjectSelected?.Invoke(obj);
+                    _selectedObject = obj;
+
+                    // Apply transform controls if needed
+                    if (obj != null)
+                    {
+                        var item = obj.GetComponent<TransformableItem>();
+                        if (item != null && item.EnableTransformControls)
+                        {
+                            RegisterItemForTransformControl(item);
+                            item.SetTransformModeType(TransformModeType.Position);
+                        }
+
+                        // Auto-edit if enabled (respects override from SelectionManager)
+                        bool shouldAutoEdit = _selectionManager.GetEffectiveAutoEdit(_autoEditOnSelect);
+                        if (shouldAutoEdit)
+                        {
+                            BeginObjectEdit(obj);
+                        }
+                    }
+                });
+
+                _selectionManager.OnObjectDeselected.RemoveAllListeners();
+                _selectionManager.OnObjectDeselected.AddListener((GameObject obj) =>
+                {
+                    // Cleanup transform controls
+                    if (obj != null)
+                    {
+                        var item = obj.GetComponent<TransformableItem>();
+                        if (item != null && item.EnableTransformControls)
+                        {
+                            item.SetTransformModeType(TransformModeType.None);
+                            UnregisterItemFromTransformControl(item);
+                        }
+
+                        // Cancel edit if this was the object being edited
+                        if (_autoEditOnSelect && IsPlacementActive && _selectedObjectForEdit == obj)
+                        {
+                            CancelObjectEdit();
+                        }
+                    }
+                });
+
+                _selectionManager.OnSelectionChanged.RemoveAllListeners();
+                _selectionManager.OnSelectionChanged.AddListener((List<GameObject> selectedObjects) =>
+                {
+                    // Future: handle multi-selection UI updates
+                });
+            }
+
+            // Phase 2.3: TransformController
+            if (_transformController == null)
+            {
+                _transformController = GetComponent<SceneSandbox.Core.TransformController>();
+                if (_transformController == null)
+                {
+                    _transformController = gameObject.AddComponent<SceneSandbox.Core.TransformController>();
+                }
+                // Initialize with dependencies
+                _transformController.Initialize(_selectionManager, _gridManager);
+
+                // Subscribe to transform events (non-breaking: integrate with existing behavior)
+                _transformController.OnTransformModeChanged.RemoveAllListeners();
+                _transformController.OnTransformModeChanged.AddListener((TransformModeType mode) =>
+                {
+                    // Sync with builder's current mode tracking
+                    _currentTransformMode = mode;
+                });
+
+                _transformController.OnTransformAxisChanged.RemoveAllListeners();
+                _transformController.OnTransformAxisChanged.AddListener((TransformAxis axis) =>
+                {
+                    // Sync with builder's current axis tracking
+                    _currentTransformAxis = axis;
+                });
+            }
+        }
+
+        // Facade methods to interact with PlacementSystem without changing existing callers
+        public void BeginPlacementWithSystem(string objectDataId, Vector2 screenPosition)
+        {
+            // Maintain current behavior by using existing StartPlacement
+            StartPlacement(objectDataId, screenPosition);
+            // Notify system for future migration without side effects
+            _placementSystem?.StartPlacement(objectDataId, screenPosition);
+        }
+
+        public void UpdatePlacementWithSystem(Vector2 screenPosition)
+        {
+            UpdatePlacement(screenPosition);
+            _placementSystem?.UpdatePlacement(screenPosition);
+        }
+
+        public GameObject ConfirmPlacementWithSystem()
+        {
+            var obj = ConfirmPlacement();
+            if (obj != null)
+            {
+                _placementSystem?.ConfirmPlacement(obj);
+            }
+            return obj;
+        }
+
+        public void CancelPlacementWithSystem()
+        {
+            CancelPlacement();
+            _placementSystem?.CancelPlacement();
+        }
+
+        private void SyncGridManagerSettings()
+        {
+            if (_gridManager == null) return;
+            _gridManager.Enabled = _snapToGrid;
+            _gridManager.CellSize = _gridSize;
+            _gridManager.Offset = _gridOffset;
         }
 
         private void InitializeState()
@@ -658,8 +917,20 @@ namespace SceneSandbox.Core
             _currentPlacementObjectId = objectDataId;
             _placementState = PlacementState.Active;
 
-            // Convert screen position to world position
-            _currentPlacementPosition = GetWorldPositionFromScreen(screenPosition);
+            // Convert screen position to world position (prefer PlacementSystem)
+            if (_placementSystem != null && _sceneCamera != null)
+            {
+                _currentPlacementPosition = _placementSystem.ComputeWorldPositionFromScreen(
+                    screenPosition,
+                    _maxRaycastDistance,
+                    _placementLayers,
+                    _sceneCamera
+                );
+            }
+            else
+            {
+                _currentPlacementPosition = GetWorldPositionFromScreen(screenPosition);
+            }
 
             // Create real object directly (no ghost)
             CreateRealObjectForPlacement(objectData);
@@ -676,7 +947,20 @@ namespace SceneSandbox.Core
                 return;
             }
 
-            _currentPlacementPosition = GetWorldPositionFromScreen(screenPosition);
+            // Update world position (prefer PlacementSystem)
+            if (_placementSystem != null && _sceneCamera != null)
+            {
+                _currentPlacementPosition = _placementSystem.ComputeWorldPositionFromScreen(
+                    screenPosition,
+                    _maxRaycastDistance,
+                    _placementLayers,
+                    _sceneCamera
+                );
+            }
+            else
+            {
+                _currentPlacementPosition = GetWorldPositionFromScreen(screenPosition);
+            }
             UpdateGhostPosition();
         }
 
@@ -790,10 +1074,18 @@ namespace SceneSandbox.Core
                 return;
             }
 
-            // Get TransformableItem and apply snap grid using SnapMode logic
+            // Apply grid snapping using PlacementSystem/GridManager when available (fallback to TransformableItem)
             var transformableItem = _currentPlacementObject.GetComponent<TransformableItem>();
             GridInfo gridInfo = GetGlobalGridInfo();
-            position = transformableItem.SnapToGrid(position, gridInfo);
+            if (_gridManager != null && _snapToGrid)
+            {
+                SyncGridManagerSettings();
+                position = _placementSystem != null ? _placementSystem.ApplyGridSnap(position) : _gridManager.GetSnappedPosition(position);
+            }
+            else if (transformableItem != null)
+            {
+                position = transformableItem.SnapToGrid(position, gridInfo);
+            }
             
             _currentPlacementObject.transform.position = position;
 
@@ -835,6 +1127,13 @@ namespace SceneSandbox.Core
                 case TransformModeType.Position:
                     Vector3 targetPosition = _currentPlacementPosition;
                     
+                    // Snap using GridManager when available
+                    if (_gridManager != null && _snapToGrid)
+                    {
+                        SyncGridManagerSettings();
+                        targetPosition = _gridManager.GetSnappedPosition(targetPosition);
+                    }
+
                     // Use SetPositionWithPivot to properly apply pivot point and grid snapping
                     if (transformableItem != null)
                     {
@@ -848,7 +1147,21 @@ namespace SceneSandbox.Core
                     break;
 
                 case TransformModeType.Rotation:
-                    _currentPlacementObject.transform.rotation = _currentPlacementRotation;
+                    // Apply rotation snapping via PlacementSystem when available
+                    if (_placementSystem != null && _gridManager != null && _snapToGrid)
+                    {
+                        SyncGridManagerSettings();
+                        _currentPlacementObject.transform.rotation = _placementSystem.ApplyRotationSnap(_currentPlacementRotation);
+                    }
+                    else if (_gridManager != null && _snapToGrid)
+                    {
+                        SyncGridManagerSettings();
+                        _currentPlacementObject.transform.rotation = _gridManager.GetSnappedRotation(_currentPlacementRotation, _rotationSnapDegrees);
+                    }
+                    else
+                    {
+                        _currentPlacementObject.transform.rotation = _currentPlacementRotation;
+                    }
                     break;
 
                 case TransformModeType.Scale:
@@ -878,7 +1191,30 @@ namespace SceneSandbox.Core
         private void UpdateGhostValidation()
         {
             bool wasValid = _isCurrentPlacementValid;
-            _isCurrentPlacementValid = ValidatePlacementPosition(_currentPlacementPosition);
+
+            // Prefer PlacementSystem validation when available; fallback to existing builder logic
+            if (_placementSystem != null && _currentPlacementObject != null)
+            {
+                Bounds objBounds = GetObjectBounds(_currentPlacementObject);
+                bool collisionsOk = _placementSystem.ValidatePlacementPosition(
+                    _currentPlacementPosition,
+                    objBounds.extents,
+                    _currentPlacementObject.transform.rotation,
+                    _collisionLayers,
+                    _groundLayers,
+                    _ignoreStaticObjects,
+                    _requireSurfaceBelow,
+                    _placementLayers
+                );
+
+                // Also ensure scene bounds check remains enforced
+                bool inBounds = IsPositionInSceneBounds(_currentPlacementPosition);
+                _isCurrentPlacementValid = collisionsOk && inBounds;
+            }
+            else
+            {
+                _isCurrentPlacementValid = ValidatePlacementPosition(_currentPlacementPosition);
+            }
 
             // Update visual feedback if validity changed
             if (wasValid != _isCurrentPlacementValid)
@@ -1058,6 +1394,17 @@ namespace SceneSandbox.Core
         /// </summary>
         public void SelectObject(GameObject obj, bool? overrideAutoEdit = null)
         {
+            // Route through SelectionManager when available (Phase 2.2)
+            if (_selectionManager != null)
+            {
+                Debug.Log($"[SceneSandboxBuilder] SelectObject routed to SelectionManager => {obj?.name ?? "<null>"}");
+                bool autoEdit = overrideAutoEdit ?? _autoEditOnSelect;
+                _selectionManager.SelectObject(obj, additive: false, overrideAutoEdit: autoEdit);
+                return;
+            }
+
+            // Fallback to existing logic
+            Debug.Log($"[SceneSandboxBuilder] SelectObject using legacy path => {obj?.name ?? "<null>"}");
             if (obj != null)
             {
                 var item = obj.GetComponent<TransformableItem>();
@@ -1261,11 +1608,10 @@ namespace SceneSandbox.Core
 
             try
             {
-                // Update scene configuration with current object states
                 UpdateSceneConfiguration();
 
                 string savePath = filePath ?? GetDefaultSavePath();
-                
+
                 // Ensure directory exists
                 if (!EnsureDirectoryExists(savePath))
                 {
@@ -1321,15 +1667,31 @@ namespace SceneSandbox.Core
         /// <param name="screenPosition">Screen position to start placement</param>
         public void BeginPlacement(string objectDataId, Vector2 screenPosition)
         {
-            StartPlacement(objectDataId, screenPosition);
+            // Use facade to notify PlacementSystem while preserving behavior
+            BeginPlacementWithSystem(objectDataId, screenPosition);
             
             // Also show drop indicator for additional visual feedback (optional)
             if (_enableDropIndicator)
             {
-                Vector3 worldPosition = GetWorldPositionFromScreen(screenPosition);
+                Vector3 worldPosition;
+                if (_placementSystem != null && _sceneCamera != null)
+                {
+                    worldPosition = _placementSystem.ComputeWorldPositionFromScreen(
+                        screenPosition,
+                        _maxRaycastDistance,
+                        _placementLayers,
+                        _sceneCamera
+                    );
+                }
+                else
+                {
+                    worldPosition = GetWorldPositionFromScreen(screenPosition);
+                }
                 _isDraggingObject = true;
                 _dragPreviewPosition = worldPosition;
                 ShowDropIndicator(worldPosition);
+                // Emit through PlacementSystem for future migration
+                _placementSystem?.ShowDropIndicator(worldPosition);
             }
         }
 
@@ -1350,15 +1712,30 @@ namespace SceneSandbox.Core
         /// </summary>
         public void UpdatePlacementUI(Vector2 screenPosition)
         {
-            // Update placement ghost
-            UpdatePlacement(screenPosition);
+            // Update via facade to notify PlacementSystem
+            UpdatePlacementWithSystem(screenPosition);
 
             // Also update drop indicator if enabled
             if (_isDraggingObject && _enableDropIndicator)
             {
-                Vector3 worldPosition = GetWorldPositionFromScreen(screenPosition);
+                Vector3 worldPosition;
+                if (_placementSystem != null && _sceneCamera != null)
+                {
+                    worldPosition = _placementSystem.ComputeWorldPositionFromScreen(
+                        screenPosition,
+                        _maxRaycastDistance,
+                        _placementLayers,
+                        _sceneCamera
+                    );
+                }
+                else
+                {
+                    worldPosition = GetWorldPositionFromScreen(screenPosition);
+                }
                 _dragPreviewPosition = worldPosition;
                 UpdateDropIndicator(worldPosition);
+                // Emit through PlacementSystem for future migration
+                _placementSystem?.UpdateDropIndicator(worldPosition);
             }
         }
 
@@ -1372,10 +1749,11 @@ namespace SceneSandbox.Core
             {
                 HideDropIndicator();
                 _isDraggingObject = false;
+                _placementSystem?.HideDropIndicator();
             }
 
-            // Confirm placement with the new system
-            GameObject result = ConfirmPlacement();
+            // Confirm placement via facade (delegates to existing ConfirmPlacement and notifies system)
+            GameObject result = ConfirmPlacementWithSystem();
 
             return result;
         }
@@ -1385,14 +1763,15 @@ namespace SceneSandbox.Core
         /// </summary>
         public void CancelPlacementUI()
         {
-            // Cancel the placement
-            CancelPlacement();
+            // Cancel via facade (delegates to existing CancelPlacement and notifies system)
+            CancelPlacementWithSystem();
 
             // Hide drop indicator
             if (_enableDropIndicator)
             {
                 HideDropIndicator();
                 _isDraggingObject = false;
+                _placementSystem?.HideDropIndicator();
             }
         }
 
@@ -1587,7 +1966,6 @@ namespace SceneSandbox.Core
                 sceneBounds = _currentProject.settings.sceneBounds
             };
         }
-
         /// <summary>
         /// Update project settings from current builder configuration
         /// </summary>
@@ -1918,11 +2296,11 @@ namespace SceneSandbox.Core
                     customName = obj.customName,
                     properties = new Dictionary<string, object>(obj.properties)
                 };
-                duplicate.AddPlacedObject(objCopy);
+                duplicate.placedObjects.Add(objCopy);
             }
 
             _currentProject.scenes.Add(duplicate);
-            
+
             return duplicate;
         }
 
@@ -1990,17 +2368,27 @@ namespace SceneSandbox.Core
                 customName = objectData.displayName
             };
 
-            // Create temporary draggable to use SnapToGrid
-            GameObject tempObject = new GameObject("TempSnapHelper");
-            var tempDraggable = tempObject.AddComponent<TransformableItem>();
-            
-            // Apply positioning with grid snapping
-            GridInfo gridInfo = GetGlobalGridInfo();
-            placedObjectData.position = tempDraggable.SnapToGrid(position, gridInfo);
+            // Apply positioning with grid snapping using GridManager when available
+            var gridInfo = GetGlobalGridInfo();
+            if (_gridManager != null && _snapToGrid)
+            {
+                // Ensure GridManager reflects current grid settings
+                _gridManager.Enabled = _snapToGrid;
+                _gridManager.CellSize = _gridSize;
+                _gridManager.Offset = _gridOffset;
+                placedObjectData.position = _gridManager.GetSnappedPosition(position);
+            }
+            else
+            {
+                // Fallback to original behavior using TransformableItem utility
+                GameObject tempObject = new GameObject("TempSnapHelper");
+                var tempDraggable = tempObject.AddComponent<TransformableItem>();
+                placedObjectData.position = tempDraggable.SnapToGrid(position, gridInfo);
+                Destroy(tempObject);
+            }
+
+            // Conform to surface if required by current placement settings
             placedObjectData.position = GetSurfacePosition(placedObjectData.position);
-            
-            // Cleanup temp object
-            Destroy(tempObject);
 
             // Store factory-related properties in the existing properties dictionary
             placedObjectData.properties["objectType"] = SandboxObjectFactory.DetermineObjectType(objectData.prefab);
@@ -2537,12 +2925,15 @@ namespace SceneSandbox.Core
         {
             if (_sceneCamera == null) return;
 
+            // Reset per-frame guard to allow processing pointer up once per frame
+            _pointerUpProcessedThisFrame = false;
+
             Vector2 inputPosition = GetInputPosition();
             TransformableItem hitItem = RaycastForItem(inputPosition);
 
             HandleHoverState(hitItem);
 
-            if (_leftClickAction == null) return;
+            if (_leftClickAction == null || !_leftClickAction.enabled) return;
 
             bool leftButtonDown = _leftClickAction.WasPressedThisFrame();
             bool leftButtonUp = _leftClickAction.WasReleasedThisFrame();
@@ -2587,19 +2978,36 @@ namespace SceneSandbox.Core
         /// </summary>
         private TransformableItem RaycastForItem(Vector2 screenPosition)
         {
-            Ray ray = _sceneCamera.ScreenPointToRay(screenPosition);
-
             // Use selection layers when not in placement mode, otherwise use placement layers
             LayerMask maskToUse = IsPlacementActive ? _placementLayers : _selectionLayers;
 
-            if (Physics.Raycast(ray, out RaycastHit hit, _maxRaycastDistance, maskToUse))
+            if (_cameraRaycaster != null)
             {
-                Debug.Log("Raycast hit: " + hit.collider.name);
-                TransformableItem item = hit.collider.GetComponentInParent<TransformableItem>();
+                // Temporarily override mask and distance
+                var originalMask = _cameraRaycaster.RaycastMask;
+                var originalMax = _cameraRaycaster.MaxDistance;
+                _cameraRaycaster.RaycastMask = maskToUse;
+                _cameraRaycaster.MaxDistance = _maxRaycastDistance;
+                TransformableItem resultItem = null;
+                if (_cameraRaycaster.TryRaycast(screenPosition, out RaycastHit hit))
+                {
+                    Debug.Log("Raycast hit: " + hit.collider.name);
+                    resultItem = hit.collider.GetComponentInParent<TransformableItem>();
+                }
 
-                return item;
+                // restore
+                _cameraRaycaster.RaycastMask = originalMask;
+                _cameraRaycaster.MaxDistance = originalMax;
+                return resultItem;
             }
 
+            // Fallback: previous behavior if helper not present
+            Ray ray = _sceneCamera.ScreenPointToRay(screenPosition);
+            if (Physics.Raycast(ray, out RaycastHit hitFallback, _maxRaycastDistance, maskToUse))
+            {
+                Debug.Log("Raycast hit: " + hitFallback.collider.name);
+                return hitFallback.collider.GetComponentInParent<TransformableItem>();
+            }
             return null;
         }
 
@@ -2619,6 +3027,11 @@ namespace SceneSandbox.Core
                 if (_currentHoverItem != null)
                 {
                     _currentHoverItem.SetHoverState(true);
+                }
+                // Delegate hover state to SelectionManager when available
+                if (_selectionManager != null)
+                {
+                    _selectionManager.UpdateHoverState(_currentHoverItem ? _currentHoverItem.gameObject : null);
                 }
             }
         }
@@ -2683,13 +3096,27 @@ namespace SceneSandbox.Core
                 // Normal selection mode
                 else if (hitItem != null)
                 {
-                    // Clicked on an object - select it
-                    HandleClick(inputPosition, hitItem);
+                    // Clicked on an object - delegate selection when possible
+                    if (_selectionManager != null)
+                    {
+                        _selectionManager.SelectItem(hitItem, false);
+                    }
+                    else
+                    {
+                        HandleClick(inputPosition, hitItem);
+                    }
                 }
                 else
                 {
-                    // Clicked on empty space - clear selection
-                    ClearSelection();
+                    // Clicked on empty space - delegate clear when possible
+                    if (_selectionManager != null)
+                    {
+                        _selectionManager.ClearSelection();
+                    }
+                    else
+                    {
+                        ClearSelection();
+                    }
                 }
             }
 
@@ -3192,6 +3619,12 @@ namespace SceneSandbox.Core
         /// </summary>
         private GridInfo GetGlobalGridInfo()
         {
+            if (_gridManager != null)
+            {
+                _gridManager.Enabled = _snapToGrid;
+                _gridManager.CellSize = _gridSize;
+                _gridManager.Offset = _gridOffset;
+            }
             return new GridInfo(_snapToGrid, _gridSize, _gridOffset);
         }
 
@@ -3211,6 +3644,23 @@ namespace SceneSandbox.Core
 
             // Try to find surface through raycast
             Vector3 rayStart = position + Vector3.up * 10f;
+            if (_cameraRaycaster != null)
+            {
+                var origMask = _cameraRaycaster.RaycastMask;
+                var origMax = _cameraRaycaster.MaxDistance;
+                _cameraRaycaster.RaycastMask = _placementLayers;
+                _cameraRaycaster.MaxDistance = 20f;
+                if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hitCamDown, _cameraRaycaster.MaxDistance, _cameraRaycaster.RaycastMask))
+                {
+                    float finalY = Mathf.Max(hitCamDown.point.y, minimumHeight);
+                    Vector3 resultCam = new Vector3(position.x, finalY, position.z);
+                    _cameraRaycaster.RaycastMask = origMask;
+                    _cameraRaycaster.MaxDistance = origMax;
+                    return resultCam;
+                }
+                _cameraRaycaster.RaycastMask = origMask;
+                _cameraRaycaster.MaxDistance = origMax;
+            }
             if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, 20f, _placementLayers))
             {
                 // Found surface, use the hit point's Y position but respect minimum height
@@ -3230,6 +3680,19 @@ namespace SceneSandbox.Core
             if (_sceneCamera == null) return null;
 
             Ray ray = _sceneCamera.ScreenPointToRay(screenPosition);
+            if (_cameraRaycaster != null)
+            {
+                var origMask = _cameraRaycaster.RaycastMask;
+                var origMax = _cameraRaycaster.MaxDistance;
+                _cameraRaycaster.RaycastMask = ~0;
+                _cameraRaycaster.MaxDistance = Mathf.Infinity;
+                if (_cameraRaycaster.TryRaycast(screenPosition, out RaycastHit hitCam))
+                {
+                    return hitCam.collider.gameObject;
+                }
+                _cameraRaycaster.RaycastMask = origMask;
+                _cameraRaycaster.MaxDistance = origMax;
+            }
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
                 return hit.collider.gameObject;
@@ -3271,6 +3734,24 @@ namespace SceneSandbox.Core
             }
 
             // Try to hit the ground or existing objects
+            if (_cameraRaycaster != null)
+            {
+                var origMask = _cameraRaycaster.RaycastMask;
+                var origMax = _cameraRaycaster.MaxDistance;
+                _cameraRaycaster.RaycastMask = _placementLayers;
+                _cameraRaycaster.MaxDistance = Mathf.Infinity;
+                if (_cameraRaycaster.TryRaycast(screenPosition, out RaycastHit hitCam))
+                {
+                    float finalY = Mathf.Max(hitCam.point.y, minimumHeight);
+                    worldPos = new Vector3(hitCam.point.x, finalY, hitCam.point.z);
+                }
+                else
+                {
+                    // fall through to physics fallback
+                }
+                _cameraRaycaster.RaycastMask = origMask;
+                _cameraRaycaster.MaxDistance = origMax;
+            }
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, _placementLayers))
             {
                 float finalY = Mathf.Max(hit.point.y, minimumHeight);
