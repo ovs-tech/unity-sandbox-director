@@ -51,6 +51,12 @@ namespace SceneSandbox.Core
         [FormerlySerializedAs("_cancelPlacementActionRef")]
         [SerializeField] private InputActionReference _cancelPlacementActionRef;
 
+        [FormerlySerializedAs("_switchPlacementItemActionRef")]
+        [SerializeField] private InputActionReference _switchPlacementItemActionRef;
+
+        [FormerlySerializedAs("_startPlacementActionRef")]
+        [SerializeField] private InputActionReference _startPlacementActionRef;
+
         [Header("Flags")]
         [SerializeField] private bool _enableHotkeys = true;
         [SerializeField] private bool _debugLogs = false;
@@ -71,11 +77,15 @@ namespace SceneSandbox.Core
         public event Action OnTransformDecrease;
         public event Action OnToggleAxis;
         public event Action OnCancelPlacement;
+        public event Action OnSwitchPlacementItemHotkey;
+        public event Action OnStartPlacementHotkey;
 
         private bool _initialized;
         private bool _isPointerDown;
         private float _dragDistance;
         private Vector2 _cachedPointerPosition = Vector2.zero;
+
+        public bool EnableHotkeys => _enableHotkeys;
 
         void Update()
         {
@@ -138,7 +148,9 @@ namespace SceneSandbox.Core
             InputActionReference leftClick,
             InputActionReference rightClick,
             InputActionReference mouseScroll,
-            InputActionReference cancelPlacement)
+            InputActionReference cancelPlacement,
+            InputActionReference switchPlacementItem,
+            InputActionReference startPlacement)
         {
             if (_debugLogs) Debug.Log("[SandboxInputManager] Setting input action references");
             
@@ -155,6 +167,8 @@ namespace SceneSandbox.Core
             _rightClickActionRef = rightClick;
             _mouseScrollActionRef = mouseScroll;
             _cancelPlacementActionRef = cancelPlacement;
+            _switchPlacementItemActionRef = switchPlacementItem;
+            _startPlacementActionRef = startPlacement;
         }
 
         private void OnEnable()
@@ -193,6 +207,8 @@ namespace SceneSandbox.Core
             }
 
             _cancelPlacementActionRef?.action.Enable();
+            _switchPlacementItemActionRef?.action.Enable();
+            _startPlacementActionRef?.action.Enable();
 
             RegisterCallbacks();
         }
@@ -219,6 +235,8 @@ namespace SceneSandbox.Core
             _transformModeToggleAxisActionRef?.action.Disable();
 
             _cancelPlacementActionRef?.action.Disable();
+            _switchPlacementItemActionRef?.action.Disable();
+            _startPlacementActionRef?.action.Disable();
         }
 
         private void RegisterCallbacks()
@@ -326,6 +344,24 @@ namespace SceneSandbox.Core
                 {
                     if (_debugLogs) Debug.Log("[SandboxInputManager] Cancel Placement triggered");
                     OnCancelPlacement?.Invoke();
+                };
+            }
+
+            if (_switchPlacementItemActionRef != null)
+            {
+                _switchPlacementItemActionRef.action.performed += ctx =>
+                {
+                    if (_debugLogs) Debug.Log("[SandboxInputManager] Switch Placement Item triggered");
+                    OnSwitchPlacementItemHotkey?.Invoke();
+                };
+            }
+
+            if (_startPlacementActionRef != null)
+            {
+                _startPlacementActionRef.action.performed += ctx =>
+                {
+                    if (_debugLogs) Debug.Log("[SandboxInputManager] Start Placement triggered");
+                    OnStartPlacementHotkey?.Invoke();
                 };
             }
         }

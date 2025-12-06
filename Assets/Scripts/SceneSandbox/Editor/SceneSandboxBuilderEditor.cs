@@ -37,6 +37,8 @@ namespace SceneSandbox.Editor
         private SerializedProperty _rightClickActionRef;
         private SerializedProperty _mouseScrollActionRef;
         private SerializedProperty _cancelPlacementActionRef;
+        private SerializedProperty _switchPlacementItemActionRef;
+        private SerializedProperty _startPlacementActionRef;
         
         // Raycast & Input Settings
         private SerializedProperty _maxRaycastDistance;
@@ -326,6 +328,8 @@ namespace SceneSandbox.Editor
             _rightClickActionRef = serializedObject.FindProperty("_rightClickActionRef");
             _mouseScrollActionRef = serializedObject.FindProperty("_mouseScrollActionRef");
             _cancelPlacementActionRef = serializedObject.FindProperty("_cancelPlacementActionRef");
+            _switchPlacementItemActionRef = serializedObject.FindProperty("_switchPlacementItemActionRef");
+            _startPlacementActionRef = serializedObject.FindProperty("_startPlacementActionRef");
             
             // Raycast & Input Settings
             _maxRaycastDistance = serializedObject.FindProperty("_maxRaycastDistance");
@@ -1469,6 +1473,8 @@ namespace SceneSandbox.Editor
             // Placement Input Actions
             EditorGUILayout.LabelField("Placement Input Actions", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_cancelPlacementActionRef, new GUIContent("Cancel Placement"));
+            EditorGUILayout.PropertyField(_switchPlacementItemActionRef, new GUIContent("Switch Placement Item", "Hotkey to cycle through objects in the library"));
+            EditorGUILayout.PropertyField(_startPlacementActionRef, new GUIContent("Start Placement", "Hotkey to start placement with current object at pointer position"));
             
             EditorGUILayout.Space(5);
             

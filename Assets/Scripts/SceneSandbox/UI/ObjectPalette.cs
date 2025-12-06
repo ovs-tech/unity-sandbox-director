@@ -350,7 +350,8 @@ namespace SceneSandbox.UI
                 
                 if (_sandboxBuilder != null)
                 {
-                    _sandboxBuilder.PlaceObject(item.ObjectData.id, worldPosition);
+                    _sandboxBuilder.StartPlacement(item.ObjectData.id, worldPosition);
+                    _sandboxBuilder.ConfirmPlacement();
                 }
                 
                 OnObjectDraggedToScene?.Invoke(item.ObjectData, screenPosition);

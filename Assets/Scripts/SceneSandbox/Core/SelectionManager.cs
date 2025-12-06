@@ -34,6 +34,10 @@ namespace SceneSandbox.Core
         private GameObject _currentHoverItem;
         private bool? _tempAutoEditOverride; // Temporary override for next selection
 
+        // Transform mode state
+        private readonly List<TransformableItem> _activeTransformItems = new List<TransformableItem>();
+        private TransformableItem _currentActiveTransformItem;
+
         // Properties
         public bool AutoEditOnSelect => _autoEditOnSelect;
         public bool GetEffectiveAutoEdit(bool overrideValue)
@@ -390,6 +394,23 @@ namespace SceneSandbox.Core
         public void ClearHover()
         {
             UpdateHoverState(null);
+        }
+
+        /// <summary>
+        /// Exit all active transform modes
+        /// </summary>
+        public void ExitAllTransformModes()
+        {
+            var itemsToExit = new List<TransformableItem>(_activeTransformItems);
+            foreach (var item in itemsToExit)
+            {
+                if (item != null)
+                {
+                    item.SetTransformModeType(TransformModeType.None);
+                }
+            }
+            _activeTransformItems.Clear();
+            _currentActiveTransformItem = null;
         }
 
         #endregion

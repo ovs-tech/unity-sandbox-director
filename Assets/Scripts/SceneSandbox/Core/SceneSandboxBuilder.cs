@@ -58,6 +58,8 @@ namespace SceneSandbox.Core
 
         [Header("Placement Input Actions")]
         [SerializeField] private InputActionReference _cancelPlacementActionRef;
+        [SerializeField] private InputActionReference _switchPlacementItemActionRef;
+        [SerializeField] private InputActionReference _startPlacementActionRef;
 
         [Header("Raycast & Input Settings")]
         [SerializeField] private float _maxRaycastDistance = 1000f;
@@ -92,11 +94,6 @@ namespace SceneSandbox.Core
         [SerializeField] private bool _showGridSnapIndicator = true;
         [SerializeField] private bool _showSurfaceNormal = true;
         [SerializeField] private float _surfaceNormalLength = 1f;
-
-        [Header("Transform Mode Colors")]
-        [SerializeField] private Color _positionModeColor = new Color(0f, 1f, 1f, 0.5f); // Cyan
-        [SerializeField] private Color _rotationModeColor = new Color(1f, 1f, 0f, 0.5f); // Yellow
-        [SerializeField] private Color _scaleModeColor = new Color(1f, 0f, 1f, 0.5f); // Magenta
 
         [Header("Selection & Edit Settings")]
         [SerializeField] private bool _autoEditOnSelect = true; // Auto start edit mode when object selected
@@ -171,19 +168,7 @@ namespace SceneSandbox.Core
         // Mode state
         private SandboxMode _currentMode = SandboxMode.Build;
 
-        // Input state
-        private bool _isPointerDown = false;
-        private bool _isDragging = false;
-        private Vector2 _pointerDownPosition;
-        private Vector2 _lastPointerPosition;
-        private TransformableItem _currentHoverItem;
-        private TransformableItem _currentDragItem;
-        private float _lastClickTime = 0f;
-        private int _clickCount = 0;
-        private bool _pointerUpProcessedThisFrame = false; // Prevent multiple pointer up events per frame
-
         // Selection state
-        private readonly List<TransformableItem> _selectedItems = new List<TransformableItem>();
         private TransformableItem _lastSelectedItem;
 
         // Transform control state
@@ -202,18 +187,11 @@ namespace SceneSandbox.Core
         private bool _isDraggingObject = false;
         private Vector3 _dragPreviewPosition;
 
-        // Placement & Transform State
-        private PlacementState _placementState = PlacementState.Idle;
+        // Placement & Transform State (migrated to PlacementSystem except transform mode/axis)
         private TransformModeType _currentTransformMode = TransformModeType.Position;
         private TransformAxis _currentTransformAxis = TransformAxis.All;
-        private GameObject _currentPlacementObject; // The actual object being placed (no ghost)
-        private string _currentPlacementObjectId;
-        private Vector3 _currentPlacementPosition;
         private Quaternion _currentPlacementRotation = Quaternion.identity;
         private Vector3 _currentPlacementScale = Vector3.one;
-        private bool _isCurrentPlacementValid;
-        private List<Material> _originalMaterials = new List<Material>();
-        private List<Material> _ghostMaterials = new List<Material>();
         private Vector3 _lastValidSurfaceNormal = Vector3.up;
 
         // Selection Edit State (for direct editing of existing objects)
@@ -257,8 +235,8 @@ namespace SceneSandbox.Core
         public Vector3 GridOffset => _gridOffset;
         public PivotPoint GridPivotOffset => _gridPivotOffset;
         public bool DropIndicatorEnabled => _enableDropIndicator;
-        public PlacementState CurrentPlacementState => _placementState;
-        public bool IsPlacementActive => _placementState == PlacementState.Active;
+        public PlacementState CurrentPlacementState => _placementSystem?.State ?? PlacementState.Idle;
+        public bool IsPlacementActive => _placementSystem?.IsActive ?? false;
         public TransformModeType CurrentTransformMode => _currentTransformMode;
         public TransformAxis CurrentTransformAxis => _currentTransformAxis;
         public SandboxMode CurrentMode => _currentMode;
@@ -370,7 +348,6 @@ namespace SceneSandbox.Core
             if (_currentMode == mode)
                 return;
 
-            SandboxMode previousMode = _currentMode;
             _currentMode = mode;
 
             if (mode == SandboxMode.Play)
@@ -378,13 +355,13 @@ namespace SceneSandbox.Core
                 // Entering Play Mode
 
                 // Cancel any active placement
-                if (IsPlacementActive)
+                if (_placementSystem.IsActive)
                 {
-                    CancelPlacement();
+                    _placementSystem.CancelPlacement();
                 }
 
                 // Exit all transform modes
-                ExitAllTransformModes();
+                _selectionManager?.ExitAllTransformModes();
 
                 // Disable build-related input actions
                 DisableBuildInputActions();
@@ -524,7 +501,9 @@ namespace SceneSandbox.Core
                 _leftClickActionRef,
                 _rightClickActionRef,
                 _mouseScrollActionRef,
-                _cancelPlacementActionRef
+                _cancelPlacementActionRef,
+                _switchPlacementItemActionRef,
+                _startPlacementActionRef
             );
 
             // Initialize AFTER setting references
@@ -565,22 +544,29 @@ namespace SceneSandbox.Core
                     _rotationSnapDegrees,
                     _placementLayers,
                     _maxRaycastDistance,
-                    _selectionLayers
+                    _selectionLayers,
+                    _checkCollisions,
+                    _collisionLayers,
+                    _groundLayers,
+                    _ignoreStaticObjects,
+                    _requireSurfaceBelow
                 );
 
                 // Subscribe to placement events (non-breaking: delegate to existing methods)
                 _placementSystem.OnPlacementStarted.RemoveAllListeners();
-                _placementSystem.OnPlacementStarted.AddListener((string objectId) =>
+                _placementSystem.OnPlacementStarted.AddListener((string objectId, GameObject currentObject) =>
                 {
-                    // Keep existing behavior; StartPlacement already handled via builder UI methods
-                    // This subscription is a no-op for now.
+                    if (_selectionManager != null && currentObject != null)
+                    {
+                        _selectionManager.SelectObject(currentObject);
+                    }
                 });
 
                 _placementSystem.OnPlacementUpdated.RemoveAllListeners();
                 _placementSystem.OnPlacementUpdated.AddListener((Vector3 worldPos) =>
                 {
-                    // Get current placement object from SelectionManager
-                    GameObject currentObject = _selectionManager?.LastSelectedItem?.gameObject ?? _currentPlacementObject;
+                    // Get current placement object from PlacementSystem
+                    GameObject currentObject = _placementSystem?.CurrentObject;
                     if (currentObject == null)
                     {
                         return;
@@ -588,45 +574,55 @@ namespace SceneSandbox.Core
 
                     // Apply transform updates (moved from UpdateGhostPosition)
                     var transformableItem = currentObject.GetComponent<TransformableItem>();
-                    GridInfo gridInfo = GetGlobalGridInfo();
+                    SyncGridManagerSettings();
 
-                    // Apply transform based on current mode
-                    switch (_currentTransformMode)
-                    {
-                        case TransformModeType.Position:
-                            Vector3 targetPosition = _currentPlacementPosition;
-                            SyncGridManagerSettings();
-                            currentObject.transform.position = worldPos;
-                            break;
-                    }
+                    _transformController.SetTransformableItemPosition(worldPos, transformableItem);
                 });
 
                 _placementSystem.OnPlacementConfirmed.RemoveAllListeners();
-                _placementSystem.OnPlacementConfirmed.AddListener((GameObject placed) =>
+                _placementSystem.OnPlacementConfirmed.AddListener((string objectDataId, GameObject obj) =>
                 {
+                    // Scene configuration and tracking remain in builder
+                    var draggable = obj.GetComponent<TransformableItem>();
+                    if (draggable == null)
+                    {
+                        draggable = obj.AddComponent<TransformableItem>();
+                    }
+
+                    draggable.enabled = true;
+
+                    var placedObjectData = new Data.PlacedObjectData(draggable.ObjectDataId, obj.transform.position)
+                    {
+                        id = draggable.ObjectId,
+                        rotation = obj.transform.eulerAngles,
+                        scale = obj.transform.localScale,
+                        customName = draggable?.name ?? obj.name
+                    };
+
+                    if (_currentScene != null)
+                    {
+                        _currentScene.CreateOrUpdatePlacedObject(placedObjectData);
+                    }
+
+                    _onObjectPlaced?.Invoke(obj);
                 });
 
                 _placementSystem.OnPlacementCancelled.RemoveAllListeners();
-                _placementSystem.OnPlacementCancelled.AddListener(() =>
+                _placementSystem.OnPlacementCancelled.AddListener((GameObject obj) =>
                 {
-                    // Delegate to existing cancel
-                    CancelPlacement();
-                });
-
-                // Drop indicator events -> delegate to existing builder visuals
-                _placementSystem.OnDropIndicatorShown.RemoveAllListeners();
-                _placementSystem.OnDropIndicatorShown.AddListener((Vector3 worldPos) =>
-                {
-                });
-
-                _placementSystem.OnDropIndicatorUpdated.RemoveAllListeners();
-                _placementSystem.OnDropIndicatorUpdated.AddListener((Vector3 worldPos) =>
-                {
-                });
-
-                _placementSystem.OnDropIndicatorHidden.RemoveAllListeners();
-                _placementSystem.OnDropIndicatorHidden.AddListener(() =>
-                {
+                    if (obj != null)
+                    {
+                        var draggable = obj.GetComponent<TransformableItem>();
+                        if (draggable != null)
+                        {
+                            string objectId = draggable.ObjectId;
+                            if (_currentScene != null)
+                            {
+                                _currentScene.RemovePlacedObject(objectId);
+                            }
+                        }
+                        Destroy(obj);
+                    }
                 });
             }
 
@@ -686,13 +682,30 @@ namespace SceneSandbox.Core
                     // Sync with builder's current axis tracking
                     _currentTransformAxis = axis;
                 });
+
+                _transformController.OnTransformChanged.RemoveAllListeners();
+                _transformController.OnTransformChanged.AddListener((GameObject obj) =>
+                {                    // Update scene configuration on transform changes
+                    var draggable = obj.GetComponent<TransformableItem>();
+                    if (draggable != null && _currentScene != null)
+                    {
+                        var placedData = _currentScene.GetPlacedObject(draggable.ObjectId);
+                        if (placedData != null)
+                        {
+                            placedData.position = obj.transform.position;
+                            placedData.rotation = obj.transform.eulerAngles;
+                            placedData.scale = obj.transform.localScale;
+                            _currentScene.CreateOrUpdatePlacedObject(placedData);
+                        }
+                    }
+                });
             }
 
             // Wire SandboxInputManager events to existing handlers (non-breaking)
             if (_inputManager != null)
             {
                 _inputManager.OnToggleMode += () => { Debug.Log("[InputManager] ToggleMode"); ToggleMode(); };
-                _inputManager.OnExitAllModes += () => ExitAllTransformModes();
+                _inputManager.OnExitAllModes += () => _selectionManager?.ExitAllTransformModes();
                 _inputManager.OnMoveHotkey += () => OnMoveHotkeyPerformed(default);
                 _inputManager.OnRotateHotkey += () => OnRotateHotkeyPerformed(default);
                 _inputManager.OnScaleHotkey += () => OnScaleHotkeyPerformed(default);
@@ -700,15 +713,24 @@ namespace SceneSandbox.Core
                 _inputManager.OnTransformDecrease += () => OnTransformModeDecreasePerformed(default);
                 _inputManager.OnToggleAxis += () => OnTransformModeToggleAxisPerformed(default);
                 _inputManager.OnCancelPlacement += () => OnCancelPlacementPerformed(default);
+                _inputManager.OnSwitchPlacementItemHotkey += () => OnSwitchPlacementItemHotkey();
+                _inputManager.OnStartPlacementHotkey += () => OnStartPlacementHotkey();
 
                 // Pointer events routed to existing pointer handlers
                 _inputManager.OnPointerDown += (pos) =>
                 {
-                    TransformableItem hitItem = _placementSystem.RaycastForItem(pos);
-                    if (hitItem != null)
-                        _selectionManager.SelectItem(hitItem);
+                    if (_placementSystem.IsActive)
+
+                        ConfirmPlacement();
                     else
-                        _selectionManager.ClearSelection();
+                    {
+                        TransformableItem hitItem = _placementSystem.RaycastForItem(pos);
+                        if (hitItem != null)
+                            _selectionManager.SelectItem(hitItem);
+                        else
+                            _selectionManager.ClearSelection();
+                    }
+
                 };
                 _inputManager.OnPointerUp += (pos) =>
                 {
@@ -722,27 +744,6 @@ namespace SceneSandbox.Core
             }
         }
 
-        // Facade methods to interact with PlacementSystem without changing existing callers
-        public void BeginPlacementWithSystem(string objectDataId, Vector2 screenPosition)
-        {
-            // // Maintain current behavior by using existing StartPlacement
-            // StartPlacement(objectDataId, screenPosition);
-            // Notify system for future migration without side effects
-            _placementSystem?.StartPlacement(objectDataId, screenPosition);
-        }
-
-
-        public GameObject ConfirmPlacementWithSystem()
-        {
-            var obj = ConfirmPlacement();
-            if (obj != null)
-            {
-                _placementSystem?.ConfirmPlacement(obj);
-            }
-            return obj;
-        }
-
-
         private void SyncGridManagerSettings()
         {
             if (_gridManager == null) return;
@@ -755,69 +756,10 @@ namespace SceneSandbox.Core
         {
             _placedObjects = new Dictionary<string, GameObject>();
             _previewObjects = new List<GameObject>();
-            _placementState = PlacementState.Idle;
 
             // Don't create drop indicator here - create it when first needed
             // This avoids potential issues with early initialization
         }
-
-        #region Public Interface
-
-        /// <summary>
-        /// Place an object from the library at the specified position
-        /// </summary>
-        public GameObject PlaceObject(string objectDataId, Vector3 position, bool autoSelect = true)
-        {
-            // Delegate instantiation to PlacementSystem
-            Vector3 surfacePosition = GetSurfacePosition(position);
-            GameObject newObject = _placementSystem != null
-                ? _placementSystem.PlaceObject(objectDataId, surfacePosition)
-                : null;
-
-            if (newObject == null)
-            {
-                Debug.LogError("[PLACE] ❌ Failed to place object via PlacementSystem.");
-                return null;
-            }
-
-            // Scene configuration and tracking remain in builder
-            var draggable = newObject.GetComponent<TransformableItem>();
-            if (draggable == null)
-            {
-                draggable = newObject.AddComponent<TransformableItem>();
-            }
-
-            string placedObjectId = draggable.ObjectId;
-            var objectData = _objectLibrary?.GetObjectById(objectDataId);
-            var placedObjectData = new Data.PlacedObjectData(objectDataId, newObject.transform.position)
-            {
-                id = placedObjectId,
-                rotation = newObject.transform.eulerAngles,
-                scale = newObject.transform.localScale,
-                customName = objectData?.displayName ?? newObject.name
-            };
-
-            if (_currentScene != null)
-            {
-                _currentScene.AddPlacedObject(placedObjectData);
-            }
-
-            if (!string.IsNullOrEmpty(placedObjectId))
-            {
-                _placedObjects[placedObjectId] = newObject;
-            }
-
-            if (autoSelect)
-            {
-                SelectObject(newObject);
-            }
-
-            _onObjectPlaced?.Invoke(newObject);
-
-            return newObject;
-        }
-
-        #endregion
 
         #region New Placement System (Drag-Drop - Direct Object Manipulation)
 
@@ -846,11 +788,6 @@ namespace SceneSandbox.Core
             {
                 return;
             }
-
-            _currentPlacementObjectId = objectDataId;
-            _placementState = PlacementState.Active;
-            _currentPlacementObject = created;
-            _currentPlacementPosition = created.transform.position;
 
             // Track in scene configuration and local dictionary
             var draggable = created.GetComponent<TransformableItem>() ?? created.AddComponent<TransformableItem>();
@@ -886,37 +823,9 @@ namespace SceneSandbox.Core
         /// <returns>The placed GameObject, or null if placement failed</returns>
         public GameObject ConfirmPlacement()
         {
-            if (!_isCurrentPlacementValid)
-            {
-                CancelPlacement();
-                return null;
-            }
-
-            _placementState = PlacementState.Confirming;
-
-            GameObject placedObject = _currentPlacementObject;
-
-            // Re-enable components disabled during placement
-            foreach (var transformable in placedObject.GetComponentsInChildren<TransformableItem>())
-            {
-                transformable.enabled = true;
-            }
-
             // Delegate confirmation to PlacementSystem (emits events and resets its state)
-            _placementSystem?.ConfirmPlacement(placedObject);
-
-            // Reset builder state
-            _currentPlacementObjectId = null;
-            _currentPlacementObject = null;
-            _placementState = PlacementState.Idle;
-
-            // Select the placed object
-            if (placedObject != null)
-            {
-                SelectObject(placedObject);
-            }
-
-            return placedObject;
+            _placementSystem?.ConfirmPlacement();
+            return _placementSystem?.CurrentObject;
         }
 
         /// <summary>
@@ -924,39 +833,7 @@ namespace SceneSandbox.Core
         /// </summary>
         public void CancelPlacement()
         {
-            // If we're in edit mode (editing an existing object), call CancelObjectEdit instead
-            if (_selectedObjectForEdit != null)
-            {
-                CancelObjectEdit();
-                return;
-            }
-
-            // Delegate cancellation to PlacementSystem and retrieve object for cleanup
-            GameObject obj = _placementSystem != null ? _placementSystem.CancelPlacement() : _currentPlacementObject;
-
-            if (obj != null)
-            {
-                var draggable = obj.GetComponent<TransformableItem>();
-                if (draggable != null)
-                {
-                    string objectId = draggable.ObjectId;
-                    if (_currentScene != null)
-                    {
-                        _currentScene.RemovePlacedObject(objectId);
-                    }
-                    if (_placedObjects != null && _placedObjects.ContainsKey(objectId))
-                    {
-                        _placedObjects.Remove(objectId);
-                    }
-                }
-                Destroy(obj);
-            }
-
-            _currentPlacementObject = null;
-            _currentPlacementObjectId = null;
-            _currentPlacementPosition = Vector3.zero;
-            _isCurrentPlacementValid = false;
-            _placementState = PlacementState.Idle;
+            _placementSystem?.CancelPlacement();
         }
 
 
@@ -1066,146 +943,13 @@ namespace SceneSandbox.Core
                 var item = obj.GetComponent<TransformableItem>();
                 if (item != null)
                 {
-                    SelectItem(item, overrideAutoEdit);
+                    _selectionManager.SelectItem(item, false, overrideAutoEdit ?? _autoEditOnSelect);
                 }
             }
             else
             {
                 // Deselect all
-                ClearSelection();
-            }
-        }
-
-        /// <summary>
-        /// Start editing an existing object with direct manipulation
-        /// Similar to PlaceObject, but modifies an existing object instead of creating new one
-        /// </summary>
-        public void BeginObjectEdit(GameObject targetObject)
-        {
-            if (targetObject == null)
-            {
-                return;
-            }
-
-            // If we're already editing this same object, don't re-enter edit mode
-            if (_selectedObjectForEdit == targetObject && IsPlacementActive)
-            {
-                return;
-            }
-
-            // Cancel any existing placement/edit for DIFFERENT objects, but only if not in Confirming state
-            // (Confirming state means we're transitioning from placement to edit)
-            if (IsPlacementActive && _placementState != PlacementState.Confirming)
-            {
-                // Only cancel if we're editing a different object
-                if (_selectedObjectForEdit != targetObject)
-                {
-                    CancelPlacement();
-                }
-            }
-
-            // Reset placement state if coming from Confirming
-            if (_placementState == PlacementState.Confirming)
-            {
-                _placementState = PlacementState.Idle;
-            }
-
-            _selectedObjectForEdit = targetObject;
-            _originalPosition = targetObject.transform.position;
-            _originalRotation = targetObject.transform.rotation;
-            _originalScale = targetObject.transform.localScale;
-
-            // No need to store or change materials - we'll edit the object directly
-            _originalObjectMaterials = null;
-
-            // Use the existing object as the placement object (no ghost created)
-            _currentPlacementObject = targetObject;
-
-            // Set initial transform state
-            _currentPlacementPosition = _originalPosition;
-            _currentPlacementRotation = _originalRotation;
-            _currentPlacementScale = _originalScale;
-
-            _placementState = PlacementState.Active;
-        }
-
-        /// <summary>
-        /// Confirm the edit - object is already transformed, just finalize
-        /// </summary>
-        public GameObject ConfirmObjectEdit()
-        {
-            if (_selectedObjectForEdit == null || _currentPlacementObject == null)
-            {
-                return null;
-            }
-
-            if (!_isCurrentPlacementValid)
-            {
-                CancelObjectEdit();
-                return null;
-            }
-
-            _placementState = PlacementState.Confirming;
-
-            // Object is already transformed, just update scene configuration
-            UpdatePlacedObjectTransform(_selectedObjectForEdit);
-
-            // Cleanup
-            _currentPlacementObject = null;
-            GameObject editedObject = _selectedObjectForEdit;
-            _selectedObjectForEdit = null;
-            _originalObjectMaterials = null;
-
-            _placementState = PlacementState.Idle;
-
-            return editedObject;
-        }
-
-        /// <summary>
-        /// Cancel the edit - restore original transforms
-        /// </summary>
-        public void CancelObjectEdit()
-        {
-            if (_selectedObjectForEdit == null)
-            {
-                return;
-            }
-
-            _placementState = PlacementState.Cancelling;
-
-            // Restore original transforms
-            _selectedObjectForEdit.transform.position = _originalPosition;
-            _selectedObjectForEdit.transform.rotation = _originalRotation;
-            _selectedObjectForEdit.transform.localScale = _originalScale;
-
-            // Cleanup
-            _currentPlacementObject = null;
-            _selectedObjectForEdit = null;
-            _originalObjectMaterials = null;
-            _placementState = PlacementState.Idle;
-        }
-
-        /// <summary>
-        /// Update a placed object's transform in the scene configuration
-        /// </summary>
-        private void UpdatePlacedObjectTransform(GameObject obj)
-        {
-            if (obj == null || _currentScene == null)
-                return;
-
-            var draggable = obj.GetComponent<TransformableItem>();
-            if (draggable == null)
-                return;
-
-            string objectId = draggable.ObjectId;
-            var placedObjectData = _currentScene.placedObjects.Find(p => p.id == objectId);
-
-            if (placedObjectData != null)
-            {
-                placedObjectData.position = obj.transform.position;
-                placedObjectData.rotation = obj.transform.eulerAngles;
-                placedObjectData.scale = obj.transform.localScale;
-                _currentScene.lastModified = System.DateTime.Now;
+                _selectionManager.ClearSelection();
             }
         }
 
@@ -1866,9 +1610,9 @@ namespace SceneSandbox.Core
         /// <summary>
         /// Get metadata for all scenes in project (for UI)
         /// </summary>
-        public System.Collections.Generic.List<Data.SceneMetadata> GetAllSceneMetadata()
+        public List<SceneMetadata> GetAllSceneMetadata()
         {
-            var metadataList = new System.Collections.Generic.List<Data.SceneMetadata>();
+            var metadataList = new List<SceneMetadata>();
 
             if (_currentProject == null)
                 return metadataList;
@@ -1878,116 +1622,13 @@ namespace SceneSandbox.Core
             foreach (var scene in _currentProject.scenes)
             {
                 bool isActive = scene.sceneId == activeSceneId;
-                metadataList.Add(new Data.SceneMetadata(scene, isActive));
+                metadataList.Add(new SceneMetadata(scene, isActive));
             }
 
             return metadataList;
         }
 
         #endregion
-
-        /// <summary>
-        /// Place an object using the new factory system
-        /// </summary>
-        public GameObject PlaceObjectWithFactory(string objectDataId, Vector3 position, bool autoSelect = true)
-        {
-            if (_objectLibrary == null) return null;
-
-            var objectData = _objectLibrary.GetObjectById(objectDataId);
-            if (objectData == null || objectData.prefab == null) return null;
-
-            // Create placed object data using existing API
-            string placedObjectId = System.Guid.NewGuid().ToString();
-            var placedObjectData = new Data.PlacedObjectData(objectDataId, position)
-            {
-                id = placedObjectId,
-                rotation = objectData.prefab.transform.eulerAngles,
-                scale = objectData.defaultScale != Vector3.zero ? objectData.defaultScale : objectData.prefab.transform.localScale,
-                customName = objectData.displayName
-            };
-
-            // Apply positioning with grid snapping using GridManager when available
-            var gridInfo = GetGlobalGridInfo();
-            if (_gridManager != null && _snapToGrid)
-            {
-                // Ensure GridManager reflects current grid settings
-                _gridManager.Enabled = _snapToGrid;
-                _gridManager.CellSize = _gridSize;
-                _gridManager.Offset = _gridOffset;
-                placedObjectData.position = _gridManager.GetSnappedPosition(position);
-            }
-            else
-            {
-                // Fallback to original behavior using TransformableItem utility
-                GameObject tempObject = new GameObject("TempSnapHelper");
-                var tempDraggable = tempObject.AddComponent<TransformableItem>();
-                placedObjectData.position = tempDraggable.SnapToGrid(position, gridInfo);
-                Destroy(tempObject);
-            }
-
-            // Conform to surface if required by current placement settings
-            placedObjectData.position = GetSurfacePosition(placedObjectData.position);
-
-            // Store factory-related properties in the existing properties dictionary
-            placedObjectData.properties["objectType"] = SandboxObjectFactory.DetermineObjectType(objectData.prefab);
-            placedObjectData.properties["libraryName"] = objectData.displayName;
-            placedObjectData.properties["isActive"] = true;
-
-            // Create new factory data for runtime object creation
-            var factoryData = new Serialization.PlacedObjectData
-            {
-                instanceId = placedObjectId,
-                objectType = placedObjectData.properties["objectType"].ToString(),
-                position = placedObjectData.position,
-                rotation = Quaternion.Euler(placedObjectData.rotation),
-                scale = placedObjectData.scale,
-                customName = placedObjectData.customName,
-                isActive = true,
-                customProperties = new Dictionary<string, object>(placedObjectData.properties)
-            };
-
-            // Create runtime object using factory
-            GameObject newObject = SandboxObjectFactory.CreateRuntimeObjectFromData(factoryData, _stageArea);
-
-            if (newObject == null)
-            {
-                return null;
-            }
-
-            // Add draggable component for interaction
-            var draggable = newObject.GetComponent<TransformableItem>();
-            if (draggable == null)
-            {
-                draggable = newObject.AddComponent<TransformableItem>();
-            }
-
-            draggable.SetObjectData(objectDataId, placedObjectId);
-
-
-            // Add to scene and project
-            if (_currentScene != null)
-            {
-                _currentScene.AddPlacedObject(placedObjectData);
-            }
-
-            _placedObjects[placedObjectId] = newObject;
-
-            // Ensure project exists
-            if (_currentProject == null)
-            {
-                CreateDefaultProject();
-            }
-
-            // Select if requested
-            if (autoSelect)
-            {
-                SelectObject(newObject);
-            }
-
-            _onObjectPlaced?.Invoke(newObject);
-
-            return newObject;
-        }
 
         /// <summary>
         /// Start preview mode using the timeline director
@@ -2233,7 +1874,7 @@ namespace SceneSandbox.Core
         {
             _exitAllModesActionRef?.action?.Enable();
 
-            if (_enableHotkeys)
+            if (_inputManager.EnableHotkeys)
             {
                 _moveHotkeyActionRef?.action?.Enable();
                 _rotateHotkeyActionRef?.action?.Enable();
@@ -2281,116 +1922,75 @@ namespace SceneSandbox.Core
 
         private void OnExitAllModesPerformed(InputAction.CallbackContext context)
         {
-            ExitAllTransformModes();
+            _selectionManager?.ExitAllTransformModes();
         }
 
         private void OnMoveHotkeyPerformed(InputAction.CallbackContext context)
         {
-            if (_enableHotkeys)
-            {
-                SetTransformMode(TransformModeType.Position);
-
-                // Apply to selected item if any
-                if (_lastSelectedItem != null && _lastSelectedItem.EnableTransformControls)
-                {
-                    _lastSelectedItem.SetTransformModeType(TransformModeType.Position);
-                }
-            }
+            _transformController.SetTransformMode(TransformModeType.Position);
         }
 
         private void OnRotateHotkeyPerformed(InputAction.CallbackContext context)
         {
-            if (_enableHotkeys)
-            {
-                SetTransformMode(TransformModeType.Rotation);
-
-                // Apply to selected item if any
-                if (_lastSelectedItem != null && _lastSelectedItem.EnableTransformControls)
-                {
-                    _lastSelectedItem.SetTransformModeType(TransformModeType.Rotation);
-                }
-            }
+            _transformController.SetTransformMode(TransformModeType.Rotation);
         }
 
         private void OnScaleHotkeyPerformed(InputAction.CallbackContext context)
         {
-            if (_enableHotkeys)
-            {
-                SetTransformMode(TransformModeType.Scale);
-
-                // Apply to selected item if any
-                if (_lastSelectedItem != null && _lastSelectedItem.EnableTransformControls)
-                {
-                    _lastSelectedItem.SetTransformModeType(TransformModeType.Scale);
-                }
-            }
+            _transformController.SetTransformMode(TransformModeType.Scale);
         }
 
         private void OnTransformModeIncreasePerformed(InputAction.CallbackContext context)
         {
-            if (!_enableHotkeys) return;
-
-            // Priority 1: Placement object (if in placement mode)
-            if (_currentPlacementObject != null)
-            {
-                var transformableItem = _currentPlacementObject.GetComponent<TransformableItem>();
-                transformableItem?.IncreaseTransformValue();
-            }
-            // Priority 2: Selected item
-            else if (_lastSelectedItem != null)
-            {
-                _lastSelectedItem.IncreaseTransformValue();
-            }
-            // Priority 3: Active transform item (fallback)
-            else if (_currentActiveTransformItem != null)
-            {
-                _currentActiveTransformItem.IncreaseTransformValue();
-            }
+            _transformController?.IncreaseTransformValue();
         }
 
         private void OnTransformModeDecreasePerformed(InputAction.CallbackContext context)
         {
-            if (!_enableHotkeys) return;
-
-            // Priority 1: Placement object (if in placement mode)
-            if (_currentPlacementObject != null)
-            {
-                var transformableItem = _currentPlacementObject.GetComponent<TransformableItem>();
-                transformableItem?.DecreaseTransformValue();
-            }
-            // Priority 2: Selected item
-            else if (_lastSelectedItem != null)
-            {
-                _lastSelectedItem.DecreaseTransformValue();
-            }
-            // Priority 3: Active transform item (fallback)
-            else if (_currentActiveTransformItem != null)
-            {
-                _currentActiveTransformItem.DecreaseTransformValue();
-            }
+            _transformController?.DecreaseTransformValue();
         }
 
         private void OnTransformModeToggleAxisPerformed(InputAction.CallbackContext context)
         {
-            if (!_enableHotkeys) return;
-
-            // Toggle the axis
-            ToggleTransformAxis();
+            _transformController.ToggleTransformAxis();
         }
 
         private void OnCancelPlacementPerformed(InputAction.CallbackContext context)
         {
-            if (IsPlacementActive)
+            if (_placementSystem.IsActive)
             {
-                if (_selectedObjectForEdit != null)
+                _placementSystem?.CancelPlacement();
+            }
+        }
+
+        private void OnSwitchPlacementItemHotkey()
+        {
+            if (_placementSystem != null)
+            {
+                string nextObjectId = _placementSystem.SwitchNextPlacement();
+                if (!string.IsNullOrEmpty(nextObjectId))
                 {
-                    CancelObjectEdit();
-                }
-                else
-                {
-                    CancelPlacement();
+                    Debug.Log($"[SceneSandboxBuilder] Switched to next placement item: {nextObjectId}");
                 }
             }
+        }
+
+        private void OnStartPlacementHotkey()
+        {
+            if (_placementSystem == null)
+            {
+                return;
+            }
+
+            if (_pointerPositionActionRef == null)
+            {
+                return;
+            }
+
+            Vector2 screenPosition = _pointerPositionActionRef.action.ReadValue<Vector2>();
+
+
+            _placementSystem.StartPlacement(screenPosition);
         }
 
         #endregion
@@ -2398,71 +1998,12 @@ namespace SceneSandbox.Core
         #region Selection Management
 
         /// <summary>
-        /// Register a transformable item for selection management
-        /// </summary>
-        private void RegisterTransformableItem(TransformableItem item)
-        {
-            if (item == null) return;
-
-            item.OnSelectionChanged -= OnItemSelectionChanged;
-            item.OnSelectionChanged += OnItemSelectionChanged;
-
-            if (item.EnableTransformControls)
-            {
-                RegisterItemForTransformControl(item);
-            }
-        }
-
-
-        /// <summary>
-        /// Handle selection state change from a transformable item
-        /// </summary>
-        private void OnItemSelectionChanged(TransformableItem item, bool isSelected)
-        {
-            if (isSelected)
-            {
-                SelectItem(item);
-            }
-            else
-            {
-                DeselectItem(item);
-            }
-        }
-
-        /// <summary>
         /// Select an item
         /// </summary>
-        private void SelectItem(TransformableItem item, bool? overrideAutoEdit = null)
+        private void SelectItem(TransformableItem item, bool overrideAutoEdit = false)
         {
-            if (item == null || _selectedItems.Contains(item))
-                return;
+            _selectionManager.SelectItem(item, overrideAutoEdit);
 
-            // Single selection only - clear others
-            ClearSelection();
-
-            _selectedItems.Add(item);
-            _lastSelectedItem = item;
-            item.SetSelectedState(true);
-
-            _selectedObject = item.gameObject;
-            _onObjectSelected?.Invoke(_selectedObject);
-
-            // Enable transform controls for the item
-            if (item.EnableTransformControls)
-            {
-                RegisterItemForTransformControl(item);
-
-                // Set default transform mode to Position
-                item.SetTransformModeType(TransformModeType.Position);
-            }
-
-            // Automatically start edit mode if enabled
-            // Use override parameter if provided, otherwise use _autoEditOnSelect
-            bool shouldAutoEdit = overrideAutoEdit ?? _autoEditOnSelect;
-            if (shouldAutoEdit)
-            {
-                BeginObjectEdit(item.gameObject);
-            }
         }
 
         /// <summary>
@@ -2470,36 +2011,7 @@ namespace SceneSandbox.Core
         /// </summary>
         private void DeselectItem(TransformableItem item)
         {
-            if (item == null || !_selectedItems.Contains(item)) return;
-
-            _selectedItems.Remove(item);
-            item.SetSelectedState(false);
-
-            // Exit transform mode when deselecting
-            if (item.EnableTransformControls)
-            {
-                item.SetTransformModeType(TransformModeType.None);
-                UnregisterItemFromTransformControl(item);
-            }
-
-            if (_lastSelectedItem == item)
-            {
-                _lastSelectedItem = null;
-            }
-
-            if (_selectedObject == item.gameObject)
-            {
-                _selectedObject = null;
-                _onObjectSelected?.Invoke(null);
-
-                // Cancel edit mode if active AND we're deselecting the object being edited
-                // Don't cancel if we're deselecting a different object
-                if (_autoEditOnSelect && IsPlacementActive && _selectedObjectForEdit != null
-                    && _selectedObjectForEdit == item.gameObject)
-                {
-                    CancelObjectEdit();
-                }
-            }
+            _selectionManager.DeselectItem(item);
         }
 
         /// <summary>
@@ -2507,123 +2019,13 @@ namespace SceneSandbox.Core
         /// </summary>
         private void ClearSelection()
         {
-            var itemsToDeselect = new List<TransformableItem>(_selectedItems);
-
-            foreach (var item in itemsToDeselect)
-            {
-                if (item != null)
-                {
-                    item.SetSelectedState(false);
-
-                    // Exit transform mode when clearing selection
-                    if (item.EnableTransformControls)
-                    {
-                        item.SetTransformModeType(TransformModeType.None);
-                        UnregisterItemFromTransformControl(item);
-                    }
-
-                    // Check if we need to cancel edit for this specific item
-                    if (_autoEditOnSelect && IsPlacementActive && _selectedObjectForEdit != null
-                        && _selectedObjectForEdit == item.gameObject)
-                    {
-                        CancelObjectEdit();
-                    }
-                }
-            }
-
-            _selectedItems.Clear();
-            _lastSelectedItem = null;
-            _selectedObject = null;
+            _selectionManager.ClearSelection();
         }
 
         #endregion
 
         #region Transform Control Management
 
-        /// <summary>
-        /// Register item for transform control
-        /// </summary>
-        private void RegisterItemForTransformControl(TransformableItem item)
-        {
-            if (item != null)
-            {
-                item.OnTransformModeTypeChanged += OnItemTransformModeTypeChanged;
-            }
-        }
-
-        /// <summary>
-        /// Unregister item from transform control
-        /// </summary>
-        private void UnregisterItemFromTransformControl(TransformableItem item)
-        {
-            if (item != null)
-            {
-                item.OnTransformModeTypeChanged -= OnItemTransformModeTypeChanged;
-                _activeTransformItems.Remove(item);
-
-                if (_currentActiveTransformItem == item)
-                {
-                    _currentActiveTransformItem = null;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Handle transform mode changes from items
-        /// </summary>
-        private void OnItemTransformModeTypeChanged(TransformableItem item, TransformModeType mode)
-        {
-            if (mode == TransformModeType.None)
-            {
-                _activeTransformItems.Remove(item);
-                if (_currentActiveTransformItem == item)
-                {
-                    _currentActiveTransformItem = null;
-                }
-            }
-            else
-            {
-                ExitOtherTransformModes(item);
-
-                if (!_activeTransformItems.Contains(item))
-                {
-                    _activeTransformItems.Add(item);
-                }
-                _currentActiveTransformItem = item;
-            }
-        }
-
-        /// <summary>
-        /// Exit transform mode for all items except the specified one
-        /// </summary>
-        private void ExitOtherTransformModes(TransformableItem exceptItem)
-        {
-            var itemsToExit = new List<TransformableItem>(_activeTransformItems);
-            foreach (var item in itemsToExit)
-            {
-                if (item != exceptItem && item != null)
-                {
-                    item.SetTransformModeType(TransformModeType.None);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Exit all transform modes
-        /// </summary>
-        private void ExitAllTransformModes()
-        {
-            var itemsToExit = new List<TransformableItem>(_activeTransformItems);
-            foreach (var item in itemsToExit)
-            {
-                if (item != null)
-                {
-                    item.SetTransformModeType(TransformModeType.None);
-                }
-            }
-            _activeTransformItems.Clear();
-            _currentActiveTransformItem = null;
-        }
 
         #endregion
 
@@ -2764,48 +2166,19 @@ namespace SceneSandbox.Core
         {
             // Clear current scene GameObjects and runtime state first
             // Important: Clear before setting _currentScene to avoid clearing the new scene's data
-            if (_placedObjects != null)
-            {
-                var objectsToRemove = new List<GameObject>(_placedObjects.Values);
-                foreach (var obj in objectsToRemove)
-                {
-                    if (obj != null)
-                    {
-                        Destroy(obj);
-                    }
-                }
-                _placedObjects.Clear();
-            }
-
-            SelectObject(null);
+            _placementSystem.ClearPlacedObjects();
+            _selectionManager.ClearSelection();
 
             // Now set the new scene (after clearing runtime state)
             _currentScene = sceneConfig;
             _currentSceneName = sceneConfig.sceneName;
 
+
+
             // Recreate all placed objects
             foreach (var placedObjectData in sceneConfig.placedObjects)
             {
-                var objectData = _objectLibrary.GetObjectById(placedObjectData.objectDataId);
-                if (objectData?.prefab != null)
-                {
-                    GameObject obj = Instantiate(objectData.prefab, _stageArea);
-                    obj.transform.position = placedObjectData.position;
-                    obj.transform.eulerAngles = placedObjectData.rotation;
-                    obj.transform.localScale = placedObjectData.scale;
-                    obj.name = placedObjectData.customName ?? objectData.displayName;
-
-                    var draggable = obj.GetComponent<TransformableItem>();
-                    if (draggable == null)
-                    {
-                        draggable = obj.AddComponent<TransformableItem>();
-                    }
-
-                    draggable.SetObjectData(placedObjectData.objectDataId, placedObjectData.id);
-
-
-                    _placedObjects[placedObjectData.id] = obj;
-                }
+                _placementSystem.PlaceObject(placedObjectData);
             }
 
             _onSceneLoaded?.Invoke(_currentScene);
@@ -2836,6 +2209,7 @@ namespace SceneSandbox.Core
                 _gridManager.CellSize = _gridSize;
                 _gridManager.Offset = _gridOffset;
             }
+            SyncGridManagerSettings();
             return new GridInfo(_snapToGrid, _gridSize, _gridOffset);
         }
 
@@ -3065,7 +2439,7 @@ namespace SceneSandbox.Core
             GameObject tempObject = new GameObject("TempSnapHelper");
             var tempDraggable = tempObject.AddComponent<TransformableItem>();
             GridInfo gridInfo = GetGlobalGridInfo();
-            Vector3 finalPosition = tempDraggable.SnapToGrid(position, gridInfo);
+            Vector3 finalPosition = tempDraggable.GetSnappedPositionValue(position, gridInfo);
             Destroy(tempObject);
 
             // Note: GetWorldPositionFromScreen already handles surface detection, 
@@ -3230,7 +2604,7 @@ namespace SceneSandbox.Core
             }
 
             // Draw placement preview gizmos
-            if (_placementState == PlacementState.Active && _currentPlacementObject != null)
+            if (IsPlacementActive && _placementSystem?.CurrentObject != null)
             {
                 DrawPlacementPreviewGizmos();
             }
@@ -3675,7 +3049,7 @@ namespace SceneSandbox.Core
                 GameObject tempObject = new GameObject("TempSnapHelper");
                 var tempDraggable = tempObject.AddComponent<TransformableItem>();
                 GridInfo gridInfo = GetGlobalGridInfo();
-                Vector3 snappedPos = tempDraggable.SnapToGrid(position, gridInfo);
+                Vector3 snappedPos = tempDraggable.GetSnappedPositionValue(position, gridInfo);
                 DestroyImmediate(tempObject);
 
                 Gizmos.color = Color.white;
@@ -3688,23 +3062,25 @@ namespace SceneSandbox.Core
         /// </summary>
         private void DrawPlacementPreviewGizmos()
         {
-            if (_currentPlacementObject == null) return;
+            GameObject currentPlacementObject = _placementSystem?.CurrentObject;
+            if (currentPlacementObject == null) return;
 
-            Vector3 position = _currentPlacementObject.transform.position;
-            Bounds bounds = GetObjectBounds(_currentPlacementObject);
+            Vector3 position = currentPlacementObject.transform.position;
+            Bounds bounds = GetObjectBounds(currentPlacementObject);
 
             // Draw validity indicator with color
-            Gizmos.color = _isCurrentPlacementValid ? _validGhostColor : _invalidGhostColor;
+            bool isValid = _placementSystem?.IsValidPlacementCurrentPosition ?? true;
+            Gizmos.color = isValid ? _validGhostColor : _invalidGhostColor;
             Gizmos.DrawWireCube(bounds.center, bounds.size);
 
             // Draw grid snap indicator if enabled
             if (_showGridSnapIndicator && _snapToGrid)
             {
                 // Get TransformableItem if available for snap logic
-                var transformableItem = _currentPlacementObject.GetComponent<TransformableItem>();
+                var transformableItem = currentPlacementObject.GetComponent<TransformableItem>();
                 GridInfo gridInfo = GetGlobalGridInfo();
                 Vector3 snappedPos = transformableItem != null
-                    ? transformableItem.SnapToGrid(position, gridInfo)
+                    ? transformableItem.GetSnappedPositionValue(position, gridInfo)
                     : position;
 
                 Gizmos.color = Color.cyan;
@@ -3741,7 +3117,7 @@ namespace SceneSandbox.Core
             // Draw cost indicator (if enabled)
             if (_enableCostSystem)
             {
-                Gizmos.color = _isCurrentPlacementValid ? Color.green : Color.red;
+                Gizmos.color = isValid ? Color.green : Color.red;
                 Vector3 labelPos = bounds.center + Vector3.up * (bounds.extents.y + 0.5f);
 
 #if UNITY_EDITOR
@@ -3750,7 +3126,7 @@ namespace SceneSandbox.Core
             }
 
             // Draw validation feedback
-            if (!_isCurrentPlacementValid)
+            if (!isValid)
             {
                 // Draw X indicator for invalid placement
                 Gizmos.color = Color.red;
@@ -3851,10 +3227,11 @@ namespace SceneSandbox.Core
                 DestroyImmediate(_currentDropIndicator);
             }
 
-            // Cleanup ghost object
-            if (_currentPlacementObject != null)
+            // Cleanup placement object via PlacementSystem
+            GameObject currentPlacementObject = _placementSystem?.CurrentObject;
+            if (currentPlacementObject != null)
             {
-                DestroyImmediate(_currentPlacementObject);
+                DestroyImmediate(currentPlacementObject);
             }
         }
     }

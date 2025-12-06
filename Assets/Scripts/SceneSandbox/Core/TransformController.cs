@@ -35,6 +35,7 @@ namespace SceneSandbox.Core
         [Header("Events")]
         public UnityEvent<TransformModeType> OnTransformModeChanged = new UnityEvent<TransformModeType>();
         public UnityEvent<TransformAxis> OnTransformAxisChanged = new UnityEvent<TransformAxis>();
+        public UnityEvent<GameObject> OnTransformChanged = new UnityEvent<GameObject>();
 
         // Internal state
         private TransformModeType _currentMode = TransformModeType.Position;
@@ -226,6 +227,7 @@ namespace SceneSandbox.Core
                 }
 
                 obj.transform.position = newPosition;
+                OnTransformChanged?.Invoke(obj);
             }
         }
 
@@ -240,6 +242,7 @@ namespace SceneSandbox.Core
 
                 Vector3 rotationAxis = GetAxisVector(_currentAxis);
                 obj.transform.Rotate(rotationAxis, rotationDelta, Space.World);
+                OnTransformChanged?.Invoke(obj);
             }
         }
 
@@ -260,6 +263,7 @@ namespace SceneSandbox.Core
                 newScale = Vector3.Min(newScale, _maxScale);
 
                 obj.transform.localScale = newScale;
+                OnTransformChanged?.Invoke(obj);
             }
         }
 
@@ -279,6 +283,147 @@ namespace SceneSandbox.Core
                 newScale = Vector3.Min(newScale, _maxScale);
 
                 obj.transform.localScale = newScale;
+                OnTransformChanged?.Invoke(obj);
+            }
+        }
+
+        /// <summary>
+        /// Apply a specific world position to target objects
+        /// </summary>
+        public void ApplyTransformPosition(Vector3 worldPosition, List<GameObject> targets = null)
+        {
+            if (targets == null || targets.Count == 0)
+            {
+                targets = _selectionManager?.GetSelectedObjects();
+                if (targets == null || targets.Count == 0) return;
+            }
+
+            foreach (var obj in targets)
+            {
+                if (obj == null) continue;
+
+                Vector3 newPosition = worldPosition;
+
+                // Apply grid snapping if enabled
+                if (_gridManager != null && _gridManager.Enabled)
+                {
+                    newPosition = _gridManager.GetSnappedPosition(newPosition);
+                }
+
+                obj.transform.position = newPosition;
+                OnTransformChanged?.Invoke(obj);
+            }
+        }
+
+        /// <summary>
+        /// Apply a specific euler angle rotation to target objects
+        /// </summary>
+        public void ApplyTransformRotation(Vector3 eulerAngles, List<GameObject> targets = null)
+        {
+            if (targets == null || targets.Count == 0)
+            {
+                targets = _selectionManager?.GetSelectedObjects();
+                if (targets == null || targets.Count == 0) return;
+            }
+
+            foreach (var obj in targets)
+            {
+                if (obj == null) continue;
+                obj.transform.eulerAngles = eulerAngles;
+                OnTransformChanged?.Invoke(obj);
+            }
+        }
+
+        /// <summary>
+        /// Apply specific position, rotation, and scale to target objects
+        /// </summary>
+        public void ApplyTransformPositionRotationScale(Vector3 position, Vector3 eulerAngles, Vector3 scale, List<GameObject> targets = null)
+        {
+            if (targets == null || targets.Count == 0)
+            {
+                targets = _selectionManager?.GetSelectedObjects();
+                if (targets == null || targets.Count == 0) return;
+            }
+
+            foreach (var obj in targets)
+            {
+                if (obj == null) continue;
+
+                // Apply position with grid snapping if enabled
+                Vector3 newPosition = position;
+                if (_gridManager != null && _gridManager.Enabled)
+                {
+                    newPosition = _gridManager.GetSnappedPosition(newPosition);
+                }
+                obj.transform.position = newPosition;
+
+                // Apply rotation
+                obj.transform.eulerAngles = eulerAngles;
+
+                // Apply scale with constraints
+                Vector3 constrainedScale = scale;
+                constrainedScale = Vector3.Max(constrainedScale, _minScale);
+                constrainedScale = Vector3.Min(constrainedScale, _maxScale);
+                obj.transform.localScale = constrainedScale;
+
+                OnTransformChanged?.Invoke(obj);
+            }
+        }
+
+        /// <summary>
+        /// Set position on TransformableItem with grid info
+        /// </summary>
+        public void SetTransformableItemPosition(Vector3 position, TransformableItem item = null)
+        {
+            if (item == null)
+            {
+                // Use first selected item
+                var selectedItems = _selectionManager?.SelectedItems;
+                if (selectedItems == null || selectedItems.Count == 0) return;
+                item = selectedItems[0];
+            }
+
+            if (item == null) return;
+
+            // Create GridInfo from grid manager
+            GridInfo gridInfo = new GridInfo(
+                enableSnap: _gridManager?.Enabled ?? false,
+                gridSize: _gridManager?.CellSize ?? 1f,
+                gridOffset: _gridManager?.Offset ?? Vector3.zero
+            );
+
+            // Call SetPosition with grid info
+            item.SetPosition(position, gridInfo);
+            OnTransformChanged?.Invoke(item.gameObject);
+        }
+
+        /// <summary>
+        /// Set position on multiple TransformableItems with grid info
+        /// </summary>
+        public void SetTransformableItemsPosition(Vector3 position, List<TransformableItem> items = null)
+        {
+            if (items == null || items.Count == 0)
+            {
+                // Use all selected items
+                items = _selectionManager?.SelectedItems;
+                if (items == null || items.Count == 0) return;
+            }
+
+            // Create GridInfo from grid manager
+            GridInfo gridInfo = new GridInfo(
+                enableSnap: _gridManager?.Enabled ?? false,
+                gridSize: _gridManager?.CellSize ?? 1f,
+                gridOffset: _gridManager?.Offset ?? Vector3.zero
+            );
+
+            // Call SetPosition with grid info for each item
+            foreach (var item in items)
+            {
+                if (item != null)
+                {
+                    item.SetPosition(position, gridInfo);
+                    OnTransformChanged?.Invoke(item.gameObject);
+                }
             }
         }
 
@@ -327,6 +472,42 @@ namespace SceneSandbox.Core
                 }
             }
             _activeTransformItems.Clear();
+        }
+
+        /// <summary>
+        /// Increase transform value for the current selection
+        /// </summary>
+        public void IncreaseTransformValue()
+        {
+            var selectedItems = _selectionManager?.SelectedItems;
+            if (selectedItems != null && selectedItems.Count > 0)
+            {
+                foreach (var item in selectedItems)
+                {
+                    if (item != null)
+                    {
+                        item.IncreaseTransformValue();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Decrease transform value for the current selection
+        /// </summary>
+        public void DecreaseTransformValue()
+        {
+            var selectedItems = _selectionManager?.SelectedItems;
+            if (selectedItems != null && selectedItems.Count > 0)
+            {
+                foreach (var item in selectedItems)
+                {
+                    if (item != null)
+                    {
+                        item.DecreaseTransformValue();
+                    }
+                }
+            }
         }
 
         private void UpdateActiveTransformItemsMode()

@@ -56,7 +56,7 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "unity-sandbox-director.sln",
+    "dotnet.defaultSolution": "unity-sandbox-director.slnx",
     "chat.promptFilesRecommendations": {
         "speckit.constitution": true,
         "speckit.specify": true,

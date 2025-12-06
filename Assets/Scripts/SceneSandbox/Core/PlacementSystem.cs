@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -14,7 +16,7 @@ namespace SceneSandbox.Core
         [SerializeField] private bool _debugLogs = false;
 
         [Header("Dependencies")]
-        [SerializeField] private SceneSandbox.Data.SceneObjectLibrary _objectLibrary;
+        [SerializeField] private Data.SceneObjectLibrary _objectLibrary;
         [SerializeField] private GridManager _gridManager;
         [SerializeField] private CameraRaycaster _cameraRaycaster;
         [SerializeField] private Transform _stageArea;
@@ -26,11 +28,18 @@ namespace SceneSandbox.Core
         [SerializeField] private LayerMask _selectionLayers = -1;
         [SerializeField] private float _maxRaycastDistance = 100f;
 
+        [Header("Validation Settings")]
+        [SerializeField] private bool _checkCollisions = true;
+        [SerializeField] private LayerMask _collisionLayers = -1;
+        [SerializeField] private LayerMask _groundLayers = 0;
+        [SerializeField] private bool _ignoreStaticObjects = true;
+        [SerializeField] private bool _requireSurfaceBelow = false;
+
         [Header("Events")]
-        public UnityEvent<string> OnPlacementStarted = new UnityEvent<string>();
+        public UnityEvent<string, GameObject> OnPlacementStarted = new UnityEvent<string, GameObject>();
         public UnityEvent<Vector3> OnPlacementUpdated = new UnityEvent<Vector3>();
-        public UnityEvent<GameObject> OnPlacementConfirmed = new UnityEvent<GameObject>();
-        public UnityEvent OnPlacementCancelled = new UnityEvent();
+        public UnityEvent<string, GameObject> OnPlacementConfirmed = new UnityEvent<string, GameObject>();
+        public UnityEvent<GameObject> OnPlacementCancelled = new UnityEvent<GameObject>();
         public UnityEvent<Vector3> OnDropIndicatorShown = new UnityEvent<Vector3>();
         public UnityEvent<Vector3> OnDropIndicatorUpdated = new UnityEvent<Vector3>();
         public UnityEvent OnDropIndicatorHidden = new UnityEvent();
@@ -40,9 +49,14 @@ namespace SceneSandbox.Core
         private GameObject _currentObject;
         private Vector2 _lastScreenPosition;
         private PlacementState _state = PlacementState.Idle;
+        private bool _isValidPlacementCurrentPosition = true;
+        
+        // Placed objects tracking
+        private Dictionary<string, GameObject> _placedObjects = new Dictionary<string, GameObject>();
 
-        public void Initialize(SceneSandbox.Data.SceneObjectLibrary library, GridManager gridManager, CameraRaycaster cameraRaycaster, Transform stageArea,
-            bool snapToGrid, float rotationSnapDegrees, LayerMask placementLayers, float maxRaycastDistance, LayerMask selectionLayers)
+        public void Initialize(Data.SceneObjectLibrary library, GridManager gridManager, CameraRaycaster cameraRaycaster, Transform stageArea,
+            bool snapToGrid, float rotationSnapDegrees, LayerMask placementLayers, float maxRaycastDistance, LayerMask selectionLayers,
+            bool checkCollisions = true, LayerMask collisionLayers = default, LayerMask groundLayers = default, bool ignoreStaticObjects = true, bool requireSurfaceBelow = false)
         {
             _objectLibrary = library;
             _gridManager = gridManager;
@@ -53,6 +67,13 @@ namespace SceneSandbox.Core
             _placementLayers = placementLayers;
             _maxRaycastDistance = maxRaycastDistance;
             _selectionLayers = selectionLayers;
+            
+            // Validation settings
+            _checkCollisions = checkCollisions;
+            _collisionLayers = collisionLayers;
+            _groundLayers = groundLayers;
+            _ignoreStaticObjects = ignoreStaticObjects;
+            _requireSurfaceBelow = requireSurfaceBelow;
         }
 
         public void StartPlacement(string objectDataId, Vector2 screenPosition)
@@ -60,7 +81,26 @@ namespace SceneSandbox.Core
             _currentObjectId = objectDataId;
             _lastScreenPosition = screenPosition;
             _state = PlacementState.Active;
-            OnPlacementStarted.Invoke(objectDataId);
+            OnPlacementStarted.Invoke(objectDataId, _currentObject);
+        }
+
+        /// <summary>
+        /// Start placement using the currently stored objectId (_currentObjectId).
+        /// If _currentObjectId is null, automatically fetches the first item via SwitchNextPlacement.
+        /// </summary>
+        public void StartPlacement(Vector2 screenPosition)
+        {
+            if (string.IsNullOrEmpty(_currentObjectId))
+            {
+                string firstObjectId = SwitchNextPlacement();
+
+                if (string.IsNullOrEmpty(firstObjectId))
+                {
+                    return;
+                }
+            }
+
+            StartPlacementAndCreate(_currentObjectId, screenPosition);
         }
 
         /// <summary>
@@ -82,7 +122,7 @@ namespace SceneSandbox.Core
             _currentObject = created;
 
             // Emit events for listeners
-            OnPlacementStarted.Invoke(objectDataId);
+            OnPlacementStarted.Invoke(objectDataId, _currentObject);
             if (created != null)
             {
                 OnPlacementUpdated.Invoke(worldPos);
@@ -96,7 +136,7 @@ namespace SceneSandbox.Core
             _currentObject = objectPrefab;
             _lastScreenPosition = screenPosition ?? Vector2.zero;
             _state = PlacementState.Active;
-            OnPlacementStarted.Invoke(objectPrefab.name);
+            OnPlacementStarted.Invoke(null, _currentObject);
         }
 
         public void UpdatePlacement(Vector2 screenPosition)
@@ -106,39 +146,147 @@ namespace SceneSandbox.Core
 
             // Calculate world position from screen position
             Vector3 worldPosition = ComputeWorldPositionFromScreen(screenPosition, _maxRaycastDistance, _placementLayers);
-            
+
             // Apply grid snapping if enabled
             worldPosition = ApplyGridSnap(worldPosition);
-            
+
+            // Validate placement position
+            if (_currentObject != null && _checkCollisions)
+            {
+                Bounds bounds = GetObjectBounds(_currentObject);
+                Vector3 sizeExtents = bounds.extents;
+                Quaternion rotation = _currentObject.transform.rotation;
+                
+                bool isValid = ValidatePlacementPosition(
+                    worldPosition,
+                    sizeExtents,
+                    rotation,
+                    _collisionLayers,
+                    _groundLayers,
+                    _ignoreStaticObjects,
+                    _requireSurfaceBelow,
+                    _placementLayers
+                );
+                
+                SetPlacementPositionValidity(isValid);
+            }
+
             if (_debugLogs) Debug.Log($"OnPlacementUpdated called with screenPosition: {screenPosition}, worldPosition: {worldPosition}");
 
             OnPlacementUpdated.Invoke(worldPosition);
         }
 
-        public void ConfirmPlacement(GameObject placedObject)
+        /// <summary>
+        /// Set whether the current placement position is valid
+        /// </summary>
+        private void SetPlacementPositionValidity(bool isValid)
         {
+            _isValidPlacementCurrentPosition = isValid;
+        }
+
+        public void ConfirmPlacement()
+        {
+            if(_state != PlacementState.Active) return;
+
+            if(_isValidPlacementCurrentPosition == false)
+            {
+                Debug.LogWarning("[PlacementSystem] Cannot confirm placement: current position is invalid.");
+                return;
+            }
+
+            OnPlacementConfirmed.Invoke(_currentObjectId, _currentObject);
+            OnDropIndicatorHidden.Invoke();
+            
             _currentObject = null;
             _currentObjectId = null;
             _state = PlacementState.Idle;
-            OnPlacementConfirmed.Invoke(placedObject);
-            // Hide indicator on confirm
-            OnDropIndicatorHidden.Invoke();
         }
 
         public GameObject CancelPlacement()
         {
             GameObject obj = _currentObject;
+            
+            // Remove from tracking if it was a placed object
+            if (obj != null)
+            {
+                var transformable = obj.GetComponent<TransformableItem>();
+                if (transformable != null)
+                {
+                    string placedId = transformable.ObjectId;
+                    if (!string.IsNullOrEmpty(placedId) && _placedObjects.ContainsKey(placedId))
+                    {
+                        _placedObjects.Remove(placedId);
+                    }
+                }
+                
+                Destroy(obj);
+            }
+            
             _state = PlacementState.Cancelling;
-            OnPlacementCancelled.Invoke();
+            OnPlacementCancelled.Invoke(obj);
             OnDropIndicatorHidden.Invoke();
             _currentObjectId = null;
             _currentObject = null;
             _state = PlacementState.Idle;
+            _isValidPlacementCurrentPosition = true;
             return obj;
         }
 
         public bool IsActive => _state == PlacementState.Active;
         public PlacementState State => _state;
+        public string CurrentObjectId => _currentObjectId;
+        public GameObject CurrentObject => _currentObject;
+        public bool IsValidPlacementCurrentPosition => _isValidPlacementCurrentPosition;
+        
+        /// <summary>
+        /// Get a read-only view of all currently placed objects
+        /// </summary>
+        public IReadOnlyDictionary<string, GameObject> PlacedObjects => _placedObjects;
+
+        /// <summary>
+        /// Switch to the next object in the library and store it in _currentObjectId.
+        /// Returns the next object ID or null if library is empty.
+        /// </summary>
+        public string SwitchNextPlacement()
+        {
+            if (_objectLibrary == null)
+            {
+                Debug.LogError("[PlacementSystem] ObjectLibrary is not set.");
+                return null;
+            }
+
+            var allObjects = _objectLibrary.GetAllObjects();
+            if (allObjects == null || allObjects.Count == 0)
+            {
+                Debug.LogWarning("[PlacementSystem] ObjectLibrary is empty.");
+                return null;
+            }
+
+            // Find current index
+            int currentIndex = -1;
+            if (!string.IsNullOrEmpty(_currentObjectId))
+            {
+                for (int i = 0; i < allObjects.Count; i++)
+                {
+                    if (allObjects[i].id == _currentObjectId)
+                    {
+                        currentIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            // Get next index (wrap around)
+            int nextIndex = (currentIndex + 1) % allObjects.Count;
+            _currentObjectId = allObjects[nextIndex].id;
+
+            if (_debugLogs)
+            {
+                Debug.Log($"[PlacementSystem] Switched to next object: {_currentObjectId} ({allObjects[nextIndex].displayName})");
+            }
+
+            return _currentObjectId;
+        }
 
         // Drop indicator hooks (non-breaking): only emit events, no visuals created here
         public void ShowDropIndicator(Vector3 worldPosition)
@@ -160,9 +308,10 @@ namespace SceneSandbox.Core
 
         /// <summary>
         /// Instantiate and place an object from the library under the stage area.
+        /// Supports optional scale and rotation overrides.
         /// Non-breaking: returns the created GameObject, builder handles scene config.
         /// </summary>
-        public GameObject PlaceObject(string objectDataId, Vector3 position)
+        public GameObject PlaceObject(string objectDataId, Vector3 worldPos, Vector3? overrideScale = null, Vector3? overrideRulerAngles = null)
         {
             if (_objectLibrary == null || _stageArea == null)
             {
@@ -178,7 +327,7 @@ namespace SceneSandbox.Core
             }
 
             // Instantiate under stage
-            GameObject newObject = GameObject.Instantiate(objectData.prefab, _stageArea);
+            GameObject newObject = Instantiate(objectData.prefab, _stageArea);
             newObject.name = objectData.displayName;
 
             // Ensure TransformableItem component
@@ -190,16 +339,84 @@ namespace SceneSandbox.Core
 
             // Apply grid snapping if enabled
             SyncGridManagerSettingsInternal();
-            Vector3 targetPosition = ApplyGridSnap(position);
+            Vector3 targetPosition = ApplyGridSnap(worldPos);
             newObject.transform.position = targetPosition;
 
-            // Apply scale (preserve prefab scale if defaultScale is zero)
-            Vector3 targetScale = objectData.defaultScale == Vector3.zero ? objectData.prefab.transform.localScale : objectData.defaultScale;
+            // Apply rotation (override or use prefab rotation)
+            if (overrideRulerAngles.HasValue)
+            {
+                newObject.transform.eulerAngles = overrideRulerAngles.Value;
+            }
+            else
+            {
+                newObject.transform.eulerAngles = objectData.prefab.transform.eulerAngles;
+            }
+
+            // Apply scale (override, or preserve prefab scale if defaultScale is zero)
+            Vector3 targetScale;
+            if (overrideScale.HasValue)
+            {
+                targetScale = overrideScale.Value;
+            }
+            else if (objectData.defaultScale != Vector3.zero)
+            {
+                targetScale = objectData.defaultScale;
+            }
+            else
+            {
+                targetScale = objectData.prefab.transform.localScale;
+            }
             newObject.transform.localScale = targetScale;
 
             // Assign object data and generate placed ID
             string placedObjectId = System.Guid.NewGuid().ToString();
             transformable.SetObjectData(objectDataId, placedObjectId);
+            
+            // Track the placed object
+            _placedObjects[placedObjectId] = newObject;
+
+            return newObject;
+        }
+
+        /// <summary>
+        /// Place an object using PlacedObjectData
+        /// </summary>
+        public GameObject PlaceObject(Data.PlacedObjectData placedObjectData)
+        {
+            if (_objectLibrary == null || _stageArea == null)
+            {
+                Debug.LogError("[PlacementSystem] ObjectLibrary or StageArea is not set.");
+                return null;
+            }
+
+            var objectData = _objectLibrary.GetObjectById(placedObjectData.objectDataId);
+            if (objectData == null || objectData.prefab == null)
+            {
+                Debug.LogError($"[PlacementSystem] Invalid object data for ID: {placedObjectData.objectDataId}");
+                return null;
+            }
+
+            // Instantiate under stage
+            GameObject newObject = Instantiate(objectData.prefab, _stageArea);
+            newObject.name = placedObjectData.customName ?? objectData.displayName;
+
+            // Ensure TransformableItem component
+            var transformable = newObject.GetComponent<TransformableItem>();
+            if (transformable == null)
+            {
+                transformable = newObject.AddComponent<TransformableItem>();
+            }
+
+            // Apply transforms from PlacedObjectData
+            newObject.transform.position = placedObjectData.position;
+            newObject.transform.eulerAngles = placedObjectData.rotation;
+            newObject.transform.localScale = placedObjectData.scale;
+
+            // Assign object data using the placed object ID
+            transformable.SetObjectData(placedObjectData.objectDataId, placedObjectData.id);
+
+            // Track the placed object
+            _placedObjects[placedObjectData.id] = newObject;
 
             return newObject;
         }
@@ -281,6 +498,26 @@ namespace SceneSandbox.Core
         }
 
         /// <summary>
+        /// Get the bounds of a game object including all renderers
+        /// </summary>
+        private Bounds GetObjectBounds(GameObject obj)
+        {
+            Bounds bounds = new Bounds(obj.transform.position, Vector3.zero);
+            var renderers = obj.GetComponentsInChildren<Renderer>();
+
+            if (renderers.Length > 0)
+            {
+                bounds = renderers[0].bounds;
+                for (int i = 1; i < renderers.Length; i++)
+                {
+                    bounds.Encapsulate(renderers[i].bounds);
+                }
+            }
+
+            return bounds;
+        }
+
+        /// <summary>
         /// Perform raycast to detect TransformableItem
         /// </summary>
         public TransformableItem RaycastForItem(Vector2 screenPosition)
@@ -308,6 +545,82 @@ namespace SceneSandbox.Core
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Remove an object from the placed objects tracking
+        /// </summary>
+        public bool RemovePlacedObject(string placedObjectId)
+        {
+            if (_placedObjects.ContainsKey(placedObjectId))
+            {
+                _placedObjects.Remove(placedObjectId);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Remove an object from the placed objects tracking by GameObject
+        /// </summary>
+        public bool RemovePlacedObject(GameObject obj)
+        {
+            if (obj == null) return false;
+
+            var transformable = obj.GetComponent<TransformableItem>();
+            if (transformable != null)
+            {
+                string placedId = transformable.ObjectId;
+                return RemovePlacedObject(placedId);
+            }
+
+            // Fallback: search by value
+            var kvp = _placedObjects.FirstOrDefault(x => x.Value == obj);
+            if (kvp.Key != null)
+            {
+                _placedObjects.Remove(kvp.Key);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Get a placed object by its ID
+        /// </summary>
+        public GameObject GetPlacedObject(string placedObjectId)
+        {
+            if (_placedObjects.TryGetValue(placedObjectId, out GameObject obj))
+            {
+                return obj;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Clear all tracked placed objects (optionally destroying them)
+        /// </summary>
+        public void ClearPlacedObjects(bool destroyGameObjects = true)
+        {
+            if (destroyGameObjects)
+            {
+                foreach (var obj in _placedObjects.Values)
+                {
+                    if (obj != null)
+                    {
+                        Destroy(obj);
+                    }
+                }
+            }
+            _placedObjects.Clear();
+        }
+
+        /// <summary>
+        /// Get the count of all placed objects
+        /// </summary>
+        public int GetPlacedObjectCount()
+        {
+            return _placedObjects.Count;
         }
     }
 }
