@@ -171,11 +171,7 @@ namespace SceneSandbox.Core
         private List<TransformableItem> _activeTransformItems = new List<TransformableItem>();
 
         // State
-        private SceneConfiguration _currentScene;
-        private SandboxProjectData _currentProject;
-        private Dictionary<string, GameObject> _placedObjects;
         private GameObject _selectedObject;
-        private List<GameObject> _previewObjects;
 
         // Drop Indicator State
         private GameObject _currentDropIndicator;
@@ -208,10 +204,10 @@ namespace SceneSandbox.Core
         public SandboxModeEvent OnModeChanged => _onModeChanged;
 
         // Properties
-        public SceneConfiguration CurrentScene => _sceneSerializer?.CurrentScene ?? _currentScene;
-        public SandboxProjectData CurrentProject => _sceneSerializer?.CurrentProject ?? _currentProject;
+        public SceneConfiguration CurrentScene => _sceneSerializer.CurrentScene;
+        public SandboxProjectData CurrentProject => _sceneSerializer.CurrentProject;
         public SceneObjectLibrary ObjectLibrary => _objectLibrary;
-        public bool IsInPreviewMode => _previewController?.IsInPreviewMode ?? (_previewObjects?.Count > 0);
+        public bool IsInPreviewMode => _previewController.IsInPreviewMode;
         public GameObject SelectedObject => _selectedObject;
         public bool GizmosEnabled => _enableGizmos;
         public bool SceneGizmosEnabled => _enableSceneGizmos;
@@ -221,8 +217,8 @@ namespace SceneSandbox.Core
         public Vector3 GridOffset => _gridOffset;
         public PivotPoint GridPivotOffset => _gridPivotOffset;
         public bool DropIndicatorEnabled => _enableDropIndicator;
-        public PlacementState CurrentPlacementState => _placementSystem?.State ?? PlacementState.Idle;
-        public bool IsPlacementActive => _placementSystem?.IsActive ?? false;
+        public PlacementState CurrentPlacementState => _placementSystem.State;
+        public bool IsPlacementActive => _placementSystem.IsActive;
         public TransformModeType CurrentTransformMode => _currentTransformMode;
         public TransformAxis CurrentTransformAxis => _currentTransformAxis;
         public SandboxMode CurrentMode => _currentMode;
@@ -303,7 +299,7 @@ namespace SceneSandbox.Core
                 }
 
                 // Exit all transform modes
-                _selectionManager?.ExitAllTransformModes();
+                _selectionManager.ExitAllTransformModes();
 
                 // Disable build-related input actions
                 DisableBuildInputActions();
@@ -380,7 +376,7 @@ namespace SceneSandbox.Core
             }
 
             // Create new scene if no project was loaded
-            if (_currentProject == null)
+            if (_sceneSerializer.CurrentProject == null)
             {
                 CreateNewScene();
             }
@@ -508,7 +504,7 @@ namespace SceneSandbox.Core
                 _placementSystem.OnPlacementUpdated.AddListener((Vector3 worldPos) =>
                 {
                     // Get current placement object from PlacementSystem
-                    GameObject currentObject = _placementSystem?.CurrentObject;
+                    GameObject currentObject = _placementSystem.CurrentObject;
                     if (currentObject == null)
                     {
                         return;
@@ -541,15 +537,8 @@ namespace SceneSandbox.Core
                         customName = draggable?.name ?? obj.name
                     };
 
-                    // Register with SceneSerializer (Phase 3.1: non-breaking)
-                    if (_sceneSerializer != null)
-                    {
-                        _sceneSerializer.RegisterPlacedObject(placedObjectData);
-                    }
-                    else if (_currentScene != null)
-                    {
-                        _currentScene.CreateOrUpdatePlacedObject(placedObjectData);
-                    }
+                    // Register with SceneSerializer
+                    _sceneSerializer.RegisterPlacedObject(placedObjectData);
 
                     _onObjectPlaced?.Invoke(obj);
                 });
@@ -563,15 +552,8 @@ namespace SceneSandbox.Core
                         if (draggable != null)
                         {
                             string objectId = draggable.ObjectId;
-                            // Unregister with SceneSerializer (Phase 3.1: non-breaking)
-                            if (_sceneSerializer != null)
-                            {
-                                _sceneSerializer.UnregisterPlacedObject(objectId);
-                            }
-                            else if (_currentScene != null)
-                            {
-                                _currentScene.RemovePlacedObject(objectId);
-                            }
+                            // Unregister with SceneSerializer
+                            _sceneSerializer.UnregisterPlacedObject(objectId);
                         }
                         Destroy(obj);
                     }
@@ -593,13 +575,13 @@ namespace SceneSandbox.Core
                 _selectionManager.OnObjectSelected.RemoveAllListeners();
                 _selectionManager.OnObjectSelected.AddListener((GameObject obj) =>
                 {
-                    _placementSystem?.StartPlacement(obj);
+                    _placementSystem.StartPlacement(obj);
                 });
 
                 _selectionManager.OnObjectDeselected.RemoveAllListeners();
                 _selectionManager.OnObjectDeselected.AddListener((GameObject obj) =>
                 {
-                    _placementSystem?.CancelPlacement();
+                    _placementSystem.CancelPlacement();
                 });
 
                 _selectionManager.OnSelectionChanged.RemoveAllListeners();
@@ -641,27 +623,13 @@ namespace SceneSandbox.Core
                     var draggable = obj.GetComponent<TransformableItem>();
                     if (draggable != null)
                     {
-                        // Update via SceneSerializer (Phase 3.1: non-breaking)
-                        if (_sceneSerializer != null)
-                        {
-                            _sceneSerializer.UpdateObjectInScene(
-                                draggable.ObjectId,
-                                obj.transform.position,
-                                obj.transform.eulerAngles,
-                                obj.transform.localScale
-                            );
-                        }
-                        else if (_currentScene != null)
-                        {
-                            var placedData = _currentScene.GetPlacedObject(draggable.ObjectId);
-                            if (placedData != null)
-                            {
-                                placedData.position = obj.transform.position;
-                                placedData.rotation = obj.transform.eulerAngles;
-                                placedData.scale = obj.transform.localScale;
-                                _currentScene.CreateOrUpdatePlacedObject(placedData);
-                            }
-                        }
+                        // Update via SceneSerializer
+                        _sceneSerializer.UpdateObjectInScene(
+                            draggable.ObjectId,
+                            obj.transform.position,
+                            obj.transform.eulerAngles,
+                            obj.transform.localScale
+                        );
                     }
                 });
             }
@@ -680,9 +648,8 @@ namespace SceneSandbox.Core
                 // Subscribe to serialization events (non-breaking: integrate with existing behavior)
                 _sceneSerializer.OnSceneLoaded += (scene) =>
                 {
-                    // Sync with builder's scene reference
-                    _currentScene = scene;
-                    _currentSceneName = scene?.sceneName ?? "Untitled Scene";
+                    // Sync with builder's scene name
+                    _currentSceneName = scene.sceneName;
                 };
 
                 _sceneSerializer.OnSceneSaved += (scene) =>
@@ -720,7 +687,7 @@ namespace SceneSandbox.Core
             if (_inputManager != null)
             {
                 _inputManager.OnToggleMode += () => { Debug.Log("[InputManager] ToggleMode"); ToggleMode(); };
-                _inputManager.OnExitAllModes += () => _selectionManager?.ExitAllTransformModes();
+                _inputManager.OnExitAllModes += () => _selectionManager.ExitAllTransformModes();
                 _inputManager.OnMoveHotkey += () => OnMoveHotkeyPerformed(default);
                 _inputManager.OnRotateHotkey += () => OnRotateHotkeyPerformed(default);
                 _inputManager.OnScaleHotkey += () => OnScaleHotkeyPerformed(default);
@@ -769,9 +736,6 @@ namespace SceneSandbox.Core
 
         private void InitializeState()
         {
-            _placedObjects = new Dictionary<string, GameObject>();
-            _previewObjects = new List<GameObject>();
-
             // Don't create drop indicator here - create it when first needed
             // This avoids potential issues with early initialization
         }
@@ -804,25 +768,11 @@ namespace SceneSandbox.Core
                 return;
             }
 
-            // Track in scene configuration and local dictionary
-            var draggable = created.GetComponent<TransformableItem>() ?? created.AddComponent<TransformableItem>();
-            string placedObjectId = draggable.ObjectId;
-            var objectData = _objectLibrary?.GetObjectById(objectDataId);
-            var placedObjectData = new Data.PlacedObjectData(objectDataId, created.transform.position)
+            // Ensure TransformableItem component exists
+            var draggable = created.GetComponent<TransformableItem>();
+            if (draggable == null)
             {
-                id = placedObjectId,
-                rotation = created.transform.eulerAngles,
-                scale = created.transform.localScale,
-                customName = objectData?.displayName ?? created.name
-            };
-
-            if (_currentScene != null)
-            {
-                _currentScene.AddPlacedObject(placedObjectData);
-            }
-            if (!string.IsNullOrEmpty(placedObjectId))
-            {
-                _placedObjects[placedObjectId] = created;
+                draggable = created.AddComponent<TransformableItem>();
             }
 
             // Temporarily disable transformables during placement
@@ -839,8 +789,8 @@ namespace SceneSandbox.Core
         public GameObject ConfirmPlacement()
         {
             // Delegate confirmation to PlacementSystem (emits events and resets its state)
-            _placementSystem?.ConfirmPlacement();
-            return _placementSystem?.CurrentObject;
+            _placementSystem.ConfirmPlacement();
+            return _placementSystem.CurrentObject;
         }
 
         /// <summary>
@@ -848,7 +798,7 @@ namespace SceneSandbox.Core
         /// </summary>
         public void CancelPlacement()
         {
-            _placementSystem?.CancelPlacement();
+            _placementSystem.CancelPlacement();
         }
 
 
@@ -872,21 +822,6 @@ namespace SceneSandbox.Core
             return bounds;
         }
 
-        /// <summary>
-        /// Set layer for a GameObject and all its children recursively
-        /// </summary>
-        private void SetLayerRecursively(GameObject obj, int layer)
-        {
-            if (obj == null) return;
-
-            obj.layer = layer;
-
-            foreach (Transform child in obj.transform)
-            {
-                SetLayerRecursively(child.gameObject, layer);
-            }
-        }
-
         #endregion
         #region Public Interface
 
@@ -902,14 +837,10 @@ namespace SceneSandbox.Core
 
             string objectId = draggable.ObjectId;
 
-            // Remove from scene configuration
-            if (_currentScene != null && _currentScene.RemovePlacedObject(objectId))
+            // Remove from scene configuration via SceneSerializer
+            bool removed = _sceneSerializer.CurrentScene.RemovePlacedObject(objectId);
+            if (removed)
             {
-                if (_placedObjects != null)
-                {
-                    _placedObjects.Remove(objectId);
-                }
-
                 if (_selectedObject == obj)
                 {
                     SelectObject(null);
@@ -929,7 +860,9 @@ namespace SceneSandbox.Core
         /// </summary>
         public bool RemoveObject(string objectId)
         {
-            if (_placedObjects.TryGetValue(objectId, out GameObject obj))
+            // Find object by ID from scene and remove it
+            GameObject obj = GameObject.Find(objectId);
+            if (obj != null)
             {
                 return RemoveObject(obj);
             }
@@ -961,10 +894,10 @@ namespace SceneSandbox.Core
         {
             ClearScene();
 
-            _currentScene = new SceneConfiguration(sceneName ?? "New Scene");
-            _currentSceneName = _currentScene.sceneName;
+            var newScene = new SceneConfiguration(sceneName ?? "New Scene");
+            _currentSceneName = newScene.sceneName;
 
-            _onSceneLoaded?.Invoke(_currentScene);
+            _onSceneLoaded?.Invoke(newScene);
         }
 
         /// <summary>
@@ -1060,22 +993,23 @@ namespace SceneSandbox.Core
         /// </summary>
         public SandboxProjectMetadata GetCurrentProjectInfo()
         {
-            if (_currentProject == null)
+            var currentProject = _sceneSerializer.CurrentProject;
+            if (currentProject == null)
                 return null;
 
             // Update project from runtime state before getting info
-            SandboxProjectSerializer.UpdateProjectFromRuntimeState(_currentProject, this);
+            SandboxProjectSerializer.UpdateProjectFromRuntimeState(currentProject, this);
 
             return new SandboxProjectMetadata
             {
-                projectName = _currentProject.projectName,
+                projectName = currentProject.projectName,
                 filePath = GetDefaultProjectSavePath(),
-                created = _currentProject.created,
-                lastModified = _currentProject.lastModified,
-                description = _currentProject.description,
-                objectCount = _placedObjects?.Count ?? 0,
-                hasTimelineIntegration = _currentProject.hasTimelineIntegration,
-                sceneBounds = _currentProject.settings.sceneBounds
+                created = currentProject.created,
+                lastModified = currentProject.lastModified,
+                description = currentProject.description,
+                objectCount = _sceneSerializer.CurrentScene?.placedObjects.Count ?? 0,
+                hasTimelineIntegration = currentProject.hasTimelineIntegration,
+                sceneBounds = currentProject.settings.sceneBounds
             };
         }
         /// <summary>
@@ -1083,10 +1017,11 @@ namespace SceneSandbox.Core
         /// </summary>
         private void UpdateProjectSettingsFromBuilder()
         {
-            if (_currentProject?.settings == null)
+            var currentProject = _sceneSerializer.CurrentProject;
+            if (currentProject?.settings == null)
                 return;
 
-            var settings = _currentProject.settings;
+            var settings = currentProject.settings;
 
             // Update placement settings
             settings.snapToGrid = _snapToGrid;
@@ -1129,7 +1064,7 @@ namespace SceneSandbox.Core
             settings.autoPreview = _autoPreview;
             settings.previewDuration = _previewDuration;
 
-            _currentProject.lastModified = System.DateTime.Now;
+            currentProject.lastModified = System.DateTime.Now;
         }
 
         /// <summary>
@@ -1137,10 +1072,11 @@ namespace SceneSandbox.Core
         /// </summary>
         private void ApplyProjectSettingsToBuilder()
         {
-            if (_currentProject?.settings == null)
+            var currentProject = _sceneSerializer.CurrentProject;
+            if (currentProject?.settings == null)
                 return;
 
-            var settings = _currentProject.settings;
+            var settings = currentProject.settings;
 
             // Apply placement settings
             _snapToGrid = settings.snapToGrid;
@@ -1192,9 +1128,6 @@ namespace SceneSandbox.Core
             // Clear current state
             ClearScene();
 
-            // Set project
-            _currentProject = project;
-
             // Apply project settings to builder
             ApplyProjectSettingsToBuilder();
 
@@ -1212,12 +1145,12 @@ namespace SceneSandbox.Core
             else
             {
                 // Create default scene if none exists
-                _currentScene = new SceneConfiguration($"{project.projectName} Scene");
-                project.scenes.Add(_currentScene);
-                project.activeSceneId = _currentScene.sceneId;
+                var newScene = new SceneConfiguration($"{project.projectName} Scene");
+                project.scenes.Add(newScene);
+                project.activeSceneId = newScene.sceneId;
             }
 
-            _currentSceneName = _currentScene.sceneName;
+            _currentSceneName = _sceneSerializer.CurrentScene.sceneName;
         }
 
         /// <summary>
@@ -1225,23 +1158,21 @@ namespace SceneSandbox.Core
         /// </summary>
         private void CreateDefaultProject()
         {
-            if (_currentProject == null)
+            var currentProject = _sceneSerializer.CurrentProject;
+            var currentScene = _sceneSerializer.CurrentScene;
+            
+            if (currentProject == null)
             {
-                _currentProject = new SandboxProjectData(_currentSceneName ?? "Untitled Project");
+                _sceneSerializer.CreateNewProject(_currentSceneName ?? "Untitled Project");
+                currentProject = _sceneSerializer.CurrentProject;
             }
 
-            if (_currentScene == null)
+            if (currentScene == null)
             {
-                _currentScene = new SceneConfiguration(_currentSceneName ?? "New Scene");
+                var newScene = new SceneConfiguration(_currentSceneName ?? "New Scene");
+                // Note: SceneSerializer will manage scene assignment
             }
 
-            // Ensure current scene is in project
-            if (!_currentProject.scenes.Contains(_currentScene))
-            {
-                _currentProject.scenes.Add(_currentScene);
-            }
-
-            _currentProject.activeSceneId = _currentScene.sceneId;
             UpdateProjectSettingsFromBuilder();
         }
 
@@ -1250,7 +1181,8 @@ namespace SceneSandbox.Core
         /// </summary>
         private string GetDefaultProjectSavePath()
         {
-            string projectName = _currentProject?.projectName ?? _currentSceneName ?? "Untitled";
+            var currentProject = _sceneSerializer.CurrentProject;
+            string projectName = currentProject?.projectName ?? _currentSceneName ?? "Untitled";
             string safeName = SanitizeFileName(projectName);
             return System.IO.Path.Combine(_defaultProjectSavePath, $"{safeName}.sbproj");
         }
@@ -1264,26 +1196,30 @@ namespace SceneSandbox.Core
         /// </summary>
         public SceneConfiguration CreateNewSceneInProject(string sceneName = null)
         {
-            if (_currentProject == null)
+            var currentProject = _sceneSerializer.CurrentProject;
+            var currentScene = _sceneSerializer.CurrentScene;
+            
+            if (currentProject == null)
             {
                 CreateDefaultProject();
+                currentProject = _sceneSerializer.CurrentProject;
             }
 
             // Save current scene before switching and update it in the project's scene list
-            if (_currentScene != null)
+            if (currentScene != null)
             {
                 UpdateSceneConfiguration();
 
                 // Update the scene in the project's scenes list
-                int currentSceneIndex = _currentProject.scenes.FindIndex(s => s.sceneId == _currentScene.sceneId);
+                int currentSceneIndex = currentProject.scenes.FindIndex(s => s.sceneId == currentScene.sceneId);
                 if (currentSceneIndex >= 0)
                 {
-                    _currentProject.scenes[currentSceneIndex] = _currentScene;
+                    currentProject.scenes[currentSceneIndex] = currentScene;
                 }
             }
 
-            string name = sceneName ?? $"Scene {_currentProject.scenes.Count + 1}";
-            var newScene = _currentProject.AddScene(name);
+            string name = sceneName ?? $"Scene {currentProject.scenes.Count + 1}";
+            var newScene = currentProject.AddScene(name);
 
             // Switch to new scene (this will clear and load the empty new scene)
             SwitchToScene(newScene.sceneId);
@@ -1296,12 +1232,15 @@ namespace SceneSandbox.Core
         /// </summary>
         public bool SwitchToScene(string sceneId)
         {
-            if (_currentProject == null)
+            var currentProject = _sceneSerializer.CurrentProject;
+            var currentScene = _sceneSerializer.CurrentScene;
+            
+            if (currentProject == null)
             {
                 return false;
             }
 
-            var targetScene = _currentProject.GetScene(sceneId);
+            var targetScene = currentProject.GetScene(sceneId);
             if (targetScene == null)
             {
                 Debug.LogError($"Scene not found: {sceneId}");
@@ -1309,21 +1248,21 @@ namespace SceneSandbox.Core
             }
 
             // Save current scene state and update it in the project's scene list
-            if (_currentScene != null)
+            if (currentScene != null)
             {
                 UpdateSceneConfiguration();
 
                 // Update the scene in the project's scenes list
-                int currentSceneIndex = _currentProject.scenes.FindIndex(s => s.sceneId == _currentScene.sceneId);
+                int currentSceneIndex = currentProject.scenes.FindIndex(s => s.sceneId == currentScene.sceneId);
                 if (currentSceneIndex >= 0)
                 {
-                    _currentProject.scenes[currentSceneIndex] = _currentScene;
+                    currentProject.scenes[currentSceneIndex] = currentScene;
                 }
             }
 
             // Load target scene (LoadSceneConfiguration handles clearing internally)
             LoadSceneConfiguration(targetScene);
-            _currentProject.SetActiveScene(sceneId);
+            currentProject.SetActiveScene(sceneId);
 
             return true;
         }
@@ -1333,29 +1272,32 @@ namespace SceneSandbox.Core
         /// </summary>
         public bool DeleteSceneFromProject(string sceneId)
         {
-            if (_currentProject == null)
+            var currentProject = _sceneSerializer.CurrentProject;
+            var currentScene = _sceneSerializer.CurrentScene;
+            
+            if (currentProject == null)
             {
                 Debug.LogError("No project loaded");
                 return false;
             }
 
-            if (_currentProject.scenes.Count <= 1)
+            if (currentProject.scenes.Count <= 1)
             {
                 Debug.LogError("Cannot delete the last scene in project");
                 return false;
             }
 
             // If deleting current scene, switch to another first
-            if (_currentScene != null && _currentScene.sceneId == sceneId)
+            if (currentScene != null && currentScene.sceneId == sceneId)
             {
-                var otherScene = _currentProject.scenes.Find(s => s.sceneId != sceneId);
+                var otherScene = currentProject.scenes.Find(s => s.sceneId != sceneId);
                 if (otherScene != null)
                 {
                     SwitchToScene(otherScene.sceneId);
                 }
             }
 
-            bool removed = _currentProject.RemoveScene(sceneId);
+            bool removed = currentProject.RemoveScene(sceneId);
 
             return removed;
         }
@@ -1365,7 +1307,8 @@ namespace SceneSandbox.Core
         /// </summary>
         public List<SceneConfiguration> GetAllScenesInProject()
         {
-            return _currentProject?.scenes ?? new List<SceneConfiguration>();
+            var currentProject = _sceneSerializer.CurrentProject;
+            return currentProject?.scenes ?? new List<SceneConfiguration>();
         }
 
         /// <summary>
@@ -1373,7 +1316,10 @@ namespace SceneSandbox.Core
         /// </summary>
         public SceneConfiguration DuplicateCurrentScene()
         {
-            if (_currentScene == null || _currentProject == null)
+            var currentScene = _sceneSerializer.CurrentScene;
+            var currentProject = _sceneSerializer.CurrentProject;
+            
+            if (currentScene == null || currentProject == null)
             {
                 Debug.LogError("No scene or project loaded");
                 return null;
@@ -1383,22 +1329,22 @@ namespace SceneSandbox.Core
             UpdateSceneConfiguration();
 
             // Update the scene in the project's scenes list
-            int currentSceneIndex = _currentProject.scenes.FindIndex(s => s.sceneId == _currentScene.sceneId);
+            int currentSceneIndex = currentProject.scenes.FindIndex(s => s.sceneId == currentScene.sceneId);
             if (currentSceneIndex >= 0)
             {
-                _currentProject.scenes[currentSceneIndex] = _currentScene;
+                currentProject.scenes[currentSceneIndex] = currentScene;
             }
 
             // Create duplicate
-            var duplicate = new SceneConfiguration($"{_currentScene.sceneName} (Copy)");
-            duplicate.description = _currentScene.description;
-            duplicate.defaultCameraPosition = _currentScene.defaultCameraPosition;
-            duplicate.defaultCameraRotation = _currentScene.defaultCameraRotation;
-            duplicate.environmentColor = _currentScene.environmentColor;
-            duplicate.environmentLighting = _currentScene.environmentLighting;
+            var duplicate = new SceneConfiguration($"{currentScene.sceneName} (Copy)");
+            duplicate.description = currentScene.description;
+            duplicate.defaultCameraPosition = currentScene.defaultCameraPosition;
+            duplicate.defaultCameraRotation = currentScene.defaultCameraRotation;
+            duplicate.environmentColor = currentScene.environmentColor;
+            duplicate.environmentLighting = currentScene.environmentLighting;
 
             // Copy all placed objects
-            foreach (var obj in _currentScene.placedObjects)
+            foreach (var obj in currentScene.placedObjects)
             {
                 var objCopy = new Data.PlacedObjectData(obj.objectDataId, obj.position)
                 {
@@ -1411,7 +1357,7 @@ namespace SceneSandbox.Core
                 duplicate.placedObjects.Add(objCopy);
             }
 
-            _currentProject.scenes.Add(duplicate);
+            currentProject.scenes.Add(duplicate);
 
             return duplicate;
         }
@@ -1421,11 +1367,12 @@ namespace SceneSandbox.Core
         /// </summary>
         public void RenameCurrentScene(string newName)
         {
-            if (_currentScene != null)
+            var currentScene = _sceneSerializer.CurrentScene;
+            if (currentScene != null)
             {
-                _currentScene.sceneName = newName;
+                currentScene.sceneName = newName;
                 _currentSceneName = newName;
-                _currentScene.lastModified = System.DateTime.Now;
+                currentScene.lastModified = System.DateTime.Now;
             }
         }
 
@@ -1434,7 +1381,8 @@ namespace SceneSandbox.Core
         /// </summary>
         public int GetSceneCount()
         {
-            return _currentProject?.scenes.Count ?? 0;
+            var currentProject = _sceneSerializer.CurrentProject;
+            return currentProject?.scenes.Count ?? 0;
         }
 
         /// <summary>
@@ -1444,12 +1392,13 @@ namespace SceneSandbox.Core
         {
             var metadataList = new List<SceneMetadata>();
 
-            if (_currentProject == null)
+            var currentProject = _sceneSerializer.CurrentProject;
+            if (currentProject == null)
                 return metadataList;
 
-            string activeSceneId = _currentProject.activeSceneId;
+            string activeSceneId = currentProject.activeSceneId;
 
-            foreach (var scene in _currentProject.scenes)
+            foreach (var scene in currentProject.scenes)
             {
                 bool isActive = scene.sceneId == activeSceneId;
                 metadataList.Add(new SceneMetadata(scene, isActive));
@@ -1465,29 +1414,8 @@ namespace SceneSandbox.Core
         /// </summary>
         public void StartPreview()
         {
-            // Delegate to PreviewController (Phase 3.2: non-breaking)
-            if (_previewController != null)
-            {
-                _previewController.StartPreview();
-            }
-            else
-            {
-                // Fallback to legacy behavior
-                if (_timelineDirector == null || IsInPreviewMode) return;
-
-                StopPreview(); // Ensure clean state
-
-                // Create preview objects (snapshots of current scene)
-                CreatePreviewObjects();
-
-                // Set up timeline director with current scene
-                SetupTimelineForPreview();
-
-                // Start playback
-                _timelineDirector.Play();
-
-                _onPreviewStateChanged?.Invoke(true);
-            }
+            // Delegate to PreviewController
+            _previewController.StartPreview();
         }
 
         /// <summary>
@@ -1495,24 +1423,8 @@ namespace SceneSandbox.Core
         /// </summary>
         public void StopPreview()
         {
-            // Delegate to PreviewController (Phase 3.2: non-breaking)
-            if (_previewController != null)
-            {
-                _previewController.StopPreview();
-            }
-            else
-            {
-                // Fallback to legacy behavior
-                if (_timelineDirector != null)
-                {
-                    _timelineDirector.Stop();
-                }
-
-                // Clean up preview objects
-                CleanupPreviewObjects();
-
-                _onPreviewStateChanged?.Invoke(false);
-            }
+            // Delegate to PreviewController
+            _previewController.StopPreview();
         }
 
         /// <summary>
@@ -1770,7 +1682,7 @@ namespace SceneSandbox.Core
 
         private void OnExitAllModesPerformed(InputAction.CallbackContext context)
         {
-            _selectionManager?.ExitAllTransformModes();
+            _selectionManager.ExitAllTransformModes();
         }
 
         private void OnMoveHotkeyPerformed(InputAction.CallbackContext context)
@@ -1790,12 +1702,12 @@ namespace SceneSandbox.Core
 
         private void OnTransformModeIncreasePerformed(InputAction.CallbackContext context)
         {
-            _transformController?.IncreaseTransformValue();
+            _transformController.IncreaseTransformValue();
         }
 
         private void OnTransformModeDecreasePerformed(InputAction.CallbackContext context)
         {
-            _transformController?.DecreaseTransformValue();
+            _transformController.DecreaseTransformValue();
         }
 
         private void OnTransformModeToggleAxisPerformed(InputAction.CallbackContext context)
@@ -1807,7 +1719,7 @@ namespace SceneSandbox.Core
         {
             if (_placementSystem.IsActive)
             {
-                _placementSystem?.CancelPlacement();
+                _placementSystem.CancelPlacement();
             }
         }
 
@@ -1839,35 +1751,6 @@ namespace SceneSandbox.Core
 
 
             _placementSystem.StartPlacement(screenPosition);
-        }
-
-        #endregion
-
-        #region Selection Management
-
-        /// <summary>
-        /// Select an item
-        /// </summary>
-        private void SelectItem(TransformableItem item, bool overrideAutoEdit = false)
-        {
-            _selectionManager.SelectItem(item, overrideAutoEdit);
-
-        }
-
-        /// <summary>
-        /// Deselect an item
-        /// </summary>
-        private void DeselectItem(TransformableItem item)
-        {
-            _selectionManager.DeselectItem(item);
-        }
-
-        /// <summary>
-        /// Clear all selection
-        /// </summary>
-        private void ClearSelection()
-        {
-            _selectionManager.ClearSelection();
         }
 
         #endregion
@@ -1983,45 +1866,21 @@ namespace SceneSandbox.Core
             }
         }
 
-        private void UpdateObjectInScene(TransformableItem draggable)
-        {
-            if (_currentScene == null) return;
-
-            var placedObjectData = _currentScene.GetPlacedObject(draggable.ObjectId);
-            if (placedObjectData != null)
-            {
-                placedObjectData.position = draggable.transform.position;
-                placedObjectData.rotation = draggable.transform.eulerAngles;
-                placedObjectData.scale = draggable.transform.localScale;
-                _currentScene.lastModified = System.DateTime.Now;
-            }
-        }
-
         private void UpdateSceneConfiguration()
         {
-            foreach (var kvp in _placedObjects)
-            {
-                var obj = kvp.Value;
-                var draggable = obj.GetComponent<TransformableItem>();
-                if (draggable != null)
-                {
-                    UpdateObjectInScene(draggable);
-                }
-            }
+            // Scene configuration is now managed by SceneSerializer
+            // No action needed here as transforms are updated on-the-fly
         }
 
         private void LoadSceneConfiguration(SceneConfiguration sceneConfig)
         {
             // Clear current scene GameObjects and runtime state first
-            // Important: Clear before setting _currentScene to avoid clearing the new scene's data
+            // Important: Clear before setting scene to avoid clearing the new scene's data
             _placementSystem.ClearPlacedObjects();
             _selectionManager.ClearSelection();
 
-            // Now set the new scene (after clearing runtime state)
-            _currentScene = sceneConfig;
+            // Update scene name
             _currentSceneName = sceneConfig.sceneName;
-
-
 
             // Recreate all placed objects
             foreach (var placedObjectData in sceneConfig.placedObjects)
@@ -2029,7 +1888,7 @@ namespace SceneSandbox.Core
                 _placementSystem.PlaceObject(placedObjectData);
             }
 
-            _onSceneLoaded?.Invoke(_currentScene);
+            _onSceneLoaded?.Invoke(sceneConfig);
         }
 
         /// <summary>
@@ -2059,79 +1918,6 @@ namespace SceneSandbox.Core
             }
             SyncGridManagerSettings();
             return new GridInfo(_snapToGrid, _gridSize, _gridOffset);
-        }
-
-        private Vector3 GetSurfacePosition(Vector3 position)
-        {
-            // Calculate grid Y position based on scene bounds and pivots
-            float gridY = GetGridYPosition();
-            float defaultHeight = gridY + _defaultPlacementHeight; // Default height is relative to grid
-            float minimumHeight = gridY + _minimumPlacementHeight; // Minimum height is relative to grid
-
-            // If raycast placement is disabled, always use default placement height
-            if (!_useRaycastForPlacement)
-            {
-                Vector3 result = new Vector3(position.x, defaultHeight, position.z);
-                return result;
-            }
-
-            // Try to find surface through raycast
-            Vector3 rayStart = position + Vector3.up * 10f;
-            if (_cameraRaycaster != null)
-            {
-                var origMask = _cameraRaycaster.RaycastMask;
-                var origMax = _cameraRaycaster.MaxDistance;
-                _cameraRaycaster.RaycastMask = _placementLayers;
-                _cameraRaycaster.MaxDistance = 20f;
-                if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hitCamDown, _cameraRaycaster.MaxDistance, _cameraRaycaster.RaycastMask))
-                {
-                    float finalY = Mathf.Max(hitCamDown.point.y, minimumHeight);
-                    Vector3 resultCam = new Vector3(position.x, finalY, position.z);
-                    _cameraRaycaster.RaycastMask = origMask;
-                    _cameraRaycaster.MaxDistance = origMax;
-                    return resultCam;
-                }
-                _cameraRaycaster.RaycastMask = origMask;
-                _cameraRaycaster.MaxDistance = origMax;
-            }
-            if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, 20f, _placementLayers))
-            {
-                // Found surface, use the hit point's Y position but respect minimum height
-                float finalY = Mathf.Max(hit.point.y, minimumHeight);
-                Vector3 result = new Vector3(position.x, finalY, position.z);
-                return result;
-            }
-
-            // No surface found, use default placement height (respecting minimum)
-            float finalDefaultHeight = Mathf.Max(defaultHeight, minimumHeight);
-            Vector3 defaultResult = new Vector3(position.x, finalDefaultHeight, position.z);
-            return defaultResult;
-        }
-
-        private GameObject GetObjectAtScreenPosition(Vector2 screenPosition)
-        {
-            if (_sceneCamera == null) return null;
-
-            Ray ray = _sceneCamera.ScreenPointToRay(screenPosition);
-            if (_cameraRaycaster != null)
-            {
-                var origMask = _cameraRaycaster.RaycastMask;
-                var origMax = _cameraRaycaster.MaxDistance;
-                _cameraRaycaster.RaycastMask = ~0;
-                _cameraRaycaster.MaxDistance = Mathf.Infinity;
-                if (_cameraRaycaster.TryRaycast(screenPosition, out RaycastHit hitCam))
-                {
-                    return hitCam.collider.gameObject;
-                }
-                _cameraRaycaster.RaycastMask = origMask;
-                _cameraRaycaster.MaxDistance = origMax;
-            }
-            if (Physics.Raycast(ray, out RaycastHit hit))
-            {
-                return hit.collider.gameObject;
-            }
-
-            return null;
         }
 
         /// <summary>
@@ -2379,12 +2165,6 @@ namespace SceneSandbox.Core
             }
         }
 
-        private string GetDefaultSavePath()
-        {
-            string safeName = SanitizeFileName(_currentSceneName ?? "Untitled");
-            return System.IO.Path.Combine(_defaultSavePath, $"{safeName}.json");
-        }
-
         /// <summary>
         /// Sanitize filename to remove invalid characters
         /// </summary>
@@ -2444,13 +2224,15 @@ namespace SceneSandbox.Core
             }
 
             // Draw drop indicator gizmos when dropping
-            if (_enableDropIndicator && _placementSystem?.IsActive == true)
+            // Note: Null check needed as OnDrawGizmos can be called before Awake
+            if (_enableDropIndicator && _placementSystem != null && _placementSystem.IsActive)
             {
                 DrawDropIndicatorGizmos();
             }
 
             // Draw placement preview gizmos
-            if (IsPlacementActive && _placementSystem?.CurrentObject != null)
+            // Note: Null check needed as OnDrawGizmos can be called before Awake
+            if (_placementSystem != null && _placementSystem.IsActive && _placementSystem.CurrentObject != null)
             {
                 DrawPlacementPreviewGizmos();
             }
@@ -2535,47 +2317,6 @@ namespace SceneSandbox.Core
 
             int gridLinesX = Mathf.RoundToInt(_sceneBounds.x / _gridSize);
             int gridLinesZ = Mathf.RoundToInt(_sceneBounds.z / _gridSize);
-
-            // Create a set of occupied grid cells
-            HashSet<Vector2Int> occupiedCells = new HashSet<Vector2Int>();
-            if (_placedObjects != null && _placedObjects.Count > 0)
-            {
-                foreach (var kvp in _placedObjects)
-                {
-                    if (kvp.Value != null)
-                    {
-                        Vector3 objPos = kvp.Value.transform.position;
-                        // Calculate grid cell coordinates
-                        int cellX = Mathf.RoundToInt((objPos.x - (center.x - gridExtentX)) / _gridSize);
-                        int cellZ = Mathf.RoundToInt((objPos.z - (center.z - gridExtentZ)) / _gridSize);
-                        occupiedCells.Add(new Vector2Int(cellX, cellZ));
-                    }
-                }
-            }
-
-            // Draw occupied cells with wire cubes (more visible)
-            Gizmos.color = new Color(1f, 0.5f, 0f, 1f); // Orange color for occupied cells
-            foreach (var cell in occupiedCells)
-            {
-                float cellCenterX = center.x - gridExtentX + (cell.x * _gridSize) + (_gridSize * 0.5f);
-                float cellCenterZ = center.z - gridExtentZ + (cell.y * _gridSize) + (_gridSize * 0.5f);
-                Vector3 cellCenter = new Vector3(cellCenterX, center.y + 0.05f, cellCenterZ);
-                Vector3 cellSize = new Vector3(_gridSize * 0.95f, 0.1f, _gridSize * 0.95f);
-
-                // Draw thicker wire cube
-                Gizmos.DrawWireCube(cellCenter, cellSize);
-
-                // Draw cross pattern inside cell
-                float halfSize = _gridSize * 0.4f;
-                Gizmos.DrawLine(
-                    new Vector3(cellCenterX - halfSize, center.y, cellCenterZ - halfSize),
-                    new Vector3(cellCenterX + halfSize, center.y, cellCenterZ + halfSize)
-                );
-                Gizmos.DrawLine(
-                    new Vector3(cellCenterX - halfSize, center.y, cellCenterZ + halfSize),
-                    new Vector3(cellCenterX + halfSize, center.y, cellCenterZ - halfSize)
-                );
-            }
 
             // Use different color based on snap mode
             Color gridLineColor = _snapToGrid ? new Color(0f, 1f, 0f, 0.5f) : Color.gray;
@@ -2863,7 +2604,7 @@ namespace SceneSandbox.Core
         /// </summary>
         private void DrawDropIndicatorGizmos()
         {
-            if (_placementSystem?.IsActive != true) return;
+            if (!_placementSystem.IsActive) return;
 
             Vector3 position = _currentDropIndicator?.transform.position ?? Vector3.zero;
             bool isValidPosition = IsPositionInSceneBounds(position);
@@ -2908,13 +2649,13 @@ namespace SceneSandbox.Core
         /// </summary>
         private void DrawPlacementPreviewGizmos()
         {
-            GameObject currentPlacementObject = _placementSystem?.CurrentObject;
+            GameObject currentPlacementObject = _placementSystem.CurrentObject;
             if (currentPlacementObject == null) return;
             Vector3 position = currentPlacementObject.transform.position;
             Bounds bounds = GetObjectBounds(currentPlacementObject);
 
             // Draw validity indicator with color
-            bool isValid = _placementSystem?.IsValidPlacementCurrentPosition ?? true;
+            bool isValid = _placementSystem.IsValidPlacementCurrentPosition;
             Gizmos.color = isValid ? Color.green : Color.red;
             Gizmos.DrawWireCube(bounds.center, bounds.size);
 
@@ -2983,58 +2724,6 @@ namespace SceneSandbox.Core
             }
         }
 
-        private void ShowContextMenu(GameObject obj, Vector2 screenPosition)
-        {
-            // TODO: Implement context menu system
-
-        }
-
-        private void ShowGeneralContextMenu(Vector2 screenPosition)
-        {
-            // TODO: Implement general context menu
-
-        }
-
-        private void CreatePreviewObjects()
-        {
-            _previewObjects.Clear();
-
-            foreach (var kvp in _placedObjects)
-            {
-                var original = kvp.Value;
-                var preview = Instantiate(original);
-
-                // Disable draggable component during preview
-                var draggable = preview.GetComponent<TransformableItem>();
-                if (draggable != null)
-                {
-                    draggable.enabled = false;
-                }
-
-                _previewObjects.Add(preview);
-            }
-        }
-
-        private void CleanupPreviewObjects()
-        {
-            foreach (var previewObj in _previewObjects)
-            {
-                if (previewObj != null)
-                {
-                    Destroy(previewObj);
-                }
-            }
-            _previewObjects.Clear();
-        }
-
-        private void SetupTimelineForPreview()
-        {
-            if (_timelineDirector?.Project == null) return;
-
-            // TODO: Set up timeline tracks for preview objects
-            // This would integrate with the existing MiniTimeline system
-        }
-
         #endregion
 
         private void OnDestroy()
@@ -3064,8 +2753,6 @@ namespace SceneSandbox.Core
                 _cancelPlacementAction.performed -= OnCancelPlacementPerformed;
             }
 
-            StopPreview();
-
             // Cleanup drop indicator
             if (_currentDropIndicator != null)
             {
@@ -3073,7 +2760,7 @@ namespace SceneSandbox.Core
             }
 
             // Cleanup placement object via PlacementSystem
-            GameObject currentPlacementObject = _placementSystem?.CurrentObject;
+            GameObject currentPlacementObject = _placementSystem.CurrentObject;
             if (currentPlacementObject != null)
             {
                 DestroyImmediate(currentPlacementObject);
