@@ -521,7 +521,7 @@ namespace SceneSandbox.UI
         private void OnNewProjectClicked()
         {
             // Check if there's an existing project with unsaved changes
-            if (_sandboxBuilder?.CurrentProject != null)
+            if (_sandboxBuilder?.SceneSerializer?.CurrentProject != null)
             {
                 ShowConfirmationDialogAsync("New Project", 
                     "Creating a new project will close the current project.\n\nDo you want to continue?",
@@ -613,7 +613,7 @@ namespace SceneSandbox.UI
         
         private void OnSaveProjectClicked()
         {
-            if (_sandboxBuilder?.CurrentProject == null)
+            if (_sandboxBuilder?.SceneSerializer?.CurrentProject == null)
             {
                 ShowMessageDialog("Error", "No project is currently loaded to save.");
                 return;
@@ -630,10 +630,10 @@ namespace SceneSandbox.UI
             var fieldDefinitions = new List<FormFieldDefinition>();
             
             // Current project info
-            var currentProject = _sandboxBuilder.CurrentProject;
+            var currentProject = _sandboxBuilder.SceneSerializer.CurrentProject;
             fieldDefinitions.Add(new FormFieldDefinition("projectInfo", "Current Project", "info")
             {
-                defaultValue = $"Project: {currentProject.projectName}\nObjects: {_sandboxBuilder.CurrentScene?.placedObjects?.Count ?? 0}"
+                defaultValue = $"Project: {currentProject.projectName}\nObjects: {_sandboxBuilder.SceneSerializer.CurrentScene?.placedObjects?.Count ?? 0}"
             });
             
             // Save options
@@ -667,7 +667,7 @@ namespace SceneSandbox.UI
                     if (!string.IsNullOrEmpty(customFileName))
                     {
                         savePath = System.IO.Path.Combine(
-                            _sandboxBuilder.CurrentProject.projectName, 
+                            _sandboxBuilder.SceneSerializer.CurrentProject.projectName, 
                             customFileName + ".sbproj"
                         );
                     }
@@ -695,14 +695,14 @@ namespace SceneSandbox.UI
         
         private void OnClearProjectClicked()
         {
-            if (_sandboxBuilder?.CurrentProject == null)
+            if (_sandboxBuilder?.SceneSerializer?.CurrentProject == null)
             {
                 ShowMessageDialog("Info", "No project is currently loaded.");
                 return;
             }
             
             ShowConfirmationDialogAsync("Clear Project", 
-                $"Are you sure you want to close the current project '{_sandboxBuilder.CurrentProject.projectName}'?\n\nUnsaved changes will be lost.",
+                $"Are you sure you want to close the current project '{_sandboxBuilder.SceneSerializer.CurrentProject.projectName}'?\n\nUnsaved changes will be lost.",
                 () => ClearCurrentProject(),
                 () => { /* Cancel - do nothing */ }
             );
@@ -870,11 +870,9 @@ namespace SceneSandbox.UI
         
         private void UpdateSceneInfo()
         {
-            if (_sandboxBuilder?.CurrentScene == null) return;
-            
-            var scene = _sandboxBuilder.CurrentScene;
-            
-            if (_sceneNameText != null)
+            if (_sandboxBuilder?.SceneSerializer?.CurrentScene == null) return;
+
+            var scene = _sandboxBuilder.SceneSerializer.CurrentScene;            if (_sceneNameText != null)
             {
                 _sceneNameText.text = scene.sceneName;
             }
@@ -895,9 +893,9 @@ namespace SceneSandbox.UI
         {
             if (_currentProjectText != null)
             {
-                if (_sandboxBuilder?.CurrentProject != null)
+                if (_sandboxBuilder?.SceneSerializer?.CurrentProject != null)
                 {
-                    var project = _sandboxBuilder.CurrentProject;
+                    var project = _sandboxBuilder.SceneSerializer.CurrentProject;
                     _currentProjectText.text = $"Project: {project.projectName}";
                 }
                 else
@@ -907,11 +905,11 @@ namespace SceneSandbox.UI
             }
             
             // Update project name input field
-            if (_projectNameInput != null && _sandboxBuilder?.CurrentProject != null)
+            if (_projectNameInput != null && _sandboxBuilder?.SceneSerializer?.CurrentProject != null)
             {
                 if (string.IsNullOrEmpty(_projectNameInput.text))
                 {
-                    _projectNameInput.text = _sandboxBuilder.CurrentProject.projectName;
+                    _projectNameInput.text = _sandboxBuilder.SceneSerializer.CurrentProject.projectName;
                 }
             }
         }
@@ -968,9 +966,9 @@ namespace SceneSandbox.UI
         private void UpdateButtonStates()
         {
             bool hasSelection = _selectedObject != null;
-            bool isInPreview = _sandboxBuilder?.IsInPreviewMode ?? false;
-            bool hasProject = _sandboxBuilder?.CurrentProject != null;
-            bool hasScene = _sandboxBuilder?.CurrentScene != null;
+            bool isInPreview = _sandboxBuilder?.PreviewController?.IsInPreviewMode ?? false;
+            bool hasProject = _sandboxBuilder?.SceneSerializer?.CurrentProject != null;
+            bool hasScene = _sandboxBuilder?.SceneSerializer?.CurrentScene != null;
             
             // Object control buttons
             if (_deleteObjectButton != null)

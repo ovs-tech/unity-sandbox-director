@@ -35,6 +35,7 @@ namespace SceneSandbox.Core
         [SerializeField] private TransformController _transformController;
         [SerializeField] private SceneSerializer _sceneSerializer;
         [SerializeField] private PreviewController _previewController;
+        [SerializeField] private SandboxGizmoRenderer _gizmoRenderer;
 
 
         [Header("Configuration")]
@@ -119,23 +120,6 @@ namespace SceneSandbox.Core
         [SerializeField] private bool _autoPreview = false;
         [SerializeField] private float _previewDuration = 10f;
 
-        [Header("Gizmo Settings")]
-        [SerializeField] private bool _enableGizmos = true;
-        [SerializeField] private bool _showBoundsGizmo = true;
-        [SerializeField] private bool _showAxesGizmo = true;
-        [SerializeField] private bool _showHandlesGizmo = true;
-        [SerializeField] private Color _gizmoBoundsColor = Color.yellow;
-        [SerializeField] private float _gizmoAxisLength = 1f;
-
-        [Header("Scene Gizmo Settings")]
-        [SerializeField] private bool _enableSceneGizmos = true;
-        [SerializeField] private bool _showSceneGrid = true;
-        [SerializeField] private bool _showSceneBounds = true;
-        [SerializeField] private bool _showStageAreaGizmo = true;
-        [SerializeField] private bool _showPlacementHeightGizmo = true;
-        [SerializeField] private Color _sceneBoundsColor = Color.cyan;
-        [SerializeField] private Color _placementHeightColor = Color.yellow;
-
         [Header("Save/Load")]
         [Tooltip("Scene save path (Read-Only). Automatically set to: persistentDataPath/SceneSandboxBuilder/SavedScenes")]
         [SerializeField] private string _defaultSavePath = ""; // Force initialized to Application.persistentDataPath/SceneSandboxBuilder/SavedScenes
@@ -203,26 +187,24 @@ namespace SceneSandbox.Core
         public BoolEvent OnPreviewStateChanged => _onPreviewStateChanged;
         public SandboxModeEvent OnModeChanged => _onModeChanged;
 
-        // Properties
-        public SceneConfiguration CurrentScene => _sceneSerializer.CurrentScene;
-        public SandboxProjectData CurrentProject => _sceneSerializer.CurrentProject;
+        // Properties - Direct Access
         public SceneObjectLibrary ObjectLibrary => _objectLibrary;
-        public bool IsInPreviewMode => _previewController.IsInPreviewMode;
         public GameObject SelectedObject => _selectedObject;
-        public bool GizmosEnabled => _enableGizmos;
-        public bool SceneGizmosEnabled => _enableSceneGizmos;
         public Vector3 SceneBounds => _sceneBounds;
         public Vector3 SceneBoundsOffset => _sceneBoundsOffset;
         public PivotPoint SceneBoundsPivot => _sceneBoundsPivot;
         public Vector3 GridOffset => _gridOffset;
         public PivotPoint GridPivotOffset => _gridPivotOffset;
         public bool DropIndicatorEnabled => _enableDropIndicator;
-        public PlacementState CurrentPlacementState => _placementSystem.State;
-        public bool IsPlacementActive => _placementSystem.IsActive;
         public TransformModeType CurrentTransformMode => _currentTransformMode;
         public TransformAxis CurrentTransformAxis => _currentTransformAxis;
         public SandboxMode CurrentMode => _currentMode;
         public bool IsInBuildMode => _currentMode == SandboxMode.Build;
+        
+        // Subsystem Access - Use these to access subsystem properties directly
+        public SceneSerializer SceneSerializer => _sceneSerializer;
+        public PreviewController PreviewController => _previewController;
+        public PlacementSystem PlacementSystem => _placementSystem;
 
         /// <summary>
         /// Set the current transform mode (Position/Rotation/Scale)
@@ -683,6 +665,36 @@ namespace SceneSandbox.Core
                 };
             }
 
+            // Phase 3.3: SandboxGizmoRenderer (gizmo refactoring)
+            if (_gizmoRenderer == null)
+            {
+                _gizmoRenderer = GetComponent<SandboxGizmoRenderer>();
+                if (_gizmoRenderer == null)
+                {
+                    _gizmoRenderer = gameObject.AddComponent<SandboxGizmoRenderer>();
+                }
+                // Initialize with dependencies
+                _gizmoRenderer.Initialize(this, _placementSystem, _selectionManager, _gridManager, _stageArea);
+
+                // Sync current scene configuration
+                _gizmoRenderer.UpdateSceneConfig(
+                    _sceneBounds,
+                    _sceneBoundsOffset,
+                    _sceneBoundsPivot,
+                    _gridOffset,
+                    _gridPivotOffset,
+                    _gridSize,
+                    _snapToGrid,
+                    _enableDropIndicator,
+                    _validDropColor,
+                    _invalidDropColor,
+                    _dropIndicatorSize,
+                    _placementLayers,
+                    _enableCostSystem,
+                    _placementCost
+                );
+            }
+
             // Wire SandboxInputManager events to existing handlers (non-breaking)
             if (_inputManager != null)
             {
@@ -1040,19 +1052,6 @@ namespace SceneSandbox.Core
             settings.sceneBounds = _sceneBounds;
             settings.sceneBoundsOffset = _sceneBoundsOffset;
             settings.sceneBoundsPivot = _sceneBoundsPivot;
-            settings.sceneBoundsColor = _sceneBoundsColor;
-            settings.enableGizmos = _enableGizmos;
-            settings.showBoundsGizmo = _showBoundsGizmo;
-            settings.showAxesGizmo = _showAxesGizmo;
-            settings.showHandlesGizmo = _showHandlesGizmo;
-            settings.gizmoBoundsColor = _gizmoBoundsColor;
-            settings.gizmoAxisLength = _gizmoAxisLength;
-            settings.enableSceneGizmos = _enableSceneGizmos;
-            settings.showSceneGrid = _showSceneGrid;
-            settings.showSceneBounds = _showSceneBounds;
-            settings.showStageAreaGizmo = _showStageAreaGizmo;
-            settings.showPlacementHeightGizmo = _showPlacementHeightGizmo;
-            settings.placementHeightColor = _placementHeightColor;
 
             // Update drop indicator settings
             settings.enableDropIndicator = _enableDropIndicator;
@@ -1095,19 +1094,6 @@ namespace SceneSandbox.Core
             _sceneBounds = settings.sceneBounds;
             _sceneBoundsOffset = settings.sceneBoundsOffset;
             _sceneBoundsPivot = settings.sceneBoundsPivot;
-            _sceneBoundsColor = settings.sceneBoundsColor;
-            _enableGizmos = settings.enableGizmos;
-            _showBoundsGizmo = settings.showBoundsGizmo;
-            _showAxesGizmo = settings.showAxesGizmo;
-            _showHandlesGizmo = settings.showHandlesGizmo;
-            _gizmoBoundsColor = settings.gizmoBoundsColor;
-            _gizmoAxisLength = settings.gizmoAxisLength;
-            _enableSceneGizmos = settings.enableSceneGizmos;
-            _showSceneGrid = settings.showSceneGrid;
-            _showSceneBounds = settings.showSceneBounds;
-            _showStageAreaGizmo = settings.showStageAreaGizmo;
-            _showPlacementHeightGizmo = settings.showPlacementHeightGizmo;
-            _placementHeightColor = settings.placementHeightColor;
 
             // Apply drop indicator settings
             _enableDropIndicator = settings.enableDropIndicator;
@@ -1432,7 +1418,10 @@ namespace SceneSandbox.Core
         /// </summary>
         public void SetGizmoVisibility(bool visible)
         {
-            _enableGizmos = visible;
+            if (_gizmoRenderer != null)
+            {
+                _gizmoRenderer.SetGizmoVisibility(visible);
+            }
         }
 
         /// <summary>
@@ -1440,7 +1429,10 @@ namespace SceneSandbox.Core
         /// </summary>
         public void SetSceneGizmoVisibility(bool visible)
         {
-            _enableSceneGizmos = visible;
+            if (_gizmoRenderer != null)
+            {
+                _gizmoRenderer.SetSceneGizmoVisibility(visible);
+            }
         }
 
         /// <summary>
@@ -1448,17 +1440,26 @@ namespace SceneSandbox.Core
         /// </summary>
         public void SetSceneGridVisibility(bool visible)
         {
-            _showSceneGrid = visible;
+            if (_gizmoRenderer != null)
+            {
+                _gizmoRenderer.SetSceneGridVisibility(visible);
+            }
         }
 
         public void SetSceneBoundsVisibility(bool visible)
         {
-            _showSceneBounds = visible;
+            if (_gizmoRenderer != null)
+            {
+                _gizmoRenderer.SetSceneBoundsVisibility(visible);
+            }
         }
 
         public void SetStageAreaGizmoVisibility(bool visible)
         {
-            _showStageAreaGizmo = visible;
+            if (_gizmoRenderer != null)
+            {
+                _gizmoRenderer.SetStageAreaGizmoVisibility(visible);
+            }
         }
 
         /// <summary>
@@ -1466,7 +1467,10 @@ namespace SceneSandbox.Core
         /// </summary>
         public void SetPlacementHeightGizmoVisibility(bool visible)
         {
-            _showPlacementHeightGizmo = visible;
+            if (_gizmoRenderer != null)
+            {
+                _gizmoRenderer.SetPlacementHeightGizmoVisibility(visible);
+            }
         }
 
         /// <summary>
@@ -1506,7 +1510,10 @@ namespace SceneSandbox.Core
         /// </summary>
         public void SetSceneBoundsColor(Color color)
         {
-            _sceneBoundsColor = color;
+            if (_gizmoRenderer != null)
+            {
+                _gizmoRenderer.SetSceneBoundsColor(color);
+            }
         }
 
         /// <summary>
@@ -2163,6 +2170,12 @@ namespace SceneSandbox.Core
             {
                 _currentDropIndicator.SetActive(false);
             }
+
+            // Sync with gizmo renderer
+            if (_gizmoRenderer != null)
+            {
+                _gizmoRenderer.SetDropIndicator(_currentDropIndicator);
+            }
         }
 
         /// <summary>
@@ -2181,550 +2194,6 @@ namespace SceneSandbox.Core
             sanitized = sanitized.Trim();
             return string.IsNullOrEmpty(sanitized) ? "Untitled" : sanitized;
         }
-
-        /// <summary>
-        /// Ensure directory exists before saving
-        /// </summary>
-        private bool EnsureDirectoryExists(string filePath)
-        {
-            try
-            {
-                string directory = System.IO.Path.GetDirectoryName(filePath);
-                if (!string.IsNullOrEmpty(directory))
-                {
-                    System.IO.Directory.CreateDirectory(directory);
-                    return true;
-                }
-                return false;
-            }
-            catch (System.Exception ex)
-            {
-                Debug.LogError($"Failed to create directory: {ex.Message}");
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Draw gizmos for the scene and selected objects
-        /// </summary>
-        private void OnDrawGizmos()
-        {
-            if (!_enableGizmos && !_enableSceneGizmos) return;
-
-            // Draw scene gizmos
-            if (_enableSceneGizmos)
-            {
-                DrawSceneGizmos();
-            }
-
-            // Draw object gizmos
-            if (_enableGizmos && _selectedObject != null)
-            {
-                DrawObjectGizmos(_selectedObject);
-            }
-
-            // Draw drop indicator gizmos when dropping
-            // Note: Null check needed as OnDrawGizmos can be called before Awake
-            if (_enableDropIndicator && _placementSystem != null && _placementSystem.IsActive)
-            {
-                DrawDropIndicatorGizmos();
-            }
-
-            // Draw placement preview gizmos
-            // Note: Null check needed as OnDrawGizmos can be called before Awake
-            if (_placementSystem != null && _placementSystem.IsActive && _placementSystem.CurrentObject != null)
-            {
-                DrawPlacementPreviewGizmos();
-            }
-        }
-
-        /// <summary>
-        /// Draw scene-level gizmos (grid, bounds, stage area)
-        /// </summary>
-        private void DrawSceneGizmos()
-        {
-            // Draw scene grid
-            if (_showSceneGrid)
-            {
-                DrawSceneGrid();
-            }
-
-            // Draw scene bounds
-            if (_showSceneBounds)
-            {
-                DrawSceneBounds();
-            }
-
-            // Draw stage area
-            if (_showStageAreaGizmo && _stageArea != null)
-            {
-                DrawStageArea();
-            }
-
-            // Draw placement height level
-            if (_showPlacementHeightGizmo)
-            {
-                DrawPlacementHeight();
-            }
-        }
-
-        /// <summary>
-        /// Draw gizmos for a selected object
-        /// </summary>
-        private void DrawObjectGizmos(GameObject obj)
-        {
-            if (obj == null) return;
-
-            Bounds bounds = CalculateObjectBounds(obj);
-
-            // Draw bounding box
-            if (_showBoundsGizmo)
-            {
-                Gizmos.color = _gizmoBoundsColor;
-                Gizmos.DrawWireCube(bounds.center, bounds.size);
-            }
-
-            // Draw coordinate axes
-            if (_showAxesGizmo)
-            {
-                DrawObjectAxes(obj.transform, bounds.center);
-            }
-
-            // Draw manipulation handles
-            if (_showHandlesGizmo)
-            {
-                DrawManipulationHandles(bounds);
-            }
-        }
-
-        /// <summary>
-        /// Draw the scene grid (2D plane based on scene bounds)
-        /// </summary>
-        private void DrawSceneGrid()
-        {
-            Vector3 stageCenter = _stageArea != null ? _stageArea.position : transform.position;
-
-            // First, align grid with scene bounds (subtract scene bounds pivot)
-            // Then, apply grid pivot offset (add grid offset)
-            Vector3 sceneBoundsPivotOffset = CalculatePivotOffset(_sceneBoundsPivot, _sceneBounds);
-            Vector3 gridPivotOffset = CalculatePivotOffset(_gridPivotOffset, _sceneBounds);
-
-            Vector3 center = stageCenter + _sceneBoundsOffset + _gridOffset - sceneBoundsPivotOffset + gridPivotOffset;
-
-            // Use scene bounds to determine grid extent (X, Z only)
-            float gridExtentX = _sceneBounds.x / 2f;
-            float gridExtentZ = _sceneBounds.z / 2f;
-
-            int gridLinesX = Mathf.RoundToInt(_sceneBounds.x / _gridSize);
-            int gridLinesZ = Mathf.RoundToInt(_sceneBounds.z / _gridSize);
-
-            // Use different color based on snap mode
-            Color gridLineColor = _snapToGrid ? new Color(0f, 1f, 0f, 0.5f) : Color.gray;
-            Gizmos.color = gridLineColor;
-
-            // Draw vertical lines (along Z-axis)
-            for (int i = 0; i <= gridLinesX; i++)
-            {
-                float x = center.x - gridExtentX + (i * _gridSize);
-                Vector3 start = new Vector3(x, center.y, center.z - gridExtentZ);
-                Vector3 end = new Vector3(x, center.y, center.z + gridExtentZ);
-
-                // Center line in different color
-                if (Mathf.Approximately(x, center.x))
-                {
-                    Gizmos.color = _snapToGrid ? Color.green : Color.white;
-                    Gizmos.DrawLine(start, end);
-                    Gizmos.color = gridLineColor;
-                }
-                else
-                {
-                    Gizmos.DrawLine(start, end);
-                }
-            }
-
-            // Draw horizontal lines (along X-axis)
-            for (int i = 0; i <= gridLinesZ; i++)
-            {
-                float z = center.z - gridExtentZ + (i * _gridSize);
-                Vector3 start = new Vector3(center.x - gridExtentX, center.y, z);
-                Vector3 end = new Vector3(center.x + gridExtentX, center.y, z);
-
-                // Center line in different color
-                if (Mathf.Approximately(z, center.z))
-                {
-                    Gizmos.color = _snapToGrid ? Color.green : Color.white;
-                    Gizmos.DrawLine(start, end);
-                    Gizmos.color = gridLineColor;
-                }
-                else
-                {
-                    Gizmos.DrawLine(start, end);
-                }
-            }
-
-            // Draw origin marker
-            Gizmos.color = _snapToGrid ? Color.green : Color.white;
-            Gizmos.DrawWireSphere(center, _snapToGrid ? _gridSize * 0.15f : 0.1f);
-
-            // Draw grid info label when snap is enabled
-#if UNITY_EDITOR
-            if (_snapToGrid)
-            {
-                Vector3 labelPos = center + Vector3.up * 0.5f;
-                UnityEditor.Handles.Label(
-                    labelPos,
-                    $"Snap Grid: {_gridSize}m\nOffset: {_gridOffset}\nPivot: {_gridPivotOffset}",
-                    new GUIStyle()
-                    {
-                        normal = new GUIStyleState() { textColor = Color.green },
-                        fontSize = 10,
-                        fontStyle = FontStyle.Bold,
-                        alignment = TextAnchor.MiddleCenter
-                    }
-                );
-            }
-#endif
-        }
-
-        /// <summary>
-        /// Draw scene boundaries
-        /// </summary>
-        private void DrawSceneBounds()
-        {
-            Vector3 stageCenter = _stageArea != null ? _stageArea.position : transform.position;
-            Vector3 pivotOffset = CalculatePivotOffset(_sceneBoundsPivot, _sceneBounds);
-            // We SUBTRACT the pivot offset to position the bounds relative to the pivot point
-            Vector3 center = stageCenter + _sceneBoundsOffset - pivotOffset;
-            Vector3 size = _sceneBounds; // Use configurable scene bounds
-
-            Gizmos.color = _sceneBoundsColor;
-            Gizmos.DrawWireCube(center, size);
-
-            // Draw corner markers
-            float markerSize = 0.2f;
-            Vector3[] corners = {
-                center + new Vector3(-size.x/2, -size.y/2, -size.z/2),
-                center + new Vector3(size.x/2, -size.y/2, -size.z/2),
-                center + new Vector3(-size.x/2, -size.y/2, size.z/2),
-                center + new Vector3(size.x/2, -size.y/2, size.z/2)
-            };
-
-            foreach (var corner in corners)
-            {
-                Gizmos.DrawWireCube(corner, Vector3.one * markerSize);
-            }
-        }
-
-        /// <summary>
-        /// Draw stage area gizmo
-        /// </summary>
-        private void DrawStageArea()
-        {
-            if (_stageArea == null) return;
-
-            Vector3 stagePos = _stageArea.position;
-            Vector3 stageScale = _stageArea.localScale;
-
-            // Draw stage area bounds
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireCube(stagePos, stageScale);
-
-            // Draw floor
-            Gizmos.color = new Color(0f, 1f, 0f, 0.3f);
-            Vector3 floorPos = new Vector3(stagePos.x, stagePos.y - stageScale.y / 2f, stagePos.z);
-            Vector3 floorSize = new Vector3(stageScale.x, 0.01f, stageScale.z);
-            Gizmos.DrawCube(floorPos, floorSize);
-        }
-
-        /// <summary>
-        /// Draw default placement height level
-        /// </summary>
-        private void DrawPlacementHeight()
-        {
-            Vector3 stageCenter = _stageArea != null ? _stageArea.position : transform.position;
-
-            // First, align with scene bounds (subtract scene bounds pivot)
-            // Then, apply grid pivot offset (add grid offset)
-            Vector3 sceneBoundsPivotOffset = CalculatePivotOffset(_sceneBoundsPivot, _sceneBounds);
-            Vector3 gridPivotOffset = CalculatePivotOffset(_gridPivotOffset, _sceneBounds);
-
-            Vector3 center = stageCenter + _sceneBoundsOffset + _gridOffset - sceneBoundsPivotOffset + gridPivotOffset;
-
-            // Calculate placement height relative to grid
-            float placementHeight = center.y + _defaultPlacementHeight;
-
-            // Use scene bounds to determine placement height grid extent
-            float gridExtentX = _sceneBounds.x / 2f;
-            float gridExtentZ = _sceneBounds.z / 2f;
-
-            int gridLinesX = Mathf.Max(2, Mathf.RoundToInt(_sceneBounds.x / _gridSize));
-            int gridLinesZ = Mathf.Max(2, Mathf.RoundToInt(_sceneBounds.z / _gridSize));
-
-            // Draw placement height plane
-            Gizmos.color = _placementHeightColor;
-
-            // Draw horizontal grid lines at placement height
-            for (int i = 0; i <= gridLinesX; i++)
-            {
-                float x = center.x - gridExtentX + (i * _gridSize);
-                Vector3 start = new Vector3(x, placementHeight, center.z - gridExtentZ);
-                Vector3 end = new Vector3(x, placementHeight, center.z + gridExtentZ);
-                Gizmos.DrawLine(start, end);
-            }
-
-            for (int i = 0; i <= gridLinesZ; i++)
-            {
-                float z = center.z - gridExtentZ + (i * _gridSize);
-                Vector3 start = new Vector3(center.x - gridExtentX, placementHeight, z);
-                Vector3 end = new Vector3(center.x + gridExtentX, placementHeight, z);
-                Gizmos.DrawLine(start, end);
-            }
-
-            // Draw placement height indicator at center
-            Vector3 placementPos = new Vector3(center.x, placementHeight, center.z);
-            Gizmos.color = Color.white;
-            Gizmos.DrawWireSphere(placementPos, 0.2f);
-
-            // Draw vertical line from ground to placement height
-            Vector3 groundPos = new Vector3(center.x, center.y, center.z);
-            Gizmos.color = _placementHeightColor;
-            Gizmos.DrawLine(groundPos, placementPos);
-
-            // Draw height text indicator (visual marker)
-            Vector3[] heightMarkers = {
-                placementPos + Vector3.right * 2f,
-                placementPos + Vector3.left * 2f,
-                placementPos + Vector3.forward * 2f,
-                placementPos + Vector3.back * 2f
-            };
-
-            foreach (var marker in heightMarkers)
-            {
-                Gizmos.DrawWireCube(marker, Vector3.one * 0.1f);
-            }
-        }
-
-        /// <summary>
-        /// Draw coordinate axes for an object
-        /// </summary>
-        private void DrawObjectAxes(Transform objTransform, Vector3 center)
-        {
-            // X axis (Red)
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(center, center + objTransform.right * _gizmoAxisLength);
-
-            // Y axis (Green)
-            Gizmos.color = Color.green;
-            Gizmos.DrawLine(center, center + objTransform.up * _gizmoAxisLength);
-
-            // Z axis (Blue)
-            Gizmos.color = Color.blue;
-            Gizmos.DrawLine(center, center + objTransform.forward * _gizmoAxisLength);
-        }
-
-        /// <summary>
-        /// Draw manipulation handles
-        /// </summary>
-        private void DrawManipulationHandles(Bounds bounds)
-        {
-            Vector3 center = bounds.center;
-            Vector3 size = bounds.size;
-            float handleSize = 0.1f;
-
-            Gizmos.color = Color.white;
-
-            // Corner handles
-            Vector3[] corners = {
-                center + new Vector3(-size.x/2, -size.y/2, -size.z/2),
-                center + new Vector3(size.x/2, -size.y/2, -size.z/2),
-                center + new Vector3(-size.x/2, -size.y/2, size.z/2),
-                center + new Vector3(size.x/2, -size.y/2, size.z/2),
-                center + new Vector3(-size.x/2, size.y/2, -size.z/2),
-                center + new Vector3(size.x/2, size.y/2, -size.z/2),
-                center + new Vector3(-size.x/2, size.y/2, size.z/2),
-                center + new Vector3(size.x/2, size.y/2, size.z/2)
-            };
-
-            foreach (var corner in corners)
-            {
-                Gizmos.DrawWireCube(corner, Vector3.one * handleSize);
-            }
-
-            // Face center handles
-            Gizmos.color = _gizmoBoundsColor;
-            Vector3[] faces = {
-                center + new Vector3(-size.x/2, 0, 0), // Left
-                center + new Vector3(size.x/2, 0, 0),  // Right
-                center + new Vector3(0, -size.y/2, 0), // Bottom
-                center + new Vector3(0, size.y/2, 0),  // Top
-                center + new Vector3(0, 0, -size.z/2), // Back
-                center + new Vector3(0, 0, size.z/2)   // Front
-            };
-
-            foreach (var face in faces)
-            {
-                Gizmos.DrawWireCube(face, Vector3.one * handleSize * 0.7f);
-            }
-        }
-
-        /// <summary>
-        /// Calculate bounds for an object
-        /// </summary>
-        private Bounds CalculateObjectBounds(GameObject obj)
-        {
-            Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
-            Collider[] colliders = obj.GetComponentsInChildren<Collider>();
-
-            if (renderers.Length > 0)
-            {
-                Bounds bounds = renderers[0].bounds;
-                for (int i = 1; i < renderers.Length; i++)
-                {
-                    bounds.Encapsulate(renderers[i].bounds);
-                }
-                return bounds;
-            }
-            else if (colliders.Length > 0)
-            {
-                Bounds bounds = colliders[0].bounds;
-                for (int i = 1; i < colliders.Length; i++)
-                {
-                    bounds.Encapsulate(colliders[i].bounds);
-                }
-                return bounds;
-            }
-            else
-            {
-                return new Bounds(obj.transform.position, Vector3.one);
-            }
-        }
-
-        /// <summary>
-        /// Draw drop indicator gizmos during drag operations
-        /// </summary>
-        private void DrawDropIndicatorGizmos()
-        {
-            if (!_placementSystem.IsActive) return;
-
-            Vector3 position = _currentDropIndicator?.transform.position ?? Vector3.zero;
-            bool isValidPosition = IsPositionInSceneBounds(position);
-
-            // Draw drop zone circle
-            Gizmos.color = isValidPosition ? _validDropColor : _invalidDropColor;
-
-            // Draw a circle on the ground
-            float radius = _dropIndicatorSize * 0.5f;
-            int segments = 32;
-            float angleStep = 360f / segments;
-
-            Vector3 prevPoint = position + Vector3.right * radius;
-            for (int i = 1; i <= segments; i++)
-            {
-                float angle = i * angleStep * Mathf.Deg2Rad;
-                Vector3 newPoint = position + new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
-                Gizmos.DrawLine(prevPoint, newPoint);
-                prevPoint = newPoint;
-            }
-
-            // Draw vertical indicator line
-            Gizmos.DrawLine(position, position + Vector3.up * 2f);
-
-            // Draw grid snap indicator if snapping is enabled
-            if (_snapToGrid)
-            {
-                // Create temporary TransformableItem for snap logic
-                GameObject tempObject = new GameObject("TempSnapHelper");
-                var tempDraggable = tempObject.AddComponent<TransformableItem>();
-                GridInfo gridInfo = GetGlobalGridInfo();
-                Vector3 snappedPos = tempDraggable.GetSnappedPositionValue(position, gridInfo);
-                DestroyImmediate(tempObject);
-
-                Gizmos.color = Color.white;
-                Gizmos.DrawWireCube(snappedPos + Vector3.up * 0.05f, Vector3.one * _gridSize * 0.1f);
-            }
-        }
-
-        /// <summary>
-        /// Draw placement preview gizmos (ghost object indicators)
-        /// </summary>
-        private void DrawPlacementPreviewGizmos()
-        {
-            GameObject currentPlacementObject = _placementSystem.CurrentObject;
-            if (currentPlacementObject == null) return;
-            Vector3 position = currentPlacementObject.transform.position;
-            Bounds bounds = GetObjectBounds(currentPlacementObject);
-
-            // Draw validity indicator with color
-            bool isValid = _placementSystem.IsValidPlacementCurrentPosition;
-            Gizmos.color = isValid ? Color.green : Color.red;
-            Gizmos.DrawWireCube(bounds.center, bounds.size);
-
-            // Draw grid snap indicator if enabled
-            if (_showGridSnapIndicator && _snapToGrid)
-            {
-                // Get TransformableItem if available for snap logic
-                var transformableItem = currentPlacementObject.GetComponent<TransformableItem>();
-                GridInfo gridInfo = GetGlobalGridInfo();
-                Vector3 snappedPos = transformableItem != null
-                    ? transformableItem.GetSnappedPositionValue(position, gridInfo)
-                    : position;
-
-                Gizmos.color = Color.cyan;
-                Gizmos.DrawWireCube(snappedPos + Vector3.up * 0.05f, Vector3.one * _gridSize * 0.15f);
-
-                // Draw line from ghost to snap point
-                Gizmos.color = new Color(0f, 1f, 1f, 0.3f);
-                Gizmos.DrawLine(position, snappedPos);
-            }
-
-            // Draw surface normal indicator if enabled
-            if (_showSurfaceNormal)
-            {
-                // Raycast down to find surface
-                if (Physics.Raycast(position + Vector3.up * 0.1f, Vector3.down, out RaycastHit hit, 10f, _placementLayers))
-                {
-                    _lastValidSurfaceNormal = hit.normal;
-
-                    // Draw normal vector
-                    Gizmos.color = Color.blue;
-                    Gizmos.DrawLine(hit.point, hit.point + hit.normal * _surfaceNormalLength);
-
-                    // Draw surface point
-                    Gizmos.DrawWireSphere(hit.point, 0.1f);
-                }
-                else if (_lastValidSurfaceNormal != Vector3.zero)
-                {
-                    // Draw last known normal if no surface hit
-                    Gizmos.color = new Color(0f, 0f, 1f, 0.3f);
-                    Gizmos.DrawLine(position, position + _lastValidSurfaceNormal * _surfaceNormalLength);
-                }
-            }
-
-            // Draw cost indicator (if enabled)
-            if (_enableCostSystem)
-            {
-                Gizmos.color = isValid ? Color.green : Color.red;
-                Vector3 labelPos = bounds.center + Vector3.up * (bounds.extents.y + 0.5f);
-
-#if UNITY_EDITOR
-                UnityEditor.Handles.Label(labelPos, $"Cost: {_placementCost}");
-#endif
-            }
-
-            // Draw validation feedback
-            if (!isValid)
-            {
-                // Draw X indicator for invalid placement
-                Gizmos.color = Color.red;
-                Vector3 center = bounds.center;
-                float size = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z) * 0.5f;
-
-                Gizmos.DrawLine(center + new Vector3(-size, size, 0), center + new Vector3(size, -size, 0));
-                Gizmos.DrawLine(center + new Vector3(-size, -size, 0), center + new Vector3(size, size, 0));
-            }
-        }
-
-        #endregion
 
         private void OnDestroy()
         {
@@ -2766,5 +2235,7 @@ namespace SceneSandbox.Core
                 DestroyImmediate(currentPlacementObject);
             }
         }
+
+        #endregion
     }
 }

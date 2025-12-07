@@ -184,7 +184,7 @@ namespace SceneSandbox.Editor
         
         private void HandleSceneGUI(SceneView sceneView)
         {
-            if (_target == null || !_target.IsPlacementActive)
+            if (_target == null || !_target.PlacementSystem.IsActive)
                 return;
 
             // Disable Unity's built-in tools during placement
@@ -284,6 +284,11 @@ namespace SceneSandbox.Editor
             serializedObject.Update();
             
             DrawHeader();
+            
+            EditorGUILayout.Space(10);
+            
+            // Setup button for editor initialization
+            DrawSetupButton();
             
             EditorGUILayout.Space(10);
             
@@ -445,22 +450,22 @@ namespace SceneSandbox.Editor
             EditorGUILayout.BeginHorizontal();
             
             // Project status
-            string projectStatus = _target.CurrentProject != null ? 
-                $"Project: {_target.CurrentProject.projectName}" : "No Project Loaded";
+            string projectStatus = _target.SceneSerializer?.CurrentProject != null ?
+                $"Project: {_target.SceneSerializer.CurrentProject.projectName}" : "No Project Loaded";
             EditorGUILayout.LabelField("Status:", projectStatus);
             
             // Scene status with count
-            if (_target.CurrentProject != null)
+            if (_target.SceneSerializer?.CurrentProject != null)
             {
                 int sceneCount = _target.GetSceneCount();
-                string sceneStatus = _target.CurrentScene != null ? 
-                    $"Scene: {_target.CurrentScene.sceneName} ({sceneCount} total)" : $"No Scene ({sceneCount} total)";
+                string sceneStatus = _target.SceneSerializer?.CurrentScene != null ?
+                    $"Scene: {_target.SceneSerializer?.CurrentScene.sceneName} ({sceneCount} total)" : $"No Scene ({sceneCount} total)";
                 EditorGUILayout.LabelField(sceneStatus);
             }
             else
             {
-                string sceneStatus = _target.CurrentScene != null ? 
-                    $"Scene: {_target.CurrentScene.sceneName}" : "No Scene";
+                string sceneStatus = _target.SceneSerializer?.CurrentScene != null ?
+                    $"Scene: {_target.SceneSerializer?.CurrentScene.sceneName}" : "No Scene";
                 EditorGUILayout.LabelField(sceneStatus);
             }
             
@@ -469,16 +474,71 @@ namespace SceneSandbox.Editor
             // Object count
             if (Application.isPlaying)
             {
-                int objectCount = _target.CurrentScene?.placedObjects?.Count ?? 0;
+                int objectCount = _target.SceneSerializer?.CurrentScene?.placedObjects?.Count ?? 0;
                 EditorGUILayout.LabelField($"Placed Objects: {objectCount}");
                 
-                if (_target.IsInPreviewMode)
+                if (_target.PreviewController?.IsInPreviewMode ?? false)
                 {
                     EditorGUILayout.HelpBox("Preview Mode Active", MessageType.Info);
                 }
             }
             
             EditorGUILayout.EndVertical();
+        }
+        
+        /// <summary>
+        /// Draw setup button for initializing components in editor mode
+        /// </summary>
+        private void DrawSetupButton()
+        {
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            
+            GUI.backgroundColor = new Color(0.7f, 0.9f, 1.0f); // Light blue
+            
+            if (GUILayout.Button("Setup Components in Editor", EditorStyles.toolbarButton, GUILayout.Height(30)))
+            {
+                SetupComponentsInEditor();
+            }
+            
+            GUI.backgroundColor = Color.white;
+            
+            EditorGUILayout.HelpBox("Click to initialize all components (GridManager, PlacementSystem, SandboxGizmoRenderer, etc.). Safe to run multiple times.", MessageType.Info);
+            
+            EditorGUILayout.EndVertical();
+        }
+        
+        /// <summary>
+        /// Initialize all components on the SceneSandboxBuilder in editor mode
+        /// </summary>
+        private void SetupComponentsInEditor()
+        {
+            if (_target == null)
+            {
+                EditorUtility.DisplayDialog("Error", "No SceneSandboxBuilder selected.", "OK");
+                return;
+            }
+            
+            try
+            {
+                // Call the private InitializeComponents method to set up all components
+                var initMethod = typeof(SceneSandboxBuilder).GetMethod("InitializeComponents", 
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                
+                if (initMethod != null)
+                {
+                    initMethod.Invoke(_target, null);
+                    EditorUtility.DisplayDialog("Success", "Components initialized successfully!", "OK");
+                    EditorUtility.SetDirty(_target);
+                }
+                else
+                {
+                    EditorUtility.DisplayDialog("Error", "Could not find InitializeComponents method on SceneSandboxBuilder.", "OK");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                EditorUtility.DisplayDialog("Error", $"Failed to initialize components: {ex.Message}", "OK");
+            }
         }
         
         private void DrawProjectAndSceneManagement()
@@ -524,7 +584,7 @@ namespace SceneSandbox.Editor
             EditorGUILayout.Space(5);
             
             // Current Project Section
-            if (_target.CurrentProject != null)
+            if (_target.SceneSerializer?.CurrentProject != null)
             {
                 EditorGUILayout.LabelField("Current Project", EditorStyles.miniBoldLabel);
                 var projectInfo = _target.GetCurrentProjectInfo();
@@ -538,9 +598,9 @@ namespace SceneSandbox.Editor
                     EditorGUILayout.LabelField($"Last Modified: {projectInfo.lastModified:yyyy-MM-dd HH:mm}");
                     
                     // Display key settings
-                    if (_target.CurrentProject.settings != null)
+                    if (_target.SceneSerializer?.CurrentProject.settings != null)
                     {
-                        var settings = _target.CurrentProject.settings;
+                        var settings = _target.SceneSerializer?.CurrentProject.settings;
                         EditorGUILayout.Space(3);
                         EditorGUILayout.LabelField("Project Settings:", EditorStyles.miniBoldLabel);
                         EditorGUI.indentLevel++;
@@ -560,7 +620,7 @@ namespace SceneSandbox.Editor
                     {
                         string savePath = string.IsNullOrEmpty(_projectSaveFileName) 
                             ? null 
-                            : System.IO.Path.Combine(_target.CurrentProject.projectName, _projectSaveFileName + ".sbproj");
+                            : System.IO.Path.Combine(_target.SceneSerializer?.CurrentProject.projectName, _projectSaveFileName + ".sbproj");
                         
                         if (_target.SaveProject(savePath))
                         {
@@ -584,7 +644,7 @@ namespace SceneSandbox.Editor
                     {
                         string newName = EditorUtility.SaveFilePanel(
                             "Save Project Copy",
-                            _target.CurrentProject.projectName,
+                            _target.SceneSerializer?.CurrentProject.projectName,
                             _projectSaveFileName + "_copy.sbproj",
                             "sbproj");
                         
@@ -603,13 +663,13 @@ namespace SceneSandbox.Editor
                         // Export just the settings to JSON
                         string exportPath = EditorUtility.SaveFilePanel(
                             "Export Project Settings",
-                            _target.CurrentProject.projectName,
-                            _target.CurrentProject.projectName + "_settings.json",
+                            _target.SceneSerializer?.CurrentProject.projectName,
+                            _target.SceneSerializer?.CurrentProject.projectName + "_settings.json",
                             "json");
                         
                         if (!string.IsNullOrEmpty(exportPath))
                         {
-                            string json = JsonUtility.ToJson(_target.CurrentProject.settings, true);
+                            string json = JsonUtility.ToJson(_target.SceneSerializer?.CurrentProject.settings, true);
                             System.IO.File.WriteAllText(exportPath, json);
                             EditorUtility.DisplayDialog("Success", "Settings exported!", "OK");
                         }
@@ -753,7 +813,7 @@ namespace SceneSandbox.Editor
             }
             
             // ===== SCENE MANAGEMENT SECTION =====
-            if (_target.CurrentProject != null && Application.isPlaying)
+            if (_target.SceneSerializer?.CurrentProject != null && Application.isPlaying)
             {
                 EditorGUILayout.Space(15);
                 EditorGUILayout.LabelField("SCENE MANAGEMENT", EditorStyles.boldLabel);
@@ -777,7 +837,7 @@ namespace SceneSandbox.Editor
                 EditorGUILayout.Space(5);
                 
                 // Current Scene Actions
-                if (_target.CurrentScene != null)
+                if (_target.SceneSerializer?.CurrentScene != null)
                 {
                     EditorGUILayout.LabelField("Current Scene Actions", EditorStyles.miniBoldLabel);
                     EditorGUILayout.BeginHorizontal();
@@ -794,7 +854,7 @@ namespace SceneSandbox.Editor
                     
                     if (GUILayout.Button("Rename Scene"))
                     {
-                        string newName = EditorUtility.SaveFilePanel("Rename Scene", "", _target.CurrentScene.sceneName, "");
+                        string newName = EditorUtility.SaveFilePanel("Rename Scene", "", _target.SceneSerializer?.CurrentScene.sceneName, "");
                         if (!string.IsNullOrEmpty(newName))
                         {
                             newName = System.IO.Path.GetFileNameWithoutExtension(newName);
@@ -929,7 +989,7 @@ namespace SceneSandbox.Editor
             EditorGUILayout.Space(5);
             
             // Current Project Section
-            if (_target.CurrentProject != null)
+            if (_target.SceneSerializer?.CurrentProject != null)
             {
                 EditorGUILayout.LabelField("Current Project", EditorStyles.boldLabel);
                 var projectInfo = _target.GetCurrentProjectInfo();
@@ -943,9 +1003,9 @@ namespace SceneSandbox.Editor
                     EditorGUILayout.LabelField($"Last Modified: {projectInfo.lastModified:yyyy-MM-dd HH:mm}");
                     
                     // Display key settings
-                    if (_target.CurrentProject.settings != null)
+                    if (_target.SceneSerializer?.CurrentProject.settings != null)
                     {
-                        var settings = _target.CurrentProject.settings;
+                        var settings = _target.SceneSerializer?.CurrentProject.settings;
                         EditorGUILayout.Space(3);
                         EditorGUILayout.LabelField("Project Settings:", EditorStyles.miniBoldLabel);
                         EditorGUI.indentLevel++;
@@ -965,7 +1025,7 @@ namespace SceneSandbox.Editor
                     {
                         string savePath = string.IsNullOrEmpty(_projectSaveFileName) 
                             ? null 
-                            : System.IO.Path.Combine(_target.CurrentProject.projectName, _projectSaveFileName + ".sbproj");
+                            : System.IO.Path.Combine(_target.SceneSerializer?.CurrentProject.projectName, _projectSaveFileName + ".sbproj");
                         
                         if (_target.SaveProject(savePath))
                         {
@@ -989,7 +1049,7 @@ namespace SceneSandbox.Editor
                     {
                         string newName = EditorUtility.SaveFilePanel(
                             "Save Project Copy",
-                            _target.CurrentProject.projectName,
+                            _target.SceneSerializer?.CurrentProject.projectName,
                             _projectSaveFileName + "_copy.sbproj",
                             "sbproj");
                         
@@ -1008,13 +1068,13 @@ namespace SceneSandbox.Editor
                         // Export just the settings to JSON
                         string exportPath = EditorUtility.SaveFilePanel(
                             "Export Project Settings",
-                            _target.CurrentProject.projectName,
-                            _target.CurrentProject.projectName + "_settings.json",
+                            _target.SceneSerializer?.CurrentProject.projectName,
+                            _target.SceneSerializer?.CurrentProject.projectName + "_settings.json",
                             "json");
                         
                         if (!string.IsNullOrEmpty(exportPath))
                         {
-                            string json = JsonUtility.ToJson(_target.CurrentProject.settings, true);
+                            string json = JsonUtility.ToJson(_target.SceneSerializer?.CurrentProject.settings, true);
                             System.IO.File.WriteAllText(exportPath, json);
                             EditorUtility.DisplayDialog("Success", "Settings exported!", "OK");
                         }
@@ -1178,10 +1238,10 @@ namespace SceneSandbox.Editor
             // Current state
             EditorGUILayout.LabelField("Current State", EditorStyles.miniBoldLabel);
             EditorGUILayout.LabelField($"Selected Object: {(_target.SelectedObject != null ? _target.SelectedObject.name : "None")}");
-            EditorGUILayout.LabelField($"Gizmos Enabled: {_target.GizmosEnabled}");
-            EditorGUILayout.LabelField($"Scene Gizmos Enabled: {_target.SceneGizmosEnabled}");
+            EditorGUILayout.LabelField("Gizmos Enabled: (managed by SandboxGizmoRenderer)");
+            EditorGUILayout.LabelField("Scene Gizmos Enabled: (managed by SandboxGizmoRenderer)");
             EditorGUILayout.LabelField($"Drop Indicator Enabled: {_target.DropIndicatorEnabled}");
-            EditorGUILayout.LabelField($"Preview Mode: {(_target.IsInPreviewMode ? "Active" : "Inactive")}");
+            EditorGUILayout.LabelField($"Preview Mode: {(_target.PreviewController?.IsInPreviewMode ?? false ? "Active" : "Inactive")}");
             
             EditorGUILayout.Space(5);
             
@@ -1207,7 +1267,7 @@ namespace SceneSandbox.Editor
             
             EditorGUILayout.BeginHorizontal();
             
-            if (_target.IsInPreviewMode)
+            if ((_target.PreviewController?.IsInPreviewMode ?? false))
             {
                 if (GUILayout.Button("Stop Preview"))
                 {
@@ -1216,7 +1276,7 @@ namespace SceneSandbox.Editor
             }
             else
             {
-                GUI.enabled = _target.CurrentScene != null && _target.CurrentScene.placedObjects.Count > 0;
+                GUI.enabled = _target.SceneSerializer?.CurrentScene != null && _target.SceneSerializer?.CurrentScene.placedObjects.Count > 0;
                 if (GUILayout.Button("Start Preview"))
                 {
                     _target.StartPreview();
@@ -1232,19 +1292,19 @@ namespace SceneSandbox.Editor
             EditorGUILayout.Space(3);
             
             // Get managed objects from SceneSandboxBuilder
-            if (_target.CurrentScene == null || _target.CurrentScene.placedObjects == null || _target.CurrentScene.placedObjects.Count == 0)
+            if (_target.SceneSerializer?.CurrentScene == null || _target.SceneSerializer?.CurrentScene.placedObjects == null || _target.SceneSerializer?.CurrentScene.placedObjects.Count == 0)
             {
                 EditorGUILayout.HelpBox("No managed objects in current scene.", MessageType.Info);
             }
             else
             {
-                EditorGUILayout.LabelField($"Managed Objects: {_target.CurrentScene.placedObjects.Count}", EditorStyles.miniBoldLabel);
+                EditorGUILayout.LabelField($"Managed Objects: {_target.SceneSerializer?.CurrentScene.placedObjects.Count}", EditorStyles.miniBoldLabel);
                 EditorGUILayout.Space(5);
                 
                 // Scroll view for item list
                 _transformItemsScrollPos = EditorGUILayout.BeginScrollView(_transformItemsScrollPos, GUILayout.Height(300));
                 
-                foreach (var placedObj in _target.CurrentScene.placedObjects)
+                foreach (var placedObj in _target.SceneSerializer?.CurrentScene.placedObjects)
                 {
                     if (placedObj == null || string.IsNullOrEmpty(placedObj.id)) continue;
                     
@@ -1653,7 +1713,7 @@ namespace SceneSandbox.Editor
             }
             
             // Toggle shows ON only when ALL gizmos are enabled
-            bool enableAllGizmos = _target.GizmosEnabled && _target.SceneGizmosEnabled && _target.DropIndicatorEnabled;
+            bool enableAllGizmos = _target.DropIndicatorEnabled; // Gizmo visibility now managed by SandboxGizmoRenderer
             bool newEnableAllGizmos = EditorGUILayout.Toggle(enableAllGizmos);
             
             if (newEnableAllGizmos != enableAllGizmos && Application.isPlaying)
@@ -1787,7 +1847,7 @@ namespace SceneSandbox.Editor
                     EditorGUILayout.EndVertical();
                     
                     // Place button - triggers drag&drop flow
-                    GUI.enabled = Application.isPlaying && _target.CurrentScene != null;
+                    GUI.enabled = Application.isPlaying && _target.SceneSerializer?.CurrentScene != null;
                     if (GUILayout.Button("Place", GUILayout.Width(60), GUILayout.Height(40)))
                     {
                         Debug.Log($"[Editor] Place button clicked for {objectData.displayName}, isPlaying={Application.isPlaying}");
@@ -1832,7 +1892,7 @@ namespace SceneSandbox.Editor
                 }
             }
             
-            GUI.enabled = Application.isPlaying && _target.CurrentProject != null;
+            GUI.enabled = Application.isPlaying && _target.SceneSerializer?.CurrentProject != null;
             if (GUILayout.Button("Save Project", EditorStyles.toolbarButton))
             {
                 _target.SaveProject();
@@ -1844,7 +1904,7 @@ namespace SceneSandbox.Editor
             EditorGUILayout.Space(10);
             
             // Scene operations (NEW)
-            GUI.enabled = Application.isPlaying && _target.CurrentProject != null;
+            GUI.enabled = Application.isPlaying && _target.SceneSerializer?.CurrentProject != null;
             if (GUILayout.Button("New Scene", EditorStyles.toolbarButton))
             {
                 _target.CreateNewSceneInProject();
@@ -1853,7 +1913,7 @@ namespace SceneSandbox.Editor
             
             if (GUILayout.Button("Duplicate Scene", EditorStyles.toolbarButton))
             {
-                if (_target.CurrentScene != null)
+                if (_target.SceneSerializer?.CurrentScene != null)
                 {
                     _target.DuplicateCurrentScene();
                     RefreshCurrentProjectScenes();
@@ -1864,7 +1924,7 @@ namespace SceneSandbox.Editor
             GUILayout.FlexibleSpace();
             
             // Scene count indicator
-            if (Application.isPlaying && _target.CurrentProject != null)
+            if (Application.isPlaying && _target.SceneSerializer?.CurrentProject != null)
             {
                 int sceneCount = _target.GetSceneCount();
                 string sceneLabel = sceneCount == 1 ? "scene" : "scenes";
@@ -1875,17 +1935,17 @@ namespace SceneSandbox.Editor
             if (Application.isPlaying)
             {
                 GUI.changed = false;
-                bool gizmosEnabled = GUILayout.Toggle(_target.GizmosEnabled, "Gizmos", EditorStyles.toolbarButton);
+                EditorGUILayout.HelpBox("Gizmo visibility is now managed by SandboxGizmoRenderer component", MessageType.Info);
                 if (GUI.changed)
                 {
-                    _target.SetGizmoVisibility(gizmosEnabled);
+                    // Gizmo visibility controlled via SandboxGizmoRenderer
                 }
                 
                 GUI.changed = false;
-                bool sceneGizmosEnabled = GUILayout.Toggle(_target.SceneGizmosEnabled, "Scene Gizmos", EditorStyles.toolbarButton);
+                EditorGUILayout.HelpBox("Scene Gizmo visibility is now managed by SandboxGizmoRenderer component", MessageType.Info);
                 if (GUI.changed)
                 {
-                    _target.SetSceneGizmoVisibility(sceneGizmosEnabled);
+                    // Scene gizmo visibility controlled via SandboxGizmoRenderer
                 }
                 
                 GUI.changed = false;
@@ -1913,7 +1973,7 @@ namespace SceneSandbox.Editor
         
         private void RefreshCurrentProjectScenes()
         {
-            if (_target != null && _target.CurrentProject != null)
+            if (_target != null && _target.SceneSerializer?.CurrentProject != null)
             {
                 _currentProjectScenes = _target.GetAllSceneMetadata();
             }

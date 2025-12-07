@@ -38,7 +38,7 @@ namespace SceneSandbox.Serialization
             project.lastModified = DateTime.Now;
             
             // Update active scene configuration from current scene
-            if (builder.CurrentScene != null)
+            if (builder.SceneSerializer?.CurrentScene != null)
             {
                 var activeScene = project.GetActiveScene();
                 if (activeScene != null)
@@ -47,14 +47,14 @@ namespace SceneSandbox.Serialization
                     var index = project.scenes.IndexOf(activeScene);
                     if (index >= 0)
                     {
-                        project.scenes[index] = builder.CurrentScene;
+                        project.scenes[index] = builder.SceneSerializer.CurrentScene;
                     }
                 }
                 else
                 {
                     // No active scene, add current scene
-                    project.scenes.Add(builder.CurrentScene);
-                    project.activeSceneId = builder.CurrentScene.sceneId;
+                    project.scenes.Add(builder.SceneSerializer.CurrentScene);
+                    project.activeSceneId = builder.SceneSerializer.CurrentScene.sceneId;
                 }
             }
             
@@ -491,12 +491,10 @@ namespace SceneSandbox.Serialization
             settings.sceneBoundsPivot = builder.SceneBoundsPivot;
             settings.gridOffset = builder.GridOffset;
             settings.gridPivotOffset = builder.GridPivotOffset;
-            settings.enableGizmos = builder.GizmosEnabled;
-            settings.enableSceneGizmos = builder.SceneGizmosEnabled;
             settings.enableDropIndicator = builder.DropIndicatorEnabled;
             
-            // Note: Other settings would need to be exposed as properties on SceneSandboxBuilder
-            // or we could use reflection to access private fields if needed
+            // Note: Gizmo settings (enableGizmos, enableSceneGizmos) are now managed by SandboxGizmoRenderer
+            // and are not persisted with the project settings
         }
 
         #endregion

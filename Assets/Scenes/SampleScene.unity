@@ -1326,10 +1326,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 721137537}
     m_Modifications:
+    - target: {fileID: 403405811092055405, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _startPlacementActionRef
+      value: 
+      objectReference: {fileID: 970894646}
+    - target: {fileID: 403405811092055405, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _switchPlacementItemActionRef
+      value: 
+      objectReference: {fileID: 1423479147}
     - target: {fileID: 444325856237096281, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
       propertyPath: m_Name
       value: Sandbox Scene Builder
       objectReference: {fileID: 0}
+    - target: {fileID: 2558678318198386435, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _stageArea
+      value: 
+      objectReference: {fileID: 1379408075}
     - target: {fileID: 3697700392935551172, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1371,10 +1383,6 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _gridSize
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
       propertyPath: _sceneRoot
       value: 
       objectReference: {fileID: 429538866}
@@ -1383,69 +1391,25 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1379408075}
     - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _gridOffset.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
       propertyPath: _timelineDirector
       value: 
       objectReference: {fileID: 398228398}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _autoLoadFirstProject
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _defaultPlacementHeight
-      value: 0.3
-      objectReference: {fileID: 0}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _minimumPlacementHeight
-      value: 0.2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _selectionLayers.m_Bits
-      value: 513
-      objectReference: {fileID: 0}
     - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
       propertyPath: _startPlacementActionRef
       value: 
       objectReference: {fileID: 970894646}
     - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _pointerPositionActionRef
-      value: 
-      objectReference: {fileID: 1622428205235823346, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
       propertyPath: _switchPlacementItemActionRef
       value: 
       objectReference: {fileID: 1423479147}
     - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
       propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 398228398}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: AutoBindSceneObjects
-      objectReference: {fileID: 0}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: MiniTimeline.Core.MiniTimelineDirector, Assembly-CSharp
-      objectReference: {fileID: 0}
-    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
-      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
-      value: UnityEngine.Object, UnityEngine
-      objectReference: {fileID: 0}
+    - target: {fileID: 8925616610170935507, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _stageArea
+      value: 
+      objectReference: {fileID: 1379408075}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
