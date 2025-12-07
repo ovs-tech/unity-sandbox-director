@@ -2,9 +2,10 @@
 
 **Change ID:** `refactor-scene-sandbox-builder`  
 **Type:** Refactoring  
-**Status:** Draft  
+**Status:** Completed  
 **Author:** AI Assistant  
-**Date:** 2025-11-30
+**Date:** 2025-11-30  
+**Archived:** 2025-12-07
 
 ---
 

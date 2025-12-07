@@ -1,0 +1,126 @@
+{
+    "version": 1,
+    "projectName": "sample",
+    "description": "",
+    "created": "2025-12-06T15:27:47.7792310+07:00",
+    "lastModified": "2025-12-07T11:09:01.8155350+07:00",
+    "settings": {
+        "snapToGrid": true,
+        "gridSize": 1.0,
+        "defaultPlacementHeight": 0.30000001192092898,
+        "minimumPlacementHeight": 0.20000000298023225,
+        "useRaycastForPlacement": true,
+        "useConsistentHeight": true,
+        "placementLayers": 64,
+        "gridOffset": "0,0,0",
+        "gridPivotOffset": "BottomCenter",
+        "sceneBounds": "18.6,6.39,9.93",
+        "sceneBoundsOffset": "0,-0.8,-1.8",
+        "sceneBoundsPivot": "BottomFrontEdge",
+        "sceneBoundsColor": "#00FFFFFF",
+        "enableGizmos": false,
+        "showBoundsGizmo": true,
+        "showAxesGizmo": true,
+        "showHandlesGizmo": true,
+        "gizmoBoundsColor": "#FFEB04FF",
+        "gizmoAxisLength": 1.0,
+        "enableSceneGizmos": true,
+        "showSceneGrid": true,
+        "showSceneBounds": true,
+        "showStageAreaGizmo": true,
+        "showPlacementHeightGizmo": true,
+        "placementHeightColor": "#FFEB04FF",
+        "enableDropIndicator": false,
+        "validDropColor": "#00FF00CC",
+        "invalidDropColor": "#FF0000CC",
+        "dropIndicatorSize": 1.0,
+        "autoPreview": true,
+        "previewDuration": 10.0
+    },
+    "scenes": [
+        {
+            "sceneId": "36b50f26-7d8b-4989-90fc-c391d2e66922",
+            "sceneName": "sample - Main Scene",
+            "description": "",
+            "placedObjects": [
+                {
+                    "id": "06eae8c2-60aa-4a0e-9e98-14c45b602a1a",
+                    "objectDataId": "base_female",
+                    "position": {
+                        "x": 5.000044345855713,
+                        "y": -3.618800640106201,
+                        "z": 2.999948263168335
+                    },
+                    "rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "customName": "Base Female"
+                },
+                {
+                    "id": "f7ac2180-9a2e-4a30-affb-f0f9a1df6c03",
+                    "objectDataId": "base_male",
+                    "position": {
+                        "x": 7.0,
+                        "y": -4.0,
+                        "z": 1.0
+                    },
+                    "rotation": {
+                        "x": 0.0,
+                        "y": 284.9999694824219,
+                        "z": 0.0
+                    },
+                    "scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "customName": "Base male"
+                }
+            ],
+            "defaultCameraPosition": {
+                "x": 0.0,
+                "y": 2.0,
+                "z": -5.0
+            },
+            "defaultCameraRotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "environmentColor": {
+                "r": 0.5,
+                "g": 0.5,
+                "b": 0.5,
+                "a": 1.0
+            },
+            "environmentLighting": "Default"
+        }
+    ],
+    "activeSceneId": "36b50f26-7d8b-4989-90fc-c391d2e66922",
+    "objectLibraryPath": "",
+    "timelineProjectPath": "",
+    "hasTimelineIntegration": false,
+    "exportSettings": {
+        "includeObjectLibrary": true,
+        "includeTimelineData": false,
+        "compressTextures": true,
+        "optimizeMeshes": true,
+        "targetPlatforms": [
+            "StandaloneWindows64",
+            "Android"
+        ],
+        "packageName": "",
+        "packageVersion": "1.0.0",
+        "packageAuthor": "",
+        "createExecutable": false,
+        "createPackage": true,
+        "outputDirectory": "Builds/"
+    }
+}
