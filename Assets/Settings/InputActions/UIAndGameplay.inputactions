@@ -2069,6 +2069,24 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "SwitchPlacementItem",
+                    "type": "Button",
+                    "id": "aa6f8ee9-42fd-4638-a74c-1d0819e4a695",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "StartPlacement",
+                    "type": "Button",
+                    "id": "6417d5ae-fb20-4ffa-a9bb-09c1d687589d",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -2179,6 +2197,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "ToggleSandboxMode",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "417c9cee-2937-40da-b9e1-af0595eb413f",
+                    "path": "<Keyboard>/i",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";MouseKeyboard",
+                    "action": "SwitchPlacementItem",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f1c5a491-2393-4739-a6d4-7020c67a6594",
+                    "path": "<Keyboard>/p",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";MouseKeyboard",
+                    "action": "StartPlacement",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

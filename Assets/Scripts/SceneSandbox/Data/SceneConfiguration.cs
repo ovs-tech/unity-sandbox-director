@@ -103,6 +103,139 @@ namespace SceneSandbox.Data
         }
         
         /// <summary>
+        /// Update an existing placed object's data
+        /// </summary>
+        public bool UpdatePlacedObject(string objectId, PlacedObjectData updatedData)
+        {
+            var existingObject = GetPlacedObject(objectId);
+            if (existingObject == null)
+            {
+                return false;
+            }
+            
+            // Update the object's properties
+            existingObject.objectDataId = updatedData.objectDataId;
+            existingObject.position = updatedData.position;
+            existingObject.rotation = updatedData.rotation;
+            existingObject.scale = updatedData.scale;
+            existingObject.customName = updatedData.customName;
+            
+            // Update properties if provided
+            if (updatedData.properties != null)
+            {
+                existingObject.properties = updatedData.properties;
+            }
+            
+            lastModified = DateTime.Now;
+            return true;
+        }
+        
+        /// <summary>
+        /// Create a new placed object or update an existing one if it already exists
+        /// </summary>
+        public void CreateOrUpdatePlacedObject(PlacedObjectData placedObject)
+        {
+            var existingObject = GetPlacedObject(placedObject.id);
+            if (existingObject != null)
+            {
+                // Update existing object
+                UpdatePlacedObject(placedObject.id, placedObject);
+            }
+            else
+            {
+                // Add new object
+                AddPlacedObject(placedObject);
+            }
+        }
+        
+        /// <summary>
+        /// Update only the transform (position, rotation, scale) of a placed object
+        /// </summary>
+        public bool UpdatePlacedObjectTransform(string objectId, Vector3 position, Vector3 rotation, Vector3 scale)
+        {
+            var placedObject = GetPlacedObject(objectId);
+            if (placedObject == null)
+            {
+                return false;
+            }
+            
+            placedObject.position = position;
+            placedObject.rotation = rotation;
+            placedObject.scale = scale;
+            lastModified = DateTime.Now;
+            return true;
+        }
+        
+        /// <summary>
+        /// Update only the position of a placed object
+        /// </summary>
+        public bool UpdatePlacedObjectPosition(string objectId, Vector3 position)
+        {
+            var placedObject = GetPlacedObject(objectId);
+            if (placedObject == null)
+            {
+                return false;
+            }
+            
+            placedObject.position = position;
+            lastModified = DateTime.Now;
+            return true;
+        }
+        
+        /// <summary>
+        /// Update only the rotation of a placed object
+        /// </summary>
+        public bool UpdatePlacedObjectRotation(string objectId, Vector3 rotation)
+        {
+            var placedObject = GetPlacedObject(objectId);
+            if (placedObject == null)
+            {
+                return false;
+            }
+            
+            placedObject.rotation = rotation;
+            lastModified = DateTime.Now;
+            return true;
+        }
+        
+        /// <summary>
+        /// Update only the scale of a placed object
+        /// </summary>
+        public bool UpdatePlacedObjectScale(string objectId, Vector3 scale)
+        {
+            var placedObject = GetPlacedObject(objectId);
+            if (placedObject == null)
+            {
+                return false;
+            }
+            
+            placedObject.scale = scale;
+            lastModified = DateTime.Now;
+            return true;
+        }
+        
+        /// <summary>
+        /// Update the custom name of a placed object
+        /// </summary>
+        public bool UpdatePlacedObjectName(string objectId, string customName)
+        {
+            var placedObject = GetPlacedObject(objectId);
+            if (placedObject == null)
+            {
+                return false;
+            }
+            
+            placedObject.customName = customName;
+            lastModified = DateTime.Now;
+            return true;
+        }
+
+        public bool HasObjectId(string objectId)
+        {
+            return placedObjects.Exists(obj => obj.id == objectId);
+        }
+        
+        /// <summary>
         /// Clear all placed objects
         /// </summary>
         public void ClearPlacedObjects()

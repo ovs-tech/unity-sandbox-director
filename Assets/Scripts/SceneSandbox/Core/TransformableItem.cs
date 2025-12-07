@@ -168,6 +168,7 @@ namespace SceneSandbox.Core
             if (string.IsNullOrEmpty(_objectId))
             {
                 _objectId = System.Guid.NewGuid().ToString();
+                Debug.LogWarning($"TransformableItem on '{gameObject.name}' had no ObjectId. Generated new ID: {_objectId}");
             }
             
             // Initialize gizmo if transform controls are enabled
@@ -344,8 +345,6 @@ namespace SceneSandbox.Core
             _currentTransformModeType = mode;
             _isInTransformModeType = mode != TransformModeType.None;
 
-            Debug.Log($"[TransformableItem] Transform mode changed to: {mode}, isInMode: {_isInTransformModeType}, isSelected: {_isSelected}");
-
             // Reset axis to All when changing to Position mode or None
             if (mode == TransformModeType.Position || mode == TransformModeType.None)
             {
@@ -392,8 +391,6 @@ namespace SceneSandbox.Core
             
             // Update gizmo to highlight selected axis
             UpdateGizmoVisuals();
-            
-            Debug.Log($"[TransformableItem] Axis set to: {axis}");
         }
 
         /// <summary>
@@ -613,7 +610,7 @@ namespace SceneSandbox.Core
         /// <summary>
         /// Apply snap grid to a position if snap grid is enabled
         /// </summary>
-        public Vector3 ApplySnapGrid(Vector3 position)
+        private Vector3 ApplySnapGrid(Vector3 position)
         {
             if (!_enableSnapGrid || _snapGridSize <= 0)
                 return position;
@@ -626,13 +623,13 @@ namespace SceneSandbox.Core
         }
 
         /// <summary>
-        /// Snap position to grid with optional GridInfo override
+        /// Get snapped position based on current snap mode and settings
         /// Respects SnapMode: Extend uses global + local, Self uses only local
         /// </summary>
         /// <param name="position">Position to snap</param>
         /// <param name="globalGridInfo">Optional global grid info from SceneSandboxBuilder</param>
         /// <returns>Snapped position</returns>
-        public Vector3 SnapToGrid(Vector3 position, GridInfo? globalGridInfo = null)
+        private Vector3 GetSnappedPosition(Vector3 position, GridInfo? globalGridInfo = null)
         {
             switch (_snapMode)
             {
@@ -670,22 +667,26 @@ namespace SceneSandbox.Core
         }
 
         /// <summary>
-        /// Set position with optional snap grid
+        /// Get snapped position value without setting it
+        /// Useful for retrieving snapped position before applying
         /// </summary>
-        public void SetPosition(Vector3 position, bool applySnap = true)
+        /// <param name="position">Position to snap</param>
+        /// <param name="globalGridInfo">Optional global grid info from SceneSandboxBuilder</param>
+        /// <returns>Snapped position</returns>
+        public Vector3 GetSnappedPositionValue(Vector3 position, GridInfo? globalGridInfo = null)
         {
-            transform.position = applySnap ? ApplySnapGrid(position) : position;
+            return GetSnappedPosition(position, globalGridInfo);
         }
 
         /// <summary>
-        /// Set position with optional global grid info
-        /// Uses SnapToGrid which respects SnapMode (Extend/Self)
+        /// Set position with optional global grid info and snap
+        /// Convenience wrapper that calls SetPositionWithPivot with default settings
         /// </summary>
         /// <param name="position">Target position</param>
         /// <param name="globalGridInfo">Optional global grid info from SceneSandboxBuilder</param>
-        public void SetPosition(Vector3 position, GridInfo? globalGridInfo)
+        public void SetPosition(Vector3 position, GridInfo? globalGridInfo = null)
         {
-            transform.position = SnapToGrid(position, globalGridInfo);
+            SetPositionWithPivot(position, applyPivot: true, applyOffset: true, globalGridInfo: globalGridInfo);
         }
 
         /// <summary>
@@ -718,7 +719,7 @@ namespace SceneSandbox.Core
             // Apply snapping if grid info is provided
             if (globalGridInfo.HasValue)
             {
-                finalPosition = SnapToGrid(finalPosition, globalGridInfo);
+                finalPosition = GetSnappedPosition(finalPosition, globalGridInfo);
             }
             
             transform.position = finalPosition;
@@ -730,7 +731,6 @@ namespace SceneSandbox.Core
         public void ToggleSnapGrid()
         {
             _enableSnapGrid = !_enableSnapGrid;
-            Debug.Log($"[TransformableItem] Snap grid {(_enableSnapGrid ? "enabled" : "disabled")} for {name}");
         }
 
         /// <summary>
@@ -741,7 +741,6 @@ namespace SceneSandbox.Core
             _enableSnapGrid = enabled;
             _snapGridSize = Mathf.Max(0.01f, gridSize); // Ensure minimum grid size
             _snapMode = snapMode;
-            Debug.Log($"[TransformableItem] Snap grid settings updated: enabled={enabled}, size={_snapGridSize}, mode={snapMode} for {name}");
         }
 
         /// <summary>
@@ -750,7 +749,6 @@ namespace SceneSandbox.Core
         public void ToggleSnapMode()
         {
             _snapMode = (_snapMode == SnapMode.Extend) ? SnapMode.Self : SnapMode.Extend;
-            Debug.Log($"[TransformableItem] Snap mode changed to: {_snapMode} for {name}");
         }
 
         /// <summary>
@@ -759,7 +757,6 @@ namespace SceneSandbox.Core
         public void SetSnapMode(SnapMode mode)
         {
             _snapMode = mode;
-            Debug.Log($"[TransformableItem] Snap mode set to: {mode} for {name}");
         }
 
         /// <summary>
@@ -771,7 +768,6 @@ namespace SceneSandbox.Core
         {
             _pivotPoint = pivotPoint;
             _placementOffset = placementOffset;
-            Debug.Log($"[TransformableItem] Placement settings updated - Pivot: {pivotPoint}, Offset: {placementOffset} for {name}");
         }
 
         /// <summary>
@@ -984,7 +980,6 @@ namespace SceneSandbox.Core
             }
 
             SetGizmoVisible(show);
-            Debug.Log($"[TransformableItem] Gizmo toggled: {show}");
         }
 
         /// <summary>
@@ -994,11 +989,8 @@ namespace SceneSandbox.Core
         {
             if (_gizmoInitialized || !_enableTransformControls || !_showGizmo)
             {
-                Debug.Log($"[TransformableItem] Gizmo init skipped - initialized:{_gizmoInitialized}, controls:{_enableTransformControls}, show:{_showGizmo}");
                 return;
             }
-
-            Debug.Log($"[TransformableItem] Initializing gizmo for {name}");
 
             // Create gizmo root - DON'T parent it to the object to avoid scale/rotation dependency
             var gizmoObj = new GameObject($"{name}_Gizmo");
@@ -1020,8 +1012,6 @@ namespace SceneSandbox.Core
             
             // Initially hide gizmo
             SetGizmoVisible(false);
-            
-            Debug.Log($"[TransformableItem] Gizmo initialized successfully for {name}");
         }
 
         /// <summary>

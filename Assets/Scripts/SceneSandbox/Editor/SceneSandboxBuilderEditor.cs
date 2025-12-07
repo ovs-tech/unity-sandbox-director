@@ -37,6 +37,8 @@ namespace SceneSandbox.Editor
         private SerializedProperty _rightClickActionRef;
         private SerializedProperty _mouseScrollActionRef;
         private SerializedProperty _cancelPlacementActionRef;
+        private SerializedProperty _switchPlacementItemActionRef;
+        private SerializedProperty _startPlacementActionRef;
         
         // Raycast & Input Settings
         private SerializedProperty _maxRaycastDistance;
@@ -210,8 +212,6 @@ namespace SceneSandbox.Editor
             {
                 case EventType.MouseMove:
                 case EventType.MouseDrag:
-                    // Update ghost position
-                    _target.UpdatePlacement(mousePos);
                     HandleUtility.Repaint();
                     break;
                     
@@ -328,6 +328,8 @@ namespace SceneSandbox.Editor
             _rightClickActionRef = serializedObject.FindProperty("_rightClickActionRef");
             _mouseScrollActionRef = serializedObject.FindProperty("_mouseScrollActionRef");
             _cancelPlacementActionRef = serializedObject.FindProperty("_cancelPlacementActionRef");
+            _switchPlacementItemActionRef = serializedObject.FindProperty("_switchPlacementItemActionRef");
+            _startPlacementActionRef = serializedObject.FindProperty("_startPlacementActionRef");
             
             // Raycast & Input Settings
             _maxRaycastDistance = serializedObject.FindProperty("_maxRaycastDistance");
@@ -1471,6 +1473,8 @@ namespace SceneSandbox.Editor
             // Placement Input Actions
             EditorGUILayout.LabelField("Placement Input Actions", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_cancelPlacementActionRef, new GUIContent("Cancel Placement"));
+            EditorGUILayout.PropertyField(_switchPlacementItemActionRef, new GUIContent("Switch Placement Item", "Hotkey to cycle through objects in the library"));
+            EditorGUILayout.PropertyField(_startPlacementActionRef, new GUIContent("Start Placement", "Hotkey to start placement with current object at pointer position"));
             
             EditorGUILayout.Space(5);
             
@@ -1793,7 +1797,8 @@ namespace SceneSandbox.Editor
                         // - Move mouse to reposition ghost (follows cursor automatically)
                         // - Click to confirm placement (triggers OnEmptySpaceClicked event)
                         // - Press ESC to cancel (triggers OnCancelRequested event)
-                        _target.BeginPlacement(objectData.id);
+                        Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+                        _target.StartPlacement(objectData.id, screenCenter);
                         
                         Debug.Log($"[Editor] Started placement for {objectData.displayName}. Move mouse, click to place, ESC to cancel.");
                     }

@@ -589,14 +589,12 @@ namespace SceneSandbox.UI
             }
             
             // Delegate to SceneSandboxBuilder to handle indicator and world position conversion
-            _sandboxBuilder.BeginPlacement(item.ObjectData.id, screenPosition);
+            _sandboxBuilder.StartPlacement(item.ObjectData.id, screenPosition);
+            _sandboxBuilder.ConfirmPlacement();
         }
         
         private void OnItemDragMoved(ObjectPaletteItemUIToolkit item, Vector2 screenPosition)
         {
-            
-            // Delegate to SceneSandboxBuilder to update indicator position
-            _sandboxBuilder.UpdatePlacementUI(screenPosition);
         }
         
         private void OnItemDragEnded(ObjectPaletteItemUIToolkit item, Vector2 screenPosition)
@@ -617,7 +615,6 @@ namespace SceneSandbox.UI
             if (!isOverScene)
             {
                 Debug.LogWarning($"[DRAG] ❌ Cannot place - not over scene area");
-                _sandboxBuilder.CancelPlacementUI();
                 return;
             }
             
@@ -625,16 +622,9 @@ namespace SceneSandbox.UI
             // SceneSandboxBuilder will convert screen → world and place the object
             try
             {
-                GameObject placedObject = _sandboxBuilder.CompletePlacement(item.ObjectData.id, screenPosition);
+                _sandboxBuilder.StartPlacement(item.ObjectData.id, screenPosition);
                 
-                if (placedObject != null)
-                {
-                    OnObjectDraggedToScene?.Invoke(item.ObjectData, screenPosition);
-                }
-                else
-                {
-                    Debug.LogWarning($"[DRAG] ⚠️ Placement returned null (possibly out of bounds)");
-                }
+                OnObjectDraggedToScene?.Invoke(item.ObjectData, screenPosition);
             }
             catch (System.Exception ex)
             {

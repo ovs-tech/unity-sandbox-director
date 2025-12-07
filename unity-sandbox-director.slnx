@@ -1,0 +1,11 @@
+﻿<Solution>
+  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="UMA_Core_Editor.csproj" />
+  <Project Path="UMA_Core.csproj" />
+  <Project Path="Addressable_Editor.csproj" />
+  <Project Path="UMA_Examples.csproj" />
+  <Project Path="Shaderpackager-editor.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="UMA_Examples_Editor.csproj" />
+  <Project Path="UMA_Content.csproj" />
+</Solution>
