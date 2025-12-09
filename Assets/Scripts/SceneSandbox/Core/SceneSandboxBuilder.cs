@@ -200,7 +200,7 @@ namespace SceneSandbox.Core
         public TransformAxis CurrentTransformAxis => _currentTransformAxis;
         public SandboxMode CurrentMode => _currentMode;
         public bool IsInBuildMode => _currentMode == SandboxMode.Build;
-        
+
         // Subsystem Access - Use these to access subsystem properties directly
         public SceneSerializer SceneSerializer => _sceneSerializer;
         public PreviewController PreviewController => _previewController;
@@ -429,313 +429,285 @@ namespace SceneSandbox.Core
             // Initialize AFTER setting references
             _inputManager.Initialize(_enableHotkeys);
 
+            _cameraRaycaster = GetComponent<CameraRaycaster>();
             if (_cameraRaycaster == null)
             {
-                _cameraRaycaster = GetComponent<CameraRaycaster>();
-                if (_cameraRaycaster == null)
-                {
-                    _cameraRaycaster = gameObject.AddComponent<CameraRaycaster>();
-                }
+                _cameraRaycaster = gameObject.AddComponent<CameraRaycaster>();
             }
 
+            _gridManager = GetComponent<GridManager>();
             if (_gridManager == null)
             {
-                _gridManager = GetComponent<GridManager>();
-                if (_gridManager == null)
-                {
-                    _gridManager = gameObject.AddComponent<GridManager>();
-                }
+                _gridManager = gameObject.AddComponent<GridManager>();
             }
 
+            _placementSystem = GetComponent<PlacementSystem>();
             if (_placementSystem == null)
             {
-                _placementSystem = GetComponent<PlacementSystem>();
-                if (_placementSystem == null)
-                {
-                    _placementSystem = gameObject.AddComponent<PlacementSystem>();
-                }
-                // Initialize with current builder dependencies
-                _placementSystem.Initialize(
-                    _objectLibrary,
-                    _gridManager,
-                    _cameraRaycaster,
-                    _stageArea,
-                    _snapToGrid,
-                    _rotationSnapDegrees,
-                    _placementLayers,
-                    _maxRaycastDistance,
-                    _selectionLayers,
-                    _checkCollisions,
-                    _collisionLayers,
-                    _groundLayers,
-                    _ignoreStaticObjects,
-                    _requireSurfaceBelow
-                );
-
-                // Subscribe to placement events (non-breaking: delegate to existing methods)
-                _placementSystem.OnPlacementStarted.RemoveAllListeners();
-                _placementSystem.OnPlacementStarted.AddListener((string objectId, GameObject currentObject) =>
-                {
-                    if (_selectionManager != null && currentObject != null)
-                    {
-                        _selectionManager.SelectObject(currentObject);
-                    }
-                });
-
-                _placementSystem.OnPlacementUpdated.RemoveAllListeners();
-                _placementSystem.OnPlacementUpdated.AddListener((Vector3 worldPos) =>
-                {
-                    // Get current placement object from PlacementSystem
-                    GameObject currentObject = _placementSystem.CurrentObject;
-                    if (currentObject == null)
-                    {
-                        return;
-                    }
-
-                    // Apply transform updates (moved from UpdateGhostPosition)
-                    var transformableItem = currentObject.GetComponent<TransformableItem>();
-                    SyncGridManagerSettings();
-
-                    _transformController.SetTransformableItemPosition(worldPos, transformableItem);
-                });
-
-                _placementSystem.OnPlacementConfirmed.RemoveAllListeners();
-                _placementSystem.OnPlacementConfirmed.AddListener((string objectDataId, GameObject obj) =>
-                {
-                    // Scene configuration and tracking remain in builder
-                    var draggable = obj.GetComponent<TransformableItem>();
-                    if (draggable == null)
-                    {
-                        draggable = obj.AddComponent<TransformableItem>();
-                    }
-
-                    draggable.enabled = true;
-
-                    var placedObjectData = new Data.PlacedObjectData(draggable.ObjectDataId, obj.transform.position)
-                    {
-                        id = draggable.ObjectId,
-                        rotation = obj.transform.eulerAngles,
-                        scale = obj.transform.localScale,
-                        customName = draggable?.name ?? obj.name
-                    };
-
-                    // Register with SceneSerializer
-                    _sceneSerializer.RegisterPlacedObject(placedObjectData);
-
-                    _onObjectPlaced?.Invoke(obj);
-                });
-
-                _placementSystem.OnPlacementCancelled.RemoveAllListeners();
-                _placementSystem.OnPlacementCancelled.AddListener((GameObject obj) =>
-                {
-                    if (obj != null)
-                    {
-                        var draggable = obj.GetComponent<TransformableItem>();
-                        if (draggable != null)
-                        {
-                            string objectId = draggable.ObjectId;
-                            // Unregister with SceneSerializer
-                            _sceneSerializer.UnregisterPlacedObject(objectId);
-                        }
-                        Destroy(obj);
-                    }
-                });
+                _placementSystem = gameObject.AddComponent<PlacementSystem>();
             }
+            // Initialize with current builder dependencies
+            _placementSystem.Initialize(
+                _objectLibrary,
+                _gridManager,
+                _cameraRaycaster,
+                _stageArea,
+                _snapToGrid,
+                _rotationSnapDegrees,
+                _placementLayers,
+                _maxRaycastDistance,
+                _selectionLayers,
+                _checkCollisions,
+                _collisionLayers,
+                _groundLayers,
+                _ignoreStaticObjects,
+                _requireSurfaceBelow
+            );
+
+            // Subscribe to placement events (non-breaking: delegate to existing methods)
+            _placementSystem.OnPlacementStarted.RemoveAllListeners();
+            _placementSystem.OnPlacementStarted.AddListener((string objectId, GameObject currentObject) =>
+            {
+            });
+
+            _placementSystem.OnPlacementUpdated.RemoveAllListeners();
+            _placementSystem.OnPlacementUpdated.AddListener((Vector3 worldPos) =>
+            {
+                // Get current placement object from PlacementSystem
+                GameObject currentObject = _placementSystem.CurrentObject;
+                if (currentObject == null)
+                {
+                    return;
+                }
+
+                // Apply transform updates (moved from UpdateGhostPosition)
+                var transformableItem = currentObject.GetComponent<TransformableItem>();
+                SyncGridManagerSettings();
+
+                _transformController.SetTransformableItemPosition(worldPos, transformableItem);
+            });
+
+            _placementSystem.OnPlacementConfirmed.RemoveAllListeners();
+            _placementSystem.OnPlacementConfirmed.AddListener((string objectDataId, GameObject obj) =>
+            {
+                // Scene configuration and tracking remain in builder
+                var draggable = obj.GetComponent<TransformableItem>();
+                if (draggable == null)
+                {
+                    draggable = obj.AddComponent<TransformableItem>();
+                }
+
+                draggable.enabled = true;
+
+                var placedObjectData = new Data.PlacedObjectData(draggable.ObjectDataId, obj.transform.position)
+                {
+                    id = draggable.ObjectId,
+                    rotation = obj.transform.eulerAngles,
+                    scale = obj.transform.localScale,
+                    customName = draggable?.name ?? obj.name
+                };
+
+                // Register with SceneSerializer
+                _sceneSerializer.RegisterPlacedObject(placedObjectData);
+
+                _onObjectPlaced?.Invoke(obj);
+            });
+
+            _placementSystem.OnPlacementCancelled.RemoveAllListeners();
+            _placementSystem.OnPlacementCancelled.AddListener((GameObject obj, bool wasNewlyCreated) =>
+            {
+                Debug.Log($"[PlacementSystem] Placement cancelled for object: {obj?.name}, wasNewlyCreated: {wasNewlyCreated}");
+                if(!wasNewlyCreated) return;
+                if (obj == null) return;
+
+                var draggable = obj.GetComponent<TransformableItem>();
+                if (draggable != null)
+                {
+                    string objectId = draggable.ObjectId;
+                    // Unregister with SceneSerializer
+                    _sceneSerializer.UnregisterPlacedObject(objectId);
+                }
+                Destroy(obj);
+
+            });
 
             // Phase 2.2: SelectionManager
+            _selectionManager = GetComponent<SelectionManager>();
             if (_selectionManager == null)
             {
-                _selectionManager = GetComponent<SelectionManager>();
-                if (_selectionManager == null)
-                {
-                    _selectionManager = gameObject.AddComponent<SelectionManager>();
-                }
-                // Initialize with current builder settings
-                _selectionManager.Initialize(_cameraRaycaster, _selectionLayers, _autoEditOnSelect);
-
-                // Subscribe to selection events (non-breaking: integrate with existing behavior)
-                _selectionManager.OnObjectSelected.RemoveAllListeners();
-                _selectionManager.OnObjectSelected.AddListener((GameObject obj) =>
-                {
-                    _placementSystem.StartPlacement(obj);
-                });
-
-                _selectionManager.OnObjectDeselected.RemoveAllListeners();
-                _selectionManager.OnObjectDeselected.AddListener((GameObject obj) =>
-                {
-                    _placementSystem.CancelPlacement();
-                });
-
-                _selectionManager.OnSelectionChanged.RemoveAllListeners();
-                _selectionManager.OnSelectionChanged.AddListener((List<GameObject> selectedObjects) =>
-                {
-                    // Future: handle multi-selection UI updates
-                });
+                _selectionManager = gameObject.AddComponent<SelectionManager>();
             }
+            // Initialize with current builder settings
+            _selectionManager.Initialize(_cameraRaycaster, _selectionLayers, _autoEditOnSelect);
+
+            // Subscribe to selection events (non-breaking: integrate with existing behavior)
+            _selectionManager.OnObjectSelected.RemoveAllListeners();
+            _selectionManager.OnObjectSelected.AddListener((GameObject obj) =>
+            {
+                _placementSystem.StartPlacement(obj);
+            });
+
+            _selectionManager.OnObjectDeselected.RemoveAllListeners();
+            _selectionManager.OnObjectDeselected.AddListener((GameObject obj) =>
+            {
+                _placementSystem.CancelPlacement();
+            });
+
+            _selectionManager.OnSelectionChanged.RemoveAllListeners();
+            _selectionManager.OnSelectionChanged.AddListener((List<GameObject> selectedObjects) =>
+            {
+                // Future: handle multi-selection UI updates
+            });
 
             // Phase 2.3: TransformController
+            _transformController = GetComponent<TransformController>();
             if (_transformController == null)
             {
-                _transformController = GetComponent<TransformController>();
-                if (_transformController == null)
-                {
-                    _transformController = gameObject.AddComponent<TransformController>();
-                }
-                // Initialize with dependencies
-                _transformController.Initialize(_selectionManager, _gridManager);
-
-                // Subscribe to transform events (non-breaking: integrate with existing behavior)
-                _transformController.OnTransformModeChanged.RemoveAllListeners();
-                _transformController.OnTransformModeChanged.AddListener((TransformModeType mode) =>
-                {
-                    // Sync with builder's current mode tracking
-                    _currentTransformMode = mode;
-                });
-
-                _transformController.OnTransformAxisChanged.RemoveAllListeners();
-                _transformController.OnTransformAxisChanged.AddListener((TransformAxis axis) =>
-                {
-                    // Sync with builder's current axis tracking
-                    _currentTransformAxis = axis;
-                });
-
-                _transformController.OnTransformChanged.RemoveAllListeners();
-                _transformController.OnTransformChanged.AddListener((GameObject obj) =>
-                {                    // Update scene configuration on transform changes
-                    var draggable = obj.GetComponent<TransformableItem>();
-                    if (draggable != null)
-                    {
-                        // Update via SceneSerializer
-                        _sceneSerializer.UpdateObjectInScene(
-                            draggable.ObjectId,
-                            obj.transform.position,
-                            obj.transform.eulerAngles,
-                            obj.transform.localScale
-                        );
-                    }
-                });
+                _transformController = gameObject.AddComponent<TransformController>();
             }
+            // Initialize with dependencies
+            _transformController.Initialize(_selectionManager, _gridManager);
+
+            // Subscribe to transform events (non-breaking: integrate with existing behavior)
+            _transformController.OnTransformModeChanged.RemoveAllListeners();
+            _transformController.OnTransformModeChanged.AddListener((TransformModeType mode) =>
+            {
+                // Sync with builder's current mode tracking
+                _currentTransformMode = mode;
+            });
+
+            _transformController.OnTransformAxisChanged.RemoveAllListeners();
+            _transformController.OnTransformAxisChanged.AddListener((TransformAxis axis) =>
+            {
+                // Sync with builder's current axis tracking
+                _currentTransformAxis = axis;
+            });
+
+            _transformController.OnTransformChanged.RemoveAllListeners();
+            _transformController.OnTransformChanged.AddListener((GameObject obj) =>
+            {                    // Update scene configuration on transform changes
+                var draggable = obj.GetComponent<TransformableItem>();
+                if (draggable != null)
+                {
+                    // Update via SceneSerializer
+                    _sceneSerializer.UpdateObjectInScene(
+                        draggable.ObjectId,
+                        obj.transform.position,
+                        obj.transform.eulerAngles,
+                        obj.transform.localScale
+                    );
+                }
+            });
 
             // Phase 3.1: SceneSerializer
+            _sceneSerializer = GetComponent<SceneSerializer>();
             if (_sceneSerializer == null)
             {
-                _sceneSerializer = GetComponent<SceneSerializer>();
-                if (_sceneSerializer == null)
-                {
-                    _sceneSerializer = gameObject.AddComponent<SceneSerializer>();
-                }
-                // Initialize with dependencies
-                _sceneSerializer.Initialize(_placementSystem, _selectionManager, this);
-
-                // Subscribe to serialization events (non-breaking: integrate with existing behavior)
-                _sceneSerializer.OnSceneLoaded += (scene) =>
-                {
-                    // Sync with builder's scene name
-                    _currentSceneName = scene.sceneName;
-                };
-
-                _sceneSerializer.OnSceneSaved += (scene) =>
-                {
-                    // Future: Add UI feedback for save confirmation
-                };
-
-                _sceneSerializer.OnSceneCleared += () =>
-                {
-                    // Sync with builder's state
-                    _onSceneCleared?.Invoke();
-                };
+                _sceneSerializer = gameObject.AddComponent<SceneSerializer>();
             }
+            // Initialize with dependencies
+            _sceneSerializer.Initialize(_placementSystem, _selectionManager, this);
+
+            // Subscribe to serialization events (non-breaking: integrate with existing behavior)
+            _sceneSerializer.OnSceneLoaded += (scene) =>
+            {
+                // Sync with builder's scene name
+                _currentSceneName = scene.sceneName;
+            };
+
+            _sceneSerializer.OnSceneSaved += (scene) =>
+            {
+                // Future: Add UI feedback for save confirmation
+            };
+
+            _sceneSerializer.OnSceneCleared += () =>
+            {
+                // Sync with builder's state
+                _onSceneCleared?.Invoke();
+            };
 
             // Phase 3.2: PreviewController
+            _previewController = GetComponent<PreviewController>();
             if (_previewController == null)
             {
-                _previewController = GetComponent<PreviewController>();
-                if (_previewController == null)
-                {
-                    _previewController = gameObject.AddComponent<PreviewController>();
-                }
-                // Initialize with dependencies
-                _previewController.Initialize(_timelineDirector, _placementSystem);
-
-                // Subscribe to preview events (non-breaking: integrate with existing behavior)
-                _previewController.OnPreviewStateChanged += (isPreview) =>
-                {
-                    // Sync with builder's state
-                    _onPreviewStateChanged?.Invoke(isPreview);
-                };
+                _previewController = gameObject.AddComponent<PreviewController>();
             }
+            // Initialize with dependencies
+            _previewController.Initialize(_timelineDirector, _placementSystem);
+
+            // Subscribe to preview events (non-breaking: integrate with existing behavior)
+            _previewController.OnPreviewStateChanged += (isPreview) =>
+            {
+                // Sync with builder's state
+                _onPreviewStateChanged?.Invoke(isPreview);
+            };
 
             // Phase 3.3: SandboxGizmoRenderer (gizmo refactoring)
+            _gizmoRenderer = GetComponent<SandboxGizmoRenderer>();
             if (_gizmoRenderer == null)
             {
-                _gizmoRenderer = GetComponent<SandboxGizmoRenderer>();
-                if (_gizmoRenderer == null)
-                {
-                    _gizmoRenderer = gameObject.AddComponent<SandboxGizmoRenderer>();
-                }
-                // Initialize with dependencies
-                _gizmoRenderer.Initialize(this, _placementSystem, _selectionManager, _gridManager, _stageArea);
-
-                // Sync current scene configuration
-                _gizmoRenderer.UpdateSceneConfig(
-                    _sceneBounds,
-                    _sceneBoundsOffset,
-                    _sceneBoundsPivot,
-                    _gridOffset,
-                    _gridPivotOffset,
-                    _gridSize,
-                    _snapToGrid,
-                    _enableDropIndicator,
-                    _validDropColor,
-                    _invalidDropColor,
-                    _dropIndicatorSize,
-                    _placementLayers,
-                    _enableCostSystem,
-                    _placementCost
-                );
+                _gizmoRenderer = gameObject.AddComponent<SandboxGizmoRenderer>();
             }
+            // Initialize with dependencies
+            _gizmoRenderer.Initialize(this, _placementSystem, _selectionManager, _gridManager, _stageArea);
+
+            // Sync current scene configuration
+            _gizmoRenderer.UpdateSceneConfig(
+                _sceneBounds,
+                _sceneBoundsOffset,
+                _sceneBoundsPivot,
+                _gridOffset,
+                _gridPivotOffset,
+                _gridSize,
+                _snapToGrid,
+                _enableDropIndicator,
+                _validDropColor,
+                _invalidDropColor,
+                _dropIndicatorSize,
+                _placementLayers,
+                _enableCostSystem,
+                _placementCost
+            );
 
             // Wire SandboxInputManager events to existing handlers (non-breaking)
-            if (_inputManager != null)
+            _inputManager.OnToggleMode += () => { Debug.Log("[InputManager] ToggleMode"); ToggleMode(); };
+            _inputManager.OnExitAllModes += () => _selectionManager.ExitAllTransformModes();
+            _inputManager.OnMoveHotkey += () => OnMoveHotkeyPerformed(default);
+            _inputManager.OnRotateHotkey += () => OnRotateHotkeyPerformed(default);
+            _inputManager.OnScaleHotkey += () => OnScaleHotkeyPerformed(default);
+            _inputManager.OnTransformIncrease += () => OnTransformModeIncreasePerformed(default);
+            _inputManager.OnTransformDecrease += () => OnTransformModeDecreasePerformed(default);
+            _inputManager.OnToggleAxis += () => OnTransformModeToggleAxisPerformed(default);
+            _inputManager.OnCancelPlacement += () => OnCancelPlacementPerformed(default);
+            _inputManager.OnSwitchPlacementItemHotkey += () => OnSwitchPlacementItemHotkey();
+            _inputManager.OnStartPlacementHotkey += () => OnStartPlacementHotkey();
+
+            // Pointer events routed to existing pointer handlers
+            _inputManager.OnPointerDown += (pos) =>
             {
-                _inputManager.OnToggleMode += () => { Debug.Log("[InputManager] ToggleMode"); ToggleMode(); };
-                _inputManager.OnExitAllModes += () => _selectionManager.ExitAllTransformModes();
-                _inputManager.OnMoveHotkey += () => OnMoveHotkeyPerformed(default);
-                _inputManager.OnRotateHotkey += () => OnRotateHotkeyPerformed(default);
-                _inputManager.OnScaleHotkey += () => OnScaleHotkeyPerformed(default);
-                _inputManager.OnTransformIncrease += () => OnTransformModeIncreasePerformed(default);
-                _inputManager.OnTransformDecrease += () => OnTransformModeDecreasePerformed(default);
-                _inputManager.OnToggleAxis += () => OnTransformModeToggleAxisPerformed(default);
-                _inputManager.OnCancelPlacement += () => OnCancelPlacementPerformed(default);
-                _inputManager.OnSwitchPlacementItemHotkey += () => OnSwitchPlacementItemHotkey();
-                _inputManager.OnStartPlacementHotkey += () => OnStartPlacementHotkey();
+                if (_placementSystem.IsActive)
 
-                // Pointer events routed to existing pointer handlers
-                _inputManager.OnPointerDown += (pos) =>
+                    ConfirmPlacement();
+                else
                 {
-                    if (_placementSystem.IsActive)
-
-                        ConfirmPlacement();
+                    TransformableItem hitItem = _placementSystem.RaycastForItem(pos);
+                    if (hitItem != null)
+                        _selectionManager.SelectItem(hitItem);
                     else
-                    {
-                        TransformableItem hitItem = _placementSystem.RaycastForItem(pos);
-                        if (hitItem != null)
-                            _selectionManager.SelectItem(hitItem);
-                        else
-                            _selectionManager.ClearSelection();
-                    }
+                        _selectionManager.ClearSelection();
+                }
 
-                };
-                _inputManager.OnPointerUp += (pos) =>
-                {
+            };
+            _inputManager.OnPointerUp += (pos) =>
+            {
 
-                };
-                _inputManager.OnPointerMoved += (pos) =>
-                {
-                    _placementSystem.UpdatePlacement(pos);
-                };
-                _inputManager.OnScroll += (delta) => { /* existing scroll handling occurs in Update; foundation only */ };
-            }
+            };
+            _inputManager.OnPointerMoved += (pos) =>
+            {
+                _placementSystem.UpdatePlacement(pos);
+            };
+            _inputManager.OnScroll += (delta) => { /* existing scroll handling occurs in Update; foundation only */ };
+
         }
 
         private void SyncGridManagerSettings()
@@ -1146,7 +1118,7 @@ namespace SceneSandbox.Core
         {
             var currentProject = _sceneSerializer.CurrentProject;
             var currentScene = _sceneSerializer.CurrentScene;
-            
+
             if (currentProject == null)
             {
                 _sceneSerializer.CreateNewProject(_currentSceneName ?? "Untitled Project");
@@ -1184,7 +1156,7 @@ namespace SceneSandbox.Core
         {
             var currentProject = _sceneSerializer.CurrentProject;
             var currentScene = _sceneSerializer.CurrentScene;
-            
+
             if (currentProject == null)
             {
                 CreateDefaultProject();
@@ -1220,7 +1192,7 @@ namespace SceneSandbox.Core
         {
             var currentProject = _sceneSerializer.CurrentProject;
             var currentScene = _sceneSerializer.CurrentScene;
-            
+
             if (currentProject == null)
             {
                 return false;
@@ -1260,7 +1232,7 @@ namespace SceneSandbox.Core
         {
             var currentProject = _sceneSerializer.CurrentProject;
             var currentScene = _sceneSerializer.CurrentScene;
-            
+
             if (currentProject == null)
             {
                 Debug.LogError("No project loaded");
@@ -1304,7 +1276,7 @@ namespace SceneSandbox.Core
         {
             var currentScene = _sceneSerializer.CurrentScene;
             var currentProject = _sceneSerializer.CurrentProject;
-            
+
             if (currentScene == null || currentProject == null)
             {
                 Debug.LogError("No scene or project loaded");

@@ -90,6 +90,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &638379497604899000
 BoxCollider:
@@ -145,8 +146,14 @@ MonoBehaviour:
   _enableSnapGrid: 0
   _snapGridSize: 0.5
   _pivotPoint: 6
-  _placementOffset: {x: 0, y: 0, z: 0}
+  _placementOffset: {x: 0, y: 0.4, z: 0}
   _currentTransformModeType: 0
   _currentTransformAxis: 0
   _objectId: 
   _objectDataId: 
+  _onSelectItem:
+    m_PersistentCalls:
+      m_Calls: []
+  _onDeselectItem:
+    m_PersistentCalls:
+      m_Calls: []

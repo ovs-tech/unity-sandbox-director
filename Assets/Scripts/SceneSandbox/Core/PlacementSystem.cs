@@ -39,14 +39,17 @@ namespace SceneSandbox.Core
         public UnityEvent<string, GameObject> OnPlacementStarted = new UnityEvent<string, GameObject>();
         public UnityEvent<Vector3> OnPlacementUpdated = new UnityEvent<Vector3>();
         public UnityEvent<string, GameObject> OnPlacementConfirmed = new UnityEvent<string, GameObject>();
-        public UnityEvent<GameObject> OnPlacementCancelled = new UnityEvent<GameObject>();
+        public UnityEvent<GameObject, bool> OnPlacementCancelled = new UnityEvent<GameObject, bool>(); // GameObject, isNewlyCreated
         public UnityEvent<Vector3> OnDropIndicatorShown = new UnityEvent<Vector3>();
         public UnityEvent<Vector3> OnDropIndicatorUpdated = new UnityEvent<Vector3>();
         public UnityEvent OnDropIndicatorHidden = new UnityEvent();
 
         // Internal state (kept minimal)
+        // Internal state (kept minimal)
         private string _currentObjectId;
         private GameObject _currentObject;
+        private Vector3 _currentObjectLastPosition; // Track position when placement started
+        private bool _currentObjectIsNewlyCreated; // Track if object was newly created during placement
         private Vector2 _lastScreenPosition;
         private PlacementState _state = PlacementState.Idle;
         private bool _isValidPlacementCurrentPosition = true;
@@ -81,6 +84,7 @@ namespace SceneSandbox.Core
             _currentObjectId = objectDataId;
             _lastScreenPosition = screenPosition;
             _state = PlacementState.Active;
+            _currentObjectIsNewlyCreated = false; // Not creating object here
             OnPlacementStarted.Invoke(objectDataId, _currentObject);
         }
 
@@ -120,6 +124,11 @@ namespace SceneSandbox.Core
             // Instantiate via system PlaceObject (no scene config changes here)
             GameObject created = PlaceObject(objectDataId, worldPos);
             _currentObject = created;
+            _currentObjectIsNewlyCreated = true; // Mark as newly created
+            if (created != null)
+            {
+                _currentObjectLastPosition = created.transform.position; // Store creation position
+            }
 
             // Emit events for listeners
             OnPlacementStarted.Invoke(objectDataId, _currentObject);
@@ -136,6 +145,11 @@ namespace SceneSandbox.Core
             _currentObject = objectPrefab;
             _lastScreenPosition = screenPosition ?? Vector2.zero;
             _state = PlacementState.Active;
+            _currentObjectIsNewlyCreated = false; // Existing object being manipulated
+            if (_currentObject != null)
+            {
+                _currentObjectLastPosition = _currentObject.transform.position; // Store current position
+            }
             OnPlacementStarted.Invoke(null, _currentObject);
         }
 
@@ -206,27 +220,36 @@ namespace SceneSandbox.Core
         {
             GameObject obj = _currentObject;
             
-            // Remove from tracking if it was a placed object
             if (obj != null)
             {
-                var transformable = obj.GetComponent<TransformableItem>();
-                if (transformable != null)
+                if (_currentObjectIsNewlyCreated)
                 {
-                    string placedId = transformable.ObjectId;
-                    if (!string.IsNullOrEmpty(placedId) && _placedObjects.ContainsKey(placedId))
+                    // If newly created during this placement session, destroy it
+                    var transformable = obj.GetComponent<TransformableItem>();
+                    if (transformable != null)
                     {
-                        _placedObjects.Remove(placedId);
+                        string placedId = transformable.ObjectId;
+                        if (!string.IsNullOrEmpty(placedId) && _placedObjects.ContainsKey(placedId))
+                        {
+                            _placedObjects.Remove(placedId);
+                        }
                     }
+                    
+                    Destroy(obj);
                 }
-                
-                Destroy(obj);
+                else
+                {
+                    // If existing object, just reset its position to where placement started
+                    obj.transform.position = _currentObjectLastPosition;
+                }
             }
             
             _state = PlacementState.Cancelling;
-            OnPlacementCancelled.Invoke(obj);
+            OnPlacementCancelled.Invoke(obj, _currentObjectIsNewlyCreated);
             OnDropIndicatorHidden.Invoke();
             _currentObjectId = null;
             _currentObject = null;
+            _currentObjectIsNewlyCreated = false;
             _state = PlacementState.Idle;
             _isValidPlacementCurrentPosition = true;
             return obj;
@@ -428,7 +451,7 @@ namespace SceneSandbox.Core
             // Note: cell size/offset managed by builder; this keeps snap toggle in sync.
         }
 
-        public Vector3 ComputeWorldPositionFromScreen(Vector2 screenPosition, float maxDistance, LayerMask placementLayers)
+        private Vector3 ComputeWorldPositionFromScreen(Vector2 screenPosition, float maxDistance, LayerMask placementLayers)
         {
             if (_cameraRaycaster != null)
             {
@@ -449,7 +472,7 @@ namespace SceneSandbox.Core
             return Vector3.zero;
         }
 
-        public Vector3 ApplyGridSnap(Vector3 position)
+        private Vector3 ApplyGridSnap(Vector3 position)
         {
             if (_gridManager != null && _snapToGrid)
             {
@@ -458,42 +481,74 @@ namespace SceneSandbox.Core
             return position;
         }
 
-        public Quaternion ApplyRotationSnap(Quaternion rotation)
+        private bool ValidatePlacementPosition(Vector3 position, Vector3 sizeExtents, Quaternion rotation, LayerMask collisionLayers, LayerMask groundLayers, bool ignoreStatic, bool requireSurfaceBelow, LayerMask placementLayers)
         {
-            if (_gridManager != null && _snapToGrid)
+            if (_debugLogs)
             {
-                return _gridManager.GetSnappedRotation(rotation, _rotationSnapDegrees);
+                Debug.Log($"[PlacementSystem] ValidatePlacementPosition - Position: {position}, SizeExtents: {sizeExtents}, Rotation: {rotation.eulerAngles}");
+                Debug.Log($"[PlacementSystem] ValidatePlacementPosition - CollisionLayers: {collisionLayers.value}, GroundLayers: {groundLayers.value}, IgnoreStatic: {ignoreStatic}, RequireSurfaceBelow: {requireSurfaceBelow}");
             }
-            return rotation;
-        }
 
-        public bool ValidatePlacementPosition(Vector3 position, Vector3 sizeExtents, Quaternion rotation, LayerMask collisionLayers, LayerMask groundLayers, bool ignoreStatic, bool requireSurfaceBelow, LayerMask placementLayers)
-        {
             // Scene bounds validation is deferred to builder for now
 
             // Collision check using OverlapBox
             Collider[] overlapping = Physics.OverlapBox(position, sizeExtents, rotation, collisionLayers, QueryTriggerInteraction.Ignore);
+            
+            if (_debugLogs)
+            {
+                Debug.Log($"[PlacementSystem] ValidatePlacementPosition - Found {overlapping.Length} overlapping colliders");
+            }
+
             foreach (var col in overlapping)
             {
+                // Ignore collisions with self (the current object being placed)
+                if (_currentObject != null && col.transform.IsChildOf(_currentObject.transform))
+                {
+                    if (_debugLogs) Debug.Log($"[PlacementSystem] ValidatePlacementPosition - Ignoring self collision: {col.gameObject.name}");
+                    continue;
+                }
+                
+                if (_currentObject != null && col.gameObject == _currentObject)
+                {
+                    if (_debugLogs) Debug.Log($"[PlacementSystem] ValidatePlacementPosition - Ignoring self collision (root): {col.gameObject.name}");
+                    continue;
+                }
+                
                 int objLayer = col.gameObject.layer;
+                
                 if ((groundLayers.value & (1 << objLayer)) != 0)
                 {
+                    if (_debugLogs) Debug.Log($"[PlacementSystem] ValidatePlacementPosition - Ignoring ground layer object: {col.gameObject.name} (Layer: {LayerMask.LayerToName(objLayer)})");
                     continue;
                 }
+                
                 if (ignoreStatic && col.gameObject.isStatic)
                 {
+                    if (_debugLogs) Debug.Log($"[PlacementSystem] ValidatePlacementPosition - Ignoring static object: {col.gameObject.name}");
                     continue;
                 }
+                
+                if (_debugLogs) Debug.Log($"[PlacementSystem] ValidatePlacementPosition - Collision detected with: {col.gameObject.name} (Layer: {LayerMask.LayerToName(objLayer)}) - Position INVALID");
                 return false;
             }
+
             // Optional surface requirement
             if (requireSurfaceBelow)
             {
-                if (!Physics.Raycast(position + Vector3.up * 0.1f, Vector3.down, 0.2f, placementLayers))
+                bool surfaceFound = Physics.Raycast(position + Vector3.up * 0.1f, Vector3.down, 0.2f, placementLayers);
+                
+                if (_debugLogs)
+                {
+                    Debug.Log($"[PlacementSystem] ValidatePlacementPosition - Surface below requirement: {(surfaceFound ? "MET" : "NOT MET")}");
+                }
+                
+                if (!surfaceFound)
                 {
                     return false;
                 }
             }
+
+            if (_debugLogs) Debug.Log($"[PlacementSystem] ValidatePlacementPosition - Position VALID");
             return true;
         }
 

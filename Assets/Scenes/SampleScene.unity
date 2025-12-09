@@ -1391,6 +1391,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1379408075}
     - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _snapToGrid
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6108783902824427292, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
       propertyPath: _timelineDirector
       value: 
       objectReference: {fileID: 398228398}

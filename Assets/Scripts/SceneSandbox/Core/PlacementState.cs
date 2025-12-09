@@ -7,7 +7,6 @@ namespace SceneSandbox.Core
     {
         Idle,           // No active placement
         Active,         // Dragging with preview
-        Confirming,     // Transition to place
         Cancelling      // Transition to cancel
     }
 }

@@ -13,10 +13,8 @@ namespace SceneSandbox.Core
     public class SceneSerializer : MonoBehaviour
     {
         [Header("Save/Load Configuration")]
-        [Tooltip("Scene save path (Read-Only). Automatically set to: persistentDataPath/SceneSandboxBuilder/SavedScenes")]
-        [SerializeField] private string _defaultSavePath = "";
-        [Tooltip("Project save path (Read-Only). Automatically set to: persistentDataPath/SceneSandboxBuilder/SavedProjects")]
-        [SerializeField] private string _defaultProjectSavePath = "";
+        private string _defaultSavePath = "";
+        private string _defaultProjectSavePath = "";
         [Tooltip("Name for the current scene configuration")]
         [SerializeField] private string _currentSceneName = "Untitled Scene";
         [Tooltip("Automatically load the first available project on start (Play mode only)")]
@@ -79,7 +77,6 @@ namespace SceneSandbox.Core
             string rootPath = Application.isEditor ? System.IO.Path.Combine(Application.dataPath, "Data") : Application.persistentDataPath;
             _defaultSavePath = System.IO.Path.Combine(rootPath, "SceneSandboxBuilder", "SavedScenes");
             _defaultProjectSavePath = System.IO.Path.Combine(rootPath, "SceneSandboxBuilder", "SavedProjects");
-
             try
             {
                 if (!System.IO.Directory.Exists(_defaultSavePath))
@@ -92,7 +89,7 @@ namespace SceneSandbox.Core
                     System.IO.Directory.CreateDirectory(_defaultProjectSavePath);
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Debug.LogError($"Failed to create save directories: {ex.Message}");
             }
