@@ -10,6 +10,15 @@ GameObject:
   m_Component:
   - component: {fileID: 3697700392935551172}
   - component: {fileID: 6108783902824427292}
+  - component: {fileID: 403405811092055405}
+  - component: {fileID: 3928122333050953017}
+  - component: {fileID: 7775891421103376145}
+  - component: {fileID: 2558678318198386435}
+  - component: {fileID: 2151407519070486104}
+  - component: {fileID: 6664706322377829101}
+  - component: {fileID: 725282232409012605}
+  - component: {fileID: 3653376993707398589}
+  - component: {fileID: 8925616610170935507}
   m_Layer: 0
   m_Name: Sandbox Scene Builder
   m_TagString: Untagged
@@ -44,6 +53,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c60d480f8ad344cb89f55067d22bb81, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneSandbox.Core.SceneSandboxBuilder
+  _cameraRaycaster: {fileID: 3928122333050953017}
+  _inputManager: {fileID: 403405811092055405}
+  _gridManager: {fileID: 7775891421103376145}
+  _placementSystem: {fileID: 2558678318198386435}
+  _selectionManager: {fileID: 2151407519070486104}
+  _transformController: {fileID: 6664706322377829101}
+  _sceneSerializer: {fileID: 725282232409012605}
+  _previewController: {fileID: 3653376993707398589}
+  _gizmoRenderer: {fileID: 8925616610170935507}
   _objectLibrary: {fileID: 11400000, guid: 2b589a7f8785049958954ff918693f0c, type: 2}
   _sceneRoot: {fileID: 0}
   _stageArea: {fileID: 0}
@@ -60,6 +78,8 @@ MonoBehaviour:
   _rightClickActionRef: {fileID: 7782487072623700467, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
   _mouseScrollActionRef: {fileID: -957748281948142360, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
   _cancelPlacementActionRef: {fileID: -8120193850246896430, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _switchPlacementItemActionRef: {fileID: 0}
+  _startPlacementActionRef: {fileID: 0}
   _maxRaycastDistance: 1000
   _dragThreshold: 5
   _doubleClickTime: 0.3
@@ -69,13 +89,13 @@ MonoBehaviour:
     m_Bits: 64
   _selectionLayers:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 513
   _snapToGrid: 1
   _gridSize: 1
   _gridOffset: {x: 0, y: 0, z: 0}
   _gridPivotOffset: 6
-  _defaultPlacementHeight: 0.2
-  _minimumPlacementHeight: 0.1
+  _defaultPlacementHeight: 0.3
+  _minimumPlacementHeight: 0.2
   _useRaycastForPlacement: 1
   _useConsistentHeight: 1
   _sceneBounds: {x: 18.6, y: 6.39, z: 9.93}
@@ -86,15 +106,9 @@ MonoBehaviour:
   _validDropColor: {r: 0, g: 1, b: 0, a: 0.8}
   _invalidDropColor: {r: 1, g: 0, b: 0, a: 0.8}
   _dropIndicatorSize: 1
-  _enableGhostPreview: 1
-  _validGhostColor: {r: 0, g: 1, b: 0, a: 0.5}
-  _invalidGhostColor: {r: 1, g: 0, b: 0, a: 0.5}
   _showGridSnapIndicator: 1
   _showSurfaceNormal: 1
   _surfaceNormalLength: 1
-  _positionModeColor: {r: 0, g: 1, b: 1, a: 0.5}
-  _rotationModeColor: {r: 1, g: 1, b: 0, a: 0.5}
-  _scaleModeColor: {r: 1, g: 0, b: 1, a: 0.5}
   _autoEditOnSelect: 1
   _checkCollisions: 1
   _collisionLayers:
@@ -110,12 +124,294 @@ MonoBehaviour:
   _rotationSensitivity: 1
   _scaleSensitivity: 0.01
   _scrollScaleSensitivity: 0.1
+  _rotationSnapDegrees: 15
   _minScale: {x: 0.1, y: 0.1, z: 0.1}
   _maxScale: {x: 10, y: 10, z: 10}
   _timelineDirector: {fileID: 0}
   _autoPreview: 1
   _previewDuration: 10
-  _enableGizmos: 0
+  _defaultSavePath: Assets/SceneSandboxBuilder/SavedScenes/
+  _currentSceneName: Untitled Scene
+  _defaultProjectSavePath: Assets/SceneSandboxBuilder/SavedProjects/
+  _autoLoadFirstProject: 1
+  _onSceneLoaded:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 0}
+        m_TargetAssemblyTypeName: MiniTimeline.Core.MiniTimelineDirector, Assembly-CSharp
+        m_MethodName: AutoBindSceneObjects
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  _onSceneSaved:
+    m_PersistentCalls:
+      m_Calls: []
+  _onObjectPlaced:
+    m_PersistentCalls:
+      m_Calls: []
+  _onObjectRemoved:
+    m_PersistentCalls:
+      m_Calls: []
+  _onObjectSelected:
+    m_PersistentCalls:
+      m_Calls: []
+  _onSceneCleared:
+    m_PersistentCalls:
+      m_Calls: []
+  _onPreviewStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  _onModeChanged:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &403405811092055405
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 444325856237096281}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7e1f7d95ac0e624fb590581b5db589d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneSandbox.Core.SandboxInputManager
+  _toggleModeActionRef: {fileID: 7225520603179111591, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _exitAllModesActionRef: {fileID: -8120193850246896430, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _moveHotkeyActionRef: {fileID: 2843508185504223957, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _rotateHotkeyActionRef: {fileID: -8373456726477787857, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _scaleHotkeyActionRef: {fileID: 1537150768674875410, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _transformModeIncreaseActionRef: {fileID: 3099720330267465567, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _transformModeDecreaseActionRef: {fileID: 8128551554140899369, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _transformModeToggleAxisActionRef: {fileID: 1544176395740903846, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _pointerPositionActionRef: {fileID: 1622428205235823346, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _leftClickActionRef: {fileID: 846087269551105390, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _rightClickActionRef: {fileID: 7782487072623700467, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _mouseScrollActionRef: {fileID: -957748281948142360, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _cancelPlacementActionRef: {fileID: -8120193850246896430, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
+  _switchPlacementItemActionRef: {fileID: 0}
+  _startPlacementActionRef: {fileID: 0}
+  _enableHotkeys: 1
+  _debugLogs: 0
+--- !u!114 &3928122333050953017
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 444325856237096281}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7027c60166a4b4007890b2d46c4f47cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneSandbox.Core.CameraRaycaster
+  _camera: {fileID: 0}
+  _raycastMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _maxDistance: 1000
+--- !u!114 &7775891421103376145
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 444325856237096281}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 106cb95289e0a4813af3e4e9d6cac804, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneSandbox.Core.GridManager
+  _enabled: 1
+  _cellSize: 0.5
+  _offset: {x: 0, y: 0, z: 0}
+--- !u!114 &2558678318198386435
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 444325856237096281}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9bab9639753b4f56a6142d2b86fdd10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneSandbox.Core.PlacementSystem
+  _debugLogs: 0
+  _objectLibrary: {fileID: 11400000, guid: 2b589a7f8785049958954ff918693f0c, type: 2}
+  _gridManager: {fileID: 7775891421103376145}
+  _cameraRaycaster: {fileID: 3928122333050953017}
+  _stageArea: {fileID: 0}
+  _snapToGrid: 1
+  _rotationSnapDegrees: 15
+  _placementLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  _selectionLayers:
+    serializedVersion: 2
+    m_Bits: 513
+  _maxRaycastDistance: 1000
+  _checkCollisions: 1
+  _collisionLayers:
+    serializedVersion: 2
+    m_Bits: 1
+  _groundLayers:
+    serializedVersion: 2
+    m_Bits: 64
+  _ignoreStaticObjects: 1
+  _requireSurfaceBelow: 0
+  OnPlacementStarted:
+    m_PersistentCalls:
+      m_Calls: []
+  OnPlacementUpdated:
+    m_PersistentCalls:
+      m_Calls: []
+  OnPlacementConfirmed:
+    m_PersistentCalls:
+      m_Calls: []
+  OnPlacementCancelled:
+    m_PersistentCalls:
+      m_Calls: []
+  OnDropIndicatorShown:
+    m_PersistentCalls:
+      m_Calls: []
+  OnDropIndicatorUpdated:
+    m_PersistentCalls:
+      m_Calls: []
+  OnDropIndicatorHidden:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &2151407519070486104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 444325856237096281}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8185b5c1d94e4c5b85486f6c099b41d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneSandbox.Core.SelectionManager
+  _debugLogs: 0
+  _cameraRaycaster: {fileID: 3928122333050953017}
+  _selectionLayers:
+    serializedVersion: 2
+    m_Bits: 513
+  _autoEditOnSelect: 1
+  OnObjectSelected:
+    m_PersistentCalls:
+      m_Calls: []
+  OnObjectDeselected:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSelectionChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  OnObjectHoverEnter:
+    m_PersistentCalls:
+      m_Calls: []
+  OnObjectHoverExit:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &6664706322377829101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 444325856237096281}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07802a53f3f514398a66f2e62ea17100, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneSandbox.Core.TransformController
+  _debugLogs: 0
+  _selectionManager: {fileID: 2151407519070486104}
+  _gridManager: {fileID: 7775891421103376145}
+  _rotationSensitivity: 1
+  _scaleSensitivity: 0.01
+  _scrollScaleSensitivity: 0.1
+  _minScale: {x: 0.1, y: 0.1, z: 0.1}
+  _maxScale: {x: 10, y: 10, z: 10}
+  _positionModeColor: {r: 0, g: 1, b: 1, a: 0.5}
+  _rotationModeColor: {r: 1, g: 1, b: 0, a: 0.5}
+  _scaleModeColor: {r: 1, g: 0, b: 1, a: 0.5}
+  OnTransformModeChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  OnTransformAxisChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  OnTransformChanged:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &725282232409012605
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 444325856237096281}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf05642956de44512b59cd26fb881d70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneSandbox.Core.SceneSerializer
+  _defaultSavePath: D:/Projects/unity/unity-sandbox-director/Assets\Data\SceneSandboxBuilder\SavedScenes
+  _defaultProjectSavePath: D:/Projects/unity/unity-sandbox-director/Assets\Data\SceneSandboxBuilder\SavedProjects
+  _currentSceneName: Untitled Scene
+  _autoLoadFirstProject: 0
+  _onSceneLoaded:
+    m_PersistentCalls:
+      m_Calls: []
+  _onSceneSaved:
+    m_PersistentCalls:
+      m_Calls: []
+  _onSceneCleared:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &3653376993707398589
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 444325856237096281}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db29768f148f948a19ad30d16c2571b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneSandbox.Core.PreviewController
+  _autoPreview: 0
+  _previewDuration: 10
+  _onPreviewStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &8925616610170935507
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 444325856237096281}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee2782005acda334cb7b2edc196f287a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneSandbox.Core.SandboxGizmoRenderer
+  _builder: {fileID: 6108783902824427292}
+  _placementSystem: {fileID: 2558678318198386435}
+  _selectionManager: {fileID: 2151407519070486104}
+  _gridManager: {fileID: 7775891421103376145}
+  _stageArea: {fileID: 0}
+  _enableGizmos: 1
   _showBoundsGizmo: 1
   _showAxesGizmo: 1
   _showHandlesGizmo: 1
@@ -128,6 +424,6 @@ MonoBehaviour:
   _showPlacementHeightGizmo: 1
   _sceneBoundsColor: {r: 0, g: 1, b: 1, a: 1}
   _placementHeightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  _defaultSavePath: Assets/SceneSandboxBuilder/SavedScenes/
-  _currentSceneName: Untitled Scene
-  _defaultProjectSavePath: Assets/SceneSandboxBuilder/SavedProjects/
+  _showGridSnapIndicator: 1
+  _showSurfaceNormal: 1
+  _surfaceNormalLength: 1

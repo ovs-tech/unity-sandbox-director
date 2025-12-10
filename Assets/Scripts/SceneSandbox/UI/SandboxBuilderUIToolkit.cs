@@ -730,7 +730,7 @@ namespace SceneSandbox.UI
         
         private void OnNewProjectClicked()
         {
-            if (_sandboxBuilder?.CurrentProject != null)
+            if (_sandboxBuilder?.SceneSerializer?.CurrentProject != null)
             {
                 ShowConfirmationDialogAsync("New Project", 
                     "Creating a new project will close the current project.\n\nDo you want to continue?",
@@ -783,7 +783,7 @@ namespace SceneSandbox.UI
         
         private void OnSaveProjectClicked()
         {
-            if (_sandboxBuilder?.CurrentProject == null)
+            if (_sandboxBuilder?.SceneSerializer?.CurrentProject == null)
             {
                 ShowMessageDialog("No Project", "No project is currently loaded.");
                 return;
@@ -798,7 +798,7 @@ namespace SceneSandbox.UI
         
         private void OnClearProjectClicked()
         {
-            if (_sandboxBuilder?.CurrentProject == null)
+            if (_sandboxBuilder?.SceneSerializer?.CurrentProject == null)
             {
                 ShowMessageDialog("No Project", "No project is currently loaded.");
                 return;
@@ -810,7 +810,7 @@ namespace SceneSandbox.UI
                     _sandboxBuilder?.ClearScene();
                     if (_sandboxBuilder != null)
                     {
-                        _sandboxBuilder.CurrentProject?.GetActiveScene()?.ClearPlacedObjects();
+                        _sandboxBuilder.SceneSerializer?.CurrentProject?.GetActiveScene()?.ClearPlacedObjects();
                     }
                 },
                 () => { /* Cancelled */ }
@@ -918,16 +918,16 @@ namespace SceneSandbox.UI
         
         private void UpdateSceneInfo()
         {
-            if (_sandboxBuilder?.CurrentScene == null) return;
-            
+            if (_sandboxBuilder?.SceneSerializer?.CurrentScene == null) return;
+
             if (_sceneNameText != null)
             {
-                _sceneNameText.text = $"Scene: {_sandboxBuilder.CurrentScene.sceneName}";
+                _sceneNameText.text = $"Scene: {_sandboxBuilder.SceneSerializer.CurrentScene.sceneName}";
             }
             
             if (_objectCountText != null)
             {
-                _objectCountText.text = $"Objects: {_sandboxBuilder.CurrentScene.placedObjects?.Count ?? 0}";
+                _objectCountText.text = $"Objects: {_sandboxBuilder.SceneSerializer.CurrentScene.placedObjects?.Count ?? 0}";
             }
         }
         
@@ -935,9 +935,9 @@ namespace SceneSandbox.UI
         {
             if (_currentProjectText != null)
             {
-                if (_sandboxBuilder?.CurrentProject != null)
+                if (_sandboxBuilder?.SceneSerializer?.CurrentProject != null)
                 {
-                    _currentProjectText.text = $"Project: {_sandboxBuilder.CurrentProject.projectName}";
+                    _currentProjectText.text = $"Project: {_sandboxBuilder.SceneSerializer.CurrentProject.projectName}";
                 }
                 else
                 {
@@ -945,11 +945,11 @@ namespace SceneSandbox.UI
                 }
             }
             
-            if (_projectNameInput != null && _sandboxBuilder?.CurrentProject != null)
+            if (_projectNameInput != null && _sandboxBuilder?.SceneSerializer?.CurrentProject != null)
             {
                 if (string.IsNullOrEmpty(_projectNameInput.value))
                 {
-                    _projectNameInput.value = _sandboxBuilder.CurrentProject.projectName;
+                    _projectNameInput.value = _sandboxBuilder.SceneSerializer.CurrentProject.projectName;
                 }
             }
         }
@@ -961,9 +961,9 @@ namespace SceneSandbox.UI
         
         private void UpdateButtonStates()
         {
-            bool hasScene = _sandboxBuilder?.CurrentScene != null;
-            bool hasProject = _sandboxBuilder?.CurrentProject != null;
-            bool isInPreview = _sandboxBuilder?.IsInPreviewMode ?? false;
+            bool hasScene = _sandboxBuilder?.SceneSerializer?.CurrentScene != null;
+            bool hasProject = _sandboxBuilder?.SceneSerializer?.CurrentProject != null;
+            bool isInPreview = _sandboxBuilder?.PreviewController?.IsInPreviewMode ?? false;
             bool hasSelection = _selectedObject != null;
             
             SetButtonEnabled(_deleteObjectButton, hasSelection && !isInPreview);
