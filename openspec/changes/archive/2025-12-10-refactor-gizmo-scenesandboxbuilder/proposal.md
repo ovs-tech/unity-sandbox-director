@@ -1,6 +1,6 @@
 # Proposal: Refactor SceneSandboxBuilder - Extract Gizmo Rendering & Remove Redundant Methods
 
-## Motivation
+## Why
 The SceneSandboxBuilder class (2770 lines) contains extensive gizmo rendering logic (~570 lines) that violates single responsibility principle. Additionally, it has redundant properties and methods that duplicate functionality already provided by extracted subsystems (PlacementSystem, SelectionManager, GridManager, etc.).
 
 Extracting gizmo rendering into a dedicated component will:
@@ -14,7 +14,7 @@ Removing redundant wrapper methods/properties will:
 - Reduce confusion about which API to use
 - Improve code discoverability (use subsystem directly, not wrappers)
 
-## Scope
+## What Changes
 
 ### 1. Extract Gizmo Rendering
 Move all gizmo-related code from SceneSandboxBuilder to a new `SandboxGizmoRenderer` component:

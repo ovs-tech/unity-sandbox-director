@@ -544,6 +544,10 @@ namespace SceneSandbox.Core
             _selectionManager.OnObjectSelected.RemoveAllListeners();
             _selectionManager.OnObjectSelected.AddListener((GameObject obj) =>
             {
+                // Invoke builder's event for external subscribers
+                _onObjectSelected?.Invoke(obj);
+                
+                // Start placement
                 _placementSystem.StartPlacement(obj);
             });
 
@@ -613,11 +617,14 @@ namespace SceneSandbox.Core
             {
                 // Sync with builder's scene name
                 _currentSceneName = scene.sceneName;
+                // Invoke builder's event
+                _onSceneLoaded?.Invoke(scene);
             };
 
             _sceneSerializer.OnSceneSaved += (scene) =>
             {
-                // Future: Add UI feedback for save confirmation
+                // Invoke builder's event
+                _onSceneSaved?.Invoke(scene);
             };
 
             _sceneSerializer.OnSceneCleared += () =>

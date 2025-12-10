@@ -357,7 +357,8 @@ namespace MiniTimeline.Core
         /// <returns>Full path to projects folder</returns>
         public static string GetProjectsFolder()
         {
-            string projectsPath = Path.Combine(Application.persistentDataPath, "TimelineProjects");
+            string rootPath = Application.isEditor ? System.IO.Path.Combine(Application.dataPath, "Data") : Application.persistentDataPath;
+            string projectsPath = Path.Combine(rootPath, "TimelineProjects");
 
             // Ensure directory exists
             if (!Directory.Exists(projectsPath))
