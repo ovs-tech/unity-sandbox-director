@@ -66,6 +66,7 @@ namespace SceneSandbox.Core
 
         [Header("Raycast & Input Settings")]
         [SerializeField] private float _maxRaycastDistance = 1000f;
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0052:Remove unread private members")]
         [SerializeField] private float _dragThreshold = 5f;
         [SerializeField] private float _doubleClickTime = 0.3f;
         [SerializeField] private bool _enableHotkeys = true;
@@ -91,8 +92,11 @@ namespace SceneSandbox.Core
         [SerializeField] private float _dropIndicatorSize = 1f;
 
         [Header("Placement Preview Settings")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0052:Remove unread private members")]
         [SerializeField] private bool _showGridSnapIndicator = true;
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0052:Remove unread private members")]
         [SerializeField] private bool _showSurfaceNormal = true;
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0052:Remove unread private members")]
         [SerializeField] private float _surfaceNormalLength = 1f;
 
         [Header("Selection & Edit Settings")]
@@ -129,6 +133,9 @@ namespace SceneSandbox.Core
         [SerializeField] private string _defaultProjectSavePath = ""; // Force initialized to Application.persistentDataPath/SceneSandboxBuilder/SavedProjects
         [Tooltip("Automatically load the first available project on start (Play mode only)")]
         [SerializeField] private bool _autoLoadFirstProject = false;
+
+        [Header("Debug Settings")]
+        [SerializeField] private bool _debugLogs = false;
 
         // Components
         private Camera _sceneCamera;
@@ -200,7 +207,8 @@ namespace SceneSandbox.Core
         public TransformAxis CurrentTransformAxis => _currentTransformAxis;
         public SandboxMode CurrentMode => _currentMode;
         public bool IsInBuildMode => _currentMode == SandboxMode.Build;
-
+        public bool DebugLogs => _debugLogs;
+        
         // Subsystem Access - Use these to access subsystem properties directly
         public SceneSerializer SceneSerializer => _sceneSerializer;
         public PreviewController PreviewController => _previewController;
@@ -249,7 +257,7 @@ namespace SceneSandbox.Core
         /// </summary>
         public void ToggleMode()
         {
-            Debug.Log($"[SceneSandboxBuilder] Toggling mode from {_currentMode}");
+            if (_debugLogs) Debug.Log($"[SceneSandboxBuilder] Toggling mode from {_currentMode}");
             if (_currentMode == SandboxMode.Build)
             {
                 SetMode(SandboxMode.Play);
@@ -516,7 +524,7 @@ namespace SceneSandbox.Core
             _placementSystem.OnPlacementCancelled.RemoveAllListeners();
             _placementSystem.OnPlacementCancelled.AddListener((GameObject obj, bool wasNewlyCreated) =>
             {
-                Debug.Log($"[PlacementSystem] Placement cancelled for object: {obj?.name}, wasNewlyCreated: {wasNewlyCreated}");
+                if (_debugLogs) Debug.Log($"[SceneSandboxBuilder] Placement cancelled for object: {obj?.name}, wasNewlyCreated: {wasNewlyCreated}");
                 if(!wasNewlyCreated) return;
                 if (obj == null) return;
 
@@ -677,7 +685,7 @@ namespace SceneSandbox.Core
             );
 
             // Wire SandboxInputManager events to existing handlers (non-breaking)
-            _inputManager.OnToggleMode += () => { Debug.Log("[InputManager] ToggleMode"); ToggleMode(); };
+            _inputManager.OnToggleMode += () => { if (_debugLogs) Debug.Log("[SceneSandboxBuilder] ToggleMode"); ToggleMode(); };
             _inputManager.OnExitAllModes += () => _selectionManager.ExitAllTransformModes();
             _inputManager.OnMoveHotkey += () => OnMoveHotkeyPerformed(default);
             _inputManager.OnRotateHotkey += () => OnRotateHotkeyPerformed(default);
@@ -742,7 +750,7 @@ namespace SceneSandbox.Core
         {
             if (_placementSystem == null)
             {
-                Debug.LogWarning("[Placement] PlacementSystem missing; cannot start placement.");
+                Debug.LogWarning("[SceneSandboxBuilder] PlacementSystem missing; cannot start placement.");
                 return;
             }
 
@@ -962,11 +970,11 @@ namespace SceneSandbox.Core
             if (availableProjects != null && availableProjects.Count > 0)
             {
                 var firstProject = availableProjects[0];
-                Debug.Log($"[SceneSandboxBuilder] Auto-loading first project: {firstProject.projectName}");
+                if (_debugLogs) Debug.Log($"[SceneSandboxBuilder] Auto-loading first project: {firstProject.projectName}");
 
                 if (LoadProject(firstProject.filePath))
                 {
-                    Debug.Log($"[SceneSandboxBuilder] Successfully auto-loaded project: {firstProject.projectName}");
+                    if (_debugLogs) Debug.Log($"[SceneSandboxBuilder] Successfully auto-loaded project: {firstProject.projectName}");
                 }
                 else
                 {
@@ -975,7 +983,7 @@ namespace SceneSandbox.Core
             }
             else
             {
-                Debug.Log("[SceneSandboxBuilder] No projects available to auto-load");
+                if (_debugLogs) Debug.Log("[SceneSandboxBuilder] No projects available to auto-load");
             }
         }
 
@@ -1208,7 +1216,7 @@ namespace SceneSandbox.Core
             var targetScene = currentProject.GetScene(sceneId);
             if (targetScene == null)
             {
-                Debug.LogError($"Scene not found: {sceneId}");
+                Debug.LogError($"[SceneSandboxBuilder] Scene not found: {sceneId}");
                 return false;
             }
 
@@ -1242,13 +1250,13 @@ namespace SceneSandbox.Core
 
             if (currentProject == null)
             {
-                Debug.LogError("No project loaded");
+                Debug.LogError("[SceneSandboxBuilder] No project loaded");
                 return false;
             }
 
             if (currentProject.scenes.Count <= 1)
             {
-                Debug.LogError("Cannot delete the last scene in project");
+                Debug.LogError("[SceneSandboxBuilder] Cannot delete the last scene in project");
                 return false;
             }
 
@@ -1286,7 +1294,7 @@ namespace SceneSandbox.Core
 
             if (currentScene == null || currentProject == null)
             {
-                Debug.LogError("No scene or project loaded");
+                Debug.LogError("[SceneSandboxBuilder] No scene or project loaded");
                 return null;
             }
 
@@ -1716,7 +1724,7 @@ namespace SceneSandbox.Core
                 string nextObjectId = _placementSystem.SwitchNextPlacement();
                 if (!string.IsNullOrEmpty(nextObjectId))
                 {
-                    Debug.Log($"[SceneSandboxBuilder] Switched to next placement item: {nextObjectId}");
+                    if (_debugLogs) Debug.Log($"[SceneSandboxBuilder] Switched to next placement item: {nextObjectId}");
                 }
             }
         }
