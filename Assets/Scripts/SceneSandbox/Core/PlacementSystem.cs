@@ -483,34 +483,21 @@ namespace SceneSandbox.Core
 
         private bool ValidatePlacementPosition(Vector3 position, Vector3 sizeExtents, Quaternion rotation, LayerMask collisionLayers, LayerMask groundLayers, bool ignoreStatic, bool requireSurfaceBelow, LayerMask placementLayers)
         {
-            if (_debugLogs)
-            {
-                Debug.Log($"[PlacementSystem] ValidatePlacementPosition - Position: {position}, SizeExtents: {sizeExtents}, Rotation: {rotation.eulerAngles}");
-                Debug.Log($"[PlacementSystem] ValidatePlacementPosition - CollisionLayers: {collisionLayers.value}, GroundLayers: {groundLayers.value}, IgnoreStatic: {ignoreStatic}, RequireSurfaceBelow: {requireSurfaceBelow}");
-            }
-
             // Scene bounds validation is deferred to builder for now
 
             // Collision check using OverlapBox
             Collider[] overlapping = Physics.OverlapBox(position, sizeExtents, rotation, collisionLayers, QueryTriggerInteraction.Ignore);
             
-            if (_debugLogs)
-            {
-                Debug.Log($"[PlacementSystem] ValidatePlacementPosition - Found {overlapping.Length} overlapping colliders");
-            }
-
             foreach (var col in overlapping)
             {
                 // Ignore collisions with self (the current object being placed)
                 if (_currentObject != null && col.transform.IsChildOf(_currentObject.transform))
                 {
-                    if (_debugLogs) Debug.Log($"[PlacementSystem] ValidatePlacementPosition - Ignoring self collision: {col.gameObject.name}");
                     continue;
                 }
                 
                 if (_currentObject != null && col.gameObject == _currentObject)
                 {
-                    if (_debugLogs) Debug.Log($"[PlacementSystem] ValidatePlacementPosition - Ignoring self collision (root): {col.gameObject.name}");
                     continue;
                 }
                 
@@ -518,17 +505,14 @@ namespace SceneSandbox.Core
                 
                 if ((groundLayers.value & (1 << objLayer)) != 0)
                 {
-                    if (_debugLogs) Debug.Log($"[PlacementSystem] ValidatePlacementPosition - Ignoring ground layer object: {col.gameObject.name} (Layer: {LayerMask.LayerToName(objLayer)})");
                     continue;
                 }
                 
                 if (ignoreStatic && col.gameObject.isStatic)
                 {
-                    if (_debugLogs) Debug.Log($"[PlacementSystem] ValidatePlacementPosition - Ignoring static object: {col.gameObject.name}");
                     continue;
                 }
                 
-                if (_debugLogs) Debug.Log($"[PlacementSystem] ValidatePlacementPosition - Collision detected with: {col.gameObject.name} (Layer: {LayerMask.LayerToName(objLayer)}) - Position INVALID");
                 return false;
             }
 
@@ -537,18 +521,12 @@ namespace SceneSandbox.Core
             {
                 bool surfaceFound = Physics.Raycast(position + Vector3.up * 0.1f, Vector3.down, 0.2f, placementLayers);
                 
-                if (_debugLogs)
-                {
-                    Debug.Log($"[PlacementSystem] ValidatePlacementPosition - Surface below requirement: {(surfaceFound ? "MET" : "NOT MET")}");
-                }
-                
                 if (!surfaceFound)
                 {
                     return false;
                 }
             }
 
-            if (_debugLogs) Debug.Log($"[PlacementSystem] ValidatePlacementPosition - Position VALID");
             return true;
         }
 
@@ -588,15 +566,36 @@ namespace SceneSandbox.Core
                 _cameraRaycaster.RaycastMask = maskToUse;
                 _cameraRaycaster.MaxDistance = _maxRaycastDistance;
                 TransformableItem resultItem = null;
+                if (_debugLogs)
+                {
+                    Debug.Log($"[PlacementSystem] RaycastForItem - Screen: {screenPosition}, Mask: {maskToUse.value}, MaxDist: {_maxRaycastDistance}, Using {(IsActive ? "placement" : "selection")} layers");
+                }
                 if (_cameraRaycaster.TryRaycast(screenPosition, out RaycastHit hit))
                 {
+                    if (_debugLogs)
+                    {
+                        Debug.Log($"[PlacementSystem] RaycastForItem - Hit: {hit.collider.gameObject.name} at {hit.point} (Layer: {LayerMask.LayerToName(hit.collider.gameObject.layer)})");
+                    }
                     resultItem = hit.collider.GetComponentInParent<TransformableItem>();
+                    if (_debugLogs)
+                    {
+                        Debug.Log($"[PlacementSystem] RaycastForItem - Result item: {(resultItem != null ? resultItem.gameObject.name : "null")}");
+                    }
+                }
+                else if (_debugLogs)
+                {
+                    Debug.Log("[PlacementSystem] RaycastForItem - No hit");
                 }
 
                 // restore
                 _cameraRaycaster.RaycastMask = originalMask;
                 _cameraRaycaster.MaxDistance = originalMax;
                 return resultItem;
+            }
+
+            if (_debugLogs)
+            {
+                Debug.LogWarning("[PlacementSystem] RaycastForItem - CameraRaycaster is null");
             }
 
             return null;

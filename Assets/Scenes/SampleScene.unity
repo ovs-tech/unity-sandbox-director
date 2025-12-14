@@ -1335,6 +1335,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Sandbox Scene Builder
       objectReference: {fileID: 0}
+    - target: {fileID: 2151407519070486104, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _debugLogs
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2558678318198386435, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
       propertyPath: _stageArea
       value: 
@@ -1637,6 +1641,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1299147527217556074, guid: 27296713c7c9141d69ebb46e4f349d8d, type: 3}
+      propertyPath: m_PanelSettings
+      value: 
+      objectReference: {fileID: 11400000, guid: 73b3e9bb7d6264d0199c3d83231d5926, type: 2}
     - target: {fileID: 5396720920595587281, guid: 27296713c7c9141d69ebb46e4f349d8d, type: 3}
       propertyPath: director
       value: 

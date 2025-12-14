@@ -299,6 +299,10 @@ namespace SceneSandbox.Core
 
             if (_cameraRaycaster.TryRaycast(screenPosition, out RaycastHit hit))
             {
+                if (_debugLogs)
+                {
+                    Debug.Log($"[SelectionManager] Raycast hit '{hit.collider.gameObject.name}' on layer {hit.collider.gameObject.layer} at {hit.point}");
+                }
                 // Check if hit object is on selection layers
                 if (((1 << hit.collider.gameObject.layer) & _selectionLayers) != 0)
                 {
@@ -308,6 +312,13 @@ namespace SceneSandbox.Core
                         hitItem = hit.collider.GetComponentInParent<TransformableItem>();
                     }
 
+                    if (_debugLogs)
+                    {
+                        if (hitItem != null)
+                            Debug.Log($"[SelectionManager] Selection layer match; found TransformableItem '{hitItem.gameObject.name}'");
+                        else
+                            Debug.Log("[SelectionManager] Selection layer match; no TransformableItem on hit object");
+                    }
                     // Update hover state
                     UpdateHoverState(hitItem?.gameObject);
 
@@ -316,17 +327,36 @@ namespace SceneSandbox.Core
                 }
                 else
                 {
+                    if (_debugLogs)
+                    {
+                        Debug.Log("[SelectionManager] Raycast hit not on selection layers; clearing hover");
+                    }
                     // Not on selection layer, clear hover
                     UpdateHoverState(null);
                 }
             }
             else
             {
+                if (_debugLogs)
+                {
+                    Debug.Log("[SelectionManager] Raycast: no hit; clearing hover");
+                }
                 // No hit, clear hover
                 UpdateHoverState(null);
             }
 
             return hitItem;
+        }
+
+        /// <summary>
+        /// Convenience wrapper to raycast for a `TransformableItem` using current selection layers.
+        /// Centralizes raycast selection logic away from `PlacementSystem`.
+        /// </summary>
+        /// <param name="screenPosition">Screen position to raycast from</param>
+        /// <returns>The `TransformableItem` hit, or null</returns>
+        public TransformableItem RaycastForItem(Vector2 screenPosition)
+        {
+            return ProcessRaycastInput(screenPosition);
         }
 
         /// <summary>

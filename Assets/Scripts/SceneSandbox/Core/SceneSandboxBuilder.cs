@@ -705,7 +705,7 @@ namespace SceneSandbox.Core
                     ConfirmPlacement();
                 else
                 {
-                    TransformableItem hitItem = _placementSystem.RaycastForItem(pos);
+                    TransformableItem hitItem = _selectionManager.RaycastForItem(pos);
                     if (hitItem != null)
                         _selectionManager.SelectItem(hitItem);
                     else
