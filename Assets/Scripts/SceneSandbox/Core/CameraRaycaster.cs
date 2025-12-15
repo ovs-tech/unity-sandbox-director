@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace SceneSandbox.Core
+namespace Systems.SceneSandbox.Core
 {
     /// Minimal, non-breaking camera raycaster component.
     /// Provides safe raycasts from a camera to the scene with layer filtering.

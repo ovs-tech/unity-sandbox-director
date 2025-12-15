@@ -3,11 +3,11 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using System.Collections.Generic;
 using System.Linq;
-using SceneSandbox.Core;
-using SceneSandbox.Data;
-using SceneSandbox.Serialization;
+using Systems.SceneSandbox.Core;
+using Systems.SceneSandbox.Data;
+using Systems.SceneSandbox.Serialization;
 
-namespace SceneSandbox.Editor
+namespace Systems.SceneSandbox.Editor
 {
     /// <summary>
     /// Custom editor for SceneSandboxBuilder with enhanced UI and project management
@@ -20,6 +20,7 @@ namespace SceneSandbox.Editor
         
         // Configuration
         private SerializedProperty _objectLibrary;
+        private SerializedProperty _libraryController;
         private SerializedProperty _sceneRoot;
         private SerializedProperty _stageArea;
         
@@ -317,6 +318,7 @@ namespace SceneSandbox.Editor
         {
             // Configuration
             _objectLibrary = serializedObject.FindProperty("_objectLibrary");
+            _libraryController = serializedObject.FindProperty("_libraryController");
             _sceneRoot = serializedObject.FindProperty("_sceneRoot");
             _stageArea = serializedObject.FindProperty("_stageArea");
             
@@ -1488,6 +1490,7 @@ namespace SceneSandbox.Editor
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             
             EditorGUILayout.PropertyField(_objectLibrary);
+            EditorGUILayout.PropertyField(_libraryController, new GUIContent("Library Controller", "UI Controller for the Scene Object Library"));
             EditorGUILayout.PropertyField(_sceneRoot);
             EditorGUILayout.PropertyField(_stageArea);
             

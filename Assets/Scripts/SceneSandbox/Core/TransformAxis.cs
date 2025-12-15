@@ -1,4 +1,4 @@
-namespace SceneSandbox.Core
+namespace Systems.SceneSandbox.Core
 {
     /// <summary>
     /// Axis selection for rotation and scale transform modes

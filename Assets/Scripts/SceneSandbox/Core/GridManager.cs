@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace SceneSandbox.Core
+namespace Systems.SceneSandbox.Core
 {
     /// Minimal, non-breaking grid manager.
     /// Computes snapped positions and rotations based on grid size and mode.

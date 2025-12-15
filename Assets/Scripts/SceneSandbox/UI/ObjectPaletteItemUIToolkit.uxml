@@ -1,9 +1,0 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
-    <Style src="project://database/Assets/Scripts/SceneSandbox/UI/ObjectPaletteItemUIToolkit.uss?fileID=7433441132597879392&amp;guid=93dacdba38caa2e4ba22ea136af53bb9&amp;type=3#ObjectPaletteItemUIToolkit" />
-    <ui:VisualElement name="palette-item" class="palette-item" style="width: 100px; height: 120px; margin-right: 8px; margin-bottom: 8px;">
-        <ui:VisualElement name="icon-container" style="flex-grow: 1; justify-content: center; align-items: center;">
-            <ui:VisualElement name="icon" class="palette-item__icon" style="width: 64px; height: 64px;" />
-        </ui:VisualElement>
-        <ui:Label name="name-label" text="Object Name" class="palette-item__name" style="height: 30px;" />
-    </ui:VisualElement>
-</ui:UXML>

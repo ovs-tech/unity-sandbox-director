@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 
-namespace SceneSandbox.Core
+namespace Systems.SceneSandbox.Core
 {
     /// <summary>
     /// Centralizes input actions for the Scene Sandbox and exposes events for pointer and hotkey interactions.

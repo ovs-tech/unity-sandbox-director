@@ -1,4 +1,4 @@
-namespace SceneSandbox.Core
+namespace Systems.SceneSandbox.Core
 {
     /// <summary>
     /// Placement state for drag-drop operations

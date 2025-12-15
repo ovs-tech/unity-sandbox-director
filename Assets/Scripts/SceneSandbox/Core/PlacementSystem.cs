@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace SceneSandbox.Core
+namespace Systems.SceneSandbox.Core
 {
     /// <summary>
     /// Minimal PlacementSystem scaffold (Phase 2).

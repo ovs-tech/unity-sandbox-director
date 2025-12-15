@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using SceneSandbox.Data;
-using SceneSandbox.Serialization;
+using Systems.SceneSandbox.Data;
+using Systems.SceneSandbox.Serialization;
 
-namespace SceneSandbox.Core
+namespace Systems.SceneSandbox.Core
 {
     /// <summary>
     /// Handles scene and project serialization/deserialization for the Scene Sandbox Builder system

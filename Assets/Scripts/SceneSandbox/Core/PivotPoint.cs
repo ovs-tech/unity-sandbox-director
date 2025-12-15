@@ -1,4 +1,4 @@
-namespace SceneSandbox.Core
+namespace Systems.SceneSandbox.Core
 {
     /// <summary>
     /// Pivot point options for grid and bounds positioning (3D box)

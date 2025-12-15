@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SceneSandbox.Data
+namespace Systems.SceneSandbox.Data
 {
     /// <summary>
     /// Data for a placed object in the scene

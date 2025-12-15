@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SceneSandbox.Serialization
+namespace Systems.SceneSandbox.Serialization
 {
     /// <summary>
     /// Factory for creating and managing sandbox objects and their serialization.

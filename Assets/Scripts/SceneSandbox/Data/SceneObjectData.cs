@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace SceneSandbox.Data
+namespace Systems.SceneSandbox.Data
 {
     /// <summary>
     /// Types of objects that can be placed in the scene

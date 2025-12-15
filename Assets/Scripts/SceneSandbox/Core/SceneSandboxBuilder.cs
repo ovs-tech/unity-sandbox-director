@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
-using SceneSandbox.Data;
-using SceneSandbox.Serialization;
+using Systems.SceneSandbox.Data;
+using Systems.SceneSandbox.Serialization;
 using MiniTimeline.Core;
 
-namespace SceneSandbox.Core
+namespace Systems.SceneSandbox.Core
 {
     // Custom UnityEvent classes for events with parameters
     [System.Serializable]
@@ -36,6 +36,7 @@ namespace SceneSandbox.Core
         [SerializeField] private SceneSerializer _sceneSerializer;
         [SerializeField] private PreviewController _previewController;
         [SerializeField] private SandboxGizmoRenderer _gizmoRenderer;
+        [SerializeField] private UI.SceneObjectLibrary.SceneObjectLibraryController _libraryController;
 
 
         [Header("Configuration")]
@@ -313,6 +314,47 @@ namespace SceneSandbox.Core
         {
             _objectLibrary = library;
         }
+        
+        /// <summary>
+        /// Setup integration with the Scene Object Library UI Controller.
+        /// Subscribes to object selection events and triggers placement mode.
+        /// </summary>
+        private void SetupLibraryControllerIntegration()
+        {
+            if (_libraryController == null)
+            {
+                if (_debugLogs)
+                    Debug.Log("[SceneSandboxBuilder] No library controller assigned; skipping integration.");
+                return;
+            }
+            
+            // Subscribe to library selection events
+            _libraryController.OnObjectSelected.AddListener(HandleLibraryObjectSelected);
+            
+            if (_debugLogs)
+                Debug.Log("[SceneSandboxBuilder] Library controller integration enabled.");
+        }
+        
+        /// <summary>
+        /// Handle object selection from the library UI.
+        /// Initiates placement mode with the selected object.
+        /// </summary>
+        private void HandleLibraryObjectSelected(SceneObjectData obj)
+        {
+            if (obj == null || obj.id == null)
+            {
+                Debug.LogWarning("[SceneSandboxBuilder] Cannot place null object or object with null ID.");
+                return;
+            }
+            
+            if (_debugLogs)
+                Debug.Log($"[SceneSandboxBuilder] Starting placement for object: {obj.displayName}");
+            
+            // Start placement with the selected object's ID
+            // Use the center of the screen as the initial position
+            Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
+            StartPlacement(obj.id, screenCenter);
+        }
 
         /// <summary>
         /// Initialize default save paths using Application.persistentDataPath for multi-platform support
@@ -370,6 +412,9 @@ namespace SceneSandbox.Core
             {
                 CreateNewScene();
             }
+            
+            // Setup library controller integration
+            SetupLibraryControllerIntegration();
         }
 
         private void OnEnable()
@@ -2184,6 +2229,12 @@ namespace SceneSandbox.Core
 
         private void OnDestroy()
         {
+            // Cleanup library controller integration
+            if (_libraryController != null)
+            {
+                _libraryController.OnObjectSelected.RemoveListener(HandleLibraryObjectSelected);
+            }
+            
             // Disable and cleanup input actions
             DisableInputActions();
 

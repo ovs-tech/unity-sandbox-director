@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SceneSandbox.Data
+namespace Systems.SceneSandbox.Data
 {
     /// <summary>
     /// ScriptableObject library containing all available scene objects
