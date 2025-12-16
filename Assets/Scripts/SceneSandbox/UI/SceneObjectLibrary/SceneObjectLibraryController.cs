@@ -95,6 +95,7 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
             _view.OnTypeFilterChanged += HandleTypeFilterChanged;
             _view.OnCategoryFilterChanged += HandleCategoryFilterChanged;
             _view.OnSearchQueryChanged += HandleSearchQueryChanged;
+            _view.OnTagFilterChanged += HandleTagFilterChanged;
         }
         
         /// <summary>
@@ -137,6 +138,15 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
         }
         
         /// <summary>
+        /// Handle tag filter changes.
+        /// </summary>
+        private void HandleTagFilterChanged(string tagFilter)
+        {
+            _viewModel.ActiveTagFilter.Value = tagFilter ?? string.Empty;
+            _view.RenderObjectGrid(_viewModel.FilteredObjects.Value);
+        }
+        
+        /// <summary>
         /// Clean up resources.
         /// </summary>
         private void Cleanup()
@@ -147,6 +157,7 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
                 _view.OnTypeFilterChanged -= HandleTypeFilterChanged;
                 _view.OnCategoryFilterChanged -= HandleCategoryFilterChanged;
                 _view.OnSearchQueryChanged -= HandleSearchQueryChanged;
+                _view.OnTagFilterChanged -= HandleTagFilterChanged;
             }
         }
         

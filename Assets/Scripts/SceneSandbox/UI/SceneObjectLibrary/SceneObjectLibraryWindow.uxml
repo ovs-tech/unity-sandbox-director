@@ -1,8 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi:schemaLocation="UnityEngine.UIElements UnityEngine.UIElements/StyleSheets/UnityDefaultRuntimeTheme.uss UnityEditor.UIElements UnityEditor.UIElements/StyleSheets/UnityDefaultEditorTheme.uss" xsi:noNamespaceSchemaLocation="UnityEngine.UIElements/UXML/UnityEventCallbackRegistry.xsd">
-    <Style src="SceneObjectLibraryWindow.uss" />
-    
-    <!-- Main Container -->
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/Scripts/SceneSandbox/UI/SceneObjectLibrary/SceneObjectLibraryWindow.uss?fileID=7433441132597879392&amp;guid=5533e9796164d422eb8316e9493df70f&amp;type=3#SceneObjectLibraryWindow"/>
+     <!-- Main Container -->
     <ui:VisualElement name="MainContainer" class="main-container">
         <!-- Filter Bar -->
         <ui:VisualElement name="FilterBar" class="filter-bar">
@@ -21,7 +19,10 @@
                 <ui:TextField name="SearchField" label="Search" class="search-field" style="flex-grow: 1; margin-right: 5px;" />
                 
                 <!-- Category Dropdown -->
-                <ui:DropdownField name="CategoryFilter" label="Category" class="category-filter" style="flex-grow: 1;" />
+                <ui:DropdownField name="CategoryFilter" label="Category" class="category-filter" style="flex-grow: 1; margin-right: 5px;" />
+                
+                <!-- Tag Dropdown -->
+                <ui:DropdownField name="TagFilter" label="Tag" class="tag-filter" style="flex-grow: 1;" />
             </ui:VisualElement>
         </ui:VisualElement>
         

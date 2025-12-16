@@ -35,6 +35,11 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
         public readonly SettableBindableProperty<string> SearchQuery;
         
         /// <summary>
+        /// The currently active tag filter (empty means "All").
+        /// </summary>
+        public readonly SettableBindableProperty<string> ActiveTagFilter;
+        
+        /// <summary>
         /// The currently selected object (for highlighting in UI).
         /// </summary>
         public readonly SettableBindableProperty<SceneObjectData> SelectedObject;
@@ -44,6 +49,11 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
         /// </summary>
         public readonly BindableProperty<List<string>> AvailableCategories;
         
+        /// <summary>
+        /// List of available tags extracted from the library.
+        /// </summary>
+        public readonly BindableProperty<List<string>> AvailableTags;
+        
         public SceneObjectLibraryViewModel(List<SceneObjectData> allObjects)
         {
             _allObjects = allObjects ?? new List<SceneObjectData>();
@@ -52,6 +62,7 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
             ActiveTypeFilter = new SettableBindableProperty<SceneObjectType?>(null);
             ActiveCategoryFilter = new SettableBindableProperty<string>(string.Empty);
             SearchQuery = new SettableBindableProperty<string>(string.Empty);
+            ActiveTagFilter = new SettableBindableProperty<string>(string.Empty);
             SelectedObject = new SettableBindableProperty<SceneObjectData>(null);
             
             // Initialize computed properties with filtering logic
@@ -61,6 +72,7 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
             });
             
             AvailableCategories = BindableProperty<List<string>>.Bind(() => ExtractAvailableCategories());
+            AvailableTags = BindableProperty<List<string>>.Bind(() => ExtractAvailableTags());
         }
         
         /// <summary>
@@ -84,6 +96,13 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
             if (!string.IsNullOrEmpty(categoryFilter) && categoryFilter != "All")
             {
                 filtered = filtered.Where(o => o.category == categoryFilter).ToList();
+            }
+            
+            // Apply tag filter
+            var tagFilter = ActiveTagFilter.Value;
+            if (!string.IsNullOrEmpty(tagFilter) && tagFilter != "All")
+            {
+                filtered = filtered.Where(o => o.tags != null && o.tags.Contains(tagFilter)).ToList();
             }
             
             // Apply search filter (case-insensitive, partial match)
@@ -123,6 +142,31 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
             
             // Add remaining categories in alphabetical order
             sorted.AddRange(categories.OrderBy(c => c));
+            
+            return sorted;
+        }
+        
+        /// <summary>
+        /// Extract unique tags from all objects, sorted alphabetically.
+        /// </summary>
+        private List<string> ExtractAvailableTags()
+        {
+            var tags = new HashSet<string>();
+            
+            foreach (var obj in _allObjects)
+            {
+                if (obj.tags != null)
+                {
+                    foreach (var tag in obj.tags)
+                    {
+                        if (!string.IsNullOrEmpty(tag))
+                            tags.Add(tag);
+                    }
+                }
+            }
+            
+            var sorted = new List<string> { "All" };
+            sorted.AddRange(tags.OrderBy(t => t));
             
             return sorted;
         }

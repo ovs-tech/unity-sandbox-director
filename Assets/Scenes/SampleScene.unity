@@ -1507,7 +1507,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2151407519070486104, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
       propertyPath: _debugLogs
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2558678318198386435, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
       propertyPath: _stageArea

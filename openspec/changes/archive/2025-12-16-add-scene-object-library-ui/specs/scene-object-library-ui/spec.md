@@ -9,7 +9,7 @@
 
 ## ADDED Requirements
 
-### REQ-1: Object Library Display
+### Requirement: Object Library Display
 
 The system SHALL provide a UI for browsing scene objects from SceneObjectLibrary.
 
@@ -40,7 +40,7 @@ Users need an intuitive interface to view all available scene objects (actors, p
 
 ---
 
-### REQ-2: Type-Based Filtering
+### Requirement: Type-Based Filtering
 
 The system SHALL allow users to filter objects by type (Actor, Prop, Camera, Light).
 
@@ -72,7 +72,7 @@ Users working on specific tasks (e.g., placing props) need to quickly narrow dow
 
 ---
 
-### REQ-3: Category-Based Filtering
+### Requirement: Category-Based Filtering
 
 The system SHALL allow users to filter objects by category.
 
@@ -105,7 +105,7 @@ Objects within a type may be further organized by categories (e.g., "Furniture",
 
 ---
 
-### REQ-4: Search Functionality
+### Requirement: Search Functionality
 
 The system SHALL provide text search to filter objects by name.
 
@@ -144,7 +144,7 @@ Users may know the name of an object they want to place. Search enables fast acc
 
 ---
 
-### REQ-5: Object Selection
+### Requirement: Object Selection
 
 The system SHALL allow users to select an object and trigger placement mode.
 
@@ -177,7 +177,7 @@ The primary purpose of the library UI is to select objects for placement in the 
 
 ---
 
-### REQ-6: Performance Requirements
+### Requirement: Performance Requirements
 
 The system SHALL maintain 60 FPS during all UI operations on target hardware.
 
@@ -210,7 +210,7 @@ The library may contain 100+ objects. UI operations (filtering, search, scrollin
 
 ---
 
-### REQ-7: MVVM Architecture
+### Requirement: MVVM Architecture
 
 The system SHALL implement MVVM pattern for separation of concerns and testability.
 
@@ -245,7 +245,7 @@ The project uses MVVM architecture (established in InventoryView) for UI compone
 
 ---
 
-### REQ-8: UI Toolkit Implementation
+### Requirement: UI Toolkit Implementation
 
 The system SHALL use Unity UI Toolkit (UXML/USS) for all UI components.
 
@@ -278,7 +278,7 @@ The project standard is UI Toolkit for runtime UI. This requirement ensures cons
 
 ---
 
-### REQ-9: Integration with SceneSandboxBuilder
+### Requirement: Integration with SceneSandboxBuilder
 
 The system SHALL integrate with SceneSandboxBuilder for object placement.
 
@@ -310,7 +310,7 @@ The library UI is not standalone—it must work with the existing SceneSandboxBu
 
 ---
 
-### REQ-10: UI Panel Toggle
+### Requirement: UI Panel Toggle
 
 The system SHALL provide a way to show/hide the library UI panel.
 

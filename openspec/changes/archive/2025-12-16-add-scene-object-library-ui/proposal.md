@@ -9,6 +9,17 @@
 
 Create a Unity UI Toolkit-based user interface for the SceneObjectLibrary using MVVM architecture. This UI will enable users to browse, filter, search, and select scene objects (actors, props, cameras, lights) for placement in the Scene Sandbox Builder.
 
+## Why
+
+The current SceneObjectLibrary is a ScriptableObject data structure that stores all available scene objects, but it lacks a user interface. Users need an intuitive, performant UI to browse, filter, and select objects for placement in the Scene Sandbox Builder. This UI will enable efficient object discovery and selection, improving the overall workflow for scene creation.
+
+## What Changes
+
+- Add Scene Object Library UI capability with MVVM components (ViewModel, View, Controller)
+- Implement filtering by type (Actor, Prop, Camera, Light), category, and search
+- Create UI Toolkit-based interface with UXML/USS styling
+- Integrate object selection with SceneSandboxBuilder placement system
+
 ## Motivation
 
 The current SceneObjectLibrary is a ScriptableObject data structure that stores all available scene objects, but it lacks a user interface. Users need an intuitive, performant UI to:

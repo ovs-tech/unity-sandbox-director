@@ -11,7 +11,8 @@ namespace Systems.SceneSandbox.Data
         Actor,
         Prop,
         Camera,
-        Light
+        Light,
+        Environment,
     }
 
     /// <summary>

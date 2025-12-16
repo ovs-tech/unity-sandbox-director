@@ -35,6 +35,11 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
         /// </summary>
         public event Action<string> OnSearchQueryChanged;
         
+        /// <summary>
+        /// Fired when tag filter changes.
+        /// </summary>
+        public event Action<string> OnTagFilterChanged;
+        
         private UIDocument _document;
         private VisualElement _root;
         private SceneObjectLibraryViewModel _viewModel;
@@ -47,6 +52,7 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
         private Button _typeFilterLightButton;
         
         private DropdownField _categoryFilterDropdown;
+        private DropdownField _tagFilterDropdown;
         private TextField _searchField;
         private ScrollView _objectGridScrollView;
         private VisualElement _objectGridContainer;
@@ -84,10 +90,7 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
                 yield break;
             }
             
-            // Clear any existing content
-            _root.Clear();
-            
-            // Create UI structure
+            // Create UI structure (only if not already created)
             CreateUIStructure();
             
             // Bind to ViewModel
@@ -101,36 +104,68 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
         
         /// <summary>
         /// Create the UI structure programmatically.
+        /// Only creates elements if they don't already exist.
         /// </summary>
         private void CreateUIStructure()
         {
-            // Main container
-            var mainContainer = new VisualElement();
-            mainContainer.name = "MainContainer";
-            mainContainer.style.flexDirection = FlexDirection.Column;
-            mainContainer.style.flexGrow = 1;
-            _root.Add(mainContainer);
+            // Check if main container already exists
+            var mainContainer = _root.Q<VisualElement>("MainContainer");
+            if (mainContainer == null)
+            {
+                // Main container doesn't exist, create it
+                mainContainer = new VisualElement();
+                mainContainer.name = "MainContainer";
+                mainContainer.style.flexDirection = FlexDirection.Column;
+                mainContainer.style.flexGrow = 1;
+                _root.Add(mainContainer);
+            }
             
-            // Filter bar
-            var filterBar = CreateFilterBar();
-            mainContainer.Add(filterBar);
+            // Check if filter bar already exists
+            var filterBar = mainContainer.Q<VisualElement>("FilterBar");
+            if (filterBar == null)
+            {
+                // Filter bar doesn't exist, create it
+                filterBar = CreateFilterBar();
+                mainContainer.Add(filterBar);
+            }
+            else
+            {
+                // Filter bar exists, cache references to its elements
+                CacheFilterBarReferences(filterBar);
+            }
             
-            // Object grid
-            _objectGridScrollView = new ScrollView(ScrollViewMode.Vertical);
-            _objectGridScrollView.name = "ObjectGridScrollView";
-            _objectGridScrollView.style.flexGrow = 1;
-            mainContainer.Add(_objectGridScrollView);
+            // Check if object grid scroll view already exists
+            _objectGridScrollView = mainContainer.Q<ScrollView>("ObjectGridScrollView");
+            if (_objectGridScrollView == null)
+            {
+                // Object grid doesn't exist, create it
+                _objectGridScrollView = new ScrollView(ScrollViewMode.Vertical);
+                _objectGridScrollView.name = "ObjectGridScrollView";
+                _objectGridScrollView.style.flexGrow = 1;
+                mainContainer.Add(_objectGridScrollView);
+            }
             
-            _objectGridContainer = new VisualElement();
-            _objectGridContainer.name = "ObjectGridContainer";
-            _objectGridContainer.style.display = DisplayStyle.Flex;
-            _objectGridScrollView.Add(_objectGridContainer);
+            // Check if object grid container already exists
+            _objectGridContainer = _objectGridScrollView.Q<VisualElement>("ObjectGridContainer");
+            if (_objectGridContainer == null)
+            {
+                // Container doesn't exist, create it
+                _objectGridContainer = new VisualElement();
+                _objectGridContainer.name = "ObjectGridContainer";
+                _objectGridContainer.style.display = DisplayStyle.Flex;
+                _objectGridScrollView.Add(_objectGridContainer);
+            }
             
-            // Empty state label
-            _emptyStateLabel = new Label("No objects available");
-            _emptyStateLabel.name = "EmptyStateLabel";
-            _emptyStateLabel.style.display = DisplayStyle.None;
-            _objectGridContainer.Add(_emptyStateLabel);
+            // Check if empty state label already exists
+            _emptyStateLabel = _objectGridContainer.Q<Label>("EmptyStateLabel");
+            if (_emptyStateLabel == null)
+            {
+                // Empty state label doesn't exist, create it
+                _emptyStateLabel = new Label("No objects available");
+                _emptyStateLabel.name = "EmptyStateLabel";
+                _emptyStateLabel.style.display = DisplayStyle.None;
+                _objectGridContainer.Add(_emptyStateLabel);
+            }
         }
         
         /// <summary>
@@ -155,22 +190,27 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
             typeFilterContainer.style.marginRight = 10;
             
             _typeFilterAllButton = CreateTypeFilterButton("All", null);
+            _typeFilterAllButton.name = "TypeFilterAllButton";
             _typeFilterAllButton.style.marginRight = 5;
             typeFilterContainer.Add(_typeFilterAllButton);
             
             _typeFilterActorButton = CreateTypeFilterButton("Actor", SceneObjectType.Actor);
+            _typeFilterActorButton.name = "TypeFilterActorButton";
             _typeFilterActorButton.style.marginRight = 5;
             typeFilterContainer.Add(_typeFilterActorButton);
             
             _typeFilterPropButton = CreateTypeFilterButton("Prop", SceneObjectType.Prop);
+            _typeFilterPropButton.name = "TypeFilterPropButton";
             _typeFilterPropButton.style.marginRight = 5;
             typeFilterContainer.Add(_typeFilterPropButton);
             
             _typeFilterCameraButton = CreateTypeFilterButton("Camera", SceneObjectType.Camera);
+            _typeFilterCameraButton.name = "TypeFilterCameraButton";
             _typeFilterCameraButton.style.marginRight = 5;
             typeFilterContainer.Add(_typeFilterCameraButton);
             
             _typeFilterLightButton = CreateTypeFilterButton("Light", SceneObjectType.Light);
+            _typeFilterLightButton.name = "TypeFilterLightButton";
             typeFilterContainer.Add(_typeFilterLightButton);
             
             filterBar.Add(typeFilterContainer);
@@ -185,6 +225,17 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
                 OnCategoryFilterChanged?.Invoke(evt.newValue);
             });
             filterBar.Add(_categoryFilterDropdown);
+            
+            // Tag dropdown
+            _tagFilterDropdown = new DropdownField("Tag");
+            _tagFilterDropdown.name = "TagFilter";
+            _tagFilterDropdown.style.width = 150;
+            _tagFilterDropdown.style.marginRight = 10;
+            _tagFilterDropdown.RegisterValueChangedCallback(evt =>
+            {
+                OnTagFilterChanged?.Invoke(evt.newValue);
+            });
+            filterBar.Add(_tagFilterDropdown);
             
             // Search field
             _searchField = new TextField("Search");
@@ -201,6 +252,72 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
             filterBar.Add(_searchField);
             
             return filterBar;
+        }
+        
+        /// <summary>
+        /// Cache references to existing filter bar elements.
+        /// Called when filter bar already exists and we need to reconnect to it.
+        /// </summary>
+        private void CacheFilterBarReferences(VisualElement filterBar)
+        {
+            // Cache type filter buttons
+            var typeFilterContainer = filterBar.Q<VisualElement>("TypeFilterContainer");
+            if (typeFilterContainer != null)
+            {
+                _typeFilterAllButton = typeFilterContainer.Q<Button>("TypeFilterAllButton");
+                _typeFilterActorButton = typeFilterContainer.Q<Button>("TypeFilterActorButton");
+                _typeFilterPropButton = typeFilterContainer.Q<Button>("TypeFilterPropButton");
+                _typeFilterCameraButton = typeFilterContainer.Q<Button>("TypeFilterCameraButton");
+                _typeFilterLightButton = typeFilterContainer.Q<Button>("TypeFilterLightButton");
+                
+                // Re-register click handlers if buttons exist
+                if (_typeFilterAllButton != null)
+                {
+                    _typeFilterAllButton.clicked += () => { _currentTypeFilter = null; UpdateTypeFilterButtons(); OnTypeFilterChanged?.Invoke(null); };
+                }
+                if (_typeFilterActorButton != null)
+                {
+                    _typeFilterActorButton.clicked += () => { _currentTypeFilter = SceneObjectType.Actor; UpdateTypeFilterButtons(); OnTypeFilterChanged?.Invoke(SceneObjectType.Actor); Debug.Log("Actor filter clicked"); };
+                }
+                if (_typeFilterPropButton != null)
+                {
+                    _typeFilterPropButton.clicked += () => { _currentTypeFilter = SceneObjectType.Prop; UpdateTypeFilterButtons(); OnTypeFilterChanged?.Invoke(SceneObjectType.Prop); };
+                }
+                if (_typeFilterCameraButton != null)
+                {
+                    _typeFilterCameraButton.clicked += () => { _currentTypeFilter = SceneObjectType.Camera; UpdateTypeFilterButtons(); OnTypeFilterChanged?.Invoke(SceneObjectType.Camera); };
+                }
+                if (_typeFilterLightButton != null)
+                {
+                    _typeFilterLightButton.clicked += () => { _currentTypeFilter = SceneObjectType.Light; UpdateTypeFilterButtons(); OnTypeFilterChanged?.Invoke(SceneObjectType.Light); };
+                }
+            }
+            
+            // Cache category dropdown
+            _categoryFilterDropdown = filterBar.Q<DropdownField>("CategoryFilter");
+            if (_categoryFilterDropdown != null)
+            {
+                _categoryFilterDropdown.RegisterValueChangedCallback(evt => { OnCategoryFilterChanged?.Invoke(evt.newValue); });
+            }
+            
+            // Cache tag dropdown
+            _tagFilterDropdown = filterBar.Q<DropdownField>("TagFilter");
+            if (_tagFilterDropdown != null)
+            {
+                _tagFilterDropdown.RegisterValueChangedCallback(evt => { OnTagFilterChanged?.Invoke(evt.newValue); });
+            }
+            
+            // Cache search field
+            _searchField = filterBar.Q<TextField>("SearchField");
+            if (_searchField != null)
+            {
+                _searchField.RegisterValueChangedCallback(evt =>
+                {
+                    if (_searchDebounceCoroutine != null)
+                        StopCoroutine(_searchDebounceCoroutine);
+                    _searchDebounceCoroutine = StartCoroutine(DebounceSearch(evt.newValue));
+                });
+            }
         }
         
         /// <summary>
@@ -253,6 +370,9 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
             // Bind category dropdown to available categories
             UpdateCategoryDropdown();
             
+            // Bind tag dropdown to available tags
+            UpdateTagDropdown();
+            
             // We'll need to update the grid when filters change
             // For now, we'll handle this through event callbacks
         }
@@ -267,6 +387,18 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
             
             if (categories.Count > 0)
                 _categoryFilterDropdown.value = categories[0]; // Default to "All"
+        }
+        
+        /// <summary>
+        /// Update the tag dropdown with available tags.
+        /// </summary>
+        private void UpdateTagDropdown()
+        {
+            var tags = _viewModel.AvailableTags.Value;
+            _tagFilterDropdown.choices = new List<string>(tags);
+            
+            if (tags.Count > 0)
+                _tagFilterDropdown.value = tags[0]; // Default to "All"
         }
         
         /// <summary>
