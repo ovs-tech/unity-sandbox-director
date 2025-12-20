@@ -20,6 +20,7 @@
 - **Serialization:** JSON-based project format (lightweight, versioned)
 - **Build Target:** Mobile-first (Android/iOS), extendable to PC, VR, AR via DLC
 - **Architecture:** Modular & DLC-ready (ScriptableObjects or Addressables)
+- **MCP tools:** Using serena mcp tools
 
 ## Project Conventions
 
