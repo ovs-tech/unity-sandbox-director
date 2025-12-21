@@ -13,13 +13,6 @@ namespace MiniTimeline.UI.MVVM.Clip {
         readonly ClipModel _model;
         ViewModel _viewModel;
 
-        // Drag/resize state
-        private bool _isDragging;
-        private bool _isResizingLeft;
-        private bool _isResizingRight;
-        private float _dragStartX;
-        private float _dragStartTime;
-
         ClipController(ClipView view, ClipModel model) {
             _view = view;
             _model = model;
@@ -32,76 +25,20 @@ namespace MiniTimeline.UI.MVVM.Clip {
         }
 
         public void Bind(ViewModel vm) {
-            var title = _view.GetLabel("clip-title");
-            var durationLabel = _view.GetLabel("clip-duration");
-            var lockedIcon = _view.GetElement("clip-lock-icon");
-            var mutedIcon = _view.GetElement("clip-mute-icon");
-            
-            // Display elements
-            if (title != null) title.text = vm.Title.Value;
-            if (durationLabel != null) durationLabel.text = $"{vm.Duration.Value:F2}s";
-
-            // Selection and interaction
-            var clipElement = _view.GetElement("clip-root");
-            if (clipElement != null) {
-                clipElement.RegisterCallback<MouseDownEvent>(OnMouseDown);
-                clipElement.RegisterCallback<MouseUpEvent>(OnMouseUp);
-                clipElement.RegisterCallback<MouseMoveEvent>(OnMouseMove);
-            }
-
-            // Resize handles
-            var resizeLeftHandle = _view.GetElement("clip-resize-left");
-            if (resizeLeftHandle != null) {
-                resizeLeftHandle.RegisterCallback<MouseDownEvent>(evt => {
-                    _isResizingLeft = true;
-                    _dragStartX = evt.mousePosition.x;
-                    evt.StopPropagation();
-                });
-            }
-
-            var resizeRightHandle = _view.GetElement("clip-resize-right");
-            if (resizeRightHandle != null) {
-                resizeRightHandle.RegisterCallback<MouseDownEvent>(evt => {
-                    _isResizingRight = true;
-                    _dragStartX = evt.mousePosition.x;
-                    evt.StopPropagation();
-                });
-            }
-
-            // Update display on changes
-            _model.OnPropertyChanged += () => {
-                if (durationLabel != null) durationLabel.text = $"{vm.Duration.Value:F2}s";
-                if (lockedIcon != null) lockedIcon.style.display = vm.Locked.Value ? DisplayStyle.Flex : DisplayStyle.None;
-                if (mutedIcon != null) mutedIcon.style.display = vm.Muted.Value ? DisplayStyle.Flex : DisplayStyle.None;
-            };
-
-            _model.OnSelectionChanged += () => {
-                if (clipElement != null) {
-                    clipElement.EnableInClassList("clip-selected", vm.Selected.Value);
-                }
-            };
+            // Delegate all UI binding and event registration to the view
+            _view.Bind(vm, _model);
         }
 
-        private void OnMouseDown(MouseDownEvent evt) {
-            if (!_isResizingLeft && !_isResizingRight) {
-                _model.Select(!_viewModel.Selected.Value);
-                _isDragging = true;
-                _dragStartX = evt.mousePosition.x;
-                _model.OnDragStart();
-                evt.StopPropagation();
-            }
-        }
+        public bool IsDragging => _view.IsDragging;
+        public bool IsResizingLeft => _view.IsResizingLeft;
+        public bool IsResizingRight => _view.IsResizingRight;
 
-        private void OnMouseUp(MouseUpEvent evt) {
-            _isDragging = false;
-            _isResizingLeft = false;
-            _isResizingRight = false;
-            _model.OnDragEnd();
-        }
-
-        private void OnMouseMove(MouseMoveEvent evt) {
-            // TODO: Implement drag/resize movement with snapping
-            // Would use time conversion and snap-to-grid logic
+        /// <summary>
+        /// Updates zoom level and pixels per second.
+        /// </summary>
+        public void UpdateZoom(float zoom, float pixelsPerSecond) {
+            _model.SetZoom(zoom);
+            _model.SetPixelsPerSecond(pixelsPerSecond);
         }
 
         public class ViewModel {
@@ -111,6 +48,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
             public readonly BindableProperty<bool> Locked;
             public readonly BindableProperty<bool> Muted;
             public readonly BindableProperty<bool> Selected;
+            public readonly BindableProperty<float> PixelsPerSecond;
 
             readonly ClipModel _model;
             
@@ -122,6 +60,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
                 Locked = BindableProperty<bool>.Bind(() => _model.Locked);
                 Muted = BindableProperty<bool>.Bind(() => _model.Muted);
                 Selected = BindableProperty<bool>.Bind(() => _model.Selected);
+                PixelsPerSecond = BindableProperty<float>.Bind(() => _model.PixelsPerSecond);
             }
 
             public void ResizeLeft(float delta) => _model.ResizeLeft(delta);

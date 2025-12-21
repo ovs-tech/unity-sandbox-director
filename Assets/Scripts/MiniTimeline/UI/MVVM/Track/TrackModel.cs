@@ -12,6 +12,9 @@ namespace MiniTimeline.UI.MVVM.Track {
         [SerializeField] bool _solo;
         [SerializeField] string _bindKey = string.Empty;
         [SerializeField] string _type = "Generic";
+        [SerializeField] MiniTimelineDirector _director;
+        [SerializeField] float _zoom = 1f;
+        [SerializeField] float _pixelsPerSecond = 100f;
 
         // Reference to the actual track data
         private IMiniTrack _track;
@@ -21,6 +24,9 @@ namespace MiniTimeline.UI.MVVM.Track {
         public event Action OnTitleChanged;
         public event Action OnStateChanged;
         public event Action OnClipsChanged;
+        public event Action OnZoomChanged;
+        public event Action OnTimelineWidthChanged;
+        public event Action OnPixelsPerSecondChanged;
 
         public string Title => _title;
         public bool Enabled => _enabled;
@@ -30,9 +36,13 @@ namespace MiniTimeline.UI.MVVM.Track {
         public string Type => _type;
         public IMiniTrack Track => _track;
         public IReadOnlyList<IMiniClip> Clips => _clips.AsReadOnly();
+        public float Zoom => _zoom;
+        public float TimelineWidth => _director != null ? _director.Length * _pixelsPerSecond : 1000f;
+        public float PixelsPerSecond => _pixelsPerSecond;
 
-        public void Initialize(IMiniTrack track) {
+        public void Initialize(IMiniTrack track, MiniTimelineDirector director) {
             _track = track;
+            _director = director;
             if (track != null) {
                 _title = track.Id;
                 _enabled = track.Enabled;
@@ -81,6 +91,16 @@ namespace MiniTimeline.UI.MVVM.Track {
 
         public void SetType(string type) { 
             _type = type;
+        }
+
+        public void SetZoom(float zoom) {
+            _zoom = Mathf.Clamp(zoom, 0.1f, 5f);
+            OnZoomChanged?.Invoke();
+        }
+
+        public void SetPixelsPerSecond(float pixelsPerSecond) {
+            _pixelsPerSecond = Mathf.Max(1f, pixelsPerSecond);
+            OnPixelsPerSecondChanged?.Invoke();
         }
 
         // Clip management

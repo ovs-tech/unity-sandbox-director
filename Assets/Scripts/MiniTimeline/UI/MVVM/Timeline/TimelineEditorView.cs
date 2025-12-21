@@ -1,9 +1,13 @@
 #if UNITY_EDITOR
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using MiniTimeline.UI.MVVM.Ruler;
+using MiniTimeline.UI.MVVM.Track;
+using MiniTimeline.Core;
 using UnityEditor.UIElements;
 using Unity.Properties;
 using Systems.Inventory;
@@ -83,9 +87,17 @@ namespace MiniTimeline.UI.MVVM.Timeline {
             var timeSlider = GetSlider("time-slider");
             if (timeSlider != null) {
                 timeSlider.SetBinding(nameof(Slider.value), new DataBinding {
-                    dataSource = model,
-                    dataSourcePath = new PropertyPath(nameof(TimelineEditorModel.Time)),
-                    bindingMode = BindingMode.TwoWay
+                    dataSource = vm.Time,
+                    dataSourcePath = new PropertyPath(nameof(BindableProperty<float>.Value)),
+                    bindingMode = BindingMode.ToTarget
+                });
+                timeSlider.SetBinding(nameof(Slider.highValue), new DataBinding {
+                    dataSource = vm.Length,
+                    dataSourcePath = new PropertyPath(nameof(BindableProperty<float>.Value)),
+                    bindingMode = BindingMode.ToTarget
+                });
+                timeSlider.RegisterValueChangedCallback(evt => {
+                    vm.SetTime(evt.newValue);
                 });
             }
 
@@ -108,10 +120,117 @@ namespace MiniTimeline.UI.MVVM.Timeline {
                     if (rulerModel != null) {
                         rulerModel.SetZoom(newZoom);
                     }
+                    
                     if (zoomLabel != null) {
                         zoomLabel.text = $"{newZoom * 100:F0}%";
                     }
                 });
+            }
+        }
+
+        /// <summary>
+        /// Initializes the TimelineRulerController and renders it in the ruler container.
+        /// </summary>
+        public (TimelineRulerController controller, TimelineRulerModel model) InitializeRuler(TimelineEditorModel model)
+        {
+            var rulerElement = GetElement("ruler-container");
+            if (rulerElement == null)
+            {
+                Debug.LogWarning("Cannot find 'ruler-container' element in TimelineEditorView");
+                return (null, null);
+            }
+
+            try
+            {
+                var rulerView = new TimelineRulerView(rulerElement, RulerUxml, RulerUss);
+                var rulerModel = new TimelineRulerModel();
+
+                float length = model.Director?.Length ?? 0f;
+                Debug.Log($"Timeline length for ruler: {length}s");
+                int frameRate = (int)Mathf.Round(model.Director?.Project?.frameRate ?? 30f);
+
+                var rulerController = new TimelineRulerController.Builder(rulerView)
+                    .WithModel(rulerModel)
+                    .WithLength(length)
+                    .WithFrameRate(frameRate)
+                    .WithDirector(model.Director)
+                    .Build();
+
+                Debug.Log("Initialized TimelineRulerController");
+                return (rulerController, rulerModel);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Failed to initialize TimelineRulerController: {e.Message}\n{e.StackTrace}");
+                return (null, null);
+            }
+        }
+
+        /// <summary>
+        /// Creates and renders a TrackController for the given track.
+        /// </summary>
+        public TrackController CreateAndRenderTrackController(IMiniTrack track, MiniTimelineDirector director, float pixelsPerSecond, float length, float zoom)
+        {
+            if (track == null)
+            {
+                Debug.LogWarning("Cannot create TrackController: Track is null");
+                return null;
+            }
+
+            try
+            {
+                // Get the tracks container
+                var tracksContainer = GetElement("tracks-container");
+                if (tracksContainer == null)
+                {
+                    Debug.LogWarning("Cannot find 'tracks-container' element in TimelineEditorView");
+                    return null;
+                }
+
+                // Create a VisualElement for this track and add it to the container
+                var trackElement = new VisualElement { name = $"track_{track.Id}" };
+                tracksContainer.Add(trackElement);
+
+                // Create TrackView with the VisualElement and UI assets
+                var trackView = new TrackView(trackElement, TrackUxml, TrackUss);
+
+                // Create TrackController with builder pattern
+                var trackController = new TrackController.Builder(trackView)
+                    .WithTrack(track)
+                    .WithDirector(director)
+                    .WithClipUI(ClipUxml, ClipUss)
+                    .Build();
+
+                // Initialize zoom
+                trackController.UpdateZoom(zoom, pixelsPerSecond);
+
+                Debug.Log($"Successfully created and rendered TrackController for track: {track.Id}");
+                return trackController;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Failed to create TrackController for track '{track.Id}': {e.Message}\n{e.StackTrace}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Removes the rendered track element from the UI.
+        /// </summary>
+        public void RemoveTrackElement(string trackId)
+        {
+            var tracksContainer = GetElement("tracks-container");
+            if (tracksContainer == null)
+            {
+                Debug.LogWarning("Cannot find 'tracks-container' element in TimelineEditorView");
+                return;
+            }
+
+            var trackElement = tracksContainer.Q<VisualElement>($"track_{trackId}");
+            if (trackElement != null)
+            {
+                tracksContainer.Remove(trackElement);
+                Debug.Log($"Removed track element: {trackId}");
             }
         }
     }

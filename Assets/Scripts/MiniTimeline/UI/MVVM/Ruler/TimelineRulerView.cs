@@ -100,7 +100,6 @@ namespace MiniTimeline.UI.MVVM.Ruler
             {
                 float rulerWidth = model.Length * model.PixelsPerSecond;
                 _rulerElement.style.width = rulerWidth;
-                Debug.Log($"Ruler width set to {rulerWidth}px for length {model.Length}s at {model.PixelsPerSecond} px/s");
 
                 // Zoom-based classes for conditional styling
                 _rulerElement.RemoveFromClassList("zoom-low");

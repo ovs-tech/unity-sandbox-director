@@ -39,6 +39,7 @@ namespace MiniTimeline.UI.MVVM.Timeline {
         public event Action OnRedoPerformed;
         public event Action OnCommandStacksChanged;
         public event Action<float> OnTimeChanged;
+        public event Action<float> OnZoomChanged;
         
         // Track events
         public event Action OnTracksChanged;
@@ -53,6 +54,7 @@ namespace MiniTimeline.UI.MVVM.Timeline {
         public event Action<IMiniClip, string> OnClipUpdated; // (clip, trackId)
 
         public float Time => _time;
+        public float Length => _director?.Length ?? 0f;
         public float Zoom => _zoom;
         public bool IsPlaying => _isPlaying;
         public string StatusText => _statusText;
@@ -211,12 +213,14 @@ namespace MiniTimeline.UI.MVVM.Timeline {
         // Playback control
         public void SetTime(float time) { 
             _time = Mathf.Max(0f, time);
+            Debug.Log($"[TimelineEditorModel] SetTime: {_time}");
             OnTimeChanged?.Invoke(_time);
             if (_director != null) _director.Seek(_time);
         }
         
         public void SetZoom(float zoom) { 
             _zoom = Mathf.Clamp(zoom, _minZoom, _maxZoom);
+            OnZoomChanged?.Invoke(_zoom);
         }
         
         public void Play() { 

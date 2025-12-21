@@ -25,14 +25,34 @@ public class BindableProperty<T> {
 /// <typeparam name="T">The type of the property value.</typeparam>
 public class SettableBindableProperty<T> {
     private T _value;
-    
+    private Func<T> _getter;
+    private Action<T> _setter;
+
     public SettableBindableProperty(T initialValue = default) {
         _value = initialValue;
     }
-    
+
+    // Factory method to create a two-way bindable property
+    public static SettableBindableProperty<T> Bind(Func<T> getter, Action<T> setter) {
+        var prop = new SettableBindableProperty<T>();
+        prop._getter = getter;
+        prop._setter = setter;
+        // Initialize internal value from getter if provided
+        if (getter != null) {
+            prop._value = getter();
+        }
+        return prop;
+    }
+
     [CreateProperty] // Allows binding to the UI in UI Toolkit
     public T Value {
-        get => _value;
-        set => _value = value;
+        get => _getter != null ? _getter() : _value;
+        set {
+            if (_setter != null) {
+                _setter(value);
+            } else {
+                _value = value;
+            }
+        }
     }
 }

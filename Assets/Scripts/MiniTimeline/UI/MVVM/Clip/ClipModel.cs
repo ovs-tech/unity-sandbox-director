@@ -11,6 +11,8 @@ namespace MiniTimeline.UI.MVVM.Clip {
         [SerializeField] bool _locked;
         [SerializeField] bool _muted;
         [SerializeField] bool _selected;
+        [SerializeField] float _zoom = 1f;
+        [SerializeField] float _pixelsPerSecond = 100f;
 
         // Reference to the actual clip data
         private IMiniClip _clip;
@@ -20,6 +22,8 @@ namespace MiniTimeline.UI.MVVM.Clip {
         public event Action OnPropertyChanged;
         public event Action OnSelectionChanged;
         public event Action OnPositionChanged;
+        public event Action OnZoomChanged;
+        public event Action OnPixelsPerSecondChanged;
 
         public string Title => _title;
         public float Duration => _duration;
@@ -29,6 +33,8 @@ namespace MiniTimeline.UI.MVVM.Clip {
         public bool Selected => _selected;
         public IMiniClip Clip => _clip;
         public IMiniTrack ParentTrack => _parentTrack;
+        public float Zoom => _zoom;
+        public float PixelsPerSecond => _pixelsPerSecond;
 
         public void Initialize(IMiniClip clip, IMiniTrack parentTrack) {
             _clip = clip;
@@ -111,6 +117,16 @@ namespace MiniTimeline.UI.MVVM.Clip {
 
         public void OnContextMenu() {
             // Called when user right-clicks clip
+        }
+
+        public void SetZoom(float zoom) {
+            _zoom = Mathf.Clamp(zoom, 0.1f, 5f);
+            OnZoomChanged?.Invoke();
+        }
+
+        public void SetPixelsPerSecond(float pixelsPerSecond) {
+            _pixelsPerSecond = Mathf.Max(1f, pixelsPerSecond);
+            OnPixelsPerSecondChanged?.Invoke();
         }
     }
 }

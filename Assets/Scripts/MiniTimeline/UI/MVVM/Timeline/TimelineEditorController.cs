@@ -36,8 +36,8 @@ namespace MiniTimeline.UI.MVVM.Timeline
     {
       _viewModel = new ViewModel(_model);
       yield return _view.InitializeView(_viewModel);
+      InitializeRuler();
       Bind(_viewModel);
-      InitializeRulerController();
       _viewModel.RefreshTracks();
     }
 
@@ -77,6 +77,11 @@ namespace MiniTimeline.UI.MVVM.Timeline
       _model.OnClipRemoved += (clip, trackId) => vm.RefreshTracks();
       _model.OnClipUpdated += (clip, trackId) => vm.RefreshTracks();
       
+      // Subscribe to zoom changes to sync with all tracks
+      _model.OnZoomChanged += zoom => {
+        SyncZoomToAllTracks(zoom);
+      };
+      
       // Listen to observable array changes for track controller registration
       vm.Tracks.AnyValueChanged += tracks =>
       {
@@ -86,39 +91,13 @@ namespace MiniTimeline.UI.MVVM.Timeline
     }
 
     /// <summary>
-    /// Initialize TimelineRulerController with the ruler element and UI assets.
+    /// Initialize the ruler by delegating to the view's render method.
     /// </summary>
-    private void InitializeRulerController()
+    private void InitializeRuler()
     {
-      var rulerElement = _view.GetElement("ruler-container");
-      if (rulerElement == null)
-      {
-        Debug.LogWarning("Cannot find 'ruler-container' element in TimelineEditorView");
-        return;
-      }
-
-      try
-      {
-        var rulerView = new TimelineRulerView(rulerElement, _view.RulerUxml, _view.RulerUss);
-        _rulerModel = new TimelineRulerModel();
-
-        float length = _model.Director?.Length ?? 0f;
-        Debug.Log($"Timeline length for ruler: {length}s");
-        int frameRate = (int)Mathf.Round(_model.Director?.Project?.frameRate ?? 30f);
-
-        _rulerController = new TimelineRulerController.Builder(rulerView)
-          .WithModel(_rulerModel)
-          .WithLength(length)
-          .WithFrameRate(frameRate)
-          .WithDirector(_model.Director)
-          .Build();
-
-        Debug.Log("Initialized TimelineRulerController");
-      }
-      catch (Exception e)
-      {
-        Debug.LogError($"Failed to initialize TimelineRulerController: {e.Message}\n{e.StackTrace}");
-      }
+      var (rulerController, rulerModel) = _view.InitializeRuler(_model);
+      _rulerController = rulerController;
+      _rulerModel = rulerModel;
     }
 
     // UI element wiring is handled by TimelineEditorView.Bind
@@ -129,6 +108,20 @@ namespace MiniTimeline.UI.MVVM.Timeline
       int seconds = Mathf.FloorToInt(time % 60f);
       int frames = Mathf.FloorToInt((time % 1f) * 30f);
       return $"{minutes:00}:{seconds:00}:{frames:00}";
+    }
+
+    /// <summary>
+    /// Syncs zoom level to all track controllers.
+    /// </summary>
+    private void SyncZoomToAllTracks(float zoom)
+    {
+      foreach (var trackController in _trackControllers.Values)
+      {
+        if (trackController != null)
+        {
+          trackController.UpdateZoom(zoom, _model.PixelsPerSecond);
+        }
+      }
     }
 
     /// <summary>
@@ -172,26 +165,6 @@ namespace MiniTimeline.UI.MVVM.Timeline
     }
 
     /// <summary>
-    /// Initialize TrackControllers for all existing tracks in the director.
-    /// Called when a project is loaded or tracks are rebuilt.
-    /// </summary>
-    private void InitializeTrackControllers()
-    {
-      if (_model.Director == null) return;
-
-      // Clear existing controllers
-      ClearTrackControllers();
-
-      // Create controllers for all current tracks
-      foreach (var track in _model.Director.Tracks)
-      {
-        CreateAndRegisterTrackController(track.Id);
-      }
-
-      Debug.Log($"Initialized {_trackControllers.Count} TrackControllers for project");
-    }
-
-    /// <summary>
     /// Delayed coroutine to create and register a track controller.
     /// This ensures the track is fully initialized before creating its controller.
     /// </summary>
@@ -231,6 +204,7 @@ namespace MiniTimeline.UI.MVVM.Timeline
       if (_trackControllers.ContainsKey(trackId))
       {
         _trackControllers.Remove(trackId);
+        _view.RemoveTrackElement(trackId);
         Debug.Log($"Unregistered TrackController for track: {trackId}");
       }
     }
@@ -261,7 +235,7 @@ namespace MiniTimeline.UI.MVVM.Timeline
     }
 
     /// <summary>
-    /// Creates and registers a TrackController for a given track ID.
+    /// Creates and registers a TrackController for a given track ID by delegating rendering to the view.
     /// </summary>
     public TrackController CreateAndRegisterTrackController(string trackId)
     {
@@ -290,51 +264,29 @@ namespace MiniTimeline.UI.MVVM.Timeline
         return null;
       }
 
-      try
+      // Delegate rendering to the view
+      var trackController = _view.CreateAndRenderTrackController(
+        track,
+        _model.Director,
+        _model.PixelsPerSecond,
+        _model.Length,
+        _model.Zoom
+      );
+
+      if (trackController != null)
       {
-        // Get the tracks container from TimelineEditorView
-        var tracksContainer = _view.GetElement("tracks-container");
-        if (tracksContainer == null)
-        {
-          Debug.LogWarning("Cannot find 'tracksContainer' element in TimelineEditorView");
-          return null;
-        }
-
-        // Create a VisualElement for this track and add it to the container
-        var trackElement = new VisualElement { name = $"track_{trackId}" };
-        tracksContainer.Add(trackElement);
-
-        // Create TrackView with the VisualElement and UI assets
-        var trackView = new TrackView(trackElement, _view.TrackUxml, _view.TrackUss);
-
-        // Create TrackModel and initialize with track
-        var trackModel = new TrackModel();
-        trackModel.Initialize(track);
-
-        // Create TrackController with builder pattern, passing Clip UI assets
-        var trackController = new TrackController.Builder(trackView)
-          .WithModel(trackModel)
-          .WithTrack(track)
-          .WithClipUI(_view.ClipUxml, _view.ClipUss)
-          .Build();
-
-        // Register the controller
         RegisterTrackController(trackId, trackController);
-
         Debug.Log($"Successfully created and registered TrackController for track: {trackId}");
-        return trackController;
       }
-      catch (Exception e)
-      {
-        Debug.LogError($"Failed to create TrackController for track '{trackId}': {e.Message}\n{e.StackTrace}");
-        return null;
-      }
+
+      return trackController;
     }
 
     public class ViewModel
     {
       public readonly BindableProperty<bool> IsPlaying;
       public readonly BindableProperty<float> Time;
+      public readonly BindableProperty<float> Length;
       public readonly BindableProperty<float> Zoom;
       public readonly BindableProperty<string> StatusText;
       public readonly BindableProperty<bool> CanUndo;
@@ -351,6 +303,7 @@ namespace MiniTimeline.UI.MVVM.Timeline
         _model = model;
         IsPlaying = BindableProperty<bool>.Bind(() => _model.IsPlaying);
         Time = BindableProperty<float>.Bind(() => _model.Time);
+        Length = BindableProperty<float>.Bind(() => _model.Length);
         Zoom = BindableProperty<float>.Bind(() => _model.Zoom);
         StatusText = BindableProperty<string>.Bind(() => _model.StatusText);
         CanUndo = BindableProperty<bool>.Bind(() => _model.CanUndo);
