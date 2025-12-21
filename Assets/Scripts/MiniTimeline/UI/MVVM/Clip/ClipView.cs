@@ -1,26 +1,28 @@
 #if UNITY_EDITOR
-using System.Collections;
-using UnityEditor;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace MiniTimeline.UI.MVVM.Clip {
-    public class ClipView : MonoBehaviour {
+    public class ClipView {
         public VisualElement Root { get; private set; }
-        
-        [SerializeField] VisualTreeAsset _uxml;
-        [SerializeField] StyleSheet _uss;
-        UIDocument _document;
 
-        public IEnumerator InitializeView(ClipController.ViewModel viewModel) {
-            if (_document == null) _document = GetComponent<UIDocument>();
-            if (_document == null) _document = gameObject.AddComponent<UIDocument>();
-            Root = _document.rootVisualElement;
-            Root.Clear();
+        public ClipView(VisualElement root, VisualTreeAsset uxml = null, StyleSheet uss = null) {
+            Root = root;
+            Initialize(uxml, uss);
+        }
 
-            if (_uss != null) Root.styleSheets.Add(_uss);
-            if (_uxml != null) Root.Add(_uxml.Instantiate());
-            yield return null;
+        void Initialize(VisualTreeAsset uxml, StyleSheet uss) {
+            if (Root == null) return;
+            
+            // Add stylesheet if provided
+            if (uss != null) {
+                Root.styleSheets.Add(uss);
+            }
+            
+            // Instantiate and add UXML if provided
+            if (uxml != null) {
+                var tree = uxml.Instantiate();
+                Root.Add(tree);
+            }
         }
 
         public Button GetButton(string name) => Root?.Q<Button>(name);

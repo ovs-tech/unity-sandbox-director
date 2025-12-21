@@ -1,7 +1,7 @@
 using System;
-using System.Collections;
 using UnityEngine;
 using UnityEngine.UIElements;
+using MiniTimeline.Core;
 
 namespace MiniTimeline.UI.MVVM.Ruler {
     /// <summary>
@@ -12,117 +12,35 @@ namespace MiniTimeline.UI.MVVM.Ruler {
         readonly TimelineRulerView _view;
         readonly TimelineRulerModel _model;
 
-        private bool _isPlayheadDragging;
-        private VisualElement _markersContainer;
-        private VisualElement _playheadElement;
 
         TimelineRulerController(TimelineRulerView view, TimelineRulerModel model) {
             _view = view;
             _model = model;
-            _view.StartCoroutine(Initialize());
+            Initialize();
         }
 
-        IEnumerator Initialize() {
-            var vm = new ViewModel(_model);
-            yield return _view.InitializeView(vm);
-            Bind(vm);
+        void Initialize() {
+            Bind();
         }
 
-        public void Bind(ViewModel vm) {
-            // Get ruler elements
-            _markersContainer = _view.GetElement("markersContainer");
-            _playheadElement = _view.GetElement("playhead");
-
-            // Setup ruler interaction for scrubbing
-            var rulerElement = _view.GetElement("rulerArea");
-            if (rulerElement != null) {
-                rulerElement.RegisterCallback<MouseDownEvent>(OnRulerMouseDown);
-                rulerElement.RegisterCallback<MouseMoveEvent>(OnRulerMouseMove);
-                rulerElement.RegisterCallback<MouseUpEvent>(OnRulerMouseUp);
-            }
-
-            // Setup playhead element
-            if (_playheadElement != null) {
-                _playheadElement.RegisterCallback<MouseDownEvent>(OnPlayheadMouseDown);
-            }
-
-            // Generate and display markers
-            GenerateMarkerDisplay();
-
-            // Update playhead position on time change
-            _model.OnTimeChanged += UpdatePlayheadPosition;
-            _model.OnMarkersChanged += GenerateMarkerDisplay;
-            _model.OnZoomChanged += GenerateMarkerDisplay;
-
-            UpdatePlayheadPosition();
+        public void Bind() {
+            _view.Bind(_model);
         }
 
-        private void GenerateMarkerDisplay() {
-            if (_markersContainer == null) return;
-
-            _markersContainer.Clear();
-
-            foreach (var marker in _model.Markers) {
-                var markerElement = new VisualElement();
-                markerElement.name = "timeline-marker";
-                markerElement.style.position = Position.Absolute;
-                markerElement.style.left = marker.position;
-                markerElement.style.height = marker.height;
-                markerElement.style.width = 1;
-                markerElement.AddToClassList(marker.isMajor ? "marker-major" : "marker-minor");
-
-                // Add marker label for major markers
-                if (marker.isMajor) {
-                    var label = new Label(marker.label);
-                    label.style.fontSize = 10;
-                    label.style.position = Position.Absolute;
-                    label.style.left = marker.position + 5;
-                    markerElement.Add(label);
-                }
-
-                _markersContainer.Add(markerElement);
-            }
+        public void SetZoom(float zoom) {
+            _model.SetZoom(zoom);
+            _view.Regenerate(_model);
         }
 
-        private void UpdatePlayheadPosition() {
-            if (_playheadElement == null) return;
+        public void Regenerate() { _view.Regenerate(_model); }
 
-            float position = _model.TimeToPosition(_model.CurrentTime);
-            _playheadElement.style.left = position;
-        }
+        public void UpdatePlayheadPosition() { _view.UpdatePlayheadPosition(_model); }
 
-        private void OnRulerMouseDown(MouseDownEvent evt) {
-            float position = evt.localMousePosition.x;
-            float time = _model.PositionToTime(position);
-            time = _model.SnapTime(time);
-            
-            _isPlayheadDragging = true;
-            _view.StartCoroutine(DragPlayhead(time));
-            evt.StopPropagation();
-        }
+        // Event handlers and helper methods were moved to the View
 
-        private void OnPlayheadMouseDown(MouseDownEvent evt) {
-            _isPlayheadDragging = true;
-            evt.StopPropagation();
-        }
+        
 
-        private void OnRulerMouseMove(MouseMoveEvent evt) {
-            if (_isPlayheadDragging) {
-                float position = evt.localMousePosition.x;
-                float time = _model.PositionToTime(position);
-                time = _model.SnapTime(time);
-                _model.SetTime(time);
-            }
-        }
-
-        private void OnRulerMouseUp(MouseUpEvent evt) {
-            _isPlayheadDragging = false;
-        }
-
-        private IEnumerator DragPlayhead(float targetTime) {
-            _model.SetTime(targetTime);
-            yield return null;
-        }
+        // Removed coroutine-based drag helper; using synchronous updates
 
         public class ViewModel {
             public readonly BindableProperty<float> CurrentTime;
@@ -148,14 +66,21 @@ namespace MiniTimeline.UI.MVVM.Ruler {
             TimelineRulerModel _model;
             float _length;
             int _frameRate = 30;
+            MiniTimelineDirector _director;
 
             public Builder(TimelineRulerView view) { _view = view; }
             public Builder WithModel(TimelineRulerModel model) { _model = model; return this; }
             public Builder WithLength(float length) { _length = length; return this; }
             public Builder WithFrameRate(int frameRate) { _frameRate = frameRate; return this; }
+            public Builder WithDirector(MiniTimelineDirector director) { _director = director; return this; }
             
             public TimelineRulerController Build() {
                 if (_model == null) _model = new TimelineRulerModel();
+                if (_director != null) {
+                    _model.BindDirector(_director);
+                    if (_length <= 0f) _length = _director.Length;
+                    if (_frameRate <= 0) _frameRate = Mathf.RoundToInt(_director.Project?.frameRate ?? 30f);
+                }
                 _model.Initialize(_length, _frameRate);
                 return new TimelineRulerController(_view, _model);
             }

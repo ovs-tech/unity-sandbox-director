@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using MiniTimeline.Core;
 
 namespace MiniTimeline.UI.MVVM.Ruler {
     [Serializable]
@@ -12,6 +13,7 @@ namespace MiniTimeline.UI.MVVM.Ruler {
         [SerializeField] float _pixelsPerSecond = 100f;
 
         private List<TimelineMarker> _markers = new List<TimelineMarker>();
+        private MiniTimelineDirector _director;
 
         // Events
         public event Action OnTimeChanged;
@@ -106,6 +108,46 @@ namespace MiniTimeline.UI.MVVM.Ruler {
 
         public float TimeToPosition(float time) {
             return time * PixelsPerSecond;
+        }
+
+        // Director binding
+        public void BindDirector(MiniTimelineDirector director) {
+            _director = director;
+            if (_director == null) return;
+
+            _director.OnTimeChanged += OnDirectorTimeChanged;
+            _director.OnProjectLoaded += OnDirectorProjectLoaded;
+            _director.OnProjectClosed += OnDirectorProjectClosed;
+
+            // Initialize from current director state
+            _length = _director.Length;
+            _frameRate = Mathf.RoundToInt(_director.Project?.frameRate ?? _frameRate);
+            GenerateMarkers();
+        }
+
+        public void UnbindDirector() {
+            if (_director == null) return;
+            _director.OnTimeChanged -= OnDirectorTimeChanged;
+            _director.OnProjectLoaded -= OnDirectorProjectLoaded;
+            _director.OnProjectClosed -= OnDirectorProjectClosed;
+            _director = null;
+        }
+
+        private void OnDirectorTimeChanged(float time) {
+            SetTime(time);
+        }
+
+        private void OnDirectorProjectLoaded() {
+            if (_director == null) return;
+            _length = _director.Length;
+            _frameRate = Mathf.RoundToInt(_director.Project?.frameRate ?? _frameRate);
+            GenerateMarkers();
+        }
+
+        private void OnDirectorProjectClosed() {
+            _length = 0f;
+            _markers.Clear();
+            OnMarkersChanged?.Invoke();
         }
     }
 

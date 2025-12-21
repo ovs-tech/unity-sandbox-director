@@ -1,27 +1,29 @@
 #if UNITY_EDITOR
-using System.Collections;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace MiniTimeline.UI.MVVM.Track {
-    public class TrackView : MonoBehaviour {
+    public class TrackView {
         public VisualElement Root { get; private set; }
-        
-        [SerializeField] VisualTreeAsset _uxml;
-        [SerializeField] StyleSheet _uss;
-        UIDocument _document;
 
-        public IEnumerator InitializeView(TrackController.ViewModel viewModel) {
-            if (_document == null) _document = GetComponent<UIDocument>();
-            if (_document == null) _document = gameObject.AddComponent<UIDocument>();
+        public TrackView(VisualElement root, VisualTreeAsset uxml = null, StyleSheet uss = null) {
+            Root = root;
+            Initialize(uxml, uss);
+        }
 
-            Root = _document.rootVisualElement;
-            Root.Clear();
-
-            if (_uss != null) Root.styleSheets.Add(_uss);
-            if (_uxml != null) Root.Add(_uxml.Instantiate());
-            yield return null;
+        void Initialize(VisualTreeAsset uxml, StyleSheet uss) {
+            if (Root == null) return;
+            
+            // Add stylesheet if provided
+            if (uss != null) {
+                Root.styleSheets.Add(uss);
+            }
+            
+            // Instantiate and add UXML if provided
+            if (uxml != null) {
+                var tree = uxml.Instantiate();
+                Root.Add(tree);
+            }
         }
 
         public Label GetLabel(string name) => Root?.Q<Label>(name);

@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using UnityEngine;
 using UnityEngine.UIElements;
 using MiniTimeline.Core;
@@ -12,6 +11,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
     public class ClipController {
         readonly ClipView _view;
         readonly ClipModel _model;
+        ViewModel _viewModel;
 
         // Drag/resize state
         private bool _isDragging;
@@ -23,27 +23,26 @@ namespace MiniTimeline.UI.MVVM.Clip {
         ClipController(ClipView view, ClipModel model) {
             _view = view;
             _model = model;
-            _view.StartCoroutine(Initialize());
+            Initialize();
         }
 
-        IEnumerator Initialize() {
-            var vm = new ViewModel(_model);
-            yield return _view.InitializeView(vm);
-            Bind(vm);
+        void Initialize() {
+            _viewModel = new ViewModel(_model);
+            Bind(_viewModel);
         }
 
         public void Bind(ViewModel vm) {
-            var title = _view.GetLabel("clipTitleLabel");
-            var durationLabel = _view.GetLabel("clipDurationLabel");
-            var lockedIcon = _view.GetLabel("clipLockedIcon");
-            var mutedIcon = _view.GetLabel("clipMutedIcon");
+            var title = _view.GetLabel("clip-title");
+            var durationLabel = _view.GetLabel("clip-duration");
+            var lockedIcon = _view.GetElement("clip-lock-icon");
+            var mutedIcon = _view.GetElement("clip-mute-icon");
             
             // Display elements
             if (title != null) title.text = vm.Title.Value;
             if (durationLabel != null) durationLabel.text = $"{vm.Duration.Value:F2}s";
 
             // Selection and interaction
-            var clipElement = _view.GetElement("clipContainer");
+            var clipElement = _view.GetElement("clip-root");
             if (clipElement != null) {
                 clipElement.RegisterCallback<MouseDownEvent>(OnMouseDown);
                 clipElement.RegisterCallback<MouseUpEvent>(OnMouseUp);
@@ -51,7 +50,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
             }
 
             // Resize handles
-            var resizeLeftHandle = _view.GetElement("resizeHandleLeft");
+            var resizeLeftHandle = _view.GetElement("clip-resize-left");
             if (resizeLeftHandle != null) {
                 resizeLeftHandle.RegisterCallback<MouseDownEvent>(evt => {
                     _isResizingLeft = true;
@@ -60,7 +59,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
                 });
             }
 
-            var resizeRightHandle = _view.GetElement("resizeHandleRight");
+            var resizeRightHandle = _view.GetElement("clip-resize-right");
             if (resizeRightHandle != null) {
                 resizeRightHandle.RegisterCallback<MouseDownEvent>(evt => {
                     _isResizingRight = true;
@@ -85,8 +84,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
 
         private void OnMouseDown(MouseDownEvent evt) {
             if (!_isResizingLeft && !_isResizingRight) {
-                var vm = _view as dynamic;
-                vm?.Select(!vm.Selected.Value);
+                _model.Select(!_viewModel.Selected.Value);
                 _isDragging = true;
                 _dragStartX = evt.mousePosition.x;
                 _model.OnDragStart();
