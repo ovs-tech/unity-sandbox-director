@@ -28,6 +28,11 @@ namespace MiniTimeline.UI.MVVM.Clip {
         private float _currentResizeNewDuration;
         private float _minClipWidth = 10f;
 
+        // Cached elements
+        private VisualElement _clipElement;
+        private VisualElement _resizeLeftHandle;
+        private VisualElement _resizeRightHandle;
+
         public ClipView(VisualElement root, VisualTreeAsset uxml = null, StyleSheet uss = null) {
             Root = root;
             Initialize(uxml, uss);
@@ -70,8 +75,17 @@ namespace MiniTimeline.UI.MVVM.Clip {
 
             // Selection and interaction
             var clipElement = GetElement("clip-root");
+            _clipElement = clipElement;
             if (clipElement != null) {
                 clipElement.RegisterCallback<PointerDownEvent>(evt => {
+                    var targetVE = evt.target as VisualElement;
+                    bool onLeft = _resizeLeftHandle != null && (_resizeLeftHandle == targetVE || _resizeLeftHandle.Contains(targetVE));
+                    bool onRight = _resizeRightHandle != null && (_resizeRightHandle == targetVE || _resizeRightHandle.Contains(targetVE));
+                    Debug.Log($"[ClipView] ClipRoot PointerDown target={(targetVE==null?"<null>":targetVE.name)} onLeft={onLeft} onRight={onRight}");
+                    if (onLeft || onRight) {
+                        // Let handle-specific callbacks process; do not start drag or stop propagation
+                        return;
+                    }
                     OnPointerDown(evt, model);
                     evt.StopPropagation();
                 });
@@ -85,19 +99,87 @@ namespace MiniTimeline.UI.MVVM.Clip {
 
             // Resize handles
             var resizeLeftHandle = GetElement("clip-resize-left");
+            Debug.Log($"[ClipView] Bind: resizeLeftHandle {(resizeLeftHandle == null ? "NOT FOUND" : "FOUND")}");
             if (resizeLeftHandle != null) {
+                _resizeLeftHandle = resizeLeftHandle;
+                _resizeLeftHandle.pickingMode = PickingMode.Position;
                 resizeLeftHandle.RegisterCallback<PointerDownEvent>(evt => {
                     IsResizingLeft = true;
                     DragStartX = evt.position.x;
+                    Debug.Log($"[ClipView] ResizeLeft PointerDown posX={evt.position.x} localPos={evt.localPosition} selected={vm.Selected.Value}");
+                    InitializeResize(vm.StartTime.Value, vm.Duration.Value, evt.position.x);
+                    _resizeLeftHandle.CapturePointer(evt.pointerId);
+                    Debug.Log($"[ClipView] ResizeLeft CapturePointer id={evt.pointerId}");
+                    evt.StopPropagation();
+                });
+
+                resizeLeftHandle.RegisterCallback<PointerMoveEvent>(evt => {
+                    if (!IsResizingLeft) return;
+                    float pps = _vm?.PixelsPerSecond?.Value ?? 1f;
+                    float pixelDelta = evt.position.x - _resizeStartMouseX;
+                    float timeDelta = pixelDelta / pps;
+                    float newStart = _resizeDragStartTime + timeDelta;
+                    float newDuration = _resizeDragStartDuration - timeDelta;
+                    if (newDuration < 0.001f) newDuration = 0.001f;
+                    UpdateResizeLeft(newStart, newDuration);
+                    Debug.Log($"[ClipView] ResizeLeft Move pixelDelta={pixelDelta:F2} timeDelta={timeDelta:F3}s -> start={newStart:F3}s duration={newDuration:F3}s");
+                    evt.StopPropagation();
+                });
+
+                resizeLeftHandle.RegisterCallback<PointerUpEvent>(evt => {
+                    if (IsResizingLeft) {
+                        IsResizingLeft = false;
+                        // Commit model change for left resize using total delta
+                        float delta = _currentResizeNewStart - _resizeDragStartTime;
+                        Debug.Log($"[ClipView] ResizeLeft Commit delta={delta:F3}s");
+                        model.ResizeLeft(delta);
+                        EndResize();
+                        Debug.Log($"[ClipView] ResizeLeft PointerUp end");
+                    }
+                    _resizeLeftHandle.ReleasePointer(evt.pointerId);
                     evt.StopPropagation();
                 });
             }
 
             var resizeRightHandle = GetElement("clip-resize-right");
+            Debug.Log($"[ClipView] Bind: resizeRightHandle {(resizeRightHandle == null ? "NOT FOUND" : "FOUND")}");
             if (resizeRightHandle != null) {
+                _resizeRightHandle = resizeRightHandle;
+                _resizeRightHandle.pickingMode = PickingMode.Position;
                 resizeRightHandle.RegisterCallback<PointerDownEvent>(evt => {
                     IsResizingRight = true;
                     DragStartX = evt.position.x;
+                    Debug.Log($"[ClipView] ResizeRight PointerDown posX={evt.position.x} localPos={evt.localPosition} selected={vm.Selected.Value}");
+                    InitializeResize(vm.StartTime.Value, vm.Duration.Value, evt.position.x);
+                    _resizeRightHandle.CapturePointer(evt.pointerId);
+                    Debug.Log($"[ClipView] ResizeRight CapturePointer id={evt.pointerId}");
+                    evt.StopPropagation();
+                });
+
+                resizeRightHandle.RegisterCallback<PointerMoveEvent>(evt => {
+                    if (!IsResizingRight) return;
+                    float pps = _vm?.PixelsPerSecond?.Value ?? 1f;
+                    float pixelDelta = evt.position.x - _resizeStartMouseX;
+                    float timeDelta = pixelDelta / pps;
+                    float newStart = _resizeDragStartTime;
+                    float newDuration = _resizeDragStartDuration + timeDelta;
+                    if (newDuration < 0.001f) newDuration = 0.001f;
+                    UpdateResizeRight(newStart, newDuration);
+                    Debug.Log($"[ClipView] ResizeRight Move pixelDelta={pixelDelta:F2} timeDelta={timeDelta:F3}s -> start={newStart:F3}s duration={newDuration:F3}s");
+                    evt.StopPropagation();
+                });
+
+                resizeRightHandle.RegisterCallback<PointerUpEvent>(evt => {
+                    if (IsResizingRight) {
+                        IsResizingRight = false;
+                        // Commit model change for right resize using total delta
+                        float delta = _currentResizeNewDuration - _resizeDragStartDuration;
+                        Debug.Log($"[ClipView] ResizeRight Commit delta={delta:F3}s");
+                        model.ResizeRight(delta);
+                        EndResize();
+                        Debug.Log($"[ClipView] ResizeRight PointerUp end");
+                    }
+                    _resizeRightHandle.ReleasePointer(evt.pointerId);
                     evt.StopPropagation();
                 });
             }
@@ -123,27 +205,29 @@ namespace MiniTimeline.UI.MVVM.Clip {
 
         private void OnPointerDown(PointerDownEvent evt, ClipModel model) {
             if (!IsResizingLeft && !IsResizingRight) {
-                model.Select(!model.Selected);
+                // Select on drag start; do not toggle to avoid unintended deselect
+                if (!model.Selected) model.Select(true);
                 IsDragging = true;
                 DragStartX = evt.position.x;
-                model.OnDragStart();
+                Debug.Log($"[ClipView] DragStart posX={evt.position.x}, localPos={evt.localPosition}, startTime={model.StartTime}, duration={model.Duration}, pps={_vm?.PixelsPerSecond?.Value}");
                 
                 InitializeDrag(evt.localPosition, model.StartTime, model.Duration);
             }
         }
 
         private void OnPointerUp(PointerUpEvent evt, ClipModel model) {
+            var wasDragging = IsDragging;
             IsDragging = false;
             IsResizingLeft = false;
             IsResizingRight = false;
             
-            if (IsDragging) {
+            if (wasDragging) {
                 EndDrag();
-                model.OnDragEnd();
             }
             
-            IsResizingLeft = false;
-            IsResizingRight = false;
+            // End resize visual state
+            EndResize();
+            Debug.Log($"[ClipView] DragEnd newStart={GetDragNewStartTime()} origStart={GetDragStartTime()} duration={GetDragStartDuration()} pps={_vm?.PixelsPerSecond?.Value}");
         }
 
         private void OnPointerMove(PointerMoveEvent evt, ClipModel model) {
@@ -151,8 +235,35 @@ namespace MiniTimeline.UI.MVVM.Clip {
             IsResizingRight = IsResizingRight;
             
             if (IsDragging) {
-                float newStartTime = GetDragStartTime() + (evt.localPosition.x - Root.contentRect.x);
+                // Convert pixel delta to time delta using PixelsPerSecond
+                float pixelDelta = evt.position.x - DragStartX;
+                float timeDelta = pixelDelta / (_vm?.PixelsPerSecond?.Value ?? 1f);
+                float newStartTime = GetDragStartTime() + timeDelta;
                 UpdateDragPosition(newStartTime, model.Duration);
+                Debug.Log($"[ClipView] DragMove screenX={evt.position.x:F2} startScreenX={DragStartX:F2} pixelDelta={pixelDelta:F2} timeDelta={timeDelta:F3}s newStart={newStartTime:F3}s duration={model.Duration:F3}s pps={_vm?.PixelsPerSecond?.Value}");
+            }
+
+            // Handle resizing left/right
+            if (IsResizingLeft || IsResizingRight) {
+                float pps = _vm?.PixelsPerSecond?.Value ?? 1f;
+                float pixelDelta = evt.position.x - _resizeStartMouseX;
+                float timeDelta = pixelDelta / pps;
+
+                if (IsResizingLeft) {
+                    float newStart = _resizeDragStartTime + timeDelta;
+                    float newDuration = _resizeDragStartDuration - timeDelta;
+                    if (newDuration < 0.001f) newDuration = 0.001f;
+                    UpdateResizeLeft(newStart, newDuration);
+                    Debug.Log($"[ClipView] ResizeLeft pixelDelta={pixelDelta:F2} timeDelta={timeDelta:F3}s -> start={newStart:F3}s duration={newDuration:F3}s");
+                }
+
+                if (IsResizingRight) {
+                    float newStart = _resizeDragStartTime;
+                    float newDuration = _resizeDragStartDuration + timeDelta;
+                    if (newDuration < 0.001f) newDuration = 0.001f;
+                    UpdateResizeRight(newStart, newDuration);
+                    Debug.Log($"[ClipView] ResizeRight pixelDelta={pixelDelta:F2} timeDelta={timeDelta:F3}s -> start={newStart:F3}s duration={newDuration:F3}s");
+                }
             }
         }
 
@@ -173,6 +284,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
             {
                 Root.style.opacity = 0.8f;
             }
+            Debug.Log($"[ClipView] InitializeDrag localStartPos={localStartPos} startTime={clipStartTime} duration={clipDuration} pps={_vm?.PixelsPerSecond?.Value}");
         }
 
         /// <summary>
@@ -182,6 +294,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
         {
             _currentDragNewStartTime = newStartTime;
             UpdateClipVisualTiming(newStartTime, duration);
+            Debug.Log($"[ClipView] UpdateDragPosition newStart={newStartTime:F3}s duration={duration:F3}s");
         }
 
         /// <summary>
@@ -194,6 +307,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
             {
                 Root.style.opacity = 1f;
             }
+            Debug.Log("[ClipView] EndDrag visual reset");
         }
 
         /// <summary>
@@ -224,6 +338,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
             
             // Visual feedback
             Root?.AddToClassList("resizing");
+            Debug.Log($"[ClipView] InitializeResize startTime={startTime:F3}s duration={duration:F3}s mouseX={mouseX:F2}");
         }
 
         /// <summary>
@@ -252,6 +367,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
         public void EndResize()
         {
             Root?.RemoveFromClassList("resizing");
+            Debug.Log("[ClipView] EndResize visual reset");
         }
 
         /// <summary>
@@ -286,8 +402,19 @@ namespace MiniTimeline.UI.MVVM.Clip {
                 visibleDuration = 20f;
             }
 
-            Root.style.left = newStart *  _vm.PixelsPerSecond.Value;
-            Root.style.width = visibleDuration * _vm.PixelsPerSecond.Value;
+            // Use pixels-per-second to compute position and width in pixels
+            float startPos = newStart * _vm.PixelsPerSecond.Value;
+            float width = visibleDuration * _vm.PixelsPerSecond.Value;
+
+            // Enforce a minimum pixel width for usability
+            if (width < _minClipWidth)
+            {
+                width = _minClipWidth;
+            }
+
+            Root.style.left = startPos;
+            Root.style.width = width;
+            Debug.Log($"[ClipView] UpdateClipVisualTiming start={newStart:F3}s duration={newDuration:F3}s visibleDuration={visibleDuration:F3}s pps={_vm?.PixelsPerSecond?.Value} -> left={startPos:F2}px width={width:F2}px");
         }
 
         /// <summary>

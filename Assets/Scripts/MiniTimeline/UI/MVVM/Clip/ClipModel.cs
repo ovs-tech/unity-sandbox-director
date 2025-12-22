@@ -54,7 +54,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
         public void SetDuration(float value) { 
             _duration = Mathf.Max(0f, value);
             if (_clip != null && _clip is MiniClipBase clipBase) {
-                clipBase.Duration = _duration;
+                clipBase.Duration = _duration / _pixelsPerSecond;
             }
             OnPropertyChanged?.Invoke();
         }
@@ -62,7 +62,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
         public void SetStartTime(float time) {
             _startTime = Mathf.Max(0f, time);
             if (_clip != null && _clip is MiniClipBase clipBase) {
-                clipBase.Start = _startTime;
+                clipBase.Start = _startTime / _pixelsPerSecond;
             }
             OnPositionChanged?.Invoke();
         }
@@ -104,19 +104,6 @@ namespace MiniTimeline.UI.MVVM.Clip {
             float newStart = Mathf.Max(0f, _startTime + delta);
             _startTime = newStart;
             SetStartTime(_startTime);
-        }
-
-        // Interaction feedback
-        public void OnDragStart() {
-            // Called when user starts dragging clip
-        }
-
-        public void OnDragEnd() {
-            // Called when user finishes dragging clip
-        }
-
-        public void OnContextMenu() {
-            // Called when user right-clicks clip
         }
 
         public void SetZoom(float zoom) {

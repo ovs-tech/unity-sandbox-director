@@ -29,10 +29,6 @@ namespace MiniTimeline.UI.MVVM.Clip {
             _view.Bind(vm, _model);
         }
 
-        public bool IsDragging => _view.IsDragging;
-        public bool IsResizingLeft => _view.IsResizingLeft;
-        public bool IsResizingRight => _view.IsResizingRight;
-
         /// <summary>
         /// Updates zoom level and pixels per second.
         /// </summary>
@@ -61,21 +57,6 @@ namespace MiniTimeline.UI.MVVM.Clip {
                 Muted = BindableProperty<bool>.Bind(() => _model.Muted);
                 Selected = BindableProperty<bool>.Bind(() => _model.Selected);
                 PixelsPerSecond = BindableProperty<float>.Bind(() => _model.PixelsPerSecond);
-            }
-
-            public void ResizeLeft(float delta) => _model.ResizeLeft(delta);
-            public void ResizeRight(float delta) => _model.ResizeRight(delta);
-            public void Select(bool selected) => _model.Select(selected);
-            public void Drag(float delta) => _model.Drag(delta);
-
-            public void ShowContextMenu() {
-                Debug.Log($"Show context menu for clip: {_model.Title}");
-                // TODO: Show context menu with actions
-            }
-
-            public void ShowProperties() {
-                Debug.Log($"Show properties for clip: {_model.Title}");
-                // TODO: Show clip property editor
             }
         }
 
