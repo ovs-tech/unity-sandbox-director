@@ -128,30 +128,63 @@ namespace MiniTimeline.UI.MVVM.Clip {
                 DragStartX = evt.position.x;
                 model.OnDragStart();
                 
+                // Get element for capture (ClipUIToolkit uses clipElement which is GetElement("clip-root"))
+                var clipElement = GetElement("clip-root");
+                if (clipElement != null) {
+                    clipElement.CapturePointer(evt.pointerId);
+                }
+
                 InitializeDrag(evt.localPosition, model.StartTime, model.Duration);
             }
         }
 
         private void OnPointerUp(PointerUpEvent evt, ClipModel model) {
-            IsDragging = false;
-            IsResizingLeft = false;
-            IsResizingRight = false;
-            
+            var clipElement = GetElement("clip-root");
+            if (clipElement != null && clipElement.HasPointerCapture(evt.pointerId)) {
+                clipElement.ReleasePointer(evt.pointerId);
+            }
+
             if (IsDragging) {
                 EndDrag();
                 model.OnDragEnd();
+                // Apply the new time to the model
+                model.SetStartTime(_currentDragNewStartTime);
             }
             
+            IsDragging = false;
             IsResizingLeft = false;
             IsResizingRight = false;
         }
 
         private void OnPointerMove(PointerMoveEvent evt, ClipModel model) {
-            IsResizingLeft = IsResizingLeft;
-            IsResizingRight = IsResizingRight;
+            // IsResizingLeft = IsResizingLeft; // No-op
+            // IsResizingRight = IsResizingRight; // No-op
             
             if (IsDragging) {
-                float newStartTime = GetDragStartTime() + (evt.localPosition.x - Root.contentRect.x);
+                // Logic ported from ClipUIToolkit.HandleDrag
+                // 1. Get container local position
+                // Note: ClipUIToolkit uses clipElement.parent.WorldToLocal(mousePosition).
+                // Here Root is the clip wrapper. If Root.parent is the track container, we use that.
+
+                if (Root == null || Root.parent == null) return;
+
+                // evt.position is in panel coordinates (screen/window space equivalent in UIElements)
+                // We need to convert it to the coordinate system of the parent of the clip.
+                Vector2 localPos = Root.parent.WorldToLocal(evt.position);
+
+                // 2. Calculate new position
+                float targetX = localPos.x - _clipDragOffset;
+
+                // 3. Convert to time
+                // ClipUIToolkit uses editorUI.PositionToTimePublic(targetX)
+                // We use _vm.PixelsPerSecond.Value to calculate time.
+                // Time = Position / PixelsPerSecond
+                float newStartTime = targetX / _vm.PixelsPerSecond.Value;
+
+                // 4. Snap and clamp (simplified here, assume snapping is handled elsewhere or later)
+                newStartTime = Mathf.Max(0f, newStartTime);
+
+                // 5. Update visual
                 UpdateDragPosition(newStartTime, model.Duration);
             }
         }
@@ -286,8 +319,13 @@ namespace MiniTimeline.UI.MVVM.Clip {
                 visibleDuration = 20f;
             }
 
-            Root.style.left = newStart *  _vm.PixelsPerSecond.Value;
-            Root.style.width = visibleDuration * _vm.PixelsPerSecond.Value;
+            // Use TimeToPosition logic implicitly (newStart * PixelsPerSecond)
+            // Ideally we could expose TimeToPosition function from VM, but calculation is simple.
+            float startPos = newStart * _vm.PixelsPerSecond.Value;
+            float width = visibleDuration * _vm.PixelsPerSecond.Value;
+
+            Root.style.left = startPos;
+            Root.style.width = width;
         }
 
         /// <summary>
