@@ -1009,7 +1009,7 @@ namespace MiniTimeline.UI
                 };
 
                 // Create and execute add track command
-                var addTrackCommand = new AddTrackCommand(director, trackData, this);
+                var addTrackCommand = new AddTrackCommand(director, trackData);
                 ExecuteCommand(addTrackCommand);
 
                 // Debug.Log($"Added new {TrackUIHelper.GetTrackDisplayName(trackType)} track: {trackName}");

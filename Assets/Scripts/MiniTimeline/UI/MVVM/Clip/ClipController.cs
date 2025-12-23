@@ -65,15 +65,18 @@ namespace MiniTimeline.UI.MVVM.Clip {
             ClipModel _model;
             IMiniClip _clip;
             IMiniTrack _parentTrack;
+            MiniTimelineDirector _director;
 
             public Builder(ClipView view) { _view = view; }
             public Builder WithModel(ClipModel model) { _model = model; return this; }
             public Builder WithClip(IMiniClip clip) { _clip = clip; return this; }
             public Builder WithParentTrack(IMiniTrack track) { _parentTrack = track; return this; }
+            public Builder WithDirector(MiniTimelineDirector director) { _director = director; return this; }
             
             public ClipController Build() {
                 if (_model == null) _model = new ClipModel();
                 if (_clip != null) _model.Initialize(_clip, _parentTrack);
+                if( _director != null) _model.Initialize(_clip, _parentTrack, _director);
                 return new ClipController(_view, _model);
             }
         }

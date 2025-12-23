@@ -11,23 +11,18 @@ namespace MiniTimeline.UI.Commands
     {
         private readonly IMiniTrack track;
         private readonly IMiniClip clipInstance;
-        private readonly ITrackUI trackUI;
 
-        public CreateClipCommand(IMiniTrack targetTrack, IMiniClip clip, ITrackUI trackInterface)
+        public CreateClipCommand(IMiniTrack targetTrack, IMiniClip clip)
             : base($"Create Clip")
         {
             track = targetTrack;
             clipInstance = clip;
-            trackUI = trackInterface;
         }
 
         protected override void ExecuteInternal()
         {
             // Add clip to track
             track.AddClip(clipInstance);
-
-            // Update UI to show the new clip
-            trackUI?.RebuildClipUIs();
 
             Debug.Log($"Created clip '{clipInstance.Id}' at {clipInstance.Start} with duration {clipInstance.Duration}");
         }
@@ -41,8 +36,6 @@ namespace MiniTimeline.UI.Commands
 
                 if (removed)
                 {
-                    // Update UI
-                    trackUI?.RebuildClipUIs();
                     Debug.Log($"Removed clip '{clipInstance.Id}'");
                 }
                 else

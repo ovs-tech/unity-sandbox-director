@@ -309,7 +309,7 @@ namespace MiniTimeline.UI.MVVM.Timeline {
                 clips = new List<ClipData>()
             };
 
-            var addTrackCommand = new AddTrackCommand(_director, trackData, null);
+            var addTrackCommand = new AddTrackCommand(_director, trackData);
             ExecuteCommand(addTrackCommand);
         }
 

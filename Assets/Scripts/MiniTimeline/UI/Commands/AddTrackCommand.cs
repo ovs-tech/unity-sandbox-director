@@ -1,7 +1,6 @@
 using System.Linq;
 using Core.Behaviors.Command;
 using MiniTimeline.Core;
-using MiniTimeline.UI;
 using UnityEngine;
 
 namespace MiniTimeline.UI.Commands
@@ -14,15 +13,13 @@ namespace MiniTimeline.UI.Commands
     {
         private readonly MiniTimelineDirector director;
         private readonly TrackData trackData;
-        private readonly ITimelineEditorUI editorUI;
         private IMiniTrack createdTrack;
 
-        public AddTrackCommand(MiniTimelineDirector timelineDirector, TrackData data, ITimelineEditorUI editor)
+        public AddTrackCommand(MiniTimelineDirector timelineDirector, TrackData data)
             : base($"Add {data.type} Track")
         {
             director = timelineDirector;
             trackData = data;
-            editorUI = editor;
         }
 
         protected override void ExecuteInternal()
@@ -52,9 +49,6 @@ namespace MiniTimeline.UI.Commands
                 {
                     Debug.LogWarning($"Track was added to project but not found in runtime tracks. Type: {trackData.type}, ID: {trackData.id}");
                 }
-                
-                // Trigger UI rebuild if available
-                editorUI?.BuildTimelineUI();
             }
             catch (System.Exception ex)
             {
@@ -123,9 +117,6 @@ namespace MiniTimeline.UI.Commands
                     
                     // Force immediate track rebuild
                     ForceTrackRebuild();
-                    
-                    // Trigger UI rebuild
-                    editorUI?.BuildTimelineUI();
                     
                     // Successfully removed the track (informational log removed)
                 }

@@ -4,17 +4,16 @@ using UnityEngine;
 using MiniTimeline.Core;
 
 namespace MiniTimeline.UI.MVVM.Track {
-    [Serializable]
     public class TrackModel {
-        [SerializeField] string _title = "Track";
-        [SerializeField] bool _enabled = true;
-        [SerializeField] bool _muted;
-        [SerializeField] bool _solo;
-        [SerializeField] string _bindKey = string.Empty;
-        [SerializeField] string _type = "Generic";
-        [SerializeField] MiniTimelineDirector _director;
-        [SerializeField] float _zoom = 1f;
-        [SerializeField] float _pixelsPerSecond = 100f;
+        string _title = "Track";
+        bool _enabled = true;
+        bool _muted;
+        bool _solo;
+        string _bindKey = string.Empty;
+        string _type = "Generic";
+        MiniTimelineDirector _director;
+        float _zoom = 1f;
+        float _pixelsPerSecond = 100f;
 
         // Reference to the actual track data
         private IMiniTrack _track;
@@ -39,6 +38,7 @@ namespace MiniTimeline.UI.MVVM.Track {
         public float Zoom => _zoom;
         public float TimelineWidth => _director != null ? _director.Length * _pixelsPerSecond : 1000f;
         public float PixelsPerSecond => _pixelsPerSecond;
+        public MiniTimelineDirector Director => _director;
 
         public void Initialize(IMiniTrack track, MiniTimelineDirector director) {
             _track = track;

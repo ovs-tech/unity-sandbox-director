@@ -961,8 +961,7 @@ namespace MiniTimeline.UI
                     var moveCommand = new MoveClipCommand(
                         clip,
                         dragStartTime,
-                        finalStartTime,
-                        editorUI
+                        finalStartTime
                     );
                     
                     editorUI.ExecuteCommand(moveCommand);
@@ -1145,8 +1144,7 @@ namespace MiniTimeline.UI
                     resizeDragStartTime,
                     resizeDragStartDuration,
                     currentResizeNewStart,
-                    currentResizeNewDuration,
-                    parentTrack as ITrackUI
+                    currentResizeNewDuration
                 );
                 
                 editorUI.ExecuteCommand(resizeCommand);

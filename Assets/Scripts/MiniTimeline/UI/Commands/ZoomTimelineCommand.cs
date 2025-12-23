@@ -1,32 +1,34 @@
 using Core.Behaviors.Command;
+using MiniTimeline.Core;
 
 namespace MiniTimeline.UI.Commands
 {
     /// <summary>
     /// Command for changing timeline zoom level
+    /// Note: This command no longer directly modifies UI. UI should observe zoom state from the timeline data.
     /// </summary>
     public class ZoomTimelineCommand : TimelineCommandBase
     {
-        private readonly ITimelineEditorUI editor;
         private readonly float oldZoom;
         private readonly float newZoom;
 
-        public ZoomTimelineCommand(ITimelineEditorUI timelineEditor, float oldZoomValue, float newZoomValue)
+        public ZoomTimelineCommand(float oldZoomValue, float newZoomValue)
             : base($"Zoom to {newZoomValue:F1}x")
         {
-            editor = timelineEditor;
             oldZoom = oldZoomValue;
             newZoom = newZoomValue;
         }
 
         protected override void ExecuteInternal()
         {
-            editor?.SetZoom(newZoom);
+            // Zoom state should be managed by timeline model
+            // UI will observe and update accordingly
         }
 
         protected override void UndoInternal()
         {
-            editor?.SetZoom(oldZoom);
+            // Zoom state should be managed by timeline model
+            // UI will observe and update accordingly
         }
 
         public override bool CanMergeWith(ITimelineCommand other)

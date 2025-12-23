@@ -156,7 +156,7 @@ namespace MiniTimeline.UI.MVVM.Track {
         /// <summary>
         /// Creates and registers a ClipController for a given clip.
         /// </summary>
-        private ClipController CreateAndRegisterClipController(string clipId, MiniTimeline.Core.IMiniClip clip, TrackModel model, VisualElement clipsContainer, Dictionary<string, ClipController> clipControllers, VisualTreeAsset clipUxml, StyleSheet clipUss) {
+        private ClipController CreateAndRegisterClipController(string clipId, IMiniClip clip, TrackModel model, VisualElement clipsContainer, Dictionary<string, ClipController> clipControllers, VisualTreeAsset clipUxml, StyleSheet clipUss) {
             if (string.IsNullOrEmpty(clipId) || clip == null) {
                 Debug.LogWarning("Cannot create ClipController: Invalid clipId or clip");
                 return null;
@@ -177,12 +177,13 @@ namespace MiniTimeline.UI.MVVM.Track {
 
                 // Create ClipModel and initialize with clip
                 var clipModel = new ClipModel();
-                clipModel.Initialize(clip, model.Track);
+                clipModel.Initialize(clip, model.Track, model.Director);
 
                 // Create ClipController with builder pattern
                 var clipController = new ClipController.Builder(clipView)
                     .WithModel(clipModel)
                     .WithClip(clip)
+                    .WithDirector(model.Director)
                     .Build();
 
                 // Register the controller

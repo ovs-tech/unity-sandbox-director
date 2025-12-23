@@ -3,24 +3,24 @@ using UnityEngine;
 using MiniTimeline.Core;
 
 namespace MiniTimeline.UI.MVVM.Clip {
-    [Serializable]
     public class ClipModel {
-        [SerializeField] string _title = "Clip";
-        [SerializeField] float _duration = 1f;
-        [SerializeField] float _startTime = 0f;
-        [SerializeField] bool _locked;
-        [SerializeField] bool _muted;
-        [SerializeField] bool _selected;
-        [SerializeField] float _zoom = 1f;
-        [SerializeField] float _pixelsPerSecond = 100f;
+        string _title = "Clip";
+        float _duration = 1f;
+        float _startTime = 0f;
+        bool _locked;
+        bool _muted;
+        bool _selected;
+        float _zoom = 1f;
+        float _pixelsPerSecond = 100f;
 
         // Reference to the actual clip data
         private IMiniClip _clip;
         private IMiniTrack _parentTrack;
+        private MiniTimelineDirector _director;
 
         // Events
         public event Action OnPropertyChanged;
-        public event Action OnSelectionChanged;
+        public event Action<bool> OnSelectionChanged;
         public event Action OnPositionChanged;
         public event Action OnZoomChanged;
         public event Action OnPixelsPerSecondChanged;
@@ -36,9 +36,10 @@ namespace MiniTimeline.UI.MVVM.Clip {
         public float Zoom => _zoom;
         public float PixelsPerSecond => _pixelsPerSecond;
 
-        public void Initialize(IMiniClip clip, IMiniTrack parentTrack) {
+        public void Initialize(IMiniClip clip, IMiniTrack parentTrack, MiniTimelineDirector director = null) {
             _clip = clip;
             _parentTrack = parentTrack;
+            _director = director;
             if (clip != null) {
                 _title = clip.Id;
                 _duration = clip.Duration;
@@ -54,7 +55,8 @@ namespace MiniTimeline.UI.MVVM.Clip {
         public void SetDuration(float value) { 
             _duration = Mathf.Max(0f, value);
             if (_clip != null && _clip is MiniClipBase clipBase) {
-                clipBase.Duration = _duration / _pixelsPerSecond;
+                clipBase.Duration = _duration;
+                _director.UpdateClip(_clip.Id, _parentTrack.Id, _clip.Start, _clip.Duration);
             }
             OnPropertyChanged?.Invoke();
         }
@@ -62,7 +64,8 @@ namespace MiniTimeline.UI.MVVM.Clip {
         public void SetStartTime(float time) {
             _startTime = Mathf.Max(0f, time);
             if (_clip != null && _clip is MiniClipBase clipBase) {
-                clipBase.Start = _startTime / _pixelsPerSecond;
+                clipBase.Start = _startTime;
+                _director.UpdateClip(_clip.Id, _parentTrack.Id, _clip.Start, _clip.Duration);
             }
             OnPositionChanged?.Invoke();
         }
@@ -79,7 +82,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
 
         public void Select(bool selected) { 
             _selected = selected;
-            OnSelectionChanged?.Invoke();
+            OnSelectionChanged?.Invoke(selected);
         }
 
         // Drag/Resize operations
@@ -107,12 +110,12 @@ namespace MiniTimeline.UI.MVVM.Clip {
         }
 
         public void SetZoom(float zoom) {
-            _zoom = Mathf.Clamp(zoom, 0.1f, 5f);
+            _zoom = zoom;
             OnZoomChanged?.Invoke();
         }
 
         public void SetPixelsPerSecond(float pixelsPerSecond) {
-            _pixelsPerSecond = Mathf.Max(1f, pixelsPerSecond);
+            _pixelsPerSecond = pixelsPerSecond;
             OnPixelsPerSecondChanged?.Invoke();
         }
     }

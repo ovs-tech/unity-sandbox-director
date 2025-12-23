@@ -14,15 +14,13 @@ namespace MiniTimeline.UI.Commands
         private readonly MiniTimelineDirector director;
         private readonly IMiniTrack track;
         private readonly TrackData trackBackup;
-        private readonly ITimelineEditorUI editorUI;
         private readonly int trackIndex;
 
-        public RemoveTrackCommand(MiniTimelineDirector timelineDirector, IMiniTrack trackToRemove, ITimelineEditorUI timelineEditor)
-            : base($"Remove {GetTrackDisplayName(trackToRemove)}")
+        public RemoveTrackCommand(MiniTimelineDirector timelineDirector, IMiniTrack trackToRemove)
+            : base($"Remove {trackToRemove.Id}")
         {
             director = timelineDirector;
             track = trackToRemove;
-            editorUI = timelineEditor;
 
             // Backup track data and find index
             if (director?.Project?.tracks != null)
@@ -77,9 +75,6 @@ namespace MiniTimeline.UI.Commands
                 // Mark project as dirty if method exists
                 MarkProjectDirty();
 
-                // Rebuild UI to reflect changes
-                editorUI?.BuildTimelineUI();
-
                 Debug.Log($"Removed track {track.Id} from timeline");
             }
             catch (System.Exception ex)
@@ -111,9 +106,6 @@ namespace MiniTimeline.UI.Commands
 
                 // Mark project as dirty if method exists
                 MarkProjectDirty();
-
-                // Rebuild UI to reflect changes
-                editorUI?.BuildTimelineUI();
 
                 Debug.Log($"Restored track {track.Id} to timeline");
             }
@@ -200,15 +192,6 @@ namespace MiniTimeline.UI.Commands
             {
                 Debug.LogWarning($"Could not mark project as dirty: {ex.Message}");
             }
-        }
-
-        /// <summary>
-        /// Get display name for track type
-        /// </summary>
-        private static string GetTrackDisplayName(IMiniTrack track)
-        {
-            if (track == null) return "Unknown Track";
-            return TrackUIHelper.GetTrackDisplayName(track);
         }
 
         public override bool CanMergeWith(ITimelineCommand other)

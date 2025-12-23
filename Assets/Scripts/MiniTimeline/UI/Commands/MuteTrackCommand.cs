@@ -15,27 +15,23 @@ namespace MiniTimeline.UI.Commands
         private readonly IMiniTrack track;
         private readonly bool oldEnabledState;
         private readonly bool newEnabledState;
-        private readonly ITimelineEditorUI editorUI;
 
-        public MuteTrackCommand(IMiniTrack trackToMute, bool oldEnabled, bool newEnabled, ITimelineEditorUI timelineEditor)
-            : base(newEnabled ? $"Unmute {TrackUIHelper.GetTrackDisplayName(trackToMute)}" : $"Mute {TrackUIHelper.GetTrackDisplayName(trackToMute)}")
+        public MuteTrackCommand(IMiniTrack trackToMute, bool oldEnabled, bool newEnabled)
+            : base(newEnabled ? $"Unmute {trackToMute.Id}" : $"Mute {trackToMute.Id}")
         {
             track = trackToMute;
             oldEnabledState = oldEnabled;
             newEnabledState = newEnabled;
-            editorUI = timelineEditor;
         }
 
         protected override void ExecuteInternal()
         {
             SetTrackEnabled(newEnabledState);
-            UpdateTrackUI();
         }
 
         protected override void UndoInternal()
         {
             SetTrackEnabled(oldEnabledState);
-            UpdateTrackUI();
         }
 
         public override bool CanMergeWith(ITimelineCommand other)
@@ -86,15 +82,6 @@ namespace MiniTimeline.UI.Commands
                 {
                     Debug.LogError($"SetTrackEnabled - Cannot find way to set enabled state for track {track.Id} of type {trackType}");
                 }
-            }
-        }
-
-        private void UpdateTrackUI()
-        {
-            if (editorUI != null)
-            {
-                // Update the timeline to reflect the new mute state
-                editorUI.BuildTimelineUI();
             }
         }
     }
