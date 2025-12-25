@@ -56,7 +56,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
             _duration = Mathf.Max(0f, value);
             if (_clip != null && _clip is MiniClipBase clipBase) {
                 clipBase.Duration = _duration;
-                _director.UpdateClip(_clip.Id, _parentTrack.Id, _clip.Start, _clip.Duration);
+                // _director.UpdateClip(_clip.Id, _parentTrack.Id, _clip.Start, _clip.Duration);
             }
             OnPropertyChanged?.Invoke();
         }
@@ -65,7 +65,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
             _startTime = Mathf.Max(0f, time);
             if (_clip != null && _clip is MiniClipBase clipBase) {
                 clipBase.Start = _startTime;
-                _director.UpdateClip(_clip.Id, _parentTrack.Id, _clip.Start, _clip.Duration);
+                // _director.UpdateClip(_clip.Id, _parentTrack.Id, _clip.Start, _clip.Duration);
             }
             OnPositionChanged?.Invoke();
         }
