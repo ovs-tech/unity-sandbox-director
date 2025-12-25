@@ -3,11 +3,11 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using System.Collections.Generic;
 using System.Linq;
-using SceneSandbox.Core;
-using SceneSandbox.Data;
-using SceneSandbox.Serialization;
+using Systems.SceneSandbox.Core;
+using Systems.SceneSandbox.Data;
+using Systems.SceneSandbox.Serialization;
 
-namespace SceneSandbox.Editor
+namespace Systems.SceneSandbox.Editor
 {
     /// <summary>
     /// Custom editor for SceneSandboxBuilder with enhanced UI and project management
@@ -20,6 +20,7 @@ namespace SceneSandbox.Editor
         
         // Configuration
         private SerializedProperty _objectLibrary;
+        private SerializedProperty _libraryController;
         private SerializedProperty _sceneRoot;
         private SerializedProperty _stageArea;
         
@@ -105,6 +106,9 @@ namespace SceneSandbox.Editor
         private SerializedProperty _defaultProjectSavePath;
         private SerializedProperty _autoLoadFirstProject;
         
+        // Debug Settings
+        private SerializedProperty _debugLogs;
+        
         // Events
         private SerializedProperty _onSceneLoaded;
         private SerializedProperty _onSceneSaved;
@@ -122,14 +126,12 @@ namespace SceneSandbox.Editor
         private SceneSandboxBuilder _target;
         private bool _showConfigurationFoldout = true;
         private bool _showPlacementFoldout = true;
-        private bool _showPlacementValidationFoldout = true;
         private bool _showInputSettingsFoldout = true;
         private bool _showPreviewFoldout = false;
         private bool _showAllGizmosFoldout = false;
         private bool _showProjectManagementFoldout = true;
         private bool _showObjectLibraryFoldout = false;
         private bool _showRuntimeInfoFoldout = true;
-        private bool _showTransformItemsFoldout = true;
         private bool _showEventsFoldout = false;
         
         // Project Management
@@ -139,7 +141,6 @@ namespace SceneSandbox.Editor
         private List<SandboxProjectMetadata> _availableProjects;
         
         // Scene Management (NEW)
-        private bool _showSceneManagementFoldout = true;
         private string _newSceneName = "New Scene";
         private Vector2 _sceneListScrollPos;
         private List<SceneMetadata> _currentProjectScenes;
@@ -205,7 +206,7 @@ namespace SceneSandbox.Editor
             // Debug current event
             if (eventType == EventType.MouseDown || eventType == EventType.MouseUp)
             {
-                Debug.Log($"[HandleSceneGUI] Event: {eventType}, button: {e.button}, controlID: {controlID}, hotControl: {GUIUtility.hotControl}");
+                if (_target.DebugLogs) Debug.Log($"[HandleSceneGUI] Event: {eventType}, button: {e.button}, controlID: {controlID}, hotControl: {GUIUtility.hotControl}");
             }
             
             switch (eventType)
@@ -218,7 +219,7 @@ namespace SceneSandbox.Editor
                 case EventType.MouseDown:
                     if (e.button == 0) // Left click
                     {
-                        Debug.Log($"[HandleSceneGUI] MouseDown detected at {mousePos}");
+                        if (_target.DebugLogs) Debug.Log($"[HandleSceneGUI] MouseDown detected at {mousePos}");
                         
                         // Take control to prevent other handlers from processing this event
                         GUIUtility.hotControl = controlID;
@@ -227,7 +228,7 @@ namespace SceneSandbox.Editor
                         GameObject placed = _target.ConfirmPlacement();
                         if (placed != null)
                         {
-                            Debug.Log($"[Editor] Placed object: {placed.name}");
+                            if (_target.DebugLogs) Debug.Log($"[Editor] Placed object: {placed.name}");
                             Selection.activeGameObject = placed;
                         }
                         else
@@ -253,7 +254,7 @@ namespace SceneSandbox.Editor
                     {
                         // Cancel placement on ESC
                         _target.CancelPlacement();
-                        Debug.Log("[Editor] Placement cancelled");
+                        if (_target.DebugLogs) Debug.Log("[Editor] Placement cancelled");
                         e.Use();
                         HandleUtility.Repaint();
                     }
@@ -299,6 +300,7 @@ namespace SceneSandbox.Editor
             DrawInputSettings(); // NEW: Input configuration section
             DrawPlacementSettings();
             DrawPreviewSettings();
+            DrawDebugSettings();
             DrawUnifiedGizmoSettings();
             DrawEvents(); // NEW: Events section
             
@@ -316,6 +318,7 @@ namespace SceneSandbox.Editor
         {
             // Configuration
             _objectLibrary = serializedObject.FindProperty("_objectLibrary");
+            _libraryController = serializedObject.FindProperty("_libraryController");
             _sceneRoot = serializedObject.FindProperty("_sceneRoot");
             _stageArea = serializedObject.FindProperty("_stageArea");
             
@@ -410,6 +413,9 @@ namespace SceneSandbox.Editor
             _currentSceneName = serializedObject.FindProperty("_currentSceneName");
             _defaultProjectSavePath = serializedObject.FindProperty("_defaultProjectSavePath");
             _autoLoadFirstProject = serializedObject.FindProperty("_autoLoadFirstProject");
+            
+            // Debug Settings
+            _debugLogs = serializedObject.FindProperty("_debugLogs");
         }
         
         #endregion
@@ -1484,6 +1490,7 @@ namespace SceneSandbox.Editor
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             
             EditorGUILayout.PropertyField(_objectLibrary);
+            EditorGUILayout.PropertyField(_libraryController, new GUIContent("Library Controller", "UI Controller for the Scene Object Library"));
             EditorGUILayout.PropertyField(_sceneRoot);
             EditorGUILayout.PropertyField(_stageArea);
             
@@ -1694,6 +1701,28 @@ namespace SceneSandbox.Editor
             EditorGUILayout.EndVertical();
         }
         
+        private void DrawDebugSettings()
+        {
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.LabelField("Debug Settings", EditorStyles.boldLabel);
+            
+            if (_debugLogs != null)
+            {
+                EditorGUILayout.PropertyField(_debugLogs, new GUIContent("Enable Debug Logs", "Enable debug logging for placement, mode changes, and other operations"));
+                
+                if (_debugLogs.boolValue)
+                {
+                    EditorGUILayout.HelpBox("Debug logs are enabled. Check the Console for detailed operation logs.", MessageType.Info);
+                }
+            }
+            else
+            {
+                EditorGUILayout.HelpBox("Debug Logs property not found.", MessageType.Warning);
+            }
+            
+            EditorGUILayout.EndVertical();
+        }
+        
         private void DrawUnifiedGizmoSettings()
         {
             _showAllGizmosFoldout = EditorGUILayout.Foldout(_showAllGizmosFoldout, 
@@ -1735,35 +1764,49 @@ namespace SceneSandbox.Editor
             
             // Object Gizmos
             EditorGUILayout.LabelField("Object Gizmos", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(_enableGizmos, new GUIContent("Enable Object Gizmos"));
-            
-            if (_enableGizmos.boolValue)
+            if (_enableGizmos != null)
             {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(_showBoundsGizmo, new GUIContent("Show Bounds"));
-                EditorGUILayout.PropertyField(_showAxesGizmo, new GUIContent("Show Axes"));
-                EditorGUILayout.PropertyField(_showHandlesGizmo, new GUIContent("Show Handles"));
-                EditorGUILayout.PropertyField(_gizmoBoundsColor, new GUIContent("Bounds Color"));
-                EditorGUILayout.PropertyField(_gizmoAxisLength, new GUIContent("Axis Length"));
-                EditorGUI.indentLevel--;
+                EditorGUILayout.PropertyField(_enableGizmos, new GUIContent("Enable Object Gizmos"));
+                
+                if (_enableGizmos.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    if (_showBoundsGizmo != null) EditorGUILayout.PropertyField(_showBoundsGizmo, new GUIContent("Show Bounds"));
+                    if (_showAxesGizmo != null) EditorGUILayout.PropertyField(_showAxesGizmo, new GUIContent("Show Axes"));
+                    if (_showHandlesGizmo != null) EditorGUILayout.PropertyField(_showHandlesGizmo, new GUIContent("Show Handles"));
+                    if (_gizmoBoundsColor != null) EditorGUILayout.PropertyField(_gizmoBoundsColor, new GUIContent("Bounds Color"));
+                    if (_gizmoAxisLength != null) EditorGUILayout.PropertyField(_gizmoAxisLength, new GUIContent("Axis Length"));
+                    EditorGUI.indentLevel--;
+                }
+            }
+            else
+            {
+                EditorGUILayout.HelpBox("Object Gizmo properties not found. Gizmos are managed by SandboxGizmoRenderer component.", MessageType.Info);
             }
             
             EditorGUILayout.Space(10);
             
             // Scene Gizmos
             EditorGUILayout.LabelField("Scene Gizmos", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(_enableSceneGizmos, new GUIContent("Enable Scene Gizmos"));
-            
-            if (_enableSceneGizmos.boolValue)
+            if (_enableSceneGizmos != null)
             {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(_showSceneGrid, new GUIContent("Show Grid"));
-                EditorGUILayout.PropertyField(_showSceneBounds, new GUIContent("Show Scene Bounds"));
-                EditorGUILayout.PropertyField(_showStageAreaGizmo, new GUIContent("Show Stage Area"));
-                EditorGUILayout.PropertyField(_showPlacementHeightGizmo, new GUIContent("Show Placement Height"));
-                EditorGUILayout.PropertyField(_sceneBoundsColor, new GUIContent("Bounds Color"));
-                EditorGUILayout.PropertyField(_placementHeightColor, new GUIContent("Placement Height Color"));
-                EditorGUI.indentLevel--;
+                EditorGUILayout.PropertyField(_enableSceneGizmos, new GUIContent("Enable Scene Gizmos"));
+                
+                if (_enableSceneGizmos.boolValue)
+                {
+                    EditorGUI.indentLevel++;
+                    if (_showSceneGrid != null) EditorGUILayout.PropertyField(_showSceneGrid, new GUIContent("Show Grid"));
+                    if (_showSceneBounds != null) EditorGUILayout.PropertyField(_showSceneBounds, new GUIContent("Show Scene Bounds"));
+                    if (_showStageAreaGizmo != null) EditorGUILayout.PropertyField(_showStageAreaGizmo, new GUIContent("Show Stage Area"));
+                    if (_showPlacementHeightGizmo != null) EditorGUILayout.PropertyField(_showPlacementHeightGizmo, new GUIContent("Show Placement Height"));
+                    if (_sceneBoundsColor != null) EditorGUILayout.PropertyField(_sceneBoundsColor, new GUIContent("Bounds Color"));
+                    if (_placementHeightColor != null) EditorGUILayout.PropertyField(_placementHeightColor, new GUIContent("Placement Height Color"));
+                    EditorGUI.indentLevel--;
+                }
+            }
+            else
+            {
+                EditorGUILayout.HelpBox("Scene Gizmo properties not found. Gizmos are managed by SandboxGizmoRenderer component.", MessageType.Info);
             }
             
             EditorGUILayout.EndVertical();
@@ -1850,7 +1893,7 @@ namespace SceneSandbox.Editor
                     GUI.enabled = Application.isPlaying && _target.SceneSerializer?.CurrentScene != null;
                     if (GUILayout.Button("Place", GUILayout.Width(60), GUILayout.Height(40)))
                     {
-                        Debug.Log($"[Editor] Place button clicked for {objectData.displayName}, isPlaying={Application.isPlaying}");
+                        if (_target.DebugLogs) Debug.Log($"[Editor] Place button clicked for {objectData.displayName}, isPlaying={Application.isPlaying}");
                         
                         // Trigger drag&drop flow - ghost will appear at screen center
                         // User can then:
@@ -1860,7 +1903,7 @@ namespace SceneSandbox.Editor
                         Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
                         _target.StartPlacement(objectData.id, screenCenter);
                         
-                        Debug.Log($"[Editor] Started placement for {objectData.displayName}. Move mouse, click to place, ESC to cancel.");
+                        if (_target.DebugLogs) Debug.Log($"[Editor] Started placement for {objectData.displayName}. Move mouse, click to place, ESC to cancel.");
                     }
                     GUI.enabled = true;
                     

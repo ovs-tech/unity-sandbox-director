@@ -12,32 +12,24 @@ namespace MiniTimeline.UI.Commands
         private readonly IMiniClip clip;
         private readonly float oldStartTime;
         private readonly float newStartTime;
-        private readonly ITimelineEditorUI editorUI;
 
-        public MoveClipCommand(IMiniClip clipToMove, float oldStart, float newStart, ITimelineEditorUI timelineEditor)
+        public MoveClipCommand(IMiniClip clipToMove, float oldStart, float newStart)
             : base($"Move {clipToMove.Id}")
         {
             clip = clipToMove;
             oldStartTime = oldStart;
             newStartTime = newStart;
-            editorUI = timelineEditor;
         }
 
         protected override void ExecuteInternal()
         {
             // Update clip data through proper API
             SetClipStartTime(newStartTime);
-
-            // Don't rebuild UI here - the visual update was already done during drag
-            // Only rebuild on undo/redo to ensure consistency
         }
 
         protected override void UndoInternal()
         {
             SetClipStartTime(oldStartTime);
-
-            // Rebuild UI to reflect the undone position
-            editorUI?.BuildTimelineUI();
         }
 
         public override bool CanMergeWith(ITimelineCommand other)

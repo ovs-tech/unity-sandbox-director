@@ -1,0 +1,159 @@
+/* Scene Object Library UI Styling */
+
+.main-container {
+    flex-direction: column;
+    flex-grow: 1;
+    margin: 0;
+    padding: 0;
+}
+
+.filter-bar {
+    flex-direction: column;
+    margin-bottom: 10px;
+    padding: 5px;
+    background-color: rgba(51, 51, 51, 1);
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(30, 30, 30, 1);
+}
+
+.type-filter-container {
+    flex-direction: row;
+    margin-right: 10px;
+    align-items: center;
+}
+
+.type-filter-button {
+    min-width: 60px;
+    padding: 5px;
+    margin-right: 5px;
+    background-color: rgba(76, 76, 76, 1);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-color: rgba(40, 40, 40, 1);
+    border-right-color: rgba(40, 40, 40, 1);
+    border-top-color: rgba(40, 40, 40, 1);
+    border-bottom-color: rgba(40, 40, 40, 1);
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+    font-size: 12px;
+    -unity-font-style: normal;
+}
+
+.type-filter-button:hover {
+    background-color: rgba(102, 102, 102, 1);
+}
+
+.type-filter-button--all {
+    background-color: rgba(102, 153, 255, 1);
+}
+
+.type-filter-button--active {
+    background-color: rgba(102, 153, 255, 1);
+}
+
+.category-filter {
+    width: 150px;
+    margin-right: 10px;
+}
+
+.search-field {
+    flex-grow: 1;
+}
+
+.object-grid-scroll-view {
+    flex-grow: 1;
+    border-left-width: 0;
+    border-right-width: 0;
+    border-top-width: 0;
+    border-bottom-width: 0;
+}
+
+.object-grid-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 5px;
+    align-items: flex-start;
+    align-content: flex-start;
+}
+
+.object-card {
+    width: 100px;
+    height: 120px;
+    margin: 5px;
+    padding: 5px;
+    background-color: rgba(64, 64, 64, 1);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-color: rgba(38, 38, 38, 1);
+    border-right-color: rgba(38, 38, 38, 1);
+    border-top-color: rgba(38, 38, 38, 1);
+    border-bottom-color: rgba(38, 38, 38, 1);
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    cursor: link;
+    align-items: center;
+    justify-content: flex-start;
+    flex-direction: column;
+}
+
+.object-card:hover {
+    background-color: rgba(89, 89, 89, 1);
+}
+
+.object-card--selected {
+    background-color: rgba(102, 153, 255, 0.4);
+    border-left-color: rgba(102, 153, 255, 1);
+    border-right-color: rgba(102, 153, 255, 1);
+    border-top-color: rgba(102, 153, 255, 1);
+    border-bottom-color: rgba(102, 153, 255, 1);
+}
+
+.card-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 5px;
+    background-color: rgba(128, 128, 128, 0.2);
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
+}
+
+.card-name {
+    font-size: 10px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    text-align: center;
+}
+
+.card-category-badge {
+    font-size: 8px;
+    background-color: rgba(102, 102, 102, 1);
+    padding: 2px 3px;
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
+    white-space: nowrap;
+    width: 100%;
+    text-align: center;
+}
+
+.empty-state {
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    font-size: 14px;
+    color: rgba(200, 200, 200, 1);
+}

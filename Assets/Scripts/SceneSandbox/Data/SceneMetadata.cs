@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace SceneSandbox.Data
+namespace Systems.SceneSandbox.Data
 {
     /// <summary>
     /// Lightweight metadata for scenes in a project (for UI display)

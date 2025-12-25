@@ -1,7 +1,7 @@
 using UnityEngine;
-using SceneSandbox.Data;
+using Systems.SceneSandbox.Data;
 
-namespace SceneSandbox.Core
+namespace Systems.SceneSandbox.Core
 {
     /// <summary>
     /// Handles all gizmo rendering for the Scene Sandbox Builder

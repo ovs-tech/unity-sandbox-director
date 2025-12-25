@@ -23,7 +23,7 @@ The system SHALL decompose SceneSandboxBuilder into focused components, each wit
 **And** initialization completes without errors
 
 #### Scenario: Backward compatible public API
-**Given** existing code using SceneSandboxBuilder public methods  
+**Given** existing code using Systems.SceneSandboxBuilder public methods  
 **When** the refactored system is loaded  
 **Then** all public methods remain accessible with same signatures  
 **And** method behavior is functionally equivalent  

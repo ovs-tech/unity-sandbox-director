@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using SceneSandbox.Data;
-using SceneSandbox.Core;
+using Systems.SceneSandbox.Data;
+using Systems.SceneSandbox.Core;
 
-namespace SceneSandbox.Serialization
+namespace Systems.SceneSandbox.Serialization
 {
     /// <summary>
     /// Represents a placed object in the scene for serialization

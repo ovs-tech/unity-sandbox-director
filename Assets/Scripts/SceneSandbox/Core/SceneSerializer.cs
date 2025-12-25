@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using SceneSandbox.Data;
-using SceneSandbox.Serialization;
+using Systems.SceneSandbox.Data;
+using Systems.SceneSandbox.Serialization;
 
-namespace SceneSandbox.Core
+namespace Systems.SceneSandbox.Core
 {
     /// <summary>
     /// Handles scene and project serialization/deserialization for the Scene Sandbox Builder system
@@ -19,6 +19,9 @@ namespace SceneSandbox.Core
         [SerializeField] private string _currentSceneName = "Untitled Scene";
         [Tooltip("Automatically load the first available project on start (Play mode only)")]
         [SerializeField] private bool _autoLoadFirstProject = false;
+
+        [Header("Debug Settings")]
+        [SerializeField] private bool _debugLogs = false;
 
         [Header("Events")]
         [SerializeField] private SceneConfigurationEvent _onSceneLoaded = new SceneConfigurationEvent();
@@ -341,7 +344,7 @@ namespace SceneSandbox.Core
         /// </summary>
         public List<SandboxProjectMetadata> GetAvailableProjects()
         {
-            Debug.Log($"[SceneSerializer] Getting available projects from path: {_defaultProjectSavePath}");
+            if (_debugLogs) Debug.Log($"[SceneSerializer] Getting available projects from path: {_defaultProjectSavePath}");
             return SandboxProjectSerializer.GetProjectsInDirectory(_defaultProjectSavePath, "*.sbproj");
         }
 
@@ -352,11 +355,11 @@ namespace SceneSandbox.Core
             if (availableProjects != null && availableProjects.Count > 0)
             {
                 var firstProject = availableProjects[0];
-                Debug.Log($"[SceneSerializer] Auto-loading first project: {firstProject.projectName}");
+                if (_debugLogs) Debug.Log($"[SceneSerializer] Auto-loading first project: {firstProject.projectName}");
 
                 if (LoadProject(firstProject.filePath))
                 {
-                    Debug.Log($"[SceneSerializer] Successfully auto-loaded project: {firstProject.projectName}");
+                    if (_debugLogs) Debug.Log($"[SceneSerializer] Successfully auto-loaded project: {firstProject.projectName}");
                 }
                 else
                 {
@@ -365,7 +368,7 @@ namespace SceneSandbox.Core
             }
             else
             {
-                Debug.Log("[SceneSerializer] No projects available to auto-load");
+                if (_debugLogs) Debug.Log("[SceneSerializer] No projects available to auto-load");
             }
         }
 

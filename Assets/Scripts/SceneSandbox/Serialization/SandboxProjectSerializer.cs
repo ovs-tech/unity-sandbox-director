@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
-using SceneSandbox.Core;
-using SceneSandbox.Data;
+using Systems.SceneSandbox.Core;
+using Systems.SceneSandbox.Data;
 
-namespace SceneSandbox.Serialization
+namespace Systems.SceneSandbox.Serialization
 {
     /// <summary>
     /// Handles saving and loading of Scene Sandbox projects to/from JSON

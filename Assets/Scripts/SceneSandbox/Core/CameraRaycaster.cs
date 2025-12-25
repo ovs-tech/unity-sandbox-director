@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace SceneSandbox.Core
+namespace Systems.SceneSandbox.Core
 {
     /// Minimal, non-breaking camera raycaster component.
     /// Provides safe raycasts from a camera to the scene with layer filtering.
@@ -38,7 +38,7 @@ namespace SceneSandbox.Core
             }
 
             var ray = cam.ScreenPointToRay(screenPoint);
-            return Physics.Raycast(ray, out hit, _maxDistance, _raycastMask);
+            return Physics.Raycast(ray, out hit, _maxDistance, _raycastMask, QueryTriggerInteraction.Collide);
         }
 
         public bool TryRaycastFromCenter(out RaycastHit hit)

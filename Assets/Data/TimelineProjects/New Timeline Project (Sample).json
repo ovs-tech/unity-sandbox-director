@@ -1,0 +1,329 @@
+{
+    "version": 1,
+    "name": "New Timeline Project (Sample)",
+    "length": 10.0,
+    "frameRate": 30.0,
+    "tracks": [
+        {
+            "id": "anim_track_1",
+            "type": "AnimTrack",
+            "bindKey": "Base Female",
+            "enabled": true,
+            "order": 0,
+            "clips": [
+                {
+                    "id": "anim_clip_1",
+                    "start": 0.0,
+                    "duration": 3.0,
+                    "payload": [
+                        {
+                            "key": "animationAsset",
+                            "value": "addr:Animations/Run.anim"
+                        },
+                        {
+                            "key": "speed",
+                            "value": "1"
+                        },
+                        {
+                            "key": "wrapMode",
+                            "value": "Loop"
+                        },
+                        {
+                            "key": "layer",
+                            "value": "0"
+                        },
+                        {
+                            "key": "fadeIn",
+                            "value": "0.2"
+                        },
+                        {
+                            "key": "fadeOut",
+                            "value": "0.2"
+                        },
+                        {
+                            "key": "weight",
+                            "value": "1"
+                        },
+                        {
+                            "key": "clipOffset",
+                            "value": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "movement_track_1",
+            "type": "MovementTrack",
+            "bindKey": "VirtualCamera",
+            "enabled": true,
+            "order": 10,
+            "clips": [
+                {
+                    "id": "camera_pos_clip_1",
+                    "start": 0.0,
+                    "duration": 4.0,
+                    "payload": [
+                        {
+                            "key": "hasPosition",
+                            "value": "True"
+                        },
+                        {
+                            "key": "startPosition",
+                            "value": "0,2,-5"
+                        },
+                        {
+                            "key": "endPosition",
+                            "value": "5,3,-3"
+                        },
+                        {
+                            "key": "hasRotation",
+                            "value": "False"
+                        },
+                        {
+                            "key": "startRotation",
+                            "value": "0,0,0,1"
+                        },
+                        {
+                            "key": "endRotation",
+                            "value": "0,0,0,1"
+                        },
+                        {
+                            "key": "hasFieldOfView",
+                            "value": "False"
+                        },
+                        {
+                            "key": "startFieldOfView",
+                            "value": "60"
+                        },
+                        {
+                            "key": "endFieldOfView",
+                            "value": "60"
+                        },
+                        {
+                            "key": "animationCurve",
+                            "value": "EaseInOut"
+                        },
+                        {
+                            "key": "fadeIn",
+                            "value": "0.5"
+                        },
+                        {
+                            "key": "fadeOut",
+                            "value": "0.5"
+                        }
+                    ]
+                },
+                {
+                    "id": "camera_rot_clip_1",
+                    "start": 2.0,
+                    "duration": 3.0,
+                    "payload": [
+                        {
+                            "key": "hasPosition",
+                            "value": "False"
+                        },
+                        {
+                            "key": "startPosition",
+                            "value": "0,0,0"
+                        },
+                        {
+                            "key": "endPosition",
+                            "value": "0,0,0"
+                        },
+                        {
+                            "key": "hasRotation",
+                            "value": "True"
+                        },
+                        {
+                            "key": "startRotation",
+                            "value": "0,0,0,1"
+                        },
+                        {
+                            "key": "endRotation",
+                            "value": "0.1305262,0.1305262,0,0.982973"
+                        },
+                        {
+                            "key": "hasFieldOfView",
+                            "value": "False"
+                        },
+                        {
+                            "key": "startFieldOfView",
+                            "value": "60"
+                        },
+                        {
+                            "key": "endFieldOfView",
+                            "value": "60"
+                        },
+                        {
+                            "key": "animationCurve",
+                            "value": "Linear"
+                        },
+                        {
+                            "key": "fadeIn",
+                            "value": "0"
+                        },
+                        {
+                            "key": "fadeOut",
+                            "value": "0"
+                        }
+                    ]
+                },
+                {
+                    "id": "camera_fov_clip_1",
+                    "start": 5.0,
+                    "duration": 2.0,
+                    "payload": [
+                        {
+                            "key": "hasPosition",
+                            "value": "False"
+                        },
+                        {
+                            "key": "startPosition",
+                            "value": "0,0,0"
+                        },
+                        {
+                            "key": "endPosition",
+                            "value": "0,0,0"
+                        },
+                        {
+                            "key": "hasRotation",
+                            "value": "False"
+                        },
+                        {
+                            "key": "startRotation",
+                            "value": "0,0,0,1"
+                        },
+                        {
+                            "key": "endRotation",
+                            "value": "0,0,0,1"
+                        },
+                        {
+                            "key": "hasFieldOfView",
+                            "value": "True"
+                        },
+                        {
+                            "key": "startFieldOfView",
+                            "value": "60"
+                        },
+                        {
+                            "key": "endFieldOfView",
+                            "value": "30"
+                        },
+                        {
+                            "key": "animationCurve",
+                            "value": "EaseInOut"
+                        },
+                        {
+                            "key": "fadeIn",
+                            "value": "0"
+                        },
+                        {
+                            "key": "fadeOut",
+                            "value": "0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "morph_track_1",
+            "type": "MorphTrack",
+            "bindKey": "Base Female",
+            "enabled": true,
+            "order": 20,
+            "clips": [
+                {
+                    "id": "morph_clip_1",
+                    "start": 1.0,
+                    "duration": 2.0,
+                    "payload": []
+                }
+            ]
+        },
+        {
+            "id": "signal_track_1",
+            "type": "SignalTrack",
+            "bindKey": "",
+            "enabled": true,
+            "order": 30,
+            "clips": [
+                {
+                    "id": "event_clip_1",
+                    "start": 2.5,
+                    "duration": 0.0,
+                    "payload": [
+                        {
+                            "key": "eventId",
+                            "value": "StartSmile"
+                        },
+                        {
+                            "key": "payload",
+                            "value": "Happy emotion"
+                        },
+                        {
+                            "key": "edge",
+                            "value": "OnEnter"
+                        },
+                        {
+                            "key": "fireOnScrub",
+                            "value": "False"
+                        },
+                        {
+                            "key": "color",
+                            "value": "#FF0000FF"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "animator_track_1",
+            "type": "AnimatorTrack",
+            "bindKey": "Base Female",
+            "enabled": true,
+            "order": 40,
+            "clips": [
+                {
+                    "id": "animator_speed_clip_1",
+                    "start": 0.0,
+                    "duration": 3.0,
+                    "payload": []
+                },
+                {
+                    "id": "animator_direction_clip_1",
+                    "start": 0.0,
+                    "duration": 4.0,
+                    "payload": []
+                }
+            ]
+        },
+        {
+            "id": "animator_track_2",
+            "type": "AnimatorTrack",
+            "bindKey": "Base male",
+            "enabled": true,
+            "order": 50,
+            "clips": [
+                {
+                    "id": "animator_speed_clip_2",
+                    "start": 0.0,
+                    "duration": 3.0,
+                    "payload": []
+                },
+                {
+                    "id": "animator_direction_clip_2",
+                    "start": 0.0,
+                    "duration": 4.0,
+                    "payload": []
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "zoom": 1.0,
+        "scrollPosition": 0.0,
+        "selection": [],
+        "editorData": []
+    }
+}

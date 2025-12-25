@@ -46,6 +46,16 @@ namespace MiniTimeline.Core
         public event Action<PlaybackState> OnStateChanged;
         public event Action OnProjectLoaded;
         public event Action OnProjectClosed;
+        
+        // Track events
+        public event Action<IMiniTrack> OnTrackAdded;
+        public event Action<string> OnTrackRemoved;
+        public event Action<IMiniTrack> OnTrackUpdated;
+        
+        // Clip events
+        public event Action<IMiniClip, string> OnClipAdded; // clip, trackId
+        public event Action<string, string> OnClipRemoved; // clipId, trackId
+        public event Action<IMiniClip, string> OnClipUpdated; // clip, trackId
 
         // State
         private PlaybackState state = PlaybackState.Stopped;
@@ -357,7 +367,8 @@ namespace MiniTimeline.Core
         /// <returns>Full path to projects folder</returns>
         public static string GetProjectsFolder()
         {
-            string projectsPath = Path.Combine(Application.persistentDataPath, "TimelineProjects");
+            string rootPath = Application.isEditor ? System.IO.Path.Combine(Application.dataPath, "Data") : Application.persistentDataPath;
+            string projectsPath = Path.Combine(rootPath, "TimelineProjects");
 
             // Ensure directory exists
             if (!Directory.Exists(projectsPath))
@@ -729,9 +740,358 @@ namespace MiniTimeline.Core
             return tracks.OfType<T>();
         }
 
+        /// <summary>
+        /// Add an existing track to the project
+        /// </summary>
+        /// <param name="track">Track instance to add</param>
+        /// <returns>True if successful</returns>
+        public bool AddTrack(IMiniTrack track)
+        {
+            if (project == null)
+            {
+                Debug.LogError("[MiniTimelineDirector] Cannot add track - no project loaded");
+                return false;
+            }
+
+            if (track == null)
+            {
+                Debug.LogError("[MiniTimelineDirector] Cannot add null track");
+                return false;
+            }
+
+            if (trackLookup.ContainsKey(track.Id))
+            {
+                Debug.LogWarning($"[MiniTimelineDirector] Track with ID '{track.Id}' already exists");
+                return false;
+            }
+
+            try
+            {
+                // Create track data
+                var trackData = new TrackData
+                {
+                    id = track.Id,
+                    type = track.GetType().Name,
+                    enabled = track.Enabled,
+                    bindKey = track.BindKey ?? "",
+                    clips = new List<ClipData>()
+                };
+
+                // Add to project
+                project.tracks.Add(trackData);
+                tracks.Add(track);
+                trackLookup[track.Id] = track;
+
+                // Bind and prepare
+                track.Bind(bindableObjectManager);
+                track.Prepare();
+
+                // Publish event
+                OnTrackAdded?.Invoke(track);
+
+                if (debugMode)
+                    Debug.Log($"[MiniTimelineDirector] Added track '{track.Id}' of type '{track.GetType().Name}'");
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[MiniTimelineDirector] Failed to add track '{track.Id}': {e.Message}");
+                // Rollback
+                var trackData = project.tracks.FirstOrDefault(t => t.id == track.Id);
+                if (trackData != null)
+                    project.tracks.Remove(trackData);
+                tracks.Remove(track);
+                trackLookup.Remove(track.Id);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Remove a track from the project
+        /// </summary>
+        /// <param name="trackId">Track ID to remove</param>
+        /// <returns>True if successful</returns>
+        public bool RemoveTrack(string trackId)
+        {
+            if (project == null)
+            {
+                Debug.LogError("[MiniTimelineDirector] Cannot remove track - no project loaded");
+                return false;
+            }
+
+            if (!trackLookup.TryGetValue(trackId, out var track))
+            {
+                Debug.LogWarning($"[MiniTimelineDirector] Track '{trackId}' not found");
+                return false;
+            }
+
+            try
+            {
+                // Remove from project data
+                var trackData = project.tracks.FirstOrDefault(t => t.id == trackId);
+                if (trackData != null)
+                {
+                    project.tracks.Remove(trackData);
+                }
+
+                // Remove from runtime
+                tracks.Remove(track);
+                trackLookup.Remove(trackId);
+
+                // Cleanup
+                track.OnProjectClosed();
+
+                // Publish event
+                OnTrackRemoved?.Invoke(trackId);
+
+                if (debugMode)
+                    Debug.Log($"[MiniTimelineDirector] Removed track '{trackId}'");
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[MiniTimelineDirector] Failed to remove track '{trackId}': {e.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Update track enabled state
+        /// </summary>
+        /// <param name="trackId">Track ID to update</param>
+        /// <param name="enabled">Enable/disable track</param>
+        /// <returns>True if successful</returns>
+        public bool UpdateTrack(string trackId, bool enabled)
+        {
+            if (!trackLookup.TryGetValue(trackId, out var track))
+            {
+                Debug.LogWarning($"[MiniTimelineDirector] Track '{trackId}' not found");
+                return false;
+            }
+
+            try
+            {
+                // Update track via interface if possible
+                var trackData = project?.tracks.FirstOrDefault(t => t.id == trackId);
+                if (trackData != null)
+                {
+                    trackData.enabled = enabled;
+                }
+
+                // Publish event
+                OnTrackUpdated?.Invoke(track);
+
+                if (debugMode)
+                    Debug.Log($"[MiniTimelineDirector] Updated track '{trackId}'");
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[MiniTimelineDirector] Failed to update track '{trackId}': {e.Message}");
+                return false;
+            }
+        }
+
         #endregion
 
-        #region Evaluation
+        #region Clip Management
+
+        /// <summary>
+        /// Get clip by ID and track ID
+        /// </summary>
+        /// <param name="clipId">Clip ID</param>
+        /// <param name="trackId">Track ID</param>
+        /// <returns>Clip or null if not found</returns>
+        public IMiniClip GetClip(string clipId, string trackId)
+        {
+            if (!trackLookup.TryGetValue(trackId, out var track))
+            {
+                return null;
+            }
+
+            var clips = track.GetClips();
+            return clips?.FirstOrDefault(c => c.Id == clipId);
+        }
+
+        /// <summary>
+        /// Add an existing clip to a track
+        /// </summary>
+        /// <param name="clip">Clip instance to add</param>
+        /// <param name="trackId">Track to add clip to</param>
+        /// <returns>True if successful</returns>
+        public bool AddClip(IMiniClip clip, string trackId)
+        {
+            if (project == null)
+            {
+                Debug.LogError("[MiniTimelineDirector] Cannot add clip - no project loaded");
+                return false;
+            }
+
+            if (clip == null)
+            {
+                Debug.LogError("[MiniTimelineDirector] Cannot add null clip");
+                return false;
+            }
+
+            if (!trackLookup.TryGetValue(trackId, out var track))
+            {
+                Debug.LogWarning($"[MiniTimelineDirector] Track '{trackId}' not found");
+                return false;
+            }
+
+            try
+            {
+                // Create clip data
+                var clipData = new ClipData
+                {
+                    id = clip.Id,
+                    start = clip.Start,
+                    duration = clip.Duration
+                };
+                clipData.payload["type"] = clip.GetType().Name;
+
+                // Add to track data
+                var trackData = project.tracks.FirstOrDefault(t => t.id == trackId);
+                if (trackData != null)
+                {
+                    trackData.clips.Add(clipData);
+                }
+
+                // Add clip to track
+                track.AddClip(clip);
+
+                // Publish event
+                OnClipAdded?.Invoke(clip, trackId);
+
+                if (debugMode)
+                    Debug.Log($"[MiniTimelineDirector] Added clip '{clip.Id}' to track '{trackId}'");
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[MiniTimelineDirector] Failed to add clip '{clip.Id}' to track '{trackId}': {e.Message}");
+                // Rollback
+                var trackData = project.tracks.FirstOrDefault(t => t.id == trackId);
+                if (trackData != null)
+                {
+                    var clipData = trackData.clips.FirstOrDefault(c => c.id == clip.Id);
+                    if (clipData != null)
+                        trackData.clips.Remove(clipData);
+                }
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Remove a clip from a track
+        /// </summary>
+        /// <param name="clipId">Clip ID to remove</param>
+        /// <param name="trackId">Track ID</param>
+        /// <returns>True if successful</returns>
+        public bool RemoveClip(string clipId, string trackId)
+        {
+            if (project == null)
+            {
+                Debug.LogError("[MiniTimelineDirector] Cannot remove clip - no project loaded");
+                return false;
+            }
+
+            if (!trackLookup.TryGetValue(trackId, out var track))
+            {
+                Debug.LogWarning($"[MiniTimelineDirector] Track '{trackId}' not found");
+                return false;
+            }
+
+            try
+            {
+                var clip = GetClip(clipId, trackId);
+                if (clip == null)
+                {
+                    Debug.LogWarning($"[MiniTimelineDirector] Clip '{clipId}' not found in track '{trackId}'");
+                    return false;
+                }
+
+                // Remove from track data
+                var trackData = project.tracks.FirstOrDefault(t => t.id == trackId);
+                if (trackData != null)
+                {
+                    var clipData = trackData.clips.FirstOrDefault(c => c.id == clipId);
+                    if (clipData != null)
+                    {
+                        trackData.clips.Remove(clipData);
+                    }
+                }
+
+                // Remove from track
+                track.RemoveClip(clip);
+
+                // Publish event
+                OnClipRemoved?.Invoke(clipId, trackId);
+
+                if (debugMode)
+                    Debug.Log($"[MiniTimelineDirector] Removed clip '{clipId}' from track '{trackId}'");
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[MiniTimelineDirector] Failed to remove clip '{clipId}' from track '{trackId}': {e.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Update clip properties
+        /// </summary>
+        /// <param name="clipId">Clip ID to update</param>
+        /// <param name="trackId">Track ID</param>
+        /// <param name="startTime">New start time (optional)</param>
+        /// <param name="duration">New duration (optional)</param>
+        /// <returns>True if successful</returns>
+        public bool UpdateClip(string clipId, string trackId, float? startTime = null, float? duration = null)
+        {
+            var clip = GetClip(clipId, trackId);
+            if (clip == null)
+            {
+                Debug.LogWarning($"[MiniTimelineDirector] Clip '{clipId}' not found in track '{trackId}'");
+                return false;
+            }
+
+            try
+            {
+                // Update clip data
+                var trackData = project?.tracks.FirstOrDefault(t => t.id == trackId);
+                var clipData = trackData?.clips.FirstOrDefault(c => c.id == clipId);
+                
+                if (clipData != null)
+                {
+                    if (startTime.HasValue)
+                        clipData.start = startTime.Value;
+                    
+                    if (duration.HasValue)
+                        clipData.duration = duration.Value;
+                }
+
+                // Publish event
+                OnClipUpdated?.Invoke(clip, trackId);
+
+                if (debugMode)
+                    Debug.Log($"[MiniTimelineDirector] Updated clip '{clipId}' in track '{trackId}'");
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[MiniTimelineDirector] Failed to update clip '{clipId}' in track '{trackId}': {e.Message}");
+                return false;
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// Evaluate all tracks at current time
@@ -791,8 +1151,6 @@ namespace MiniTimeline.Core
 
             tempTrackList.Clear();
         }
-
-        #endregion
 
         #region Private Methods
 

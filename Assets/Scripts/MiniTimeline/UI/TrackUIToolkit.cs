@@ -737,7 +737,7 @@ namespace MiniTimeline.UI
                 if (clipInstance != null)
                 {
                     // Try to add clip directly since we don't have access to commands
-                    editorUI.ExecuteCommand(new CreateClipCommand(track, clipInstance, this));
+                    editorUI.ExecuteCommand(new CreateClipCommand(track, clipInstance));
                 }
             }
             catch (Exception ex)
@@ -765,7 +765,7 @@ namespace MiniTimeline.UI
             bool newEnabled = !oldEnabled;
             
             // Create and execute mute command
-            var muteCommand = new MuteTrackCommand(track, oldEnabled, newEnabled, editorUI);
+            var muteCommand = new MuteTrackCommand(track, oldEnabled, newEnabled);
             editorUI.ExecuteCommand(muteCommand);
             
             Debug.Log($"Toggled mute for track: {track.GetType().Name} (enabled: {newEnabled})");
@@ -939,7 +939,7 @@ namespace MiniTimeline.UI
                 }
 
                 // Create and execute remove track command
-                var removeCommand = new RemoveTrackCommand(editorUI.Director, track, editorUI);
+                var removeCommand = new RemoveTrackCommand(editorUI.Director, track);
                 editorUI.ExecuteCommand(removeCommand);
 
                 Debug.Log($"Successfully deleted {trackDisplayName}");
@@ -1106,7 +1106,6 @@ namespace MiniTimeline.UI
                 track, 
                 oldSettings, 
                 formData, 
-                editorUI, 
                 editorUI.Director
             );
             

@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using MiniTimeline.Core;
 
-namespace SceneSandbox.Core
+namespace Systems.SceneSandbox.Core
 {
     /// <summary>
     /// Manages preview mode for the Scene Sandbox Builder system

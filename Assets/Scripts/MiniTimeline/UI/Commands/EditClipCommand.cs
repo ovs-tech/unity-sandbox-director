@@ -13,17 +13,15 @@ namespace MiniTimeline.UI.Commands
     public class EditClipCommand : TimelineCommandBase
     {
         private readonly IMiniClip clip;
-        private readonly ITimelineEditorUI editorUI;
         
         // Store original and new values for all properties
         private readonly Dictionary<string, object> originalValues;
         private readonly Dictionary<string, object> newValues;
 
-        public EditClipCommand(IMiniClip clipToEdit, Dictionary<string, object> newFormData, ITimelineEditorUI timelineEditor)
+        public EditClipCommand(IMiniClip clipToEdit, Dictionary<string, object> newFormData)
             : base($"Edit {clipToEdit.Id}")
         {
             clip = clipToEdit;
-            editorUI = timelineEditor;
             newValues = new Dictionary<string, object>(newFormData);
             originalValues = new Dictionary<string, object>();
             
@@ -34,13 +32,11 @@ namespace MiniTimeline.UI.Commands
         protected override void ExecuteInternal()
         {
             ApplyValues(newValues);
-            UpdateUI();
         }
 
         protected override void UndoInternal()
         {
             ApplyValues(originalValues);
-            UpdateUI();
         }
 
         public override bool CanMergeWith(ITimelineCommand other)
@@ -218,16 +214,6 @@ namespace MiniTimeline.UI.Commands
             
             // For other types, try direct conversion
             return Convert.ChangeType(value, targetType);
-        }
-
-        /// <summary>
-        /// Update UI after property changes
-        /// </summary>
-        private void UpdateUI()
-        {
-            // Rebuild the timeline UI to reflect changes
-            // This ensures all clips and tracks are properly updated
-            editorUI?.BuildTimelineUI();
         }
     }
 }

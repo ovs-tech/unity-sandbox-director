@@ -16,30 +16,26 @@ namespace MiniTimeline.UI.Commands
         private readonly IMiniTrack track;
         private readonly Dictionary<string, object> oldSettings;
         private readonly Dictionary<string, object> newSettings;
-        private readonly ITimelineEditorUI editorUI;
         private readonly MiniTimelineDirector director;
 
         public UpdateTrackSettingsCommand(IMiniTrack targetTrack, Dictionary<string, object> previousSettings, 
-            Dictionary<string, object> updatedSettings, ITimelineEditorUI timelineEditor, MiniTimelineDirector timelineDirector)
-            : base($"Update {TrackUIHelper.GetTrackDisplayName(targetTrack)} Settings")
+            Dictionary<string, object> updatedSettings, MiniTimelineDirector timelineDirector)
+            : base($"Update {targetTrack.Id} Settings")
         {
             track = targetTrack;
             oldSettings = new Dictionary<string, object>(previousSettings);
             newSettings = new Dictionary<string, object>(updatedSettings);
-            editorUI = timelineEditor;
             director = timelineDirector;
         }
 
         protected override void ExecuteInternal()
         {
             ApplySettings(newSettings);
-            UpdateUI();
         }
 
         protected override void UndoInternal()
         {
             ApplySettings(oldSettings);
-            UpdateUI();
         }
 
         private void ApplySettings(Dictionary<string, object> settings)
@@ -195,12 +191,6 @@ namespace MiniTimeline.UI.Commands
             }
             
             Debug.LogWarning($"Could not find property or field {settingName} on track {track.Id}");
-        }
-
-        private void UpdateUI()
-        {
-            // Rebuild the timeline UI to reflect changes
-            editorUI?.BuildTimelineUI();
         }
 
         public override bool CanMergeWith(ITimelineCommand other)

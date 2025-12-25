@@ -20,6 +20,7 @@
 - **Serialization:** JSON-based project format (lightweight, versioned)
 - **Build Target:** Mobile-first (Android/iOS), extendable to PC, VR, AR via DLC
 - **Architecture:** Modular & DLC-ready (ScriptableObjects or Addressables)
+- **MCP tools:** Using serena mcp tools
 
 ## Project Conventions
 
@@ -53,10 +54,101 @@
 - Use interfaces for loose coupling
 - Example: `IInputHandler`, `IDLCModule`
 
-#### 3. MVC/MVVM for UI
-- Separate UI logic from game logic
-- Use Unity UI Toolkit or uGUI with data binding
-- ViewModel pattern for complex UI states
+#### 3. MVVM (Model-View-ViewModel) Pattern
+
+**Core Principles:**
+- Separate UI logic from game logic for testability and maintainability
+- Use Unity UI Toolkit data binding for reactive UI updates
+- ViewModel acts as the bridge between Model and View
+
+**Architecture Layers:**
+
+**Model:**
+- Contains business logic and data
+- Independent of UI framework
+- Raises events when data changes
+- Example: `InventoryModel` with `ObservableArray<Item>` and `OnModelChanged` event
+
+**View:**
+- Unity UI Toolkit components (VisualElement hierarchy)
+- References ViewModel via data binding
+- Listens to ViewModel property changes
+- Example: `InventoryView` with UI Toolkit bindings
+
+**ViewModel:**
+- Exposes data-bindable properties using `BindableProperty<T>`
+- Provides UI-friendly data transformations (e.g., int → string)
+- Contains no Unity-specific dependencies
+- Example: `ViewModel` class with `Capacity` and `Coins` properties
+
+**Controller/Mediator:**
+- Coordinates between Model and View
+- Handles user input and business logic
+- Creates and initializes ViewModel
+- Example: `InventoryController` manages initialization and event handling
+
+**Implementation Guidelines:**
+
+1. **Use BindableProperty<T> for Reactive Properties:**
+   ```csharp
+   public class ViewModel {
+       public readonly BindableProperty<string> Coins;
+       
+       public ViewModel(Model model) {
+           Coins = BindableProperty<string>.Bind(() => model.Coins.ToString());
+       }
+   }
+   ```
+
+2. **Unity UI Toolkit Data Binding:**
+   ```csharp
+   label.dataSource = viewModel.Coins;
+   label.SetBinding(nameof(Label.text), new DataBinding {
+       dataSourcePath = new PropertyPath(nameof(BindableProperty<string>.Value)),
+       bindingMode = BindingMode.ToTarget
+   });
+   ```
+
+3. **Model Event Propagation:**
+   ```csharp
+   public class Model {
+       ObservableArray<Item> Items { get; }
+       
+       public event Action<Item[]> OnModelChanged {
+           add => Items.AnyValueChanged += value;
+           remove => Items.AnyValueChanged -= value;
+       }
+   }
+   ```
+
+4. **Controller Initialization:**
+   ```csharp
+   IEnumerator Initialize() {
+       yield return view.InitializeView(new ViewModel(model, capacity));
+       view.OnDrop += HandleDrop;
+       model.OnModelChanged += HandleModelChanged;
+       RefreshView();
+   }
+   ```
+
+**When to Use MVVM:**
+- Complex UI with dynamic data (Inventory, Timeline Editor, Actor Inspector)
+- UI that needs to react to model changes automatically
+- Systems requiring unit testing of UI logic without Unity Editor
+- Cross-platform UI where logic can be shared
+
+**When NOT to Use MVVM:**
+- Simple static UI (menus, buttons with no state)
+- Performance-critical real-time updates (use direct updates instead)
+- One-time data displays without reactive updates
+
+**Best Practices:**
+- Keep ViewModel pure C# (no UnityEngine dependencies)
+- Use `readonly` for ViewModel properties that don't change
+- Prefer `BindingMode.ToTarget` (one-way) unless two-way binding is needed
+- Initialize View with ViewModel via coroutine to ensure UI elements exist
+- Use Builder pattern for complex Controller initialization
+- Refresh View after Model changes to keep UI in sync
 
 #### 4. Track-Based Timeline System
 - Modular track architecture: `IMiniTrack`, `IMiniClip`

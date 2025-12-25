@@ -1,4 +1,4 @@
-namespace SceneSandbox.Core
+namespace Systems.SceneSandbox.Core
 {
     /// <summary>
     /// Snap mode determines how snap grid settings are applied

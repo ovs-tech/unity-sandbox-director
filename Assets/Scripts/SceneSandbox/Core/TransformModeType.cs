@@ -1,4 +1,4 @@
-namespace SceneSandbox.Core
+namespace Systems.SceneSandbox.Core
 {
     /// <summary>
     /// Unified transform mode for object manipulation

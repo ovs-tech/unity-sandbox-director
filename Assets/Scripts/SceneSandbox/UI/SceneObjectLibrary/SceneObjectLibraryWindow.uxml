@@ -1,0 +1,36 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/Scripts/SceneSandbox/UI/SceneObjectLibrary/SceneObjectLibraryWindow.uss?fileID=7433441132597879392&amp;guid=5533e9796164d422eb8316e9493df70f&amp;type=3#SceneObjectLibraryWindow"/>
+     <!-- Main Container -->
+    <ui:VisualElement name="MainContainer" class="main-container">
+        <!-- Filter Bar -->
+        <ui:VisualElement name="FilterBar" class="filter-bar">
+            <!-- Type Filter Buttons -->
+            <ui:VisualElement name="TypeFilterContainer" class="type-filter-container">
+                <ui:Button name="TypeFilterAllButton" text="All" class="type-filter-button type-filter-button--all" />
+                <ui:Button name="TypeFilterActorButton" text="Actor" class="type-filter-button" />
+                <ui:Button name="TypeFilterPropButton" text="Prop" class="type-filter-button" />
+                <ui:Button name="TypeFilterCameraButton" text="Camera" class="type-filter-button" />
+                <ui:Button name="TypeFilterLightButton" text="Light" class="type-filter-button" />
+            </ui:VisualElement>
+            
+            <!-- Second Row: Search and Category -->
+            <ui:VisualElement name="SecondFilterRow" style="flex-direction: row; margin-top: 5px;">
+                <!-- Search Field -->
+                <ui:TextField name="SearchField" label="Search" class="search-field" style="flex-grow: 1; margin-right: 5px;" />
+                
+                <!-- Category Dropdown -->
+                <ui:DropdownField name="CategoryFilter" label="Category" class="category-filter" style="flex-grow: 1; margin-right: 5px;" />
+                
+                <!-- Tag Dropdown -->
+                <ui:DropdownField name="TagFilter" label="Tag" class="tag-filter" style="flex-grow: 1;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        
+        <!-- Object Grid -->
+        <ui:ScrollView name="ObjectGridScrollView" class="object-grid-scroll-view">
+            <ui:VisualElement name="ObjectGridContainer" class="object-grid-container">
+                <!-- Object cards will be rendered here -->
+            </ui:VisualElement>
+        </ui:ScrollView>
+    </ui:VisualElement>
+</ui:UXML>

@@ -5,7 +5,7 @@ using UnityEngine.Events;
 using UnityEditor;
 #endif
 
-namespace SceneSandbox.Core
+namespace Systems.SceneSandbox.Core
 {
     /// <summary>
     /// Grid information for snapping objects to a grid
