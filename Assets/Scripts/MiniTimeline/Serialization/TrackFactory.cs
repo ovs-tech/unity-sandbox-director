@@ -1,3 +1,5 @@
+// Disabled legacy factory during runtime refactor
+#if false
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1226,3 +1228,4 @@ namespace MiniTimeline.Serialization
         #endregion
     }
 }
+#endif
