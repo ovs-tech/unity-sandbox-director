@@ -12,6 +12,7 @@ namespace MiniTimeline.Tracks
 	/// Signal track for triggering signals and markers
 	/// Fires events when playhead crosses signal markers
 	/// </summary>
+	[Serializable]
 	public class SignalTrack : MiniTrackBase<SignalClip>
 	{
 		public override int Order => 0; // Signal tracks run first to allow other systems to react

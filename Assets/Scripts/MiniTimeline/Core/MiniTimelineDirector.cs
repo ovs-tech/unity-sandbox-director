@@ -407,7 +407,7 @@ namespace MiniTimeline.Core
                     version = 1,
                     length = length,
                     frameRate = frameRate,
-                    tracks = new List<TrackData>()
+                    tracks = new List<IMiniTrack>()
                 };
 
                 SetProject(newProject);
@@ -451,7 +451,7 @@ namespace MiniTimeline.Core
                 string filePath = GetProjectFilePath(saveName);
 
                 // Save with runtime tracks
-                bool success = Serialization.ProjectSerializer.SaveToFile(project, this, filePath);
+                bool success = Serialization.ProjectSerializer.SaveToFile(project, filePath);
 
                 if (success && debugMode)
                     Debug.Log($"[MiniTimelineDirector] Saved project '{saveName}' to: {filePath}");
@@ -597,6 +597,18 @@ namespace MiniTimeline.Core
             if (context != null)
                 bindableObjectManager = context;
 
+            // Ensure bindableObjectManager is initialized before building tracks
+            if (bindableObjectManager == null)
+            {
+                bindableObjectManager = GetComponent<BindableObjectManager>();
+                if (bindableObjectManager == null)
+                {
+                    bindableObjectManager = gameObject.AddComponent<BindableObjectManager>();
+                    if (debugMode)
+                        Debug.Log("[MiniTimelineDirector] Auto-created BindingContext component in SetProject");
+                }
+            }
+
             // Build tracks from project data
             BuildTracks();
 
@@ -654,7 +666,7 @@ namespace MiniTimeline.Core
                 version = 1,
                 length = defaultProjectLength,
                 frameRate = defaultFrameRate,
-                tracks = new System.Collections.Generic.List<TrackData>()
+                tracks = new System.Collections.Generic.List<IMiniTrack>()
             };
 
             SetProject(emptyProject);
@@ -767,18 +779,8 @@ namespace MiniTimeline.Core
 
             try
             {
-                // Create track data
-                var trackData = new TrackData
-                {
-                    id = track.Id,
-                    type = track.GetType().Name,
-                    enabled = track.Enabled,
-                    bindKey = track.BindKey ?? "",
-                    clips = new List<ClipData>()
-                };
-
-                // Add to project
-                project.tracks.Add(trackData);
+                // Add to project runtime list
+                project.tracks.Add(track);
                 tracks.Add(track);
                 trackLookup[track.Id] = track;
 
@@ -798,9 +800,9 @@ namespace MiniTimeline.Core
             {
                 Debug.LogError($"[MiniTimelineDirector] Failed to add track '{track.Id}': {e.Message}");
                 // Rollback
-                var trackData = project.tracks.FirstOrDefault(t => t.id == track.Id);
-                if (trackData != null)
-                    project.tracks.Remove(trackData);
+                var existing = project.tracks.FirstOrDefault(t => t != null && t.Id == track.Id);
+                if (existing != null)
+                    project.tracks.Remove(existing);
                 tracks.Remove(track);
                 trackLookup.Remove(track.Id);
                 return false;
@@ -828,11 +830,11 @@ namespace MiniTimeline.Core
 
             try
             {
-                // Remove from project data
-                var trackData = project.tracks.FirstOrDefault(t => t.id == trackId);
-                if (trackData != null)
+                // Remove from project runtime list
+                var existing = project.tracks.FirstOrDefault(t => t != null && t.Id == trackId);
+                if (existing != null)
                 {
-                    project.tracks.Remove(trackData);
+                    project.tracks.Remove(existing);
                 }
 
                 // Remove from runtime
@@ -873,12 +875,8 @@ namespace MiniTimeline.Core
 
             try
             {
-                // Update track via interface if possible
-                var trackData = project?.tracks.FirstOrDefault(t => t.id == trackId);
-                if (trackData != null)
-                {
-                    trackData.enabled = enabled;
-                }
+                // Update runtime track
+                track.Enabled = enabled;
 
                 // Publish event
                 OnTrackUpdated?.Invoke(track);
@@ -944,22 +942,6 @@ namespace MiniTimeline.Core
 
             try
             {
-                // Create clip data
-                var clipData = new ClipData
-                {
-                    id = clip.Id,
-                    start = clip.Start,
-                    duration = clip.Duration
-                };
-                clipData.payload["type"] = clip.GetType().Name;
-
-                // Add to track data
-                var trackData = project.tracks.FirstOrDefault(t => t.id == trackId);
-                if (trackData != null)
-                {
-                    trackData.clips.Add(clipData);
-                }
-
                 // Add clip to track
                 track.AddClip(clip);
 
@@ -974,14 +956,6 @@ namespace MiniTimeline.Core
             catch (Exception e)
             {
                 Debug.LogError($"[MiniTimelineDirector] Failed to add clip '{clip.Id}' to track '{trackId}': {e.Message}");
-                // Rollback
-                var trackData = project.tracks.FirstOrDefault(t => t.id == trackId);
-                if (trackData != null)
-                {
-                    var clipData = trackData.clips.FirstOrDefault(c => c.id == clip.Id);
-                    if (clipData != null)
-                        trackData.clips.Remove(clipData);
-                }
                 return false;
             }
         }
@@ -1013,17 +987,6 @@ namespace MiniTimeline.Core
                 {
                     Debug.LogWarning($"[MiniTimelineDirector] Clip '{clipId}' not found in track '{trackId}'");
                     return false;
-                }
-
-                // Remove from track data
-                var trackData = project.tracks.FirstOrDefault(t => t.id == trackId);
-                if (trackData != null)
-                {
-                    var clipData = trackData.clips.FirstOrDefault(c => c.id == clipId);
-                    if (clipData != null)
-                    {
-                        trackData.clips.Remove(clipData);
-                    }
                 }
 
                 // Remove from track
@@ -1063,17 +1026,14 @@ namespace MiniTimeline.Core
 
             try
             {
-                // Update clip data
-                var trackData = project?.tracks.FirstOrDefault(t => t.id == trackId);
-                var clipData = trackData?.clips.FirstOrDefault(c => c.id == clipId);
-                
-                if (clipData != null)
+                // Update runtime clip via concrete base type
+                var clipBase = clip as MiniClipBase;
+                if (clipBase != null)
                 {
                     if (startTime.HasValue)
-                        clipData.start = startTime.Value;
-                    
+                        clipBase.Start = startTime.Value;
                     if (duration.HasValue)
-                        clipData.duration = duration.Value;
+                        clipBase.Duration = duration.Value;
                 }
 
                 // Publish event
@@ -1155,7 +1115,7 @@ namespace MiniTimeline.Core
         #region Private Methods
 
         /// <summary>
-        /// Build tracks from project data
+        /// Build tracks from project runtime instances
         /// </summary>
         private void BuildTracks()
         {
@@ -1166,8 +1126,16 @@ namespace MiniTimeline.Core
                 return;
             }
 
+            // Ensure tracks list is initialized
+            if (project.tracks == null)
+            {
+                project.tracks = new List<IMiniTrack>();
+                if (debugMode)
+                    Debug.LogWarning("[MiniTimelineDirector] Project tracks list was null, initialized empty list");
+            }
+
             if (debugMode)
-                Debug.Log($"[MiniTimelineDirector] Building tracks from project '{project.name}' with {project.tracks.Count} track definitions");
+                Debug.Log($"[MiniTimelineDirector] Building tracks from project '{project.name}' with {project.tracks.Count} runtime tracks");
 
             // Clear existing tracks
             foreach (var track in tracks)
@@ -1182,47 +1150,40 @@ namespace MiniTimeline.Core
             int successCount = 0;
             int failureCount = 0;
 
-            // Create tracks from project data
-            foreach (var trackData in project.tracks)
+            // Use runtime tracks directly
+            foreach (var runtimeTrack in project.tracks)
             {
-                if (debugMode)
-                    Debug.Log($"[MiniTimelineDirector] Creating track '{trackData.id}' of type '{trackData.type}'");
-
-                var track = CreateTrack(trackData);
-                if (track != null)
-                {
-                    tracks.Add(track);
-                    trackLookup[track.Id] = track;
-
-                    try
-                    {
-                        // Bind and prepare track
-                        if (debugMode)
-                            Debug.Log($"[MiniTimelineDirector] Binding track '{track.Id}' with bind key '{track.BindKey}'");
-                        track.Bind(bindableObjectManager);
-
-                        if (debugMode)
-                            Debug.Log($"[MiniTimelineDirector] Preparing track '{track.Id}'");
-                        track.Prepare();
-
-                        successCount++;
-                        if (debugMode)
-                            Debug.Log($"[MiniTimelineDirector] Successfully created and prepared track '{track.Id}'");
-                    }
-                    catch (Exception e)
-                    {
-                        failureCount++;
-                        Debug.LogError($"[MiniTimelineDirector] Failed to bind/prepare track '{track.Id}': {e.Message}\nStackTrace: {e.StackTrace}");
-
-                        // Remove failed track
-                        tracks.Remove(track);
-                        trackLookup.Remove(track.Id);
-                    }
-                }
-                else
+                if (runtimeTrack == null)
                 {
                     failureCount++;
-                    Debug.LogError($"[MiniTimelineDirector] Failed to create track '{trackData.id}' of type '{trackData.type}'");
+                    Debug.LogWarning("[MiniTimelineDirector] Null track found in project runtime list");
+                    continue;
+                }
+
+                tracks.Add(runtimeTrack);
+                trackLookup[runtimeTrack.Id] = runtimeTrack;
+
+                try
+                {
+                    // Bind and prepare track
+                    if (debugMode)
+                        Debug.Log($"[MiniTimelineDirector] Binding track '{runtimeTrack.Id}' with bind key '{runtimeTrack.BindKey}'");
+                    runtimeTrack.Bind(bindableObjectManager);
+
+                    if (debugMode)
+                        Debug.Log($"[MiniTimelineDirector] Preparing track '{runtimeTrack.Id}'");
+                    runtimeTrack.Prepare();
+
+                    successCount++;
+                }
+                catch (Exception e)
+                {
+                    failureCount++;
+                    Debug.LogError($"[MiniTimelineDirector] Failed to bind/prepare track '{runtimeTrack.Id}': {e.Message}\nStackTrace: {e.StackTrace}");
+
+                    // Remove failed track
+                    tracks.Remove(runtimeTrack);
+                    trackLookup.Remove(runtimeTrack.Id);
                 }
             }
 
@@ -1230,15 +1191,7 @@ namespace MiniTimeline.Core
                 Debug.Log($"[MiniTimelineDirector] Track building complete - Success: {successCount}, Failures: {failureCount}, Total tracks: {tracks.Count}");
         }
 
-        /// <summary>
-        /// Create a track instance from track data
-        /// </summary>
-        /// <param name="data">Track data</param>
-        /// <returns>Created track or null if type not supported</returns>
-        private IMiniTrack CreateTrack(TrackData data)
-        {
-            return Serialization.TrackFactory.CreateTrack(data);
-        }
+        // No factory-based creation; project contains runtime tracks.
         
         /// <summary>
         /// Rebind all tracks to the current binding context.
@@ -1253,57 +1206,27 @@ namespace MiniTimeline.Core
                     Debug.LogWarning("[MiniTimelineDirector] Cannot rebind tracks - no binding context available");
                 return;
             }
-            
+
             int reboundCount = 0;
             int repreparedCount = 0;
-            
+
             foreach (var track in tracks)
             {
-                track.Bind(bindableObjectManager);
-                reboundCount++;
-                
-                // Re-prepare track if it's bound (Bind() sets isPrepared=false if target changed)
-                if (track.IsBound)
+                try
                 {
-                    try
-                    {
-                        track.Prepare();
-                        repreparedCount++;
-                    }
-                    catch (System.Exception e)
-                    {
-                        Debug.LogError($"[MiniTimelineDirector] Failed to re-prepare track '{track.Id}' after rebinding: {e.Message}");
-                    }
+                    track.Bind(bindableObjectManager);
+                    reboundCount++;
+                    track.Prepare();
+                    repreparedCount++;
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[MiniTimelineDirector] Failed to rebind/prepare track '{track.Id}': {e.Message}");
                 }
             }
-            
+
             if (debugMode)
-                Debug.Log($"[MiniTimelineDirector] Rebound {reboundCount} tracks, re-prepared {repreparedCount} tracks");
-        }
-        
-        /// <summary>
-        /// Auto-bind all BindableObject components in the scene and rebind all tracks.
-        /// This is a convenience method that calls BindingContext.AutoBind() and then RebindAllTracks().
-        /// </summary>
-        public void AutoBindSceneObjects()
-        {
-            if (bindableObjectManager == null)
-            {
-                if (debugMode)
-                    Debug.LogWarning("[MiniTimelineDirector] Cannot auto-bind - no binding context available");
-                return;
-            }
-            
-            int existingCount = bindableObjectManager.GetKeys().Count();
-            bindableObjectManager.AutoBind();
-            int newCount = bindableObjectManager.GetKeys().Count();
-            int bindingsAdded = newCount - existingCount;
-            
-            // Rebind all tracks to update their IsBound status with the new bindings
-            RebindAllTracks();
-            
-            if (debugMode)
-                Debug.Log($"[MiniTimelineDirector] Auto-bound {bindingsAdded} scene objects (Total bindings: {newCount})");
+                Debug.Log($"[MiniTimelineDirector] Rebound {reboundCount} tracks; reprepared {repreparedCount}");
         }
 
         #endregion

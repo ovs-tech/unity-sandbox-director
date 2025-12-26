@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
 using MiniTimeline.Core;
 using MiniTimeline.UI.MVVM.Track;
 using MiniTimeline.UI.MVVM.Ruler;
@@ -427,30 +426,63 @@ namespace MiniTimeline.UI.MVVM.Timeline
       // Track operations
       public void ShowAddTrackForm()
       {
-        Debug.Log("Show add track form - TODO: Implement in controller");
-        // TODO: Trigger form for creating new track
-        // AddTrackCommand will be created and executed
+        // For now, add a default AnimTrack
+        // TODO: Show a form UI to select track type
+        _model.AddTrack("AnimTrack", $"Track {GetTrackCount() + 1}", "", true);
+        Debug.Log($"Added new track. Total tracks: {GetTrackCount()}");
       }
 
       public void ShowBindingManager()
       {
-        Debug.Log("Show binding manager - TODO: Implement in controller");
-        // TODO: Show binding manager UI
-        // Uses director?.BindingContext to manage scene bindings
+        if (_model.Director?.BindingContext == null)
+        {
+          Debug.LogWarning("No binding context available");
+          return;
+        }
+        
+        Debug.Log("Opening binding manager");
+        // TODO: Create and show binding manager UI window
+        Debug.Log("Binding context ready");
       }
 
       public void ShowSaveProjectForm()
       {
-        Debug.Log("Show save project form - TODO: Implement in controller");
-        // TODO: Show save project UI
-        // Calls ProjectSerializer.SaveToFile(director.Project, director, filePath);
+        if (_model.Director?.Project == null)
+        {
+          Debug.LogWarning("No project to save");
+          return;
+        }
+        
+        // TODO: Show file dialog to get project name
+        // For now, use a default project name
+        string projectName = "timeline_project";
+        
+        bool success = _model.Director.SaveProject(projectName);
+        if (success)
+        {
+          Debug.Log($"Project '{projectName}' saved successfully");
+        }
+        else
+        {
+          Debug.LogError($"Failed to save project '{projectName}'");
+        }
       }
 
       public void ShowLoadProjectForm()
       {
-        Debug.Log("Show load project form - TODO: Implement in controller");
-        // TODO: Show load project UI
-        // Calls ProjectSerializer.LoadFromFile(filePath);
+        // TODO: Show file dialog to get project name
+        // For now, use a default project name
+        string projectName = "timeline_project";
+        
+        bool success = _model.Director.LoadProject(projectName);
+        if (success)
+        {
+          Debug.Log($"Project '{projectName}' loaded successfully");
+        }
+        else
+        {
+          Debug.LogError($"Failed to load project '{projectName}'");
+        }
       }
     }
 

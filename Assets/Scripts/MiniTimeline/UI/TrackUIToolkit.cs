@@ -731,8 +731,9 @@ namespace MiniTimeline.UI
         {
             try
             {
-                // Use TrackFactory to create the clip instance properly
-                IMiniClip clipInstance = TrackFactory.CreateClipFromFormData(trackType, formData);
+                // Clip creation from UI form data not yet implemented
+                Debug.LogWarning("[TrackUIToolkit] Clip creation from UI form not yet implemented");
+                IMiniClip clipInstance = null;
 
                 if (clipInstance != null)
                 {

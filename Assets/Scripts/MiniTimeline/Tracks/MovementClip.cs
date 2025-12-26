@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using Sirenix.OdinSerializer;
 using MiniTimeline.Core;
 
 namespace MiniTimeline.Tracks
@@ -12,26 +13,39 @@ namespace MiniTimeline.Tracks
     {
         // Camera transform properties
         [Header("Position")]
+        [OdinSerialize]
         public bool hasPosition = false;
+        [OdinSerialize]
         public Vector3 startPosition = Vector3.zero;
+        [OdinSerialize]
         public Vector3 endPosition = Vector3.zero;
         
         [Header("Rotation")]
+        [OdinSerialize]
         public bool hasRotation = false;
+        [OdinSerialize]
         public Quaternion startRotation = Quaternion.identity;
+        [OdinSerialize]
         public Quaternion endRotation = Quaternion.identity;
         
         [Header("Camera Properties")]
+        [OdinSerialize]
         public bool hasFieldOfView = false;
+        [OdinSerialize]
         public float startFieldOfView = 60f;
+        [OdinSerialize]
         public float endFieldOfView = 60f;
         
         [Header("Animation")]
+        [OdinSerialize]
         public CameraAnimationCurve animationCurve = CameraAnimationCurve.Linear;
+        [OdinSerialize]
         public AnimationCurve customCurve;
         
         [Header("Blending")]
+        [OdinSerialize]
         public float fadeIn = 0f;
+        [OdinSerialize]
         public float fadeOut = 0f;
         
         #region Camera Specific Methods

@@ -1,329 +1,180 @@
 {
+    "$id": 0,
+    "$type": "0|MiniTimeline.Core.MiniTimelineProject, Assembly-CSharp",
     "version": 1,
     "name": "New Timeline Project (Sample)",
-    "length": 10.0,
-    "frameRate": 30.0,
-    "tracks": [
-        {
-            "id": "anim_track_1",
-            "type": "AnimTrack",
-            "bindKey": "Base Female",
-            "enabled": true,
-            "order": 0,
-            "clips": [
-                {
-                    "id": "anim_clip_1",
-                    "start": 0.0,
-                    "duration": 3.0,
-                    "payload": [
+    "length": 10,
+    "frameRate": 30,
+    "tracks": {
+        "$id": 1,
+        "$type": "1|System.Collections.Generic.List`1[[MiniTimeline.Core.IMiniTrack, Assembly-CSharp]], mscorlib",
+        "$rlength": 2,
+        "$rcontent": [
+            {
+                "$id": 2,
+                "$type": "2|MiniTimeline.Tracks.MovementTrack, Assembly-CSharp",
+                "Id": "SampleMovementTrack",
+                "BindKey": "Actor1",
+                "Enabled": true,
+                "EvaluateMode": 3,
+                "clips": {
+                    "$id": 3,
+                    "$type": "3|System.Collections.Generic.List`1[[MiniTimeline.Tracks.MovementClip, Assembly-CSharp]], mscorlib",
+                    "$rlength": 1,
+                    "$rcontent": [
                         {
-                            "key": "animationAsset",
-                            "value": "addr:Animations/Run.anim"
-                        },
-                        {
-                            "key": "speed",
-                            "value": "1"
-                        },
-                        {
-                            "key": "wrapMode",
-                            "value": "Loop"
-                        },
-                        {
-                            "key": "layer",
-                            "value": "0"
-                        },
-                        {
-                            "key": "fadeIn",
-                            "value": "0.2"
-                        },
-                        {
-                            "key": "fadeOut",
-                            "value": "0.2"
-                        },
-                        {
-                            "key": "weight",
-                            "value": "1"
-                        },
-                        {
-                            "key": "clipOffset",
-                            "value": "0"
+                            "$id": 4,
+                            "$type": "4|MiniTimeline.Tracks.MovementClip, Assembly-CSharp",
+                            "Id": "Move_Forward",
+                            "Start": 2,
+                            "Duration": 3,
+                            "hasPosition": true,
+                            "startPosition": {
+                                "$type": "5|UnityEngine.Vector3, UnityEngine.CoreModule",
+                                0,
+                                0,
+                                0
+                            },
+                            "endPosition": {
+                                "$type": 5,
+                                0,
+                                0,
+                                5
+                            },
+                            "hasRotation": false,
+                            "startRotation": {
+                                "$type": "6|UnityEngine.Quaternion, UnityEngine.CoreModule",
+                                0,
+                                0,
+                                0,
+                                1
+                            },
+                            "endRotation": {
+                                "$type": 6,
+                                0,
+                                0,
+                                0,
+                                1
+                            },
+                            "hasFieldOfView": false,
+                            "startFieldOfView": 60,
+                            "endFieldOfView": 60,
+                            "animationCurve": 0,
+                            "customCurve": null,
+                            "fadeIn": 0,
+                            "fadeOut": 0
                         }
                     ]
                 }
-            ]
-        },
-        {
-            "id": "movement_track_1",
-            "type": "MovementTrack",
-            "bindKey": "VirtualCamera",
-            "enabled": true,
-            "order": 10,
-            "clips": [
-                {
-                    "id": "camera_pos_clip_1",
-                    "start": 0.0,
-                    "duration": 4.0,
-                    "payload": [
+            },
+            {
+                "$id": 5,
+                "$type": "7|MiniTimeline.Tracks.SignalTrack, Assembly-CSharp",
+                "Id": "SampleSignalTrack",
+                "BindKey": null,
+                "Enabled": true,
+                "EvaluateMode": 3,
+                "clips": {
+                    "$id": 6,
+                    "$type": "8|System.Collections.Generic.List`1[[MiniTimeline.Tracks.SignalClip, Assembly-CSharp]], mscorlib",
+                    "$rlength": 3,
+                    "$rcontent": [
                         {
-                            "key": "hasPosition",
-                            "value": "True"
+                            "$id": 7,
+                            "$type": "9|MiniTimeline.Tracks.SignalClip, Assembly-CSharp",
+                            "Id": "StartSignal",
+                            "Start": 0,
+                            "Duration": 0,
+                            "eventId": "OnTimelineStart",
+                            "payload": "Timeline started",
+                            "edge": 0,
+                            "fireOnScrub": false,
+                            "color": {
+                                "$type": "10|UnityEngine.Color, UnityEngine.CoreModule",
+                                1,
+                                0,
+                                0,
+                                1
+                            }
                         },
                         {
-                            "key": "startPosition",
-                            "value": "0,2,-5"
+                            "$id": 8,
+                            "$type": 9,
+                            "Id": "MidpointSignal",
+                            "Start": 5,
+                            "Duration": 0,
+                            "eventId": "OnMidpoint",
+                            "payload": "Midpoint reached",
+                            "edge": 0,
+                            "fireOnScrub": false,
+                            "color": {
+                                "$type": 10,
+                                1,
+                                0,
+                                0,
+                                1
+                            }
                         },
                         {
-                            "key": "endPosition",
-                            "value": "5,3,-3"
-                        },
-                        {
-                            "key": "hasRotation",
-                            "value": "False"
-                        },
-                        {
-                            "key": "startRotation",
-                            "value": "0,0,0,1"
-                        },
-                        {
-                            "key": "endRotation",
-                            "value": "0,0,0,1"
-                        },
-                        {
-                            "key": "hasFieldOfView",
-                            "value": "False"
-                        },
-                        {
-                            "key": "startFieldOfView",
-                            "value": "60"
-                        },
-                        {
-                            "key": "endFieldOfView",
-                            "value": "60"
-                        },
-                        {
-                            "key": "animationCurve",
-                            "value": "EaseInOut"
-                        },
-                        {
-                            "key": "fadeIn",
-                            "value": "0.5"
-                        },
-                        {
-                            "key": "fadeOut",
-                            "value": "0.5"
-                        }
-                    ]
-                },
-                {
-                    "id": "camera_rot_clip_1",
-                    "start": 2.0,
-                    "duration": 3.0,
-                    "payload": [
-                        {
-                            "key": "hasPosition",
-                            "value": "False"
-                        },
-                        {
-                            "key": "startPosition",
-                            "value": "0,0,0"
-                        },
-                        {
-                            "key": "endPosition",
-                            "value": "0,0,0"
-                        },
-                        {
-                            "key": "hasRotation",
-                            "value": "True"
-                        },
-                        {
-                            "key": "startRotation",
-                            "value": "0,0,0,1"
-                        },
-                        {
-                            "key": "endRotation",
-                            "value": "0.1305262,0.1305262,0,0.982973"
-                        },
-                        {
-                            "key": "hasFieldOfView",
-                            "value": "False"
-                        },
-                        {
-                            "key": "startFieldOfView",
-                            "value": "60"
-                        },
-                        {
-                            "key": "endFieldOfView",
-                            "value": "60"
-                        },
-                        {
-                            "key": "animationCurve",
-                            "value": "Linear"
-                        },
-                        {
-                            "key": "fadeIn",
-                            "value": "0"
-                        },
-                        {
-                            "key": "fadeOut",
-                            "value": "0"
+                            "$id": 9,
+                            "$type": 9,
+                            "Id": "EndSignal",
+                            "Start": 9.9,
+                            "Duration": 0,
+                            "eventId": "OnTimelineEnd",
+                            "payload": "Timeline ended",
+                            "edge": 0,
+                            "fireOnScrub": false,
+                            "color": {
+                                "$type": 10,
+                                1,
+                                0,
+                                0,
+                                1
+                            }
                         }
                     ]
                 },
-                {
-                    "id": "camera_fov_clip_1",
-                    "start": 5.0,
-                    "duration": 2.0,
-                    "payload": [
-                        {
-                            "key": "hasPosition",
-                            "value": "False"
-                        },
-                        {
-                            "key": "startPosition",
-                            "value": "0,0,0"
-                        },
-                        {
-                            "key": "endPosition",
-                            "value": "0,0,0"
-                        },
-                        {
-                            "key": "hasRotation",
-                            "value": "False"
-                        },
-                        {
-                            "key": "startRotation",
-                            "value": "0,0,0,1"
-                        },
-                        {
-                            "key": "endRotation",
-                            "value": "0,0,0,1"
-                        },
-                        {
-                            "key": "hasFieldOfView",
-                            "value": "True"
-                        },
-                        {
-                            "key": "startFieldOfView",
-                            "value": "60"
-                        },
-                        {
-                            "key": "endFieldOfView",
-                            "value": "30"
-                        },
-                        {
-                            "key": "animationCurve",
-                            "value": "EaseInOut"
-                        },
-                        {
-                            "key": "fadeIn",
-                            "value": "0"
-                        },
-                        {
-                            "key": "fadeOut",
-                            "value": "0"
+                "onTimelineEvent": {
+                    "$id": 10,
+                    "$type": "11|UnityEngine.Events.UnityEvent`1[[MiniTimeline.Tracks.TimelineEvent, Assembly-CSharp]], UnityEngine.CoreModule",
+                    "m_PersistentCalls": {
+                        "$id": 11,
+                        "$type": "12|UnityEngine.Events.PersistentCallGroup, UnityEngine.CoreModule",
+                        "m_Calls": {
+                            "$id": 12,
+                            "$type": "13|System.Collections.Generic.List`1[[UnityEngine.Events.PersistentCall, UnityEngine.CoreModule]], mscorlib",
+                            "$rlength": 0,
+                            "$rcontent": [
+                            ]
                         }
-                    ]
+                    }
                 }
+            }
+        ]
+    },
+    "metadata": {
+        "$id": 13,
+        "$type": "14|MiniTimeline.Core.ProjectMetadata, Assembly-CSharp",
+        "zoom": 1,
+        "scrollPosition": 0,
+        "selection": {
+            "$id": 14,
+            "$type": "15|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib",
+            "$rlength": 0,
+            "$rcontent": [
             ]
         },
-        {
-            "id": "morph_track_1",
-            "type": "MorphTrack",
-            "bindKey": "Base Female",
-            "enabled": true,
-            "order": 20,
-            "clips": [
-                {
-                    "id": "morph_clip_1",
-                    "start": 1.0,
-                    "duration": 2.0,
-                    "payload": []
-                }
-            ]
-        },
-        {
-            "id": "signal_track_1",
-            "type": "SignalTrack",
-            "bindKey": "",
-            "enabled": true,
-            "order": 30,
-            "clips": [
-                {
-                    "id": "event_clip_1",
-                    "start": 2.5,
-                    "duration": 0.0,
-                    "payload": [
-                        {
-                            "key": "eventId",
-                            "value": "StartSmile"
-                        },
-                        {
-                            "key": "payload",
-                            "value": "Happy emotion"
-                        },
-                        {
-                            "key": "edge",
-                            "value": "OnEnter"
-                        },
-                        {
-                            "key": "fireOnScrub",
-                            "value": "False"
-                        },
-                        {
-                            "key": "color",
-                            "value": "#FF0000FF"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "id": "animator_track_1",
-            "type": "AnimatorTrack",
-            "bindKey": "Base Female",
-            "enabled": true,
-            "order": 40,
-            "clips": [
-                {
-                    "id": "animator_speed_clip_1",
-                    "start": 0.0,
-                    "duration": 3.0,
-                    "payload": []
-                },
-                {
-                    "id": "animator_direction_clip_1",
-                    "start": 0.0,
-                    "duration": 4.0,
-                    "payload": []
-                }
-            ]
-        },
-        {
-            "id": "animator_track_2",
-            "type": "AnimatorTrack",
-            "bindKey": "Base male",
-            "enabled": true,
-            "order": 50,
-            "clips": [
-                {
-                    "id": "animator_speed_clip_2",
-                    "start": 0.0,
-                    "duration": 3.0,
-                    "payload": []
-                },
-                {
-                    "id": "animator_direction_clip_2",
-                    "start": 0.0,
-                    "duration": 4.0,
-                    "payload": []
-                }
+        "editorData": {
+            "$id": 15,
+            "$type": "16|System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[System.Object, mscorlib]], mscorlib",
+            "comparer": {
+                "$id": 16,
+                "$type": "17|System.Collections.Generic.GenericEqualityComparer`1[[System.String, mscorlib]], mscorlib"
+            },
+            "$rlength": 0,
+            "$rcontent": [
             ]
         }
-    ],
-    "metadata": {
-        "zoom": 1.0,
-        "scrollPosition": 0.0,
-        "selection": [],
-        "editorData": []
     }
 }

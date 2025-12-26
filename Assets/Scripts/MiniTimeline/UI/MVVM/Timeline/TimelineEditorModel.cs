@@ -295,21 +295,7 @@ namespace MiniTimeline.UI.MVVM.Timeline {
                 return;
             }
 
-            string trackId = Guid.NewGuid().ToString();
-            int trackOrder = _director.Project.tracks.Count > 0 
-                ? _director.Project.tracks.Max(t => t.order) + 1 
-                : 0;
-
-            var trackData = new TrackData {
-                id = trackId,
-                type = trackType,
-                bindKey = bindKey,
-                enabled = enabled,
-                order = trackOrder,
-                clips = new List<ClipData>()
-            };
-
-            var addTrackCommand = new AddTrackCommand(_director, trackData);
+            var addTrackCommand = new AddTrackCommand(_director, trackType);
             ExecuteCommand(addTrackCommand);
         }
 
@@ -319,9 +305,8 @@ namespace MiniTimeline.UI.MVVM.Timeline {
                 return;
             }
 
-            // var removeCommand = new RemoveTrackCommand(_director, track, null);
-            // ExecuteCommand(removeCommand);
-            Debug.Log($"Remove track: {track.Id} - TODO: Implement RemoveTrackCommand");
+            var removeCommand = new RemoveTrackCommand(_director, track);
+            ExecuteCommand(removeCommand);
         }
 
         public void AddClipToTrack(IMiniTrack track, IMiniClip clip) {

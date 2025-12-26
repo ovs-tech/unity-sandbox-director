@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Sirenix.OdinSerializer;
 using UnityEngine;
 
 namespace MiniTimeline.Core
@@ -9,19 +11,19 @@ namespace MiniTimeline.Core
     public abstract class MiniTrackBase<TClip> : IMiniTrack 
         where TClip : IMiniClip
     {
-        public string Id { get; set; }
-        public string BindKey { get; set; }
-        public bool Enabled { get; set; } = true;
+        [OdinSerialize] public string Id { get; set; }
+        [OdinSerialize] public string BindKey { get; set; }
+        [OdinSerialize] public bool Enabled { get; set; } = true;
         public virtual int Order => 0;
         public bool IsBound => isBound;
         public bool IsReady => Enabled && isPrepared;
-        public EvaluateMode EvaluateMode { get; set; } = EvaluateMode.Continuous;
+        [OdinSerialize] public EvaluateMode EvaluateMode { get; set; } = EvaluateMode.Continuous;
         
-        protected List<TClip> clips = new List<TClip>();
-        protected UnityEngine.Object targetObject;
-        protected bool isBound;
-        protected bool isPrepared;
-        protected bool wasActive; // Track previous active state for OnEnter/OnExit detection
+        [OdinSerialize] protected List<TClip> clips = new List<TClip>();
+        [NonSerialized] protected UnityEngine.Object targetObject;
+        [NonSerialized] protected bool isBound;
+        [NonSerialized] protected bool isPrepared;
+        [NonSerialized] protected bool wasActive; // Track previous active state for OnEnter/OnExit detection
         
         public virtual void Bind(BindableObjectManager context)
         {
@@ -38,7 +40,7 @@ namespace MiniTimeline.Core
             
             if (!string.IsNullOrEmpty(BindKey))
             {
-                targetObject = context.Resolve<Object>(BindKey);
+                targetObject = context.Resolve<UnityEngine.Object>(BindKey);
                 isBound = targetObject != null;
                 
                 if (!isBound)

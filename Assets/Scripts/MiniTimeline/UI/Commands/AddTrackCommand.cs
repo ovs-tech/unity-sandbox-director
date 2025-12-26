@@ -1,25 +1,32 @@
+using System;
 using System.Linq;
 using Core.Behaviors.Command;
 using MiniTimeline.Core;
+using MiniTimeline.Tracks;
 using UnityEngine;
 
 namespace MiniTimeline.UI.Commands
 {
-
     /// <summary>
-    /// Command for adding a new track to the timeline
+    /// Command for adding a new track to the timeline.
+    /// Uses Odin-serialized runtime track instances directly (no DTO conversion).
     /// </summary>
     public class AddTrackCommand : TimelineCommandBase
     {
         private readonly MiniTimelineDirector director;
-        private readonly TrackData trackData;
+        private readonly string trackType;
         private IMiniTrack createdTrack;
 
-        public AddTrackCommand(MiniTimelineDirector timelineDirector, TrackData data)
-            : base($"Add {data.type} Track")
+        /// <summary>
+        /// Create a new track add command with a track type string.
+        /// </summary>
+        /// <param name="timelineDirector">The timeline director instance</param>
+        /// <param name="type">Track type name (e.g., MiniTimelineConstants.TRACK_ANIM)</param>
+        public AddTrackCommand(MiniTimelineDirector timelineDirector, string type)
+            : base($"Add {type} Track")
         {
             director = timelineDirector;
-            trackData = data;
+            trackType = type;
         }
 
         protected override void ExecuteInternal()
@@ -32,71 +39,39 @@ namespace MiniTimeline.UI.Commands
 
             try
             {
-                // Add track data to project
-                director.Project.tracks.Add(trackData);
-                
-                // Force immediate track rebuild by calling BuildTracks via reflection
-                ForceTrackRebuild();
-                
-                // Find the created track in the director's track list
-                createdTrack = director.Tracks.FirstOrDefault(t => t.Id == trackData.id);
-                
-                if (createdTrack != null)
+                // Create runtime track instance directly
+                createdTrack = CreateRuntimeTrack(trackType);
+                if (createdTrack == null)
                 {
-                    // Successfully created and added the track (informational log removed)
+                    Debug.LogError($"Cannot create track of type {trackType}");
+                    return;
                 }
-                else
-                {
-                    Debug.LogWarning($"Track was added to project but not found in runtime tracks. Type: {trackData.type}, ID: {trackData.id}");
-                }
+
+                // Add directly to director (which manages project.tracks and binding)
+                director.AddTrack(createdTrack);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Debug.LogError($"Failed to add track: {ex.Message}");
             }
         }
-        
+
         /// <summary>
-        /// Force track rebuild using reflection to call BuildTracks method
+        /// Create a runtime track instance from a type name.
         /// </summary>
-        private void ForceTrackRebuild()
+        private IMiniTrack CreateRuntimeTrack(string type)
         {
-            try
+            return type switch
             {
-                var directorType = director.GetType();
-                
-                // Try to find BuildTracks method
-                var buildTracksMethod = directorType.GetMethod("BuildTracks", 
-                    System.Reflection.BindingFlags.Instance | 
-                    System.Reflection.BindingFlags.NonPublic | 
-                    System.Reflection.BindingFlags.Public);
-                
-                if (buildTracksMethod != null)
-                {
-                    buildTracksMethod.Invoke(director, null);
-                    // Informational log removed for successful reflection call
-                }
-                else
-                {
-                    // Fallback: mark dirty and seek
-                    director.MarkDirty();
-                    if (Application.isPlaying)
-                    {
-                        director.Seek(director.Time);
-                    }
-                    // Informational fallback log removed
-                }
-            }
-            catch (System.Exception ex)
-            {
-                Debug.LogWarning($"Failed to force track rebuild: {ex.Message}");
-                // Fallback to original method
-                director.MarkDirty();
-                if (Application.isPlaying)
-                {
-                    director.Seek(director.Time);
-                }
-            }
+                MiniTimelineConstants.TRACK_ANIM => new AnimTrack(),
+                MiniTimelineConstants.TRACK_MORPH => new MorphTrack(),
+                MiniTimelineConstants.TRACK_MOVEMENT => new MovementTrack(),
+                MiniTimelineConstants.TRACK_ANIMATOR => new AnimatorTrack(),
+                MiniTimelineConstants.TRACK_SIGNAL => new SignalTrack(),
+                MiniTimelineConstants.TRACK_UMA_WARDROBE => new UmaWardrobeTrack(),
+                MiniTimelineConstants.TRACK_UMA_EXPRESSION => new UMAExpressionTrack(),
+                _ => null
+            };
         }
 
         protected override void UndoInternal()
@@ -109,26 +84,13 @@ namespace MiniTimeline.UI.Commands
 
             try
             {
-                // Remove track data from project
-                var trackToRemove = director.Project.tracks.FirstOrDefault(t => t.id == trackData.id);
-                if (trackToRemove != null)
+                if (createdTrack != null)
                 {
-                    director.Project.tracks.Remove(trackToRemove);
-                    
-                    // Force immediate track rebuild
-                    ForceTrackRebuild();
-                    
-                    // Successfully removed the track (informational log removed)
+                    director.RemoveTrack(createdTrack.Id);
                 }
-                else
-                {
-                    Debug.LogWarning($"Track with ID {trackData.id} not found for removal");
-                }
-                
-                // Clean up the created track reference
                 createdTrack = null;
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Debug.LogError($"Failed to undo add track: {ex.Message}");
             }

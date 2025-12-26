@@ -1,9 +1,11 @@
+using System;
 using UnityEngine;
 using MiniTimeline.Core;
 using UMA.PoseTools;
 
 namespace MiniTimeline.Tracks
 {
+    [Serializable]
     public class UMAExpressionTrack : MiniTrackBase<UMAExpressionClip>
     {
         private UMAExpressionPlayer expressionPlayer;

@@ -1,5 +1,7 @@
 using System;
 using UnityEngine;
+using Sirenix.OdinSerializer;
+using MiniTimeline.Core;
 
 namespace MiniTimeline.Tracks
 {
@@ -28,21 +30,25 @@ namespace MiniTimeline.Tracks
         /// <summary>
         /// Event payload data (JSON string, number, or simple string)
         /// </summary>
+        [OdinSerialize]
         public string payload = "";
         
         /// <summary>
         /// When to trigger the event
         /// </summary>
+        [OdinSerialize]
         public EventTriggerEdge edge = EventTriggerEdge.OnEnter;
         
         /// <summary>
         /// Whether to fire events during scrub operations
         /// </summary>
+        [OdinSerialize]
         public bool fireOnScrub = false;
         
         /// <summary>
         /// Display color for editor
         /// </summary>
+        [OdinSerialize]
         public Color color = Color.red;
         
         /// <summary>

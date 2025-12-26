@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Core.Behaviors.Command;
 using MiniTimeline.Core;
@@ -130,16 +129,34 @@ namespace MiniTimeline.UI.Commands
 
         private void SetTrackOrder(int order)
         {
-            // Track order is typically managed at the project level
-            // This would need to be implemented based on your project structure
-            if (director?.Project != null)
+            // Track order now managed by IMiniTrack runtime or list ordering
+            // If track exposes a writable Order property, set it; else no-op
+            var trackType = track.GetType();
+            var orderProp = trackType.GetProperty("Order");
+            if (orderProp != null && orderProp.CanWrite)
             {
-                var project = director.Project;
-                var trackData = project.tracks?.FirstOrDefault(t => t.id == track.Id);
-                if (trackData != null)
+                try
                 {
-                    trackData.order = order;
+                    orderProp.SetValue(track, order);
                     Debug.Log($"Updated track {track.Id} order to: {order}");
+                    return;
+                }
+                catch (System.Exception)
+                {
+                    // Fallthrough to list reorder
+                }
+            }
+
+            // Fallback: reorder project's track list (move track to index)
+            if (director?.Project?.tracks != null)
+            {
+                var list = director.Project.tracks;
+                int currentIndex = list.FindIndex(t => t.Id == track.Id);
+                if (currentIndex >= 0 && order >= 0 && order < list.Count)
+                {
+                    list.RemoveAt(currentIndex);
+                    list.Insert(order, track);
+                    Debug.Log($"Reordered track {track.Id} to index {order}");
                 }
             }
         }

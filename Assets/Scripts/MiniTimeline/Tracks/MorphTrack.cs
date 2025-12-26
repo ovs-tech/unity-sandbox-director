@@ -10,6 +10,7 @@ namespace MiniTimeline.Tracks
     /// Track for controlling blendshapes/morph targets
     /// Supports additive and override blend modes with priority
     /// </summary>
+    [Serializable]
     public class MorphTrack : MiniTrackBase<IMorphClip>
     {
         public override int Order => 30; // Morph tracks run after animation

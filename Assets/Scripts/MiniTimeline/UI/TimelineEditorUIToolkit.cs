@@ -991,25 +991,9 @@ namespace MiniTimeline.UI
                 string bindKey = formData.ContainsKey("bindKey") ? formData["bindKey"].ToString() : "";
                 bool enabled = formData.ContainsKey("enabled") ? Convert.ToBoolean(formData["enabled"]) : true;
 
-                // Generate unique ID for the track
-                string trackId = Guid.NewGuid().ToString();
-
-                // Determine track order (place at the end)
-                int trackOrder = director.Project.tracks.Count > 0 ? director.Project.tracks.Max(t => t.order) + 1 : 0;
-
-                // Create track data
-                var trackData = new TrackData
-                {
-                    id = trackId,
-                    type = trackType,
-                    bindKey = bindKey,
-                    enabled = enabled,
-                    order = trackOrder,
-                    clips = new List<ClipData>()
-                };
-
-                // Create and execute add track command
-                var addTrackCommand = new AddTrackCommand(director, trackData);
+                // Create and execute add track command with track type
+                // AddTrackCommand now creates runtime track instances directly
+                var addTrackCommand = new AddTrackCommand(director, trackType);
                 ExecuteCommand(addTrackCommand);
 
                 // Debug.Log($"Added new {TrackUIHelper.GetTrackDisplayName(trackType)} track: {trackName}");
@@ -1367,7 +1351,7 @@ namespace MiniTimeline.UI
                 string filePath = System.IO.Path.Combine(Application.persistentDataPath, filename);
 
                 // Save the project (automatically updates from runtime tracks)
-                bool success = ProjectSerializer.SaveToFile(director.Project, director, filePath);
+                bool success = ProjectSerializer.SaveToFile(director.Project, filePath);
 
                 if (success)
                 {
@@ -1554,20 +1538,19 @@ namespace MiniTimeline.UI
                 return "No project loaded.";
             }
 
-            // Update project data from runtime tracks to ensure accuracy
-            ProjectSerializer.UpdateProjectFromRuntimeTracks(director.Project, director);
-
             var project = director.Project;
             var info = $"Project: {project.name}\n";
             info += $"Length: {project.length}s\n";
             info += $"Frame Rate: {project.frameRate} FPS\n";
             info += $"Tracks: {project.tracks.Count}\n";
 
-            // Now we can get accurate clip count from the updated project data
+            // Count clips from runtime tracks
             int totalClips = 0;
             foreach (var track in project.tracks)
             {
-                totalClips += track.clips.Count;
+                var clips = track.GetClips();
+                if (clips != null)
+                    totalClips += clips.Count();
             }
 
             info += $"Total Clips: {totalClips}\n";
@@ -2182,8 +2165,9 @@ namespace MiniTimeline.UI
         {
             try
             {
-                // Use TrackFactory to create the clip instance properly
-                IMiniClip clipInstance = TrackFactory.CreateClipFromFormData(trackType, formData);
+                // Clip creation from UI form data not yet implemented
+                Debug.LogWarning("[TimelineEditorUIToolkit] Clip creation from UI form not yet implemented");
+                IMiniClip clipInstance = null;
 
                 if (clipInstance != null)
                 {
@@ -2427,8 +2411,8 @@ namespace MiniTimeline.UI
             if (trackUI.Track == null || director?.Project == null) return 0;
 
             var projectTracks = director.Project.tracks;
-            var trackData = projectTracks?.FirstOrDefault(t => t.id == trackUI.Track.Id);
-            return trackData?.order ?? 0;
+            var trackData = projectTracks?.FirstOrDefault(t => t.Id == trackUI.Track.Id);
+            return trackData?.Order ?? 0;
         }
 
         private void OnTrackSettingsFormSubmitted(Dictionary<string, object> formData, TrackUIToolkit trackUI)
