@@ -1,79 +1,72 @@
+using System;
+using Core.Behaviors.Command;
 using MiniTimeline.Core;
 using UnityEngine;
-using System;
-using System.Collections.Generic;
-using Core.Behaviors.Command;
 
 namespace MiniTimeline.UI.Commands
 {
-
     /// <summary>
-    /// Command for deleting a clip from a track
+    /// Command for deleting a clip from a track.
+    /// Supports undo/redo operations for clip deletion.
     /// </summary>
     public class DeleteClipCommand : TimelineCommandBase
     {
         private readonly IMiniTrack track;
         private readonly IMiniClip clip;
-        private readonly ClipData clipBackup;
+        private readonly IMiniClip clipBackup;
 
         public DeleteClipCommand(IMiniTrack sourceTrack, IMiniClip clipToDelete)
             : base($"Delete {clipToDelete.Id}")
         {
             track = sourceTrack;
             clip = clipToDelete;
-
-            // Backup clip data for undo
-            clipBackup = new ClipData
-            {
-                id = clip.Id,
-                start = clip.Start,
-                duration = clip.Duration,
-                payload = new Dictionary<string, object>()
-                // TODO: Need to properly serialize the clip's payload data
-                // This would require access to each clip type's specific data
-            };
+            // Backup the clip instance for undo
+            clipBackup = clipToDelete;
         }
 
         protected override void ExecuteInternal()
         {
-            bool success = false;
-            
+            if (track == null || clip == null)
+            {
+                Debug.LogError("DeleteClipCommand: Invalid track or clip");
+                return;
+            }
+
             try
             {
-                // Try to call RemoveClip using reflection
-                var removeMethod = track.GetType().GetMethod("RemoveClip", new Type[] { typeof(string) });
-                if (removeMethod != null)
+                bool success = track.RemoveClip(clip);
+                if (success)
                 {
-                    var result = removeMethod.Invoke(track, new object[] { clip.Id });
-                    success = (bool)result;
+                    Debug.Log($"Successfully deleted clip {clip.Id}");
                 }
                 else
                 {
-                    Debug.LogWarning($"Track type {track.GetType().Name} doesn't have RemoveClip method");
+                    Debug.LogError($"Failed to delete clip {clip.Id}");
                 }
             }
             catch (Exception ex)
             {
                 Debug.LogError($"Failed to remove clip {clip.Id}: {ex.Message}");
             }
-
-            if (success)
-            {
-                Debug.Log($"Successfully deleted clip {clip.Id}");
-            }
-            else
-            {
-                Debug.LogError($"Failed to delete clip {clip.Id}");
-            }
         }
 
         protected override void UndoInternal()
         {
-            // TODO: Recreate clip through proper track API
-            // This is more complex because we need to create the appropriate clip type
-            // and restore all its properties from the backup data
-            
-            Debug.LogWarning($"Undo delete clip not fully implemented yet for {clip.Id}");
+            if (track == null || clipBackup == null)
+            {
+                Debug.LogError("DeleteClipCommand: Cannot restore clip - invalid track or backup");
+                return;
+            }
+
+            try
+            {
+                track.AddClip(clipBackup);
+                Debug.Log($"Restored clip {clipBackup.Id}");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to restore clip: {ex.Message}");
+            }
         }
     }
 
