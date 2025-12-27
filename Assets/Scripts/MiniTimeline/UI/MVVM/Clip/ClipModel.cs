@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
+using Core.Behaviors.Command;
 using MiniTimeline.Core;
+using MiniTimeline.UI.Commands;
 
 namespace MiniTimeline.UI.MVVM.Clip {
     public class ClipModel {
@@ -12,6 +15,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
         bool _selected;
         float _zoom = 1f;
         float _pixelsPerSecond = 100f;
+        TimelineCommandManager _commandManager;
 
         // Reference to the actual clip data
         private IMiniClip _clip;
@@ -35,16 +39,30 @@ namespace MiniTimeline.UI.MVVM.Clip {
         public IMiniTrack ParentTrack => _parentTrack;
         public float Zoom => _zoom;
         public float PixelsPerSecond => _pixelsPerSecond;
+        public TimelineCommandManager CommandManager => _commandManager;
 
-        public void Initialize(IMiniClip clip, IMiniTrack parentTrack, MiniTimelineDirector director = null) {
+        public ClipModel() {
+            _commandManager = TimelineCommandManager.Instance;
+        }
+
+        public void Initialize(IMiniClip clip, IMiniTrack parentTrack, MiniTimelineDirector director = null, TimelineCommandManager commandManager = null) {
             _clip = clip;
             _parentTrack = parentTrack;
             _director = director;
+            if (commandManager != null) {
+                _commandManager = commandManager;
+            } else if (_commandManager == null) {
+                _commandManager = TimelineCommandManager.Instance;
+            }
             if (clip != null) {
                 _title = clip.Id;
                 _duration = clip.Duration;
                 _startTime = clip.Start;
             }
+        }
+
+        public void SetCommandManager(TimelineCommandManager commandManager) {
+            _commandManager = commandManager ?? _commandManager;
         }
 
         public void SetTitle(string title) { 
@@ -117,6 +135,78 @@ namespace MiniTimeline.UI.MVVM.Clip {
         public void SetPixelsPerSecond(float pixelsPerSecond) {
             _pixelsPerSecond = pixelsPerSecond;
             OnPixelsPerSecondChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Commit a move (drag) action through the command manager for undo/redo support.
+        /// </summary>
+        public void CommitMove(float originalStart, float newStart, bool allowMerge = false) {
+            if (_clip == null) return;
+
+            float clampedNewStart = Mathf.Max(0f, newStart);
+            if (Mathf.Approximately(originalStart, clampedNewStart)) return;
+
+            SetStartTime(clampedNewStart);
+            var command = new MoveClipCommand(_clip, originalStart, clampedNewStart);
+            ExecuteCommand(command, allowMerge);
+        }
+
+        /// <summary>
+        /// Commit a resize action through the command manager for undo/redo support.
+        /// </summary>
+        public void CommitResize(float originalStart, float originalDuration, float newStart, float newDuration, bool allowMerge = false) {
+            if (_clip == null) return;
+
+            float clampedStart = Mathf.Max(0f, newStart);
+            float clampedDuration = Mathf.Max(0.1f, newDuration);
+
+            if (Mathf.Approximately(originalStart, clampedStart) && Mathf.Approximately(originalDuration, clampedDuration)) {
+                SetStartTime(clampedStart);
+                SetDuration(clampedDuration);
+                return;
+            }
+
+            SetStartTime(clampedStart);
+            SetDuration(clampedDuration);
+            var command = new ResizeClipCommand(_clip, originalStart, originalDuration, clampedStart, clampedDuration);
+            ExecuteCommand(command, allowMerge);
+        }
+
+        /// <summary>
+        /// Apply arbitrary clip property changes via EditClipCommand for undo/redo.
+        /// Keys should match clip property/field names (e.g., name, start, duration).
+        /// </summary>
+        public void ApplyEdit(Dictionary<string, object> newValues) {
+            if (_clip == null || newValues == null || newValues.Count == 0) return;
+
+            var command = new EditClipCommand(_clip, newValues);
+            ExecuteCommand(command);
+
+            if (newValues.TryGetValue("name", out var nameVal)) {
+                var newName = nameVal?.ToString() ?? string.Empty;
+                if (_title != newName) {
+                    _title = newName;
+                    OnPropertyChanged?.Invoke();
+                }
+            }
+
+            if (newValues.TryGetValue("start", out var startVal) && float.TryParse(startVal.ToString(), out var newStart)) {
+                SetStartTime(newStart);
+            }
+
+            if (newValues.TryGetValue("duration", out var durVal) && float.TryParse(durVal.ToString(), out var newDur)) {
+                SetDuration(newDur);
+            }
+        }
+
+        void ExecuteCommand(ITimelineCommand command, bool allowMerge = false) {
+            if (command == null) return;
+
+            if (_commandManager != null) {
+                _commandManager.ExecuteCommand(command, allowMerge);
+            } else {
+                command.Execute();
+            }
         }
     }
 }

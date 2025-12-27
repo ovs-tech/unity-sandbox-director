@@ -208,8 +208,14 @@ namespace MiniTimeline.UI.MVVM.Clip {
 
         private void OnPointerUp(PointerUpEvent evt, ClipModel model)
         {
-            if (IsDragging) EndDrag();
-            if (IsResizingLeft || IsResizingRight) EndResize();
+            if (IsDragging) {
+                model.CommitMove(_dragStartTime, _currentDragNewStartTime);
+                EndDrag();
+            }
+            if (IsResizingLeft || IsResizingRight) {
+                model.CommitResize(_resizeDragStartTime, _resizeDragStartDuration, _currentResizeNewStart, _currentResizeNewDuration);
+                EndResize();
+            }
             
             IsDragging = false;
             IsResizingLeft = false;

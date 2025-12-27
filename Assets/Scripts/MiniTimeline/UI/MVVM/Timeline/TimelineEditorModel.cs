@@ -68,7 +68,7 @@ namespace MiniTimeline.UI.MVVM.Timeline {
         public bool EnableFrameSnap => _enableFrameSnap;
 
         public TimelineEditorModel() {
-            _commandManager = new TimelineCommandManager();
+            _commandManager = TimelineCommandManager.Instance;
             SubscribeToCommandManager();
         }
 

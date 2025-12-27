@@ -7,6 +7,7 @@ using UnityEngine.UIElements;
 using MiniTimeline.Core;
 using MiniTimeline.UI.MVVM.Clip;
 using MiniTimeline.UI.FormDefinitions;
+using MiniTimeline.UI.Commands;
 using Core.UI.FormSubmit;
 using Core.UI.FormSubmit.Fields;
 
@@ -138,16 +139,80 @@ namespace MiniTimeline.UI.MVVM.Track {
                     return;
                 }
 
-                // Get track type for form definition lookup
+                // Show track context actions (only), using context menu definitions
+                var actionFields = TrackContextMenuDefinitions.GetTrackActionFields();
+                FormSubmitPanelUIToolkit.Instance.Show(
+                    TrackContextMenuDefinitions.GetTrackMenuTitle(),
+                    actionFields,
+                    OnTrackActionsFormSubmitted,
+                    OnTrackSettingsFormCancelled,
+                    _view.PanelRoot
+                );
+
+                Debug.Log($"Show track actions for track: {_model.Title}");
+            }
+
+            /// <summary>
+            /// Handle track actions form submission (placeholder wiring).
+            /// </summary>
+            private void OnTrackActionsFormSubmitted(Dictionary<string, object> formData) {
+                Debug.Log($"Track actions submitted for '{_model?.Title}': fields={formData?.Count ?? 0}");
+
+                if (formData == null || formData.Count == 0) return;
+
+                string action = null;
+                if (formData.TryGetValue("action", out var actionObj) && actionObj != null) {
+                    action = actionObj.ToString();
+                } else {
+                    // Fallback: infer from known field keys
+                    if (formData.ContainsKey("addClip")) action = "addClip";
+                    else if (formData.ContainsKey("mute")) action = "mute";
+                    else if (formData.ContainsKey("solo")) action = "solo";
+                    else if (formData.ContainsKey("delete")) action = "delete";
+                    else if (formData.ContainsKey("settings")) action = "settings";
+                }
+
+                switch (action) {
+                    case "addClip":
+                        ShowAddClipForm();
+                        break;
+                    case "mute":
+                        _model.Mute();
+                        break;
+                    case "solo":
+                        _model.ToggleSolo();
+                        break;
+                    case "delete":
+                        TryDeleteTrack();
+                        break;
+                    case "settings":
+                        ShowTrackSettingsForm();
+                        break;
+                    default:
+                        Debug.LogWarning($"Unknown track action: '{action}'");
+                        break;
+                }
+            }
+
+            private void TryDeleteTrack() {
+                if (_model?.Director == null || _model.Track == null) {
+                    Debug.LogError("Cannot delete track: Director or Track is null");
+                    return;
+                }
+                var cmd = new RemoveTrackCommand(_model.Director, _model.Track);
+                _model.CommandManager?.ExecuteCommand(cmd);
+            }
+
+            private void ShowTrackSettingsForm() {
+                if (_model?.Track == null) {
+                    Debug.LogError("Cannot show settings: Track is null");
+                    return;
+                }
+
                 string trackType = _model.Type;
-
-                // Get form field definitions from TrackFormDefinitions
                 var fieldDefinitions = TrackFormDefinitions.GetTrackSettingsFields(trackType);
-
-                // Set default values from current track state
                 SetDefaultValuesForTrackSettings(fieldDefinitions);
 
-                // Show the form using FormSubmitPanelUIToolkit
                 FormSubmitPanelUIToolkit.Instance.Show(
                     $"Track Settings - {TrackFormDefinitions.GetTrackTypeDisplayName(trackType)}",
                     fieldDefinitions,
@@ -155,8 +220,6 @@ namespace MiniTimeline.UI.MVVM.Track {
                     OnTrackSettingsFormCancelled,
                     _view.PanelRoot
                 );
-
-                Debug.Log($"Show settings for track: {_model.Title}");
             }
             
             /// <summary>
@@ -183,33 +246,12 @@ namespace MiniTimeline.UI.MVVM.Track {
             /// </summary>
             private void OnTrackSettingsFormSubmitted(Dictionary<string, object> formData) {
                 try {
-                    if (_model?.Track == null) {
+                    if (_model == null || _model.Track == null) {
                         Debug.LogError("Cannot update track: Track is null");
                         return;
                     }
 
-                    // Update track name
-                    if (formData.ContainsKey("trackName")) {
-                        string newName = formData["trackName"].ToString();
-                        UpdateTrackProperty("Name", newName);
-                        _model.SetTitle(newName);
-                    }
-
-                    // Update bind key
-                    if (formData.ContainsKey("bindKey")) {
-                        string newBindKey = formData["bindKey"].ToString();
-                        UpdateTrackProperty("BindKey", newBindKey);
-                        _model.SetBindKey(newBindKey);
-                    }
-
-                    // Update enabled state
-                    if (formData.ContainsKey("enabled")) {
-                        bool newEnabled = Convert.ToBoolean(formData["enabled"]);
-                        _model.Track.Enabled = newEnabled;
-                        if (_model.Enabled != newEnabled) {
-                            _model.ToggleEnabled();
-                        }
-                    }
+                    _model.ApplySettings(formData);
 
                     Debug.Log($"Track settings updated: {_model.Title}");
                 } catch (Exception ex) {

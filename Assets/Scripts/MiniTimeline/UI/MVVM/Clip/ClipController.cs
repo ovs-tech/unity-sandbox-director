@@ -75,8 +75,9 @@ namespace MiniTimeline.UI.MVVM.Clip {
             
             public ClipController Build() {
                 if (_model == null) _model = new ClipModel();
-                if (_clip != null) _model.Initialize(_clip, _parentTrack);
-                if( _director != null) _model.Initialize(_clip, _parentTrack, _director);
+                if (_clip != null || _parentTrack != null || _director != null) {
+                    _model.Initialize(_clip, _parentTrack, _director);
+                }
                 return new ClipController(_view, _model);
             }
         }

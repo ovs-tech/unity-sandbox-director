@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Sirenix.OdinSerializer;
 using UnityEngine;
 
 namespace Core.Behaviors.Command
@@ -8,11 +9,15 @@ namespace Core.Behaviors.Command
     /// Manages command execution and undo/redo stack for timeline operations
     /// Provides thread-safe operations and memory management
     /// </summary>
-    public class TimelineCommandManager
+    public class TimelineCommandManager : PersistentSingleton<TimelineCommandManager>
     {
+        [OdinSerialize]
         private readonly Stack<ITimelineCommand> undoStack = new Stack<ITimelineCommand>();
+        [OdinSerialize]
         private readonly Stack<ITimelineCommand> redoStack = new Stack<ITimelineCommand>();
+        [SerializeField]
         private readonly int maxHistorySize = 100;
+        [SerializeField] private bool _debugLog = true;
 
         // Events
         public event Action<ITimelineCommand> OnCommandExecuted;
@@ -29,6 +34,15 @@ namespace Core.Behaviors.Command
 
         public string NextUndoDescription => CanUndo ? undoStack.Peek().Description : "";
         public string NextRedoDescription => CanRedo ? redoStack.Peek().Description : "";
+
+        /// <summary>
+        /// Enable/disable debug logging for command operations
+        /// </summary>
+        public bool DebugLog
+        {
+            get => _debugLog;
+            set => _debugLog = value;
+        }
 
         #endregion
 
@@ -76,7 +90,8 @@ namespace Core.Behaviors.Command
                 OnCommandExecuted?.Invoke(command);
                 OnStacksChanged?.Invoke(CanUndo, CanRedo);
 
-                Debug.Log($"[TimelineCommandManager] Executed: {command.Description}");
+                if (_debugLog)
+                    Debug.Log($"[TimelineCommandManager] Executed: {command.Description}");
             }
             catch (Exception e)
             {
@@ -95,7 +110,8 @@ namespace Core.Behaviors.Command
         {
             if (!CanUndo)
             {
-                Debug.LogWarning("[TimelineCommandManager] No commands to undo");
+                if (_debugLog)
+                    Debug.LogWarning("[TimelineCommandManager] No commands to undo");
                 return;
             }
 
@@ -109,7 +125,8 @@ namespace Core.Behaviors.Command
                 OnUndoPerformed?.Invoke(command);
                 OnStacksChanged?.Invoke(CanUndo, CanRedo);
 
-                Debug.Log($"[TimelineCommandManager] Undid: {command.Description}");
+                if (_debugLog)
+                    Debug.Log($"[TimelineCommandManager] Undid: {command.Description}");
             }
             catch (Exception e)
             {
@@ -124,7 +141,8 @@ namespace Core.Behaviors.Command
         {
             if (!CanRedo)
             {
-                Debug.LogWarning("[TimelineCommandManager] No commands to redo");
+                if (_debugLog)
+                    Debug.LogWarning("[TimelineCommandManager] No commands to redo");
                 return;
             }
 
@@ -138,7 +156,8 @@ namespace Core.Behaviors.Command
                 OnRedoPerformed?.Invoke(command);
                 OnStacksChanged?.Invoke(CanUndo, CanRedo);
 
-                Debug.Log($"[TimelineCommandManager] Redid: {command.Description}");
+                if (_debugLog)
+                    Debug.Log($"[TimelineCommandManager] Redid: {command.Description}");
             }
             catch (Exception e)
             {
@@ -159,7 +178,8 @@ namespace Core.Behaviors.Command
             redoStack.Clear();
             OnStacksChanged?.Invoke(CanUndo, CanRedo);
 
-            Debug.Log("[TimelineCommandManager] Command history cleared");
+            if (_debugLog)
+                Debug.Log("[TimelineCommandManager] Command history cleared");
         }
 
         /// <summary>

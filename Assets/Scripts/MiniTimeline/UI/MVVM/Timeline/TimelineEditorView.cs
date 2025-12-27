@@ -68,9 +68,36 @@ namespace MiniTimeline.UI.MVVM.Timeline {
 
             // Undo/Redo
             var undoButton = GetButton("undo-button");
-            if (undoButton != null) undoButton.clicked += vm.Undo;
+            if (undoButton != null) {
+                undoButton.clicked += vm.Undo;
+                // Update button enabled state and style whenever CanUndo changes
+                Action updateUndoState = () => {
+                    bool canUndo = vm.CanUndo.Value;
+                    undoButton.SetEnabled(canUndo);
+                    undoButton.style.opacity = canUndo ? 1f : 0.5f;
+                };
+                updateUndoState();
+                model.OnCommandStacksChanged += updateUndoState;
+                model.OnCommandExecuted += updateUndoState;
+                model.OnUndoPerformed += updateUndoState;
+                model.OnRedoPerformed += updateUndoState;
+            }
+
             var redoButton = GetButton("redo-button");
-            if (redoButton != null) redoButton.clicked += vm.Redo;
+            if (redoButton != null) {
+                redoButton.clicked += vm.Redo;
+                // Update button enabled state and style whenever CanRedo changes
+                Action updateRedoState = () => {
+                    bool canRedo = vm.CanRedo.Value;
+                    redoButton.SetEnabled(canRedo);
+                    redoButton.style.opacity = canRedo ? 1f : 0.5f;
+                };
+                updateRedoState();
+                model.OnCommandStacksChanged += updateRedoState;
+                model.OnCommandExecuted += updateRedoState;
+                model.OnUndoPerformed += updateRedoState;
+                model.OnRedoPerformed += updateRedoState;
+            }
 
             // Track/Project management
             var addTrackButton = GetButton("add-track-button");

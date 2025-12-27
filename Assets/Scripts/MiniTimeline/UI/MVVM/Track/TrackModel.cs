@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
+using Core.Behaviors.Command;
 using MiniTimeline.Core;
+using MiniTimeline.UI.Commands;
 
 namespace MiniTimeline.UI.MVVM.Track {
     public class TrackModel {
@@ -12,6 +15,7 @@ namespace MiniTimeline.UI.MVVM.Track {
         string _bindKey = string.Empty;
         string _type = "Generic";
         MiniTimelineDirector _director;
+        TimelineCommandManager _commandManager;
         float _zoom = 1f;
         float _pixelsPerSecond = 100f;
 
@@ -39,10 +43,20 @@ namespace MiniTimeline.UI.MVVM.Track {
         public float TimelineWidth => _director != null ? _director.Length * _pixelsPerSecond : 1000f;
         public float PixelsPerSecond => _pixelsPerSecond;
         public MiniTimelineDirector Director => _director;
+        public TimelineCommandManager CommandManager => _commandManager;
 
-        public void Initialize(IMiniTrack track, MiniTimelineDirector director) {
+        public TrackModel() {
+            _commandManager = TimelineCommandManager.Instance;
+        }
+
+        public void Initialize(IMiniTrack track, MiniTimelineDirector director, TimelineCommandManager commandManager = null) {
             _track = track;
             _director = director;
+            if (commandManager != null) {
+                _commandManager = commandManager;
+            } else if (_commandManager == null) {
+                _commandManager = TimelineCommandManager.Instance;
+            }
             if (track != null) {
                 _title = !string.IsNullOrEmpty(track.Name) ? track.Name : track.Id;
                 _enabled = track.Enabled;
@@ -50,6 +64,10 @@ namespace MiniTimeline.UI.MVVM.Track {
                 _type = track.GetType().Name;
                 RefreshClips();
             }
+        }
+
+        public void SetCommandManager(TimelineCommandManager commandManager) {
+            _commandManager = commandManager ?? _commandManager;
         }
 
         public void RefreshClips() {
@@ -64,9 +82,16 @@ namespace MiniTimeline.UI.MVVM.Track {
         }
 
         public void ToggleEnabled() { 
-            _enabled = !_enabled;
-            if (_track != null) _track.Enabled = _enabled;
-            OnStateChanged?.Invoke();
+            bool newEnabled = !_enabled;
+            ExecuteTrackSettingsCommand(new Dictionary<string, object> { { "enabled", newEnabled } });
+
+            bool stateChanged = _enabled != newEnabled;
+            _enabled = newEnabled;
+            if (_track != null && _commandManager == null) {
+                _track.Enabled = newEnabled;
+            }
+
+            if (stateChanged) OnStateChanged?.Invoke();
         }
 
         public void Mute() { 
@@ -80,13 +105,22 @@ namespace MiniTimeline.UI.MVVM.Track {
         }
 
         public void SetTitle(string title) { 
-            _title = title;
-            OnTitleChanged?.Invoke();
+            string newTitle = title ?? string.Empty;
+            ExecuteTrackSettingsCommand(new Dictionary<string, object> { { "Name", newTitle } });
+
+            if (_title != newTitle) {
+                _title = newTitle;
+                OnTitleChanged?.Invoke();
+            }
         }
 
         public void SetBindKey(string key) { 
-            _bindKey = key;
-            OnStateChanged?.Invoke();
+            string newKey = key ?? string.Empty;
+            ExecuteTrackSettingsCommand(new Dictionary<string, object> { { "bindKey", newKey } }, allowMerge: true);
+
+            bool stateChanged = _bindKey != newKey;
+            _bindKey = newKey;
+            if (stateChanged) OnStateChanged?.Invoke();
         }
 
         public void SetType(string type) { 
@@ -118,5 +152,114 @@ namespace MiniTimeline.UI.MVVM.Track {
         }
 
         public bool ContainsClip(IMiniClip clip) => _clips.Contains(clip);
+
+        /// <summary>
+        /// Apply one or more track setting changes via the TimelineCommandManager so they are undoable.
+        /// </summary>
+        public void ApplySettings(Dictionary<string, object> formData, bool allowMerge = true) {
+            if (formData == null || formData.Count == 0) return;
+
+            var newSettings = new Dictionary<string, object>();
+            foreach (var kvp in formData) {
+                switch (kvp.Key) {
+                    case "trackName":
+                        newSettings["Name"] = kvp.Value?.ToString() ?? string.Empty;
+                        break;
+                    default:
+                        newSettings[kvp.Key] = kvp.Value;
+                        break;
+                }
+            }
+
+            ExecuteTrackSettingsCommand(newSettings, allowMerge);
+
+            bool stateChanged = false;
+
+            if (newSettings.TryGetValue("Name", out var nameValue)) {
+                string newTitle = nameValue?.ToString() ?? string.Empty;
+                if (_title != newTitle) {
+                    _title = newTitle;
+                    OnTitleChanged?.Invoke();
+                }
+            }
+
+            if (newSettings.TryGetValue("bindKey", out var bindKeyValue)) {
+                string newBindKey = bindKeyValue?.ToString() ?? string.Empty;
+                if (_bindKey != newBindKey) {
+                    _bindKey = newBindKey;
+                    stateChanged = true;
+                }
+            }
+
+            if (newSettings.TryGetValue("enabled", out var enabledValue)) {
+                bool newEnabled = Convert.ToBoolean(enabledValue);
+                if (_enabled != newEnabled) {
+                    _enabled = newEnabled;
+                    stateChanged = true;
+                }
+            }
+
+            if (stateChanged) OnStateChanged?.Invoke();
+        }
+
+        Dictionary<string, object> CaptureCurrentSettings(IEnumerable<string> settingKeys) {
+            var settings = new Dictionary<string, object>();
+            if (settingKeys == null) return settings;
+
+            foreach (var key in settingKeys) {
+                switch (key) {
+                    case "enabled":
+                        settings[key] = _track?.Enabled ?? _enabled;
+                        break;
+                    case "bindKey":
+                        settings[key] = _track?.BindKey ?? _bindKey;
+                        break;
+                    case "Name":
+                    case "trackName":
+                        settings[key] = GetTrackMemberValue("Name", _title);
+                        break;
+                    default:
+                        settings[key] = GetTrackMemberValue(key);
+                        break;
+                }
+            }
+
+            return settings;
+        }
+
+        object GetTrackMemberValue(string memberName, object fallback = null) {
+            if (_track == null || string.IsNullOrEmpty(memberName)) return fallback;
+
+            var trackType = _track.GetType();
+            var property = trackType.GetProperty(memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (property != null && property.CanRead) {
+                return property.GetValue(_track);
+            }
+
+            var field = trackType.GetField(memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (field != null) {
+                return field.GetValue(_track);
+            }
+
+            return fallback;
+        }
+
+        void ExecuteTrackSettingsCommand(Dictionary<string, object> newSettings, bool allowMerge = false) {
+            if (newSettings == null || newSettings.Count == 0) return;
+
+            if (_track == null) {
+                Debug.LogWarning("Cannot apply track settings: Track is null");
+                return;
+            }
+
+            var oldSettings = CaptureCurrentSettings(newSettings.Keys);
+            var command = new UpdateTrackSettingsCommand(_track, oldSettings, newSettings, _director);
+
+            if (_commandManager != null) {
+                _commandManager.ExecuteCommand(command, allowMerge);
+            } else {
+                command.Execute();
+            }
+        }
     }
 }
