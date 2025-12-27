@@ -14,6 +14,11 @@ namespace MiniTimeline.Core
         string Id { get; }
         
         /// <summary>
+        /// Display name for this track
+        /// </summary>
+        string Name { get; }
+        
+        /// <summary>
         /// Binding key to resolve target object from BindingContext
         /// </summary>
         string BindKey { get; }

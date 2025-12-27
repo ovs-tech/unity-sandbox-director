@@ -1,10 +1,16 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.UIElements;
 using MiniTimeline.Core;
 using MiniTimeline.UI.MVVM.Track;
 using MiniTimeline.UI.MVVM.Ruler;
+using MiniTimeline.UI.Commands;
+using MiniTimeline.UI.FormDefinitions;
+using Core.UI.FormSubmit;
+using Core.UI.FormSubmit.Fields;
 
 namespace MiniTimeline.UI.MVVM.Timeline
 {
@@ -87,6 +93,9 @@ namespace MiniTimeline.UI.MVVM.Timeline
         Debug.Log("Tracks array changed - syncing track controllers");
         SyncTrackControllers(tracks);
       };
+
+      // Provide a UIElements parent container for forms
+      vm.FormHost = _view?.Root;
     }
 
     /// <summary>
@@ -294,6 +303,7 @@ namespace MiniTimeline.UI.MVVM.Timeline
 
       // Observable array for managing tracks
       public readonly ObservableArray<IMiniTrack> Tracks;
+      public VisualElement FormHost { get; set; }
 
       readonly TimelineEditorModel _model;
 
@@ -426,63 +436,286 @@ namespace MiniTimeline.UI.MVVM.Timeline
       // Track operations
       public void ShowAddTrackForm()
       {
-        // For now, add a default AnimTrack
-        // TODO: Show a form UI to select track type
-        _model.AddTrack("AnimTrack", $"Track {GetTrackCount() + 1}", "", true);
-        Debug.Log($"Added new track. Total tracks: {GetTrackCount()}");
+        if (_model.Director?.Project == null)
+        {
+          Debug.LogError("Cannot add track: No project loaded");
+          return;
+        }
+
+        var fieldDefinitions = TrackFormDefinitions.GetCreateTrackFields();
+        
+        FormSubmitPanelUIToolkit.Instance.Show(
+          "Add Track",
+          fieldDefinitions,
+          OnAddTrackFormSubmitted,
+          OnAddTrackFormCancelled,
+          FormHost
+        );
+      }
+
+      private void OnAddTrackFormSubmitted(Dictionary<string, object> formData)
+      {
+        try
+        {
+          string trackType = formData.ContainsKey("trackType") ? formData["trackType"].ToString() : MiniTimelineConstants.TRACK_ANIM;
+          string trackName = formData.ContainsKey("trackName") ? formData["trackName"].ToString() : "New Track";
+          string bindKey = formData.ContainsKey("bindKey") ? formData["bindKey"].ToString() : "";
+          bool enabled = formData.ContainsKey("enabled") ? Convert.ToBoolean(formData["enabled"]) : true;
+
+          var addTrackCommand = new AddTrackCommand(_model.Director, trackType, trackName, bindKey, enabled);
+          _model.ExecuteCommand(addTrackCommand);
+          Debug.Log($"Added new {trackType} track: {trackName}");
+        }
+        catch (Exception ex)
+        {
+          Debug.LogError($"Failed to create track: {ex.Message}");
+        }
+      }
+
+      private void OnAddTrackFormCancelled()
+      {
+        Debug.Log("Add track cancelled");
       }
 
       public void ShowBindingManager()
       {
         if (_model.Director?.BindingContext == null)
         {
-          Debug.LogWarning("No binding context available");
+          Debug.LogError("Cannot show binding manager: No binding context available");
           return;
         }
-        
-        Debug.Log("Opening binding manager");
-        // TODO: Create and show binding manager UI window
-        Debug.Log("Binding context ready");
+
+        var bindingContext = _model.Director.BindingContext;
+        var fieldDefinitions = new List<FormFieldDefinition>
+        {
+          new FormFieldDefinition
+          {
+            name = "bindingList",
+            type = "textarea",
+            label = "Current Scene Bindings",
+            required = false,
+            defaultValue = FormatBindingsForDisplay(bindingContext),
+            tooltip = "List of currently registered scene object bindings"
+          },
+          new FormFieldDefinition
+          {
+            name = "newBindingKey",
+            type = "text",
+            label = "New Binding Key",
+            required = false,
+            placeholder = "Enter binding key...",
+            tooltip = "Unique key name for the new binding"
+          },
+          new FormFieldDefinition
+          {
+            name = "newBindingObject",
+            type = "text",
+            label = "Target Object Name",
+            required = false,
+            placeholder = "Enter GameObject name...",
+            tooltip = "Name of the GameObject to bind"
+          }
+        };
+
+        FormSubmitPanelUIToolkit.Instance.Show(
+          "Binding Manager",
+          fieldDefinitions,
+          OnBindingManagerFormSubmitted,
+          null,
+          FormHost
+        );
+      }
+
+      private void OnBindingManagerFormSubmitted(Dictionary<string, object> formData)
+      {
+        try
+        {
+          if (formData.ContainsKey("newBindingKey") && formData.ContainsKey("newBindingObject"))
+          {
+            string key = formData["newBindingKey"]?.ToString();
+            string objectName = formData["newBindingObject"]?.ToString();
+            
+            if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(objectName))
+            {
+              var targetObject = GameObject.Find(objectName);
+              if (targetObject != null)
+              {
+                _model.Director.BindingContext.Bind(key, targetObject);
+                Debug.Log($"Registered binding: {key} -> {objectName}");
+              }
+              else
+              {
+                Debug.LogWarning($"GameObject '{objectName}' not found in scene");
+              }
+            }
+          }
+        }
+        catch (Exception ex)
+        {
+          Debug.LogError($"Failed to update bindings: {ex.Message}");
+        }
+      }
+
+      private string FormatBindingsForDisplay(BindableObjectManager bindingContext)
+      {
+        if (bindingContext == null) return "No bindings";
+        var keys = bindingContext.GetKeys();
+        if (keys == null || !keys.Any()) return "No bindings registered";
+        return string.Join("\n", keys.Select(key => 
+        {
+          var obj = bindingContext.Resolve<GameObject>(key);
+          return $"{key}: {(obj != null ? obj.name : "null")}";
+        }));
       }
 
       public void ShowSaveProjectForm()
       {
         if (_model.Director?.Project == null)
         {
-          Debug.LogWarning("No project to save");
+          Debug.LogError("Cannot save project: No project loaded");
           return;
         }
-        
-        // TODO: Show file dialog to get project name
-        // For now, use a default project name
-        string projectName = "timeline_project";
-        
-        bool success = _model.Director.SaveProject(projectName);
-        if (success)
+
+        var fieldDefinitions = new List<FormFieldDefinition>
         {
-          Debug.Log($"Project '{projectName}' saved successfully");
+          new FormFieldDefinition
+          {
+            name = "filename",
+            type = "text",
+            label = "Filename",
+            required = true,
+            defaultValue = _model.Director.Project.name ?? "timeline_project",
+            placeholder = "Enter project filename...",
+            tooltip = "Name of the file to save (without extension)"
+          },
+          new FormFieldDefinition
+          {
+            name = "prettyPrint",
+            type = "checkbox",
+            label = "Pretty Print JSON",
+            required = false,
+            defaultValue = true,
+            tooltip = "Format JSON for better readability"
+          }
+        };
+
+        FormSubmitPanelUIToolkit.Instance.Show(
+          "Save Project",
+          fieldDefinitions,
+          OnSaveProjectFormSubmitted,
+          null,
+          FormHost
+        );
+      }
+
+      private void OnSaveProjectFormSubmitted(Dictionary<string, object> formData)
+      {
+        try
+        {
+          string filename = formData.ContainsKey("filename") ? formData["filename"].ToString() : "timeline_project";
+          if (!filename.EndsWith(".json"))
+          {
+            filename += ".json";
+          }
+
+          bool success = _model.Director.SaveProject(filename);
+          if (success)
+          {
+            Debug.Log($"Project '{filename}' saved successfully");
+          }
+          else
+          {
+            Debug.LogError($"Failed to save project '{filename}'");
+          }
         }
-        else
+        catch (Exception ex)
         {
-          Debug.LogError($"Failed to save project '{projectName}'");
+          Debug.LogError($"Failed to save project: {ex.Message}");
         }
       }
 
       public void ShowLoadProjectForm()
       {
-        // TODO: Show file dialog to get project name
-        // For now, use a default project name
-        string projectName = "timeline_project";
-        
-        bool success = _model.Director.LoadProject(projectName);
-        if (success)
+        var projectFiles = GetAvailableProjectFiles();
+        var fieldDefinitions = new List<FormFieldDefinition>
         {
-          Debug.Log($"Project '{projectName}' loaded successfully");
-        }
-        else
+          new FormFieldDefinition
+          {
+            name = "filename",
+            type = projectFiles.Length > 0 ? "selectbox" : "text",
+            label = projectFiles.Length > 0 ? "Select Project File" : "Enter Filename",
+            required = true,
+            placeholder = "Enter project filename...",
+            tooltip = "Select or enter the filename to load",
+            options = projectFiles.Length > 0 ? new Dictionary<string, object>
+            {
+              { "items", projectFiles.ToList() }
+            } : null
+          },
+          new FormFieldDefinition
+          {
+            name = "replaceBindings",
+            type = "checkbox",
+            label = "Auto-Update Scene Bindings",
+            required = false,
+            defaultValue = true,
+            tooltip = "Automatically update scene bindings after loading"
+          }
+        };
+
+        FormSubmitPanelUIToolkit.Instance.Show(
+          "Load Project",
+          fieldDefinitions,
+          OnLoadProjectFormSubmitted,
+          null,
+          FormHost
+        );
+      }
+
+      private void OnLoadProjectFormSubmitted(Dictionary<string, object> formData)
+      {
+        try
         {
-          Debug.LogError($"Failed to load project '{projectName}'");
+          string filename = formData.ContainsKey("filename") ? formData["filename"].ToString() : "timeline_project";
+          if (!filename.EndsWith(".json"))
+          {
+            filename += ".json";
+          }
+
+          bool success = _model.Director.LoadProject(filename);
+          if (success)
+          {
+            Debug.Log($"Project '{filename}' loaded successfully");
+          }
+          else
+          {
+            Debug.LogError($"Failed to load project '{filename}'");
+          }
         }
+        catch (Exception ex)
+        {
+          Debug.LogError($"Failed to load project: {ex.Message}");
+        }
+      }
+
+      private string[] GetAvailableProjectFiles()
+      {
+        try
+        {
+          string projectPath = Application.persistentDataPath;
+          if (System.IO.Directory.Exists(projectPath))
+          {
+            var files = System.IO.Directory.GetFiles(projectPath, "*.json")
+              .Select(System.IO.Path.GetFileName)
+              .ToArray();
+            return files;
+          }
+        }
+        catch (Exception ex)
+        {
+          Debug.LogWarning($"Failed to get available project files: {ex.Message}");
+        }
+        return new string[0];
       }
     }
 

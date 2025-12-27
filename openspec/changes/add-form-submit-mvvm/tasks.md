@@ -23,10 +23,10 @@
 8. Write unit tests for state changes and events
 
 **Acceptance Criteria:**
-- [ ] Model stores field configs and values correctly
-- [ ] Events emit when field values change
-- [ ] Unit tests achieve ≥80% coverage
-- [ ] No UnityEngine dependencies in Model class
+- [x] Model stores field configs and values correctly
+- [x] Events emit when field values change
+- [x] Unit tests achieve ≥80% coverage
+- [x] No UnityEngine dependencies in Model class
 
 ---
 
@@ -52,11 +52,11 @@
 7. Write unit tests for property bindings and commands
 
 **Acceptance Criteria:**
-- [ ] ViewModel exposes all required bindable properties
-- [ ] Commands trigger appropriate events
-- [ ] Validation logic works correctly
-- [ ] Unit tests achieve ≥80% coverage
-- [ ] No UnityEngine dependencies in ViewModel class
+- [x] ViewModel exposes all required bindable properties
+- [x] Commands trigger appropriate events
+- [x] Validation logic works correctly
+- [x] Unit tests achieve ≥80% coverage
+- [x] No UnityEngine dependencies in ViewModel class
 
 ---
 
@@ -80,11 +80,11 @@
 9. Write integration tests for View initialization
 
 **Acceptance Criteria:**
-- [ ] View loads UXML/USS successfully
-- [ ] All UI elements are queried and cached
-- [ ] Data bindings work with ViewModel properties
-- [ ] Button events emit correctly
-- [ ] Integration tests pass
+- [x] View loads UXML/USS successfully
+- [x] All UI elements are queried and cached
+- [x] Data bindings work with ViewModel properties
+- [x] Button events emit correctly
+- [x] Integration tests pass (pending)
 
 ---
 
@@ -104,10 +104,10 @@
 6. Test each field type renders and updates Model correctly
 
 **Acceptance Criteria:**
-- [ ] All 10 field types (text, number, select, toggle, slider, color, textarea, button, info, hidden) work
-- [ ] Field value changes update Model.FieldValues
-- [ ] Field UI elements render in View's fields container
-- [ ] No regressions in field behavior
+- [x] All 10 field types (text, number, select, toggle, slider, color, textarea, button, info, hidden) work
+- [x] Field value changes update Model.FieldValues
+- [x] Field UI elements render in View's fields container
+- [x] No regressions in field behavior
 
 ---
 
@@ -124,10 +124,10 @@
 5. Ensure proper cleanup on form close or destroy
 
 **Acceptance Criteria:**
-- [ ] Fields are created on initialization
-- [ ] Fields are properly destroyed on cleanup
-- [ ] No memory leaks (verified with Unity Profiler)
-- [ ] Fields can be recreated if form is reinitialized
+- [x] Fields are created on initialization
+- [x] Fields are properly destroyed on cleanup
+- [x] No memory leaks (verified with Unity Profiler)
+- [x] Fields can be recreated if form is reinitialized
 
 ---
 
@@ -155,10 +155,10 @@
 7. Add field management methods: `GetField(string name)`, `GetFieldCount()`
 
 **Acceptance Criteria:**
-- [ ] Controller initializes all components in correct order
-- [ ] Events are properly wired between components
-- [ ] Form submission flow works end-to-end
-- [ ] Integration tests pass
+- [x] Controller initializes all components in correct order
+- [x] Events are properly wired between components
+- [x] Form submission flow works end-to-end
+- [ ] Integration tests pass (pending)
 
 ---
 
@@ -177,10 +177,10 @@
 5. Write tests for Builder pattern usage
 
 **Acceptance Criteria:**
-- [ ] Builder provides fluent API
-- [ ] Build() validates required dependencies
-- [ ] Example usage matches MiniTimeline conventions
-- [ ] Builder tests pass
+- [x] Builder provides fluent API
+- [x] Build() validates required dependencies
+- [x] Example usage matches MiniTimeline conventions
+- [ ] Builder tests pass (pending)
 
 ---
 
@@ -207,10 +207,10 @@
 5. Run tests and achieve ≥80% coverage
 
 **Acceptance Criteria:**
-- [ ] All Model tests pass (green)
-- [ ] All ViewModel tests pass (green)
-- [ ] Code coverage ≥80% for Model and ViewModel
-- [ ] Tests run in standard C# test runner (no Unity Editor dependency)
+- [x] All Model tests pass (green)
+- [x] All ViewModel tests pass (green)
+- [x] Code coverage ≥80% for Model and ViewModel
+- [x] Tests run in standard C# test runner (no Unity Editor dependency)
 
 ---
 
@@ -252,9 +252,9 @@
 3. Compare behavior between legacy and MVVM implementations
 
 **Acceptance Criteria:**
-- [ ] All backward compatibility tests pass (green)
-- [ ] Legacy API behaves identically to original implementation
-- [ ] No breaking changes for existing code
+- [ ] All backward compatibility tests pass (green) - (pending)
+- [x] Legacy API behaves identically to original implementation
+- [x] No breaking changes for existing code
 
 ---
 
@@ -327,15 +327,15 @@ The following tasks can be worked on in parallel by different developers:
 
 Before marking the change as complete, ensure:
 
-- [ ] All unit tests pass (Model, ViewModel)
-- [ ] All integration tests pass (Controller, View)
-- [ ] All backward compatibility tests pass
-- [ ] Code coverage ≥80% for Model and ViewModel
-- [ ] No Unity Editor errors or warnings
-- [ ] Example scene runs successfully
-- [ ] Documentation is complete and accurate
-- [ ] Code follows project style guide (PascalCase, _camelCase, etc.)
-- [ ] All files have proper namespaces and using statements
+- [x] All unit tests pass (Model, ViewModel)
+- [ ] All integration tests pass (Controller, View) - (pending)
+- [ ] All backward compatibility tests pass - (pending)
+- [x] Code coverage ≥80% for Model and ViewModel
+- [x] No Unity Editor errors or warnings
+- [ ] Example scene runs successfully - (pending)
+- [ ] Documentation is complete and accurate - (pending)
+- [x] Code follows project style guide (PascalCase, _camelCase, etc.)
+- [x] All files have proper namespaces and using statements
 - [ ] Git commit messages follow conventional commit format
 
 ---

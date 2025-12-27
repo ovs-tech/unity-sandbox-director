@@ -15,6 +15,9 @@ namespace MiniTimeline.UI.Commands
     {
         private readonly MiniTimelineDirector director;
         private readonly string trackType;
+        private readonly string trackName;
+        private readonly string bindKey;
+        private readonly bool enabled;
         private IMiniTrack createdTrack;
 
         /// <summary>
@@ -22,11 +25,17 @@ namespace MiniTimeline.UI.Commands
         /// </summary>
         /// <param name="timelineDirector">The timeline director instance</param>
         /// <param name="type">Track type name (e.g., MiniTimelineConstants.TRACK_ANIM)</param>
-        public AddTrackCommand(MiniTimelineDirector timelineDirector, string type)
+        /// <param name="name">Track display name</param>
+        /// <param name="bindingKey">Binding key for scene object resolution</param>
+        /// <param name="isEnabled">Whether the track is enabled</param>
+        public AddTrackCommand(MiniTimelineDirector timelineDirector, string type, string name = "New Track", string bindingKey = "", bool isEnabled = true)
             : base($"Add {type} Track")
         {
             director = timelineDirector;
             trackType = type;
+            trackName = name;
+            bindKey = string.IsNullOrEmpty(bindingKey) ? "" : bindingKey;
+            enabled = isEnabled;
         }
 
         protected override void ExecuteInternal()
@@ -45,6 +54,37 @@ namespace MiniTimeline.UI.Commands
                 {
                     Debug.LogError($"Cannot create track of type {trackType}");
                     return;
+                }
+
+                // Generate unique ID and BindKey for the new track
+                string trackId = System.Guid.NewGuid().ToString();
+                
+                // Use reflection to set properties on the track instance
+                var idProperty = createdTrack.GetType().GetProperty("Id", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                var nameProperty = createdTrack.GetType().GetProperty("Name", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                var bindKeyProperty = createdTrack.GetType().GetProperty("BindKey", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                var enabledProperty = createdTrack.GetType().GetProperty("Enabled", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                
+                if (idProperty?.CanWrite == true)
+                {
+                    idProperty.SetValue(createdTrack, trackId);
+                }
+                
+                if (nameProperty?.CanWrite == true)
+                {
+                    nameProperty.SetValue(createdTrack, trackName);
+                }
+                
+                if (bindKeyProperty?.CanWrite == true)
+                {
+                    // Use provided bindKey or fall back to trackId
+                    string finalBindKey = !string.IsNullOrEmpty(bindKey) ? bindKey : trackId;
+                    bindKeyProperty.SetValue(createdTrack, finalBindKey);
+                }
+                
+                if (enabledProperty?.CanWrite == true)
+                {
+                    enabledProperty.SetValue(createdTrack, enabled);
                 }
 
                 // Add directly to director (which manages project.tracks and binding)

@@ -176,25 +176,25 @@ namespace MiniTimeline.UI
             commandManager.OnStacksChanged += OnCommandStacksChanged;
         }
 
-        private void OnCommandExecuted()
+        private void OnCommandExecuted(ITimelineCommand command)
         {
             // Refresh UI after command execution
             RefreshTimelineUI();
         }
 
-        private void OnCommandUndoPerformed()
+        private void OnCommandUndoPerformed(ITimelineCommand command)
         {
             // Refresh UI after undo
             RefreshTimelineUI();
         }
 
-        private void OnCommandRedoPerformed()
+        private void OnCommandRedoPerformed(ITimelineCommand command)
         {
             // Refresh UI after redo
             RefreshTimelineUI();
         }
 
-        private void OnCommandStacksChanged()
+        private void OnCommandStacksChanged(bool canUndo, bool canRedo)
         {
             // Update undo/redo button states
             UpdateUndoRedoButtonStates();

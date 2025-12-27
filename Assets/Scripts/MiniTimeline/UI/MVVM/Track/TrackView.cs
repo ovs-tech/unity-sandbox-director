@@ -10,9 +10,11 @@ using Unity.Properties;
 namespace MiniTimeline.UI.MVVM.Track {
     public class TrackView {
         public VisualElement Root { get; private set; }
+        public VisualElement PanelRoot { get; private set; }
 
-        public TrackView(VisualElement root, VisualTreeAsset uxml = null, StyleSheet uss = null) {
+        public TrackView(VisualElement root, VisualTreeAsset uxml = null, StyleSheet uss = null, VisualElement panelRoot = null) {
             Root = root;
+            PanelRoot = panelRoot;
             Initialize(uxml, uss);
         }
 

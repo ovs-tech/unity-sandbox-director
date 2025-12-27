@@ -12,6 +12,7 @@ namespace MiniTimeline.Core
         where TClip : IMiniClip
     {
         [OdinSerialize] public string Id { get; set; }
+        [OdinSerialize] public string Name { get; set; }
         [OdinSerialize] public string BindKey { get; set; }
         [OdinSerialize] public bool Enabled { get; set; } = true;
         public virtual int Order => 0;

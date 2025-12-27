@@ -204,10 +204,10 @@ namespace MiniTimeline.UI.MVVM.Timeline {
         // Command Manager event subscriptions
         private void SubscribeToCommandManager() {
             if (_commandManager == null) return;
-            _commandManager.OnCommandExecuted += () => OnCommandExecuted?.Invoke();
-            _commandManager.OnUndoPerformed += () => OnUndoPerformed?.Invoke();
-            _commandManager.OnRedoPerformed += () => OnRedoPerformed?.Invoke();
-            _commandManager.OnStacksChanged += () => OnCommandStacksChanged?.Invoke();
+            _commandManager.OnCommandExecuted += (cmd) => OnCommandExecuted?.Invoke();
+            _commandManager.OnUndoPerformed += (cmd) => OnUndoPerformed?.Invoke();
+            _commandManager.OnRedoPerformed += (cmd) => OnRedoPerformed?.Invoke();
+            _commandManager.OnStacksChanged += (canUndo, canRedo) => OnCommandStacksChanged?.Invoke();
         }
 
         // Playback control
@@ -281,10 +281,10 @@ namespace MiniTimeline.UI.MVVM.Timeline {
             UnsubscribeFromMiniTimelineDirector();
             
             if (_commandManager != null) {
-                _commandManager.OnCommandExecuted -= () => OnCommandExecuted?.Invoke();
-                _commandManager.OnUndoPerformed -= () => OnUndoPerformed?.Invoke();
-                _commandManager.OnRedoPerformed -= () => OnRedoPerformed?.Invoke();
-                _commandManager.OnStacksChanged -= () => OnCommandStacksChanged?.Invoke();
+                _commandManager.OnCommandExecuted -= (cmd) => OnCommandExecuted?.Invoke();
+                _commandManager.OnUndoPerformed -= (cmd) => OnUndoPerformed?.Invoke();
+                _commandManager.OnRedoPerformed -= (cmd) => OnRedoPerformed?.Invoke();
+                _commandManager.OnStacksChanged -= (canUndo, canRedo) => OnCommandStacksChanged?.Invoke();
             }
         }
 

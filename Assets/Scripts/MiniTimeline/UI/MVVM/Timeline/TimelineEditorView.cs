@@ -192,7 +192,7 @@ namespace MiniTimeline.UI.MVVM.Timeline {
                 tracksContainer.Add(trackElement);
 
                 // Create TrackView with the VisualElement and UI assets
-                var trackView = new TrackView(trackElement, TrackUxml, TrackUss);
+                var trackView = new TrackView(trackElement, TrackUxml, TrackUss, Root);
 
                 // Create TrackController with builder pattern
                 var trackController = new TrackController.Builder(trackView)

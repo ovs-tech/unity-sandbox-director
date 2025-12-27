@@ -15,10 +15,10 @@ namespace Core.Behaviors.Command
         private readonly int maxHistorySize = 100;
 
         // Events
-        public event Action OnCommandExecuted;
-        public event Action OnUndoPerformed;
-        public event Action OnRedoPerformed;
-        public event Action OnStacksChanged;
+        public event Action<ITimelineCommand> OnCommandExecuted;
+        public event Action<ITimelineCommand> OnUndoPerformed;
+        public event Action<ITimelineCommand> OnRedoPerformed;
+        public event Action<bool, bool> OnStacksChanged;  // (canUndo, canRedo)
 
         #region Properties
 
@@ -56,7 +56,7 @@ namespace Core.Behaviors.Command
                     if (lastCommand.CanMergeWith(command))
                     {
                         lastCommand.MergeWith(command);
-                        OnCommandExecuted?.Invoke();
+                        OnCommandExecuted?.Invoke(command);
                         return;
                     }
                 }
@@ -73,8 +73,8 @@ namespace Core.Behaviors.Command
                 // Maintain max history size
                 TrimHistoryIfNeeded();
 
-                OnCommandExecuted?.Invoke();
-                OnStacksChanged?.Invoke();
+                OnCommandExecuted?.Invoke(command);
+                OnStacksChanged?.Invoke(CanUndo, CanRedo);
 
                 Debug.Log($"[TimelineCommandManager] Executed: {command.Description}");
             }
@@ -106,8 +106,8 @@ namespace Core.Behaviors.Command
 
                 redoStack.Push(command);
 
-                OnUndoPerformed?.Invoke();
-                OnStacksChanged?.Invoke();
+                OnUndoPerformed?.Invoke(command);
+                OnStacksChanged?.Invoke(CanUndo, CanRedo);
 
                 Debug.Log($"[TimelineCommandManager] Undid: {command.Description}");
             }
@@ -135,8 +135,8 @@ namespace Core.Behaviors.Command
 
                 undoStack.Push(command);
 
-                OnRedoPerformed?.Invoke();
-                OnStacksChanged?.Invoke();
+                OnRedoPerformed?.Invoke(command);
+                OnStacksChanged?.Invoke(CanUndo, CanRedo);
 
                 Debug.Log($"[TimelineCommandManager] Redid: {command.Description}");
             }
@@ -157,7 +157,7 @@ namespace Core.Behaviors.Command
         {
             undoStack.Clear();
             redoStack.Clear();
-            OnStacksChanged?.Invoke();
+            OnStacksChanged?.Invoke(CanUndo, CanRedo);
 
             Debug.Log("[TimelineCommandManager] Command history cleared");
         }

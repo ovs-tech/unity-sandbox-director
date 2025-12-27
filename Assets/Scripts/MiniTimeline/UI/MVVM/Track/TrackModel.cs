@@ -44,7 +44,7 @@ namespace MiniTimeline.UI.MVVM.Track {
             _track = track;
             _director = director;
             if (track != null) {
-                _title = track.Id;
+                _title = !string.IsNullOrEmpty(track.Name) ? track.Name : track.Id;
                 _enabled = track.Enabled;
                 _bindKey = track.BindKey ?? string.Empty;
                 _type = track.GetType().Name;
