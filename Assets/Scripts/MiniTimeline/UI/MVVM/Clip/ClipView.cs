@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using Unity.Properties;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -91,14 +92,35 @@ namespace MiniTimeline.UI.MVVM.Clip {
             var mutedIcon = GetElement("clip-mute-icon");
             
             // Display elements
-            if (title != null) title.text = viewModel.Title.Value;
-            if (durationLabel != null) durationLabel.text = $"{viewModel.Duration.Value:F2}s";
+            if (title != null) {
+                title.SetBinding(nameof(Label.text), new DataBinding
+                {
+                    dataSource = viewModel.Title,
+                    dataSourcePath = new PropertyPath(nameof(BindableProperty<string>.Value)),
+                    bindingMode = BindingMode.ToTarget
+                });
+            }
+            if (durationLabel != null) {
+                durationLabel.text = $"{viewModel.Duration.Value:F2}s";
+                durationLabel.SetBinding(nameof(Label.text), new DataBinding
+                {
+                    dataSource = viewModel.DurationText,
+                    dataSourcePath = new PropertyPath(nameof(BindableProperty<float>.Value)),
+                    bindingMode = BindingMode.ToTarget
+                });
+            }
 
             // Selection and interaction
             var clipElement = GetElement("clip-root");
             _clipElement = clipElement;
             
             if (_clipElement != null) {
+                _clipElement.SetBinding(nameof(Label.tooltip), new DataBinding
+                {
+                    dataSource = viewModel.Title,
+                    dataSourcePath = new PropertyPath(nameof(BindableProperty<string>.Value)),
+                    bindingMode = BindingMode.ToTarget
+                });
                 _clipElement.pickingMode = PickingMode.Position;
                 _clipElement.RegisterCallback<PointerDownEvent>(evt => {
                     Debug.Log($"[ClipView] clipContent PointerDown fired! Target: {evt.target}");
@@ -191,7 +213,9 @@ namespace MiniTimeline.UI.MVVM.Clip {
                 if (clipElement != null) {
                     clipElement.EnableInClassList("selected", selected);
                 }
+                SetResizeHandlesSelected(selected);
             };
+            SetResizeHandlesSelected(model.Selected);
             model.OnZoomChanged += () => {
                 UpdateClipVisualTiming(viewModel.StartTime.Value, viewModel.Duration.Value);
             };
@@ -317,6 +341,21 @@ namespace MiniTimeline.UI.MVVM.Clip {
             _currentResizeNewStart = ClampStartTime(startTime);
             _currentResizeNewDuration = ClampMinDuration(newDuration);
             UpdateClipVisualTiming(startTime, _currentResizeNewDuration);
+        }
+
+        private void SetResizeHandlesSelected(bool selected)
+        {
+            if (_resizeLeftHandle != null)
+            {
+                if (selected) _resizeLeftHandle.AddToClassList("selected");
+                else _resizeLeftHandle.RemoveFromClassList("selected");
+            }
+
+            if (_resizeRightHandle != null)
+            {
+                if (selected) _resizeRightHandle.AddToClassList("selected");
+                else _resizeRightHandle.RemoveFromClassList("selected");
+            }
         }
 
         /// <summary>

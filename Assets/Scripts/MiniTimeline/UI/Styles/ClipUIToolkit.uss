@@ -197,6 +197,10 @@
     cursor: resize-horizontal;
 }
 
+.clip-resize-handle.selected {
+    background-color: rgba(255, 200, 100, 0.9);
+}
+
 .clip-resize-left {
     left: 0;
 }

@@ -40,6 +40,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
         public class ViewModel {
             public readonly BindableProperty<string> Title;
             public readonly BindableProperty<float> Duration;
+            public readonly BindableProperty<string> DurationText;
             public readonly BindableProperty<float> StartTime;
             public readonly BindableProperty<bool> Locked;
             public readonly BindableProperty<bool> Muted;
@@ -52,6 +53,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
                 _model = model;
                 Title = BindableProperty<string>.Bind(() => _model.Title);
                 Duration = BindableProperty<float>.Bind(() => _model.Duration);
+                DurationText = BindableProperty<string>.Bind(() => $"{_model.Duration:F2}s");
                 StartTime = BindableProperty<float>.Bind(() => _model.StartTime);
                 Locked = BindableProperty<bool>.Bind(() => _model.Locked);
                 Muted = BindableProperty<bool>.Bind(() => _model.Muted);
