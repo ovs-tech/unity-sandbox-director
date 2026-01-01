@@ -1,60 +1,31 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/Scripts/MiniTimeline/UI/ClipUIToolkit.uss?fileID=7433441132597879392&amp;guid=YOUR_USS_GUID&amp;type=3#ClipUIToolkit" />
-    
-    <ui:VisualElement name="clip-root" class="clip">
-        
-        <!-- Clip Header -->
-        <ui:VisualElement name="clip-header" class="clip-header">
-            
-            <!-- Clip Icon/Type Indicator -->
+    <Style src="project://database/Assets/Scripts/MiniTimeline/UI/Styles/ClipUIToolkit.uss?fileID=7433441132597879392&amp;guid=d3ec1ec3c88ca4e0aadc6bf7055f5416&amp;type=3#ClipUIToolkit"/>
+    <ui:VisualElement name="clip-root" picking-mode="Position" class="clip">
+        <ui:VisualElement name="clip-header" class="clip-header" style="margin-right: 10px; margin-left: 10px;">
             <ui:VisualElement name="clip-icon" class="clip-icon">
-                <ui:Label name="clip-type-icon" class="clip-type-icon" text="🎭" />
+                <ui:Label name="clip-type-icon" text="&#127917;" class="clip-type-icon"/>
             </ui:VisualElement>
-            
-            <!-- Clip Title -->
-            <ui:Label name="clip-title" class="clip-title" text="Clip Name" />
-            
-            <!-- Clip Status Icons -->
+            <ui:Label name="clip-title" text="Clip Name" class="clip-title"/>
             <ui:VisualElement name="clip-status" class="clip-status">
-                <ui:VisualElement name="clip-lock-icon" class="clip-status-icon clip-lock-icon" />
-                <ui:VisualElement name="clip-mute-icon" class="clip-status-icon clip-mute-icon" />
+                <ui:VisualElement name="clip-lock-icon" class="clip-status-icon clip-lock-icon"/>
+                <ui:VisualElement name="clip-mute-icon" class="clip-status-icon clip-mute-icon"/>
             </ui:VisualElement>
-            
         </ui:VisualElement>
-        
-        <!-- Clip Content -->
-        <ui:VisualElement name="clip-content" class="clip-content">
-            
-            <!-- Clip Waveform/Preview Area -->
-            <ui:VisualElement name="clip-preview" class="clip-preview">
-                <!-- Preview content will be dynamically generated based on clip type -->
+        <ui:VisualElement name="clip-content" picking-mode="Position" class="clip-content" style="margin-right: 10px; margin-left: 10px;">
+            <ui:VisualElement name="clip-preview" picking-mode="Ignore" class="clip-preview"/>
+            <ui:VisualElement name="clip-markers" picking-mode="Ignore" class="clip-markers">
+                <ui:VisualElement name="clip-start-marker" class="clip-marker clip-start-marker"/>
+                <ui:VisualElement name="clip-end-marker" class="clip-marker clip-end-marker"/>
             </ui:VisualElement>
-            
-            <!-- Clip Timeline Markers -->
-            <ui:VisualElement name="clip-markers" class="clip-markers">
-                <ui:VisualElement name="clip-start-marker" class="clip-marker clip-start-marker" />
-                <ui:VisualElement name="clip-end-marker" class="clip-marker clip-end-marker" />
+            <ui:VisualElement name="clip-info" picking-mode="Ignore" class="clip-info">
+                <ui:Label name="clip-duration" text="2.5s" class="clip-duration"/>
+                <ui:Label name="clip-details" text="Details" class="clip-details"/>
             </ui:VisualElement>
-            
-            <!-- Clip Info Overlay -->
-            <ui:VisualElement name="clip-info" class="clip-info">
-                <ui:Label name="clip-duration" class="clip-duration" text="2.5s" />
-                <ui:Label name="clip-details" class="clip-details" text="Details" />
-            </ui:VisualElement>
-            
         </ui:VisualElement>
-        
-        <!-- Clip Resize Handles -->
-        <ui:VisualElement name="clip-resize-handles" class="clip-resize-handles">
-            <ui:VisualElement name="clip-resize-left" class="clip-resize-handle clip-resize-left" />
-            <ui:VisualElement name="clip-resize-right" class="clip-resize-handle clip-resize-right" />
+        <ui:VisualElement name="clip-resize-handles" picking-mode="Position" class="clip-resize-handles" style="min-width: auto; width: 100%; max-width: none; right: 0; bottom: 0;">
+            <ui:VisualElement name="clip-resize-left" class="clip-resize-handle clip-resize-left" style="width: 8px; height: 100%; background-color: rgb(211, 211, 211);"/>
+            <ui:VisualElement name="clip-resize-right" class="clip-resize-handle clip-resize-right" style="width: 8px; height: 100%; background-color: rgb(211, 211, 211);"/>
         </ui:VisualElement>
-        
-        <!-- Clip Selection Border -->
-        <ui:VisualElement name="clip-selection-border" class="clip-selection-border" />
-        
-        <!-- Clip Context Menu Trigger -->
-        <ui:VisualElement name="clip-context-trigger" class="clip-context-trigger" />
-        
+        <ui:VisualElement name="clip-selection-border" picking-mode="Ignore" class="clip-selection-border"/>
     </ui:VisualElement>
 </ui:UXML>

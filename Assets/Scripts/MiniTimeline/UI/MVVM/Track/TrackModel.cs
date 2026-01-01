@@ -15,7 +15,6 @@ namespace MiniTimeline.UI.MVVM.Track {
         string _bindKey = string.Empty;
         string _type = "Generic";
         MiniTimelineDirector _director;
-        TimelineCommandManager _commandManager;
         float _zoom = 1f;
         float _pixelsPerSecond = 100f;
 
@@ -43,20 +42,13 @@ namespace MiniTimeline.UI.MVVM.Track {
         public float TimelineWidth => _director != null ? _director.Length * _pixelsPerSecond : 1000f;
         public float PixelsPerSecond => _pixelsPerSecond;
         public MiniTimelineDirector Director => _director;
-        public TimelineCommandManager CommandManager => _commandManager;
 
         public TrackModel() {
-            _commandManager = TimelineCommandManager.Instance;
         }
 
-        public void Initialize(IMiniTrack track, MiniTimelineDirector director, TimelineCommandManager commandManager = null) {
+        public void Initialize(IMiniTrack track, MiniTimelineDirector director) {
             _track = track;
             _director = director;
-            if (commandManager != null) {
-                _commandManager = commandManager;
-            } else if (_commandManager == null) {
-                _commandManager = TimelineCommandManager.Instance;
-            }
             if (track != null) {
                 _title = !string.IsNullOrEmpty(track.Name) ? track.Name : track.Id;
                 _enabled = track.Enabled;
@@ -64,10 +56,6 @@ namespace MiniTimeline.UI.MVVM.Track {
                 _type = track.GetType().Name;
                 RefreshClips();
             }
-        }
-
-        public void SetCommandManager(TimelineCommandManager commandManager) {
-            _commandManager = commandManager ?? _commandManager;
         }
 
         public void RefreshClips() {
@@ -87,7 +75,7 @@ namespace MiniTimeline.UI.MVVM.Track {
 
             bool stateChanged = _enabled != newEnabled;
             _enabled = newEnabled;
-            if (_track != null && _commandManager == null) {
+            if (_track != null && TimelineCommandManager.Instance == null) {
                 _track.Enabled = newEnabled;
             }
 
@@ -152,6 +140,23 @@ namespace MiniTimeline.UI.MVVM.Track {
         }
 
         public bool ContainsClip(IMiniClip clip) => _clips.Contains(clip);
+
+        /// <summary>
+        /// Delete this track through the command manager for undo/redo support.
+        /// </summary>
+        public void DeleteTrack() {
+            if (_director == null || _track == null) {
+                Debug.LogError("Cannot delete track: Director or Track is null");
+                return;
+            }
+            var cmd = new RemoveTrackCommand(_director, _track);
+            var commandManager = TimelineCommandManager.Instance;
+            if (commandManager != null) {
+                commandManager.ExecuteCommand(cmd);
+            } else {
+                cmd.Execute();
+            }
+        }
 
         /// <summary>
         /// Apply one or more track setting changes via the TimelineCommandManager so they are undoable.
@@ -255,8 +260,9 @@ namespace MiniTimeline.UI.MVVM.Track {
             var oldSettings = CaptureCurrentSettings(newSettings.Keys);
             var command = new UpdateTrackSettingsCommand(_track, oldSettings, newSettings, _director);
 
-            if (_commandManager != null) {
-                _commandManager.ExecuteCommand(command, allowMerge);
+            var commandManager = TimelineCommandManager.Instance;
+            if (commandManager != null) {
+                commandManager.ExecuteCommand(command, allowMerge);
             } else {
                 command.Execute();
             }

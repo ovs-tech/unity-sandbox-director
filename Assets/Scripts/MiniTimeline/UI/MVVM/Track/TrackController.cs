@@ -10,6 +10,7 @@ using MiniTimeline.UI.FormDefinitions;
 using MiniTimeline.UI.Commands;
 using Core.UI.FormSubmit;
 using Core.UI.FormSubmit.Fields;
+using Core.Behaviors.Command;
 
 namespace MiniTimeline.UI.MVVM.Track {
     /// <summary>
@@ -173,17 +174,20 @@ namespace MiniTimeline.UI.MVVM.Track {
                 }
 
                 switch (action) {
-                    case "addClip":
-                        ShowAddClipForm();
-                        break;
                     case "mute":
                         _model.Mute();
+                        FormSubmitPanelUIToolkit.Instance.CloseForm();
                         break;
                     case "solo":
                         _model.ToggleSolo();
+                        FormSubmitPanelUIToolkit.Instance.CloseForm();
                         break;
                     case "delete":
-                        TryDeleteTrack();
+                        _model?.DeleteTrack();
+                        FormSubmitPanelUIToolkit.Instance.CloseForm();
+                        break;
+                    case "addClip":
+                        ShowAddClipForm();
                         break;
                     case "settings":
                         ShowTrackSettingsForm();
@@ -192,15 +196,6 @@ namespace MiniTimeline.UI.MVVM.Track {
                         Debug.LogWarning($"Unknown track action: '{action}'");
                         break;
                 }
-            }
-
-            private void TryDeleteTrack() {
-                if (_model?.Director == null || _model.Track == null) {
-                    Debug.LogError("Cannot delete track: Director or Track is null");
-                    return;
-                }
-                var cmd = new RemoveTrackCommand(_model.Director, _model.Track);
-                _model.CommandManager?.ExecuteCommand(cmd);
             }
 
             private void ShowTrackSettingsForm() {

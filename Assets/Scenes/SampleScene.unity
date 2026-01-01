@@ -1140,6 +1140,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Core.Behaviors.Command.TimelineCommandManager
   UnparentOnAwake: 1
+  _debugLog: 1
 --- !u!1 &1039908845
 GameObject:
   m_ObjectHideFlags: 0

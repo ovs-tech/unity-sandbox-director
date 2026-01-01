@@ -15,7 +15,6 @@ namespace MiniTimeline.UI.MVVM.Clip {
         bool _selected;
         float _zoom = 1f;
         float _pixelsPerSecond = 100f;
-        TimelineCommandManager _commandManager;
 
         // Reference to the actual clip data
         private IMiniClip _clip;
@@ -39,30 +38,19 @@ namespace MiniTimeline.UI.MVVM.Clip {
         public IMiniTrack ParentTrack => _parentTrack;
         public float Zoom => _zoom;
         public float PixelsPerSecond => _pixelsPerSecond;
-        public TimelineCommandManager CommandManager => _commandManager;
 
         public ClipModel() {
-            _commandManager = TimelineCommandManager.Instance;
         }
 
-        public void Initialize(IMiniClip clip, IMiniTrack parentTrack, MiniTimelineDirector director = null, TimelineCommandManager commandManager = null) {
+        public void Initialize(IMiniClip clip, IMiniTrack parentTrack, MiniTimelineDirector director = null) {
             _clip = clip;
             _parentTrack = parentTrack;
             _director = director;
-            if (commandManager != null) {
-                _commandManager = commandManager;
-            } else if (_commandManager == null) {
-                _commandManager = TimelineCommandManager.Instance;
-            }
             if (clip != null) {
                 _title = clip.Id;
                 _duration = clip.Duration;
                 _startTime = clip.Start;
             }
-        }
-
-        public void SetCommandManager(TimelineCommandManager commandManager) {
-            _commandManager = commandManager ?? _commandManager;
         }
 
         public void SetTitle(string title) { 
@@ -74,7 +62,6 @@ namespace MiniTimeline.UI.MVVM.Clip {
             _duration = Mathf.Max(0f, value);
             if (_clip != null && _clip is MiniClipBase clipBase) {
                 clipBase.Duration = _duration;
-                // _director.UpdateClip(_clip.Id, _parentTrack.Id, _clip.Start, _clip.Duration);
             }
             OnPropertyChanged?.Invoke();
         }
@@ -83,7 +70,6 @@ namespace MiniTimeline.UI.MVVM.Clip {
             _startTime = Mathf.Max(0f, time);
             if (_clip != null && _clip is MiniClipBase clipBase) {
                 clipBase.Start = _startTime;
-                // _director.UpdateClip(_clip.Id, _parentTrack.Id, _clip.Start, _clip.Duration);
             }
             OnPositionChanged?.Invoke();
         }
@@ -202,8 +188,9 @@ namespace MiniTimeline.UI.MVVM.Clip {
         void ExecuteCommand(ITimelineCommand command, bool allowMerge = false) {
             if (command == null) return;
 
-            if (_commandManager != null) {
-                _commandManager.ExecuteCommand(command, allowMerge);
+            var commandManager = TimelineCommandManager.Instance;
+            if (commandManager != null) {
+                commandManager.ExecuteCommand(command, allowMerge);
             } else {
                 command.Execute();
             }

@@ -16,12 +16,21 @@ public class PersistentSingleton<T> : MonoBehaviour where T : Component
     {
       if (instance == null)
       {
-        instance = FindFirstObjectByType<T>();
-        if (instance == null)
+        try
         {
-          GameObject obj = new GameObject();
-          obj.name = typeof(T).Name + "AutoCreated";
-          instance = obj.AddComponent<T>();
+          instance = FindFirstObjectByType<T>();
+          if (instance == null)
+          {
+            GameObject obj = new GameObject();
+            obj.name = typeof(T).Name + "AutoCreated";
+            instance = obj.AddComponent<T>();
+          }
+        }
+        catch (UnityException)
+        {
+          // FindFirstObjectByType is not allowed during serialization
+          // Return null and let the instance be resolved after deserialization
+          return null;
         }
       }
 

@@ -48,42 +48,45 @@ namespace MiniTimeline.UI.MVVM.Timeline
 
     public void Bind(ViewModel vm)
     {
-      // Delegate UI bindings to the View
-      _view.Bind(vm, _model, _rulerModel);
+      // Delegate UI bindings to the View (only pass ViewModel)
+      _view.Bind(vm, _rulerModel);
 
-      // Subscribe to model state changes
-      _model.OnCommandExecuted += vm.RefreshUndoRedoButtons;
-      _model.OnCommandStacksChanged += vm.RefreshUndoRedoButtons;
-
-      // Subscribe to track changes from model
-      _model.OnTracksChanged += vm.RefreshTracks;
-      _model.OnTrackAdded += track => {
+      // Subscribe to track changes via ViewModel
+      vm.OnTracksChanged += () => {
+        Debug.Log("Tracks changed - syncing via ViewModel");
+      };
+      vm.OnTrackAdded += track => {
         if (track != null) {
-          vm.AddTrackToArray(track);
           Debug.Log($"[TimelineEditorController] Track added: {track.Id}");
         }
       };
-      _model.OnTrackRemoved += (track, trackId) => {
+      vm.OnTrackRemoved += (track, trackId) => {
         if (track != null) {
-          vm.RemoveTrackFromArray(track);
           Debug.Log($"[TimelineEditorController] Track removed: {track.Id}");
         }
       };
-      _model.OnTrackUpdated += track => {
+      vm.OnTrackUpdated += track => {
         if (track != null) {
-          vm.RefreshTracks();
           Debug.Log($"[TimelineEditorController] Track updated: {track.Id}");
         }
       };
       
-      // Subscribe to clip changes from model
-      _model.OnClipsChanged += vm.RefreshTracks;
-      _model.OnClipAdded += (clip, trackId) => vm.RefreshTracks();
-      _model.OnClipRemoved += (clip, trackId) => vm.RefreshTracks();
-      _model.OnClipUpdated += (clip, trackId) => vm.RefreshTracks();
+      // Subscribe to clip changes via ViewModel
+      vm.OnClipsChanged += () => {
+        Debug.Log("Clips changed - syncing via ViewModel");
+      };
+      vm.OnClipAdded += (clip, trackId) => {
+        Debug.Log($"Clip added to track {trackId}");
+      };
+      vm.OnClipRemoved += (clip, trackId) => {
+        Debug.Log($"Clip removed from track {trackId}");
+      };
+      vm.OnClipUpdated += (clip, trackId) => {
+        Debug.Log($"Clip updated in track {trackId}");
+      };
       
       // Subscribe to zoom changes to sync with all tracks
-      _model.OnZoomChanged += zoom => {
+      vm.OnZoomChanged += zoom => {
         SyncZoomToAllTracks(zoom);
       };
       
@@ -103,19 +106,9 @@ namespace MiniTimeline.UI.MVVM.Timeline
     /// </summary>
     private void InitializeRuler()
     {
-      var (rulerController, rulerModel) = _view.InitializeRuler(_model);
+      var (rulerController, rulerModel) = _view.InitializeRuler(_viewModel);
       _rulerController = rulerController;
       _rulerModel = rulerModel;
-    }
-
-    // UI element wiring is handled by TimelineEditorView.Bind
-
-    private string FormatTime(float time)
-    {
-      int minutes = Mathf.FloorToInt(time / 60f);
-      int seconds = Mathf.FloorToInt(time % 60f);
-      int frames = Mathf.FloorToInt((time % 1f) * 30f);
-      return $"{minutes:00}:{seconds:00}:{frames:00}";
     }
 
     /// <summary>
@@ -127,7 +120,7 @@ namespace MiniTimeline.UI.MVVM.Timeline
       {
         if (trackController != null)
         {
-          trackController.UpdateZoom(zoom, _model.PixelsPerSecond);
+          trackController.UpdateZoom(zoom, _viewModel.PixelsPerSecond);
         }
       }
     }
@@ -151,7 +144,7 @@ namespace MiniTimeline.UI.MVVM.Timeline
           // Create controller if it doesn't exist
           if (!_trackControllers.ContainsKey(track.Id))
           {
-            _view.StartCoroutine(DelayedCreateTrackController(track.Id));
+            CreateAndRegisterTrackController(track.Id);
           }
         }
       }
@@ -170,17 +163,6 @@ namespace MiniTimeline.UI.MVVM.Timeline
       {
         UnregisterTrackController(trackId);
       }
-    }
-
-    /// <summary>
-    /// Delayed coroutine to create and register a track controller.
-    /// This ensures the track is fully initialized before creating its controller.
-    /// </summary>
-    private IEnumerator DelayedCreateTrackController(string trackId)
-    {
-      // Wait one frame to ensure the track is fully added to the director
-      yield return null;
-      CreateAndRegisterTrackController(trackId);
     }
 
     /// <summary>
@@ -259,13 +241,13 @@ namespace MiniTimeline.UI.MVVM.Timeline
         return _trackControllers[trackId];
       }
 
-      if (_model.Director == null)
+      if (_viewModel.Director == null)
       {
         Debug.LogWarning($"Cannot create TrackController: No director available");
         return null;
       }
 
-      var track = _model.Director.GetTrack(trackId);
+      var track = _viewModel.Director.GetTrack(trackId);
       if (track == null)
       {
         Debug.LogWarning($"Cannot create TrackController: Track '{trackId}' not found in director");
@@ -275,10 +257,10 @@ namespace MiniTimeline.UI.MVVM.Timeline
       // Delegate rendering to the view
       var trackController = _view.CreateAndRenderTrackController(
         track,
-        _model.Director,
-        _model.PixelsPerSecond,
-        _model.Length,
-        _model.Zoom
+        _viewModel.Director,
+        _viewModel.PixelsPerSecond,
+        _viewModel.Length.Value,
+        _viewModel.Zoom.Value
       );
 
       if (trackController != null)
@@ -304,6 +286,63 @@ namespace MiniTimeline.UI.MVVM.Timeline
       // Observable array for managing tracks
       public readonly ObservableArray<IMiniTrack> Tracks;
       public VisualElement FormHost { get; set; }
+
+      // Expose Model properties needed by Controller
+      public MiniTimelineDirector Director => _model.Director;
+      public float PixelsPerSecond => _model.PixelsPerSecond;
+
+      // Expose Model events needed by Controller
+      public event Action OnTracksChanged
+      {
+        add => _model.OnTracksChanged += value;
+        remove => _model.OnTracksChanged -= value;
+      }
+      public event Action<IMiniTrack> OnTrackAdded
+      {
+        add => _model.OnTrackAdded += value;
+        remove => _model.OnTrackAdded -= value;
+      }
+      public event Action<IMiniTrack, string> OnTrackRemoved
+      {
+        add => _model.OnTrackRemoved += value;
+        remove => _model.OnTrackRemoved -= value;
+      }
+      public event Action<IMiniTrack> OnTrackUpdated
+      {
+        add => _model.OnTrackUpdated += value;
+        remove => _model.OnTrackUpdated -= value;
+      }
+      public event Action OnClipsChanged
+      {
+        add => _model.OnClipsChanged += value;
+        remove => _model.OnClipsChanged -= value;
+      }
+      public event Action<IMiniClip, string> OnClipAdded
+      {
+        add => _model.OnClipAdded += value;
+        remove => _model.OnClipAdded -= value;
+      }
+      public event Action<IMiniClip, string> OnClipRemoved
+      {
+        add => _model.OnClipRemoved += value;
+        remove => _model.OnClipRemoved -= value;
+      }
+      public event Action<IMiniClip, string> OnClipUpdated
+      {
+        add => _model.OnClipUpdated += value;
+        remove => _model.OnClipUpdated -= value;
+      }
+      public event Action<float> OnZoomChanged
+      {
+        add => _model.OnZoomChanged += value;
+        remove => _model.OnZoomChanged -= value;
+      }
+
+      public event Action<bool, bool> OnCommandStacksChanged
+      {
+        add => _model.OnCommandStacksChanged += value;
+        remove => _model.OnCommandStacksChanged -= value;
+      }
 
       readonly TimelineEditorModel _model;
 
@@ -385,7 +424,7 @@ namespace MiniTimeline.UI.MVVM.Timeline
       // Track array management
       public void AddTrackToArray(IMiniTrack track)
       {
-        if (track != null && System.Array.IndexOf(Tracks.items, track) == -1)
+        if (track != null && Array.IndexOf(Tracks.items, track) == -1)
         {
           Tracks.TryAdd(track);
         }

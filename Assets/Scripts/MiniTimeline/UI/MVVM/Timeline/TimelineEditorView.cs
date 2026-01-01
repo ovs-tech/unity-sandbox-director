@@ -1,51 +1,53 @@
-#if UNITY_EDITOR
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using MiniTimeline.UI.MVVM.Ruler;
 using MiniTimeline.UI.MVVM.Track;
 using MiniTimeline.Core;
-using UnityEditor.UIElements;
 using Unity.Properties;
-using Systems.Inventory;
 
-namespace MiniTimeline.UI.MVVM.Timeline {
-    public class TimelineEditorView : MonoBehaviour {
+namespace MiniTimeline.UI.MVVM.Timeline
+{
+    public class TimelineEditorView : MonoBehaviour
+    {
         public VisualElement Root { get; private set; }
-        
+
         [SerializeField] VisualTreeAsset _uxml;
         [SerializeField] StyleSheet _uss;
-        
+
         // Track UI assets
         [SerializeField] public VisualTreeAsset TrackUxml;
         [SerializeField] public StyleSheet TrackUss;
-        
+
         // Clip UI assets
         [SerializeField] public VisualTreeAsset ClipUxml;
         [SerializeField] public StyleSheet ClipUss;
-        
+
         // Ruler UI assets
         [SerializeField] public VisualTreeAsset RulerUxml;
         [SerializeField] public StyleSheet RulerUss;
-        
+
         UIDocument _document;
 
-        public IEnumerator InitializeView(TimelineEditorController.ViewModel viewModel) {
+        public IEnumerator InitializeView(TimelineEditorController.ViewModel viewModel)
+        {
             if (_document == null) _document = GetComponent<UIDocument>();
-            if (_document == null) {
+            if (_document == null)
+            {
                 _document = gameObject.AddComponent<UIDocument>();
             }
             Root = _document.rootVisualElement;
             Root.Clear();
 
             if (_uss != null) Root.styleSheets.Add(_uss);
-            if (_uxml != null) {
+            if (_uxml != null)
+            {
                 var tree = _uxml.Instantiate();
                 Root.Add(tree);
-            } else {
+            }
+            else
+            {
                 Debug.LogWarning("UXML not assigned in TimelineEditorView");
             }
 
@@ -57,7 +59,8 @@ namespace MiniTimeline.UI.MVVM.Timeline {
         public Label GetLabel(string name) => Root?.Q<Label>(name);
         public VisualElement GetElement(string name) => Root?.Q<VisualElement>(name);
 
-        public void Bind(TimelineEditorController.ViewModel vm, TimelineEditorModel model, TimelineRulerModel rulerModel = null) {
+        public void Bind(TimelineEditorController.ViewModel vm, TimelineRulerModel rulerModel = null)
+        {
             // Playback controls
             var playButton = GetButton("play-button");
             if (playButton != null) playButton.clicked += vm.Play;
@@ -68,36 +71,25 @@ namespace MiniTimeline.UI.MVVM.Timeline {
 
             // Undo/Redo
             var undoButton = GetButton("undo-button");
-            if (undoButton != null) {
+            if (undoButton != null)
+            {
                 undoButton.clicked += vm.Undo;
-                // Update button enabled state and style whenever CanUndo changes
-                Action updateUndoState = () => {
-                    bool canUndo = vm.CanUndo.Value;
-                    undoButton.SetEnabled(canUndo);
-                    undoButton.style.opacity = canUndo ? 1f : 0.5f;
-                };
-                updateUndoState();
-                model.OnCommandStacksChanged += updateUndoState;
-                model.OnCommandExecuted += updateUndoState;
-                model.OnUndoPerformed += updateUndoState;
-                model.OnRedoPerformed += updateUndoState;
+                undoButton.SetEnabled(vm.CanUndo.Value);
             }
 
             var redoButton = GetButton("redo-button");
-            if (redoButton != null) {
+            if (redoButton != null)
+            {
                 redoButton.clicked += vm.Redo;
-                // Update button enabled state and style whenever CanRedo changes
-                Action updateRedoState = () => {
-                    bool canRedo = vm.CanRedo.Value;
-                    redoButton.SetEnabled(canRedo);
-                    redoButton.style.opacity = canRedo ? 1f : 0.5f;
-                };
-                updateRedoState();
-                model.OnCommandStacksChanged += updateRedoState;
-                model.OnCommandExecuted += updateRedoState;
-                model.OnUndoPerformed += updateRedoState;
-                model.OnRedoPerformed += updateRedoState;
+                redoButton.SetEnabled(vm.CanRedo.Value);
             }
+
+
+            vm.OnCommandStacksChanged += (canUndo, canRedo) =>
+            {
+                redoButton?.SetEnabled(vm.CanRedo.Value);
+                undoButton?.SetEnabled(vm.CanUndo.Value);
+            };
 
             // Track/Project management
             var addTrackButton = GetButton("add-track-button");
@@ -112,43 +104,49 @@ namespace MiniTimeline.UI.MVVM.Timeline {
             // Time slider
             var timeLabel = GetLabel("time-label");
             var timeSlider = GetSlider("time-slider");
-            if (timeSlider != null) {
-                timeSlider.SetBinding(nameof(Slider.value), new DataBinding {
+            if (timeSlider != null)
+            {
+                timeSlider.SetBinding(nameof(Slider.value), new DataBinding
+                {
                     dataSource = vm.Time,
                     dataSourcePath = new PropertyPath(nameof(BindableProperty<float>.Value)),
                     bindingMode = BindingMode.ToTarget
                 });
-                timeSlider.SetBinding(nameof(Slider.highValue), new DataBinding {
+                timeSlider.SetBinding(nameof(Slider.highValue), new DataBinding
+                {
                     dataSource = vm.Length,
                     dataSourcePath = new PropertyPath(nameof(BindableProperty<float>.Value)),
                     bindingMode = BindingMode.ToTarget
                 });
-                timeSlider.RegisterValueChangedCallback(evt => {
+                timeSlider.RegisterValueChangedCallback(evt =>
+                {
                     vm.SetTime(evt.newValue);
                 });
             }
 
             // Zoom label
             var zoomLabel = GetLabel("zoom-label");
-            if (zoomLabel != null) {
-                zoomLabel.text = $"{model.Zoom * 100:F0}%";
-                model.OnCommandExecuted += () => {
-                    zoomLabel.text = $"{model.Zoom * 100:F0}%";
-                };
+            if (zoomLabel != null)
+            {
+                zoomLabel.text = $"{vm.Zoom.Value * 100:F0}%";
             }
 
             // Zoom slider
             var zoomSlider = GetSlider("zoom-slider");
-            if (zoomSlider != null) {
-                zoomSlider.value = model.Zoom;
-                zoomSlider.RegisterValueChangedCallback(evt => {
+            if (zoomSlider != null)
+            {
+                zoomSlider.value = vm.Zoom.Value;
+                zoomSlider.RegisterValueChangedCallback(evt =>
+                {
                     var newZoom = Mathf.Clamp(evt.newValue, 0.05f, 4f);
                     vm.SetZoom(newZoom);
-                    if (rulerModel != null) {
+                    if (rulerModel != null)
+                    {
                         rulerModel.SetZoom(newZoom);
                     }
-                    
-                    if (zoomLabel != null) {
+
+                    if (zoomLabel != null)
+                    {
                         zoomLabel.text = $"{newZoom * 100:F0}%";
                     }
                 });
@@ -158,7 +156,7 @@ namespace MiniTimeline.UI.MVVM.Timeline {
         /// <summary>
         /// Initializes the TimelineRulerController and renders it in the ruler container.
         /// </summary>
-        public (TimelineRulerController controller, TimelineRulerModel model) InitializeRuler(TimelineEditorModel model)
+        public (TimelineRulerController controller, TimelineRulerModel model) InitializeRuler(TimelineEditorController.ViewModel viewModel)
         {
             var rulerElement = GetElement("ruler-container");
             if (rulerElement == null)
@@ -172,15 +170,15 @@ namespace MiniTimeline.UI.MVVM.Timeline {
                 var rulerView = new TimelineRulerView(rulerElement, RulerUxml, RulerUss);
                 var rulerModel = new TimelineRulerModel();
 
-                float length = model.Director?.Length ?? 0f;
+                float length = viewModel.Director?.Length ?? 0f;
                 Debug.Log($"Timeline length for ruler: {length}s");
-                int frameRate = (int)Mathf.Round(model.Director?.Project?.frameRate ?? 30f);
+                int frameRate = (int)Mathf.Round(viewModel.Director?.Project?.frameRate ?? 30f);
 
                 var rulerController = new TimelineRulerController.Builder(rulerView)
                     .WithModel(rulerModel)
                     .WithLength(length)
                     .WithFrameRate(frameRate)
-                    .WithDirector(model.Director)
+                    .WithDirector(viewModel.Director)
                     .Build();
 
                 Debug.Log("Initialized TimelineRulerController");
@@ -262,4 +260,3 @@ namespace MiniTimeline.UI.MVVM.Timeline {
         }
     }
 }
-#endif
