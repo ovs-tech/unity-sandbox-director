@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using Unity.Properties;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -91,32 +92,51 @@ namespace MiniTimeline.UI.MVVM.Clip {
             var mutedIcon = GetElement("clip-mute-icon");
             
             // Display elements
-            if (title != null) title.text = viewModel.Title.Value;
-            if (durationLabel != null) durationLabel.text = $"{viewModel.Duration.Value:F2}s";
+            if (title != null) {
+                title.SetBinding(nameof(Label.text), new DataBinding
+                {
+                    dataSource = viewModel.Title,
+                    dataSourcePath = new PropertyPath(nameof(BindableProperty<string>.Value)),
+                    bindingMode = BindingMode.ToTarget
+                });
+            }
+            if (durationLabel != null) {
+                durationLabel.text = $"{viewModel.Duration.Value:F2}s";
+                durationLabel.SetBinding(nameof(Label.text), new DataBinding
+                {
+                    dataSource = viewModel.DurationText,
+                    dataSourcePath = new PropertyPath(nameof(BindableProperty<float>.Value)),
+                    bindingMode = BindingMode.ToTarget
+                });
+            }
 
             // Selection and interaction
             var clipElement = GetElement("clip-root");
             _clipElement = clipElement;
-            if (clipElement != null) {
-                clipElement.RegisterCallback<PointerDownEvent>(evt => {
-                    var targetVE = evt.target as VisualElement;
-                    bool onResize = (_resizeLeftHandle != null && (_resizeLeftHandle == targetVE || _resizeLeftHandle.Contains(targetVE)))
-                                    || (_resizeRightHandle != null && (_resizeRightHandle == targetVE || _resizeRightHandle.Contains(targetVE)));
-                    if (!onResize)
-                    {
-                        OnPointerDown(evt, model);
-                        evt.StopPropagation();
-                    }
+            
+            if (_clipElement != null) {
+                _clipElement.SetBinding(nameof(Label.tooltip), new DataBinding
+                {
+                    dataSource = viewModel.Title,
+                    dataSourcePath = new PropertyPath(nameof(BindableProperty<string>.Value)),
+                    bindingMode = BindingMode.ToTarget
                 });
-                clipElement.RegisterCallback<PointerUpEvent>(evt => {
-                    OnPointerUp(evt, model);
+                _clipElement.pickingMode = PickingMode.Position;
+                _clipElement.RegisterCallback<PointerDownEvent>(evt => {
+                    OnPointerDown(evt, model);
+                    _clipElement.CapturePointer(evt.pointerId);
+                    evt.StopPropagation();
                 });
-                clipElement.RegisterCallback<PointerMoveEvent>(evt => {
+                _clipElement.RegisterCallback<PointerMoveEvent>(evt => {
                     OnPointerMove(evt, model);
+                });
+                _clipElement.RegisterCallback<PointerUpEvent>(evt => {
+                    OnPointerUp(evt, model);
+                    _clipElement.ReleasePointer(evt.pointerId);
                 });
             }
 
-            // Resize handles
+            // Resize handles - MUST be registered BEFORE clip-root handlers
             var resizeLeftHandle = GetElement("clip-resize-left");
             if (resizeLeftHandle != null) {
                 _resizeLeftHandle = resizeLeftHandle;
@@ -126,6 +146,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
                     DragStartX = evt.position.x;
                     InitializeResize(viewModel.StartTime.Value, viewModel.Duration.Value, evt.position.x);
                     _resizeLeftHandle.CapturePointer(evt.pointerId);
+                    _resizeLeftHandle.AddToClassList("selected");
                     evt.StopPropagation();
                 });
 
@@ -144,6 +165,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
                         EndResize();
                     }
                     _resizeLeftHandle.ReleasePointer(evt.pointerId);
+                    _resizeLeftHandle.RemoveFromClassList("selected");
                     evt.StopPropagation();
                 });
             }
@@ -157,6 +179,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
                     DragStartX = evt.position.x;
                     InitializeResize(viewModel.StartTime.Value, viewModel.Duration.Value, evt.position.x);
                     _resizeRightHandle.CapturePointer(evt.pointerId);
+                    _resizeRightHandle.AddToClassList("selected");
                     evt.StopPropagation();
                 });
 
@@ -175,6 +198,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
                         EndResize();
                     }
                     _resizeRightHandle.ReleasePointer(evt.pointerId);
+                    _resizeRightHandle.RemoveFromClassList("selected");
                     evt.StopPropagation();
                 });
             }
@@ -204,18 +228,35 @@ namespace MiniTimeline.UI.MVVM.Clip {
             IsDragging = true;
             DragStartX = evt.position.x;
             InitializeDrag(model.StartTime, model.Duration);
+            
+            // Capture pointer to ensure we receive move/up events even if pointer leaves element
+            if (_clipElement != null) {
+                _clipElement.CapturePointer(evt.pointerId);
+            }
         }
 
         private void OnPointerUp(PointerUpEvent evt, ClipModel model)
         {
-            if (IsDragging) EndDrag();
-            if (IsResizingLeft || IsResizingRight) EndResize();
+            if (IsDragging) {
+                model.CommitMove(_dragStartTime, _currentDragNewStartTime);
+                EndDrag();
+                
+                // Release pointer capture
+                if (_clipElement != null) {
+                    _clipElement.ReleasePointer(evt.pointerId);
+                }
+            }
+            if (IsResizingLeft || IsResizingRight) {
+                model.CommitResize(_resizeDragStartTime, _resizeDragStartDuration, _currentResizeNewStart, _currentResizeNewDuration);
+                EndResize();
+            }
             
+            model.Select(false);
             IsDragging = false;
             IsResizingLeft = false;
             IsResizingRight = false;
         }
-
+        
         private void OnPointerMove(PointerMoveEvent evt, ClipModel model)
         {
             if (IsDragging)
@@ -255,7 +296,8 @@ namespace MiniTimeline.UI.MVVM.Clip {
         private void UpdateDragPosition(float newStartTime, float duration)
         {
             _currentDragNewStartTime = ClampStartTime(newStartTime);
-            UpdateClipVisualTiming(_currentDragNewStartTime, duration);
+            _dragStartDuration = ClampMinDuration(duration);
+            UpdateClipVisualTiming(_currentDragNewStartTime, _dragStartDuration);
         }
 
         /// <summary>
@@ -295,7 +337,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
         /// </summary>
         private void UpdateResizeRight(float startTime, float newDuration)
         {
-            _currentResizeNewStart = startTime;
+            _currentResizeNewStart = ClampStartTime(startTime);
             _currentResizeNewDuration = ClampMinDuration(newDuration);
             UpdateClipVisualTiming(startTime, _currentResizeNewDuration);
         }
@@ -310,21 +352,15 @@ namespace MiniTimeline.UI.MVVM.Clip {
 
         /// <summary>
         /// Update clip visual timing (position and size).
+        /// This only updates the UI visual representation, NOT the model state.
         /// </summary>
         public void UpdateClipVisualTiming(float newStart, float newDuration)
         {
             if (Root == null) return;
 
-            newStart = ClampStartTime(newStart);
-            _model.SetStartTime(newStart);
-            _model.SetDuration(newDuration);
-
-            // For marker clips, display minimal width; otherwise use actual duration
-            float visibleDuration = newDuration <= MinClipDuration ? MinClipDuration : newDuration;
-            float width = Mathf.Max(TimeToPosition(visibleDuration), MinClipWidthPixels);
-
+            // Only update visual representation, NOT the model
             Root.style.left = TimeToPosition(newStart);
-            Root.style.width = width;
+            Root.style.width = TimeToPosition(newDuration);
         }
     }
 }

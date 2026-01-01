@@ -1,4 +1,4 @@
-using System.Linq;
+using System;
 using Core.Behaviors.Command;
 using MiniTimeline.Core;
 using UnityEngine;
@@ -6,14 +6,14 @@ using UnityEngine;
 namespace MiniTimeline.UI.Commands
 {
     /// <summary>
-    /// Command for removing a track from the timeline
-    /// Supports undo/redo operations for track removal
+    /// Command for removing a track from the timeline.
+    /// Supports undo/redo operations for track removal.
     /// </summary>
     public class RemoveTrackCommand : TimelineCommandBase
     {
         private readonly MiniTimelineDirector director;
         private readonly IMiniTrack track;
-        private readonly TrackData trackBackup;
+        private readonly IMiniTrack trackBackup;
         private readonly int trackIndex;
 
         public RemoveTrackCommand(MiniTimelineDirector timelineDirector, IMiniTrack trackToRemove)
@@ -22,23 +22,13 @@ namespace MiniTimeline.UI.Commands
             director = timelineDirector;
             track = trackToRemove;
 
-            // Backup track data and find index
+            // Backup track reference and find index for undo
             if (director?.Project?.tracks != null)
             {
-                trackIndex = director.Project.tracks.FindIndex(t => t.id == track.Id);
+                trackIndex = director.Project.tracks.FindIndex(t => t.Id == track.Id);
                 if (trackIndex >= 0)
                 {
-                    // Create a deep copy of the track data for restoration
-                    var originalTrackData = director.Project.tracks[trackIndex];
-                    trackBackup = new TrackData
-                    {
-                        id = originalTrackData.id,
-                        type = originalTrackData.type,
-                        bindKey = originalTrackData.bindKey,
-                        enabled = originalTrackData.enabled,
-                        order = originalTrackData.order,
-                        clips = originalTrackData.clips?.ToList() ?? new System.Collections.Generic.List<ClipData>()
-                    };
+                    trackBackup = director.Project.tracks[trackIndex];
                 }
                 else
                 {
@@ -49,35 +39,18 @@ namespace MiniTimeline.UI.Commands
 
         protected override void ExecuteInternal()
         {
-            if (director?.Project?.tracks == null || trackIndex < 0)
+            if (director == null || track == null)
             {
-                Debug.LogError("RemoveTrackCommand: Cannot remove track - invalid director or track index");
+                Debug.LogError("RemoveTrackCommand: Invalid director or track");
                 return;
             }
 
             try
             {
-                // Remove track data from project
-                director.Project.tracks.RemoveAt(trackIndex);
-                
-                // Remove track from director's runtime tracks
-                var runtimeTracks = director.Tracks?.ToList();
-                if (runtimeTracks != null)
-                {
-                    var trackToRemove = runtimeTracks.FirstOrDefault(t => t.Id == track.Id);
-                    if (trackToRemove != null)
-                    {
-                        // Try to remove from director using reflection or proper API
-                        RemoveTrackFromDirector(trackToRemove);
-                    }
-                }
-
-                // Mark project as dirty if method exists
-                MarkProjectDirty();
-
+                director.RemoveTrack(track.Id);
                 Debug.Log($"Removed track {track.Id} from timeline");
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Debug.LogError($"Failed to remove track: {ex.Message}");
             }
@@ -85,7 +58,7 @@ namespace MiniTimeline.UI.Commands
 
         protected override void UndoInternal()
         {
-            if (director?.Project?.tracks == null || trackBackup == null)
+            if (director?.Project == null || trackBackup == null)
             {
                 Debug.LogError("RemoveTrackCommand: Cannot restore track - invalid director or backup data");
                 return;
@@ -93,104 +66,24 @@ namespace MiniTimeline.UI.Commands
 
             try
             {
-                // Restore track data to project
+                // Restore track to project at original index
                 if (trackIndex >= 0 && trackIndex <= director.Project.tracks.Count)
                 {
                     director.Project.tracks.Insert(trackIndex, trackBackup);
                 }
                 else
                 {
-                    // Add at end if original index is invalid
                     director.Project.tracks.Add(trackBackup);
                 }
 
-                // Mark project as dirty if method exists
-                MarkProjectDirty();
-
+                // Re-add track to director's runtime list
+                director.AddTrack(trackBackup);
+                
                 Debug.Log($"Restored track {track.Id} to timeline");
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Debug.LogError($"Failed to restore track: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Remove track from director's runtime tracks using reflection
-        /// </summary>
-        private void RemoveTrackFromDirector(IMiniTrack trackToRemove)
-        {
-            try
-            {
-                var directorType = director.GetType();
-                
-                // Try to find a RemoveTrack method
-                var removeMethod = directorType.GetMethod("RemoveTrack");
-                if (removeMethod != null)
-                {
-                    removeMethod.Invoke(director, new object[] { trackToRemove });
-                    return;
-                }
-
-                // Try to access tracks field/property directly
-                var tracksProperty = directorType.GetProperty("Tracks");
-                var tracksField = directorType.GetField("tracks", 
-                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
-
-                if (tracksProperty != null && tracksProperty.CanWrite)
-                {
-                    // If tracks is a writable property, we need to rebuild the track list
-                    Debug.LogWarning("RemoveTrackCommand: Cannot directly modify tracks property - UI rebuild will handle this");
-                }
-                else if (tracksField != null)
-                {
-                    var tracksList = tracksField.GetValue(director);
-                    if (tracksList != null)
-                    {
-                        var removeFromListMethod = tracksList.GetType().GetMethod("Remove");
-                        if (removeFromListMethod != null)
-                        {
-                            removeFromListMethod.Invoke(tracksList, new object[] { trackToRemove });
-                            Debug.Log("Removed track from director's tracks list using reflection");
-                        }
-                    }
-                }
-            }
-            catch (System.Exception ex)
-            {
-                Debug.LogWarning($"Could not remove track from director runtime: {ex.Message}");
-                // This is not critical - the UI rebuild will handle creating the correct tracks
-            }
-        }
-
-        /// <summary>
-        /// Mark project as dirty using reflection if method exists
-        /// </summary>
-        private void MarkProjectDirty()
-        {
-            try
-            {
-                var directorType = director.GetType();
-                var markDirtyMethod = directorType.GetMethod("MarkDirty") ?? directorType.GetMethod("MarkProjectDirty");
-                
-                if (markDirtyMethod != null)
-                {
-                    markDirtyMethod.Invoke(director, null);
-                }
-                else
-                {
-                    // Try on project directly
-                    var projectType = director.Project.GetType();
-                    var projectMarkDirty = projectType.GetMethod("MarkDirty");
-                    if (projectMarkDirty != null)
-                    {
-                        projectMarkDirty.Invoke(director.Project, null);
-                    }
-                }
-            }
-            catch (System.Exception ex)
-            {
-                Debug.LogWarning($"Could not mark project as dirty: {ex.Message}");
             }
         }
 
@@ -205,4 +98,5 @@ namespace MiniTimeline.UI.Commands
             // Track removal commands should not be merged
         }
     }
+
 }

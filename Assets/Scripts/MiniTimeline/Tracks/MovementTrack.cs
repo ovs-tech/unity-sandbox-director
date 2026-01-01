@@ -10,6 +10,7 @@ namespace MiniTimeline.Tracks
     /// Movement track for controlling Transform position and rotation.
     /// Supports smooth transitions between positions with various animation curves.
     /// </summary>
+    [Serializable]
     public class MovementTrack : MiniTrackBase<MovementClip>
     {
         public override int Order => 20; // Movement tracks run after animation

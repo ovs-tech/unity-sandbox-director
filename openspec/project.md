@@ -17,7 +17,7 @@
 - **Input System:** Unity Input System (.inputactions)
 - **Asset Management:** Addressables for efficient loading
 - **Animation:** Unity Playables API for smooth blending
-- **Serialization:** JSON-based project format (lightweight, versioned)
+- **Serialization:** Odin Serializer for timeline data (supports polymorphic types, complex Unity objects); JSON format for human-readable projects
 - **Build Target:** Mobile-first (Android/iOS), extendable to PC, VR, AR via DLC
 - **Architecture:** Modular & DLC-ready (ScriptableObjects or Addressables)
 - **MCP tools:** Using serena mcp tools
@@ -277,6 +277,7 @@ Example: `feat: add transform axis toggle for rotation and scale modes`
 
 ### Third-Party Assets
 - **UMA (Unity Multipurpose Avatar):** Character generation and customization
+- **Odin Serializer:** Advanced serialization supporting polymorphic types, Unity objects, and direct runtime instance serialization
 - **LeanTween:** Lightweight tweening library for animations
 
 ### External Services (Future)

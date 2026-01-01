@@ -13,6 +13,7 @@ namespace MiniTimeline.UI.MVVM.Ruler
         private VisualElement _playheadAreaElement;
         private VisualElement _snapGuideElement;
         private bool _isPlayheadDragging;
+        private bool _geometryCallbackRegistered;
 
         public TimelineRulerView(VisualElement root, VisualTreeAsset uxml = null, StyleSheet uss = null)
         {
@@ -51,6 +52,13 @@ namespace MiniTimeline.UI.MVVM.Ruler
             model.OnMarkersChanged += () => GenerateMarkerDisplay(model);
             model.OnZoomChanged += () => GenerateMarkerDisplay(model);
 
+            // Register a geometry changed callback once so we update playhead after layout
+            if (!_geometryCallbackRegistered && _rulerElement != null)
+            {
+                _rulerElement.RegisterCallback<GeometryChangedEvent>(evt => UpdatePlayheadPosition(model));
+                _geometryCallbackRegistered = true;
+            }
+
             Regenerate(model);
         }
 
@@ -64,7 +72,60 @@ namespace MiniTimeline.UI.MVVM.Ruler
         {
             if (_playheadElement == null) return;
             float x = model.TimeToPosition(model.CurrentTime);
-            _playheadElement.style.left = x;
+
+            // Determine maximum X based on ruler element or model fallback
+            float maxX = 0f;
+            if (_rulerElement != null)
+            {
+                maxX = _rulerElement.resolvedStyle.width;
+            }
+            if (maxX <= 0f)
+            {
+                maxX = model.Length * model.PixelsPerSecond;
+            }
+
+            // Clamp to visible bounds
+            x = Mathf.Clamp(x, 0f, maxX);
+
+            // If the ruler is inside a ScrollView, account for its horizontal scroll offset
+            float scrollOffsetX = 0f;
+            VisualElement search = _rulerElement ?? _playheadElement;
+            while (search != null)
+            {
+                if (search is ScrollView sv)
+                {
+                    scrollOffsetX = sv.scrollOffset.x;
+                    break;
+                }
+                search = search.parent;
+            }
+
+            float leftToApply = x - scrollOffsetX;
+
+            // Ensure absolute positioning
+            _playheadElement.style.position = Position.Absolute;
+
+            // Apply left as a pixel Length (UIElements expects typed Length values)
+            _playheadElement.style.left = new StyleLength(new Length(leftToApply, LengthUnit.Pixel));
+
+            // Ensure top and height so the playhead is visible within the ruler
+            _playheadElement.style.top = 0;
+            if (_rulerElement != null)
+            {
+                var rulerH = _rulerElement.resolvedStyle.height;
+                if (rulerH > 0)
+                    _playheadElement.style.height = new StyleLength(new Length(rulerH, LengthUnit.Pixel));
+                else
+                    _playheadElement.style.height = new StyleLength(Length.Percent(100));
+            }
+
+            // If the playhead is not a child of the ruler, reparent it so absolute left is relative to the ruler
+            var parent = _playheadElement.parent;
+            if (_rulerElement != null && parent != _rulerElement)
+            {
+                _playheadElement.RemoveFromHierarchy();
+                _rulerElement.Add(_playheadElement);
+            }
         }
 
         private void OnRulerMouseDown(MouseDownEvent evt, TimelineRulerModel model)

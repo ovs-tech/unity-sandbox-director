@@ -15,6 +15,7 @@ namespace MiniTimeline.Tracks
     /// Track for playing Unity Animation clips on timeline.
     /// Supports multiple animation layers, blending, and timing control using Unity's PlayableGraph API.
     /// </summary>
+    [Serializable]
     public class AnimTrack : MiniTrackBase<AnimClip>
     {
         public override int Order => 10;

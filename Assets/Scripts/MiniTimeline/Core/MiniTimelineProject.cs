@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Sirenix.OdinSerializer;
 
 namespace MiniTimeline.Core
 {
@@ -13,106 +14,38 @@ namespace MiniTimeline.Core
         /// <summary>
         /// Project format version for compatibility
         /// </summary>
+        [OdinSerialize]
         public int version = 1;
         
         /// <summary>
         /// Project name/title
         /// </summary>
+        [OdinSerialize]
         public string name = "Untitled";
-        
+
         /// <summary>
         /// Total length of timeline in seconds
         /// </summary>
+        [OdinSerialize]
         public float length = 10f;
-        
+
         /// <summary>
         /// Playback frame rate (for snapping)
         /// </summary>
+        [OdinSerialize]
         public float frameRate = 30f;
-        
+
         /// <summary>
-        /// All tracks in this project
+        /// All runtime tracks in this project (polymorphic)
         /// </summary>
-        public List<TrackData> tracks = new List<TrackData>();
-        
+        [OdinSerialize]
+        public List<IMiniTrack> tracks = new List<IMiniTrack>();
+
         /// <summary>
         /// Metadata for editor settings
         /// </summary>
+        [OdinSerialize]
         public ProjectMetadata metadata = new ProjectMetadata();
-    }
-    
-    /// <summary>
-    /// Serializable track data
-    /// </summary>
-    [Serializable]
-    public class TrackData
-    {
-        /// <summary>
-        /// Track unique ID
-        /// </summary>
-        public string id;
-        
-        /// <summary>
-        /// Track type name (e.g., "AnimTrack", "MorphTrack")
-        /// </summary>
-        public string type;
-        
-        /// <summary>
-        /// Binding key for target object
-        /// </summary>
-        public string bindKey;
-        
-        /// <summary>
-        /// Whether track is enabled
-        /// </summary>
-        public bool enabled = true;
-        
-        /// <summary>
-        /// Evaluation order
-        /// </summary>
-        public int order = 0;
-        
-        /// <summary>
-        /// Evaluation mode (when callbacks are triggered)
-        /// </summary>
-        public int evaluateMode = 3; // Default to Continuous (EvaluateMode.Continuous = 3)
-        
-        /// <summary>
-        /// All clips in this track
-        /// </summary>
-        public List<ClipData> clips = new List<ClipData>();
-        
-        /// <summary>
-        /// Track-specific properties
-        /// </summary>
-        public Dictionary<string, object> properties = new Dictionary<string, object>();
-    }
-    
-    /// <summary>
-    /// Serializable clip data
-    /// </summary>
-    [Serializable]
-    public class ClipData
-    {
-        /// <summary>
-        /// Clip unique ID
-        /// </summary>
-        public string id;
-        
-        /// <summary>
-        /// Start time in seconds
-        /// </summary>
-        public float start;
-        
-        /// <summary>
-        /// Duration in seconds
-        /// </summary>
-        public float duration;
-        
-        /// <summary>
-        /// Clip-specific payload data
-        /// </summary>
-        public Dictionary<string, object> payload = new Dictionary<string, object>();
     }
     
     /// <summary>
@@ -124,21 +57,25 @@ namespace MiniTimeline.Core
         /// <summary>
         /// Timeline zoom level
         /// </summary>
+        [OdinSerialize]
         public float zoom = 1f;
         
         /// <summary>
         /// Timeline scroll position
         /// </summary>
+        [OdinSerialize]
         public float scrollPosition = 0f;
         
         /// <summary>
         /// Selected clips/tracks
         /// </summary>
+        [OdinSerialize]
         public List<string> selection = new List<string>();
         
         /// <summary>
         /// Custom editor properties
         /// </summary>
+        [OdinSerialize]
         public Dictionary<string, object> editorData = new Dictionary<string, object>();
     }
     

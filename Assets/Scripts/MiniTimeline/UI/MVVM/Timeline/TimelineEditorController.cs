@@ -1,11 +1,16 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 using MiniTimeline.Core;
 using MiniTimeline.UI.MVVM.Track;
 using MiniTimeline.UI.MVVM.Ruler;
+using MiniTimeline.UI.Commands;
+using MiniTimeline.UI.FormDefinitions;
+using Core.UI.FormSubmit;
+using Core.UI.FormSubmit.Fields;
 
 namespace MiniTimeline.UI.MVVM.Timeline
 {
@@ -43,42 +48,45 @@ namespace MiniTimeline.UI.MVVM.Timeline
 
     public void Bind(ViewModel vm)
     {
-      // Delegate UI bindings to the View
-      _view.Bind(vm, _model, _rulerModel);
+      // Delegate UI bindings to the View (only pass ViewModel)
+      _view.Bind(vm, _rulerModel);
 
-      // Subscribe to model state changes
-      _model.OnCommandExecuted += vm.RefreshUndoRedoButtons;
-      _model.OnCommandStacksChanged += vm.RefreshUndoRedoButtons;
-
-      // Subscribe to track changes from model
-      _model.OnTracksChanged += vm.RefreshTracks;
-      _model.OnTrackAdded += track => {
+      // Subscribe to track changes via ViewModel
+      vm.OnTracksChanged += () => {
+        Debug.Log("Tracks changed - syncing via ViewModel");
+      };
+      vm.OnTrackAdded += track => {
         if (track != null) {
-          vm.AddTrackToArray(track);
           Debug.Log($"[TimelineEditorController] Track added: {track.Id}");
         }
       };
-      _model.OnTrackRemoved += (track, trackId) => {
+      vm.OnTrackRemoved += (track, trackId) => {
         if (track != null) {
-          vm.RemoveTrackFromArray(track);
           Debug.Log($"[TimelineEditorController] Track removed: {track.Id}");
         }
       };
-      _model.OnTrackUpdated += track => {
+      vm.OnTrackUpdated += track => {
         if (track != null) {
-          vm.RefreshTracks();
           Debug.Log($"[TimelineEditorController] Track updated: {track.Id}");
         }
       };
       
-      // Subscribe to clip changes from model
-      _model.OnClipsChanged += vm.RefreshTracks;
-      _model.OnClipAdded += (clip, trackId) => vm.RefreshTracks();
-      _model.OnClipRemoved += (clip, trackId) => vm.RefreshTracks();
-      _model.OnClipUpdated += (clip, trackId) => vm.RefreshTracks();
+      // Subscribe to clip changes via ViewModel
+      vm.OnClipsChanged += () => {
+        Debug.Log("Clips changed - syncing via ViewModel");
+      };
+      vm.OnClipAdded += (clip, trackId) => {
+        Debug.Log($"Clip added to track {trackId}");
+      };
+      vm.OnClipRemoved += (clip, trackId) => {
+        Debug.Log($"Clip removed from track {trackId}");
+      };
+      vm.OnClipUpdated += (clip, trackId) => {
+        Debug.Log($"Clip updated in track {trackId}");
+      };
       
       // Subscribe to zoom changes to sync with all tracks
-      _model.OnZoomChanged += zoom => {
+      vm.OnZoomChanged += zoom => {
         SyncZoomToAllTracks(zoom);
       };
       
@@ -88,6 +96,9 @@ namespace MiniTimeline.UI.MVVM.Timeline
         Debug.Log("Tracks array changed - syncing track controllers");
         SyncTrackControllers(tracks);
       };
+
+      // Provide a UIElements parent container for forms
+      vm.FormHost = _view?.Root;
     }
 
     /// <summary>
@@ -95,19 +106,9 @@ namespace MiniTimeline.UI.MVVM.Timeline
     /// </summary>
     private void InitializeRuler()
     {
-      var (rulerController, rulerModel) = _view.InitializeRuler(_model);
+      var (rulerController, rulerModel) = _view.InitializeRuler(_viewModel);
       _rulerController = rulerController;
       _rulerModel = rulerModel;
-    }
-
-    // UI element wiring is handled by TimelineEditorView.Bind
-
-    private string FormatTime(float time)
-    {
-      int minutes = Mathf.FloorToInt(time / 60f);
-      int seconds = Mathf.FloorToInt(time % 60f);
-      int frames = Mathf.FloorToInt((time % 1f) * 30f);
-      return $"{minutes:00}:{seconds:00}:{frames:00}";
     }
 
     /// <summary>
@@ -119,7 +120,7 @@ namespace MiniTimeline.UI.MVVM.Timeline
       {
         if (trackController != null)
         {
-          trackController.UpdateZoom(zoom, _model.PixelsPerSecond);
+          trackController.UpdateZoom(zoom, _viewModel.PixelsPerSecond);
         }
       }
     }
@@ -143,7 +144,7 @@ namespace MiniTimeline.UI.MVVM.Timeline
           // Create controller if it doesn't exist
           if (!_trackControllers.ContainsKey(track.Id))
           {
-            _view.StartCoroutine(DelayedCreateTrackController(track.Id));
+            CreateAndRegisterTrackController(track.Id);
           }
         }
       }
@@ -162,17 +163,6 @@ namespace MiniTimeline.UI.MVVM.Timeline
       {
         UnregisterTrackController(trackId);
       }
-    }
-
-    /// <summary>
-    /// Delayed coroutine to create and register a track controller.
-    /// This ensures the track is fully initialized before creating its controller.
-    /// </summary>
-    private IEnumerator DelayedCreateTrackController(string trackId)
-    {
-      // Wait one frame to ensure the track is fully added to the director
-      yield return null;
-      CreateAndRegisterTrackController(trackId);
     }
 
     /// <summary>
@@ -251,13 +241,13 @@ namespace MiniTimeline.UI.MVVM.Timeline
         return _trackControllers[trackId];
       }
 
-      if (_model.Director == null)
+      if (_viewModel.Director == null)
       {
         Debug.LogWarning($"Cannot create TrackController: No director available");
         return null;
       }
 
-      var track = _model.Director.GetTrack(trackId);
+      var track = _viewModel.Director.GetTrack(trackId);
       if (track == null)
       {
         Debug.LogWarning($"Cannot create TrackController: Track '{trackId}' not found in director");
@@ -267,10 +257,10 @@ namespace MiniTimeline.UI.MVVM.Timeline
       // Delegate rendering to the view
       var trackController = _view.CreateAndRenderTrackController(
         track,
-        _model.Director,
-        _model.PixelsPerSecond,
-        _model.Length,
-        _model.Zoom
+        _viewModel.Director,
+        _viewModel.PixelsPerSecond,
+        _viewModel.Length.Value,
+        _viewModel.Zoom.Value
       );
 
       if (trackController != null)
@@ -295,6 +285,64 @@ namespace MiniTimeline.UI.MVVM.Timeline
 
       // Observable array for managing tracks
       public readonly ObservableArray<IMiniTrack> Tracks;
+      public VisualElement FormHost { get; set; }
+
+      // Expose Model properties needed by Controller
+      public MiniTimelineDirector Director => _model.Director;
+      public float PixelsPerSecond => _model.PixelsPerSecond;
+
+      // Expose Model events needed by Controller
+      public event Action OnTracksChanged
+      {
+        add => _model.OnTracksChanged += value;
+        remove => _model.OnTracksChanged -= value;
+      }
+      public event Action<IMiniTrack> OnTrackAdded
+      {
+        add => _model.OnTrackAdded += value;
+        remove => _model.OnTrackAdded -= value;
+      }
+      public event Action<IMiniTrack, string> OnTrackRemoved
+      {
+        add => _model.OnTrackRemoved += value;
+        remove => _model.OnTrackRemoved -= value;
+      }
+      public event Action<IMiniTrack> OnTrackUpdated
+      {
+        add => _model.OnTrackUpdated += value;
+        remove => _model.OnTrackUpdated -= value;
+      }
+      public event Action OnClipsChanged
+      {
+        add => _model.OnClipsChanged += value;
+        remove => _model.OnClipsChanged -= value;
+      }
+      public event Action<IMiniClip, string> OnClipAdded
+      {
+        add => _model.OnClipAdded += value;
+        remove => _model.OnClipAdded -= value;
+      }
+      public event Action<IMiniClip, string> OnClipRemoved
+      {
+        add => _model.OnClipRemoved += value;
+        remove => _model.OnClipRemoved -= value;
+      }
+      public event Action<IMiniClip, string> OnClipUpdated
+      {
+        add => _model.OnClipUpdated += value;
+        remove => _model.OnClipUpdated -= value;
+      }
+      public event Action<float> OnZoomChanged
+      {
+        add => _model.OnZoomChanged += value;
+        remove => _model.OnZoomChanged -= value;
+      }
+
+      public event Action<bool, bool> OnCommandStacksChanged
+      {
+        add => _model.OnCommandStacksChanged += value;
+        remove => _model.OnCommandStacksChanged -= value;
+      }
 
       readonly TimelineEditorModel _model;
 
@@ -376,7 +424,7 @@ namespace MiniTimeline.UI.MVVM.Timeline
       // Track array management
       public void AddTrackToArray(IMiniTrack track)
       {
-        if (track != null && System.Array.IndexOf(Tracks.items, track) == -1)
+        if (track != null && Array.IndexOf(Tracks.items, track) == -1)
         {
           Tracks.TryAdd(track);
         }
@@ -427,30 +475,286 @@ namespace MiniTimeline.UI.MVVM.Timeline
       // Track operations
       public void ShowAddTrackForm()
       {
-        Debug.Log("Show add track form - TODO: Implement in controller");
-        // TODO: Trigger form for creating new track
-        // AddTrackCommand will be created and executed
+        if (_model.Director?.Project == null)
+        {
+          Debug.LogError("Cannot add track: No project loaded");
+          return;
+        }
+
+        var fieldDefinitions = TrackFormDefinitions.GetCreateTrackFields();
+        
+        FormSubmitPanelUIToolkit.Instance.Show(
+          "Add Track",
+          fieldDefinitions,
+          OnAddTrackFormSubmitted,
+          OnAddTrackFormCancelled,
+          FormHost
+        );
+      }
+
+      private void OnAddTrackFormSubmitted(Dictionary<string, object> formData)
+      {
+        try
+        {
+          string trackType = formData.ContainsKey("trackType") ? formData["trackType"].ToString() : MiniTimelineConstants.TRACK_ANIM;
+          string trackName = formData.ContainsKey("trackName") ? formData["trackName"].ToString() : "New Track";
+          string bindKey = formData.ContainsKey("bindKey") ? formData["bindKey"].ToString() : "";
+          bool enabled = formData.ContainsKey("enabled") ? Convert.ToBoolean(formData["enabled"]) : true;
+
+          var addTrackCommand = new AddTrackCommand(_model.Director, trackType, trackName, bindKey, enabled);
+          _model.ExecuteCommand(addTrackCommand);
+          Debug.Log($"Added new {trackType} track: {trackName}");
+        }
+        catch (Exception ex)
+        {
+          Debug.LogError($"Failed to create track: {ex.Message}");
+        }
+      }
+
+      private void OnAddTrackFormCancelled()
+      {
+        Debug.Log("Add track cancelled");
       }
 
       public void ShowBindingManager()
       {
-        Debug.Log("Show binding manager - TODO: Implement in controller");
-        // TODO: Show binding manager UI
-        // Uses director?.BindingContext to manage scene bindings
+        if (_model.Director?.BindingContext == null)
+        {
+          Debug.LogError("Cannot show binding manager: No binding context available");
+          return;
+        }
+
+        var bindingContext = _model.Director.BindingContext;
+        var fieldDefinitions = new List<FormFieldDefinition>
+        {
+          new FormFieldDefinition
+          {
+            name = "bindingList",
+            type = "textarea",
+            label = "Current Scene Bindings",
+            required = false,
+            defaultValue = FormatBindingsForDisplay(bindingContext),
+            tooltip = "List of currently registered scene object bindings"
+          },
+          new FormFieldDefinition
+          {
+            name = "newBindingKey",
+            type = "text",
+            label = "New Binding Key",
+            required = false,
+            placeholder = "Enter binding key...",
+            tooltip = "Unique key name for the new binding"
+          },
+          new FormFieldDefinition
+          {
+            name = "newBindingObject",
+            type = "text",
+            label = "Target Object Name",
+            required = false,
+            placeholder = "Enter GameObject name...",
+            tooltip = "Name of the GameObject to bind"
+          }
+        };
+
+        FormSubmitPanelUIToolkit.Instance.Show(
+          "Binding Manager",
+          fieldDefinitions,
+          OnBindingManagerFormSubmitted,
+          null,
+          FormHost
+        );
+      }
+
+      private void OnBindingManagerFormSubmitted(Dictionary<string, object> formData)
+      {
+        try
+        {
+          if (formData.ContainsKey("newBindingKey") && formData.ContainsKey("newBindingObject"))
+          {
+            string key = formData["newBindingKey"]?.ToString();
+            string objectName = formData["newBindingObject"]?.ToString();
+            
+            if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(objectName))
+            {
+              var targetObject = GameObject.Find(objectName);
+              if (targetObject != null)
+              {
+                _model.Director.BindingContext.Bind(key, targetObject);
+                Debug.Log($"Registered binding: {key} -> {objectName}");
+              }
+              else
+              {
+                Debug.LogWarning($"GameObject '{objectName}' not found in scene");
+              }
+            }
+          }
+        }
+        catch (Exception ex)
+        {
+          Debug.LogError($"Failed to update bindings: {ex.Message}");
+        }
+      }
+
+      private string FormatBindingsForDisplay(BindableObjectManager bindingContext)
+      {
+        if (bindingContext == null) return "No bindings";
+        var keys = bindingContext.GetKeys();
+        if (keys == null || !keys.Any()) return "No bindings registered";
+        return string.Join("\n", keys.Select(key => 
+        {
+          var obj = bindingContext.Resolve<GameObject>(key);
+          return $"{key}: {(obj != null ? obj.name : "null")}";
+        }));
       }
 
       public void ShowSaveProjectForm()
       {
-        Debug.Log("Show save project form - TODO: Implement in controller");
-        // TODO: Show save project UI
-        // Calls ProjectSerializer.SaveToFile(director.Project, director, filePath);
+        if (_model.Director?.Project == null)
+        {
+          Debug.LogError("Cannot save project: No project loaded");
+          return;
+        }
+
+        var fieldDefinitions = new List<FormFieldDefinition>
+        {
+          new FormFieldDefinition
+          {
+            name = "filename",
+            type = "text",
+            label = "Filename",
+            required = true,
+            defaultValue = _model.Director.Project.name ?? "timeline_project",
+            placeholder = "Enter project filename...",
+            tooltip = "Name of the file to save (without extension)"
+          },
+          new FormFieldDefinition
+          {
+            name = "prettyPrint",
+            type = "checkbox",
+            label = "Pretty Print JSON",
+            required = false,
+            defaultValue = true,
+            tooltip = "Format JSON for better readability"
+          }
+        };
+
+        FormSubmitPanelUIToolkit.Instance.Show(
+          "Save Project",
+          fieldDefinitions,
+          OnSaveProjectFormSubmitted,
+          null,
+          FormHost
+        );
+      }
+
+      private void OnSaveProjectFormSubmitted(Dictionary<string, object> formData)
+      {
+        try
+        {
+          string filename = formData.ContainsKey("filename") ? formData["filename"].ToString() : "timeline_project";
+          if (!filename.EndsWith(".json"))
+          {
+            filename += ".json";
+          }
+
+          bool success = _model.Director.SaveProject(filename);
+          if (success)
+          {
+            Debug.Log($"Project '{filename}' saved successfully");
+          }
+          else
+          {
+            Debug.LogError($"Failed to save project '{filename}'");
+          }
+        }
+        catch (Exception ex)
+        {
+          Debug.LogError($"Failed to save project: {ex.Message}");
+        }
       }
 
       public void ShowLoadProjectForm()
       {
-        Debug.Log("Show load project form - TODO: Implement in controller");
-        // TODO: Show load project UI
-        // Calls ProjectSerializer.LoadFromFile(filePath);
+        var projectFiles = GetAvailableProjectFiles();
+        var fieldDefinitions = new List<FormFieldDefinition>
+        {
+          new FormFieldDefinition
+          {
+            name = "filename",
+            type = projectFiles.Length > 0 ? "selectbox" : "text",
+            label = projectFiles.Length > 0 ? "Select Project File" : "Enter Filename",
+            required = true,
+            placeholder = "Enter project filename...",
+            tooltip = "Select or enter the filename to load",
+            options = projectFiles.Length > 0 ? new Dictionary<string, object>
+            {
+              { "items", projectFiles.ToList() }
+            } : null
+          },
+          new FormFieldDefinition
+          {
+            name = "replaceBindings",
+            type = "checkbox",
+            label = "Auto-Update Scene Bindings",
+            required = false,
+            defaultValue = true,
+            tooltip = "Automatically update scene bindings after loading"
+          }
+        };
+
+        FormSubmitPanelUIToolkit.Instance.Show(
+          "Load Project",
+          fieldDefinitions,
+          OnLoadProjectFormSubmitted,
+          null,
+          FormHost
+        );
+      }
+
+      private void OnLoadProjectFormSubmitted(Dictionary<string, object> formData)
+      {
+        try
+        {
+          string filename = formData.ContainsKey("filename") ? formData["filename"].ToString() : "timeline_project";
+          if (!filename.EndsWith(".json"))
+          {
+            filename += ".json";
+          }
+
+          bool success = _model.Director.LoadProject(filename);
+          if (success)
+          {
+            Debug.Log($"Project '{filename}' loaded successfully");
+          }
+          else
+          {
+            Debug.LogError($"Failed to load project '{filename}'");
+          }
+        }
+        catch (Exception ex)
+        {
+          Debug.LogError($"Failed to load project: {ex.Message}");
+        }
+      }
+
+      private string[] GetAvailableProjectFiles()
+      {
+        try
+        {
+          string projectPath = Application.persistentDataPath;
+          if (System.IO.Directory.Exists(projectPath))
+          {
+            var files = System.IO.Directory.GetFiles(projectPath, "*.json")
+              .Select(System.IO.Path.GetFileName)
+              .ToArray();
+            return files;
+          }
+        }
+        catch (Exception ex)
+        {
+          Debug.LogWarning($"Failed to get available project files: {ex.Message}");
+        }
+        return new string[0];
       }
     }
 

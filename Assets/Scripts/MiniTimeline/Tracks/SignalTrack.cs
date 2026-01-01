@@ -12,6 +12,7 @@ namespace MiniTimeline.Tracks
 	/// Signal track for triggering signals and markers
 	/// Fires events when playhead crosses signal markers
 	/// </summary>
+	[Serializable]
 	public class SignalTrack : MiniTrackBase<SignalClip>
 	{
 		public override int Order => 0; // Signal tracks run first to allow other systems to react
@@ -69,7 +70,10 @@ namespace MiniTimeline.Tracks
 		protected override void OnCleanup()
 		{
 			// Clear event handlers
-			eventHandlers.Clear();
+			if (eventHandlers != null)
+			{
+				eventHandlers.Clear();
+			}
             
 			// Debug.Log($"[SignalTrack] Cleaned up track '{Id}'");
 		}
@@ -106,7 +110,7 @@ namespace MiniTimeline.Tracks
 				onTimelineEvent?.Invoke(timelineEvent);
                 
 				// Fire specific event handler if registered
-				if (eventHandlers.TryGetValue(signal.eventId, out var handler))
+				if (eventHandlers != null && eventHandlers.TryGetValue(signal.eventId, out var handler))
 				{
 					handler.Invoke(timelineEvent);
 				}
@@ -127,6 +131,7 @@ namespace MiniTimeline.Tracks
 		public void RegisterEventHandler(string eventId, Action<TimelineEvent> handler)
 		{
 			if (string.IsNullOrEmpty(eventId) || handler == null) return;
+			if (eventHandlers == null) return;
             
 			if (eventHandlers.ContainsKey(eventId))
 			{
@@ -148,6 +153,7 @@ namespace MiniTimeline.Tracks
 		public void UnregisterEventHandler(string eventId, Action<TimelineEvent> handler)
 		{
 			if (string.IsNullOrEmpty(eventId) || handler == null) return;
+			if (eventHandlers == null) return;
             
 			if (eventHandlers.TryGetValue(eventId, out var existingHandler))
 			{
@@ -166,7 +172,10 @@ namespace MiniTimeline.Tracks
 		/// <param name="eventId">Event ID to clear</param>
 		public void ClearEventHandlers(string eventId)
 		{
-			eventHandlers.Remove(eventId);
+			if (eventHandlers != null)
+			{
+				eventHandlers.Remove(eventId);
+			}
 		}
         
 		/// <summary>
@@ -174,7 +183,10 @@ namespace MiniTimeline.Tracks
 		/// </summary>
 		public void ClearAllEventHandlers()
 		{
-			eventHandlers.Clear();
+			if (eventHandlers != null)
+			{
+				eventHandlers.Clear();
+			}
 		}
         
 		#endregion
@@ -275,7 +287,7 @@ namespace MiniTimeline.Tracks
 			OnTimelineEvent?.Invoke(manualEvent);
 			onTimelineEvent?.Invoke(manualEvent);
             
-			if (eventHandlers.TryGetValue(eventId, out var handler))
+			if (eventHandlers != null && eventHandlers.TryGetValue(eventId, out var handler))
 			{
 				handler.Invoke(manualEvent);
 			}

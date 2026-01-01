@@ -1,9 +1,11 @@
+using System;
 using UnityEngine;
 using MiniTimeline.Core;
 using System.Collections.Generic;
 
 namespace MiniTimeline.Tracks
 {
+    [Serializable]
     public class UmaWardrobeTrack : MiniTrackBase<UmaWardrobeClip>
     {
         private UmaAvatar umaAvatar;

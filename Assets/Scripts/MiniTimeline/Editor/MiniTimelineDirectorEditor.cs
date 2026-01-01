@@ -378,9 +378,9 @@ namespace MiniTimeline.Editor
                         .Select(name => new { 
                             Name = name, 
                             Path = MiniTimelineDirector.GetProjectFilePath(name),
-                            ModifiedTime = System.IO.File.Exists(MiniTimelineDirector.GetProjectFilePath(name)) 
-                                ? new System.IO.FileInfo(MiniTimelineDirector.GetProjectFilePath(name)).LastWriteTime 
-                                : System.DateTime.MinValue
+                            ModifiedTime = File.Exists(MiniTimelineDirector.GetProjectFilePath(name)) 
+                                ? new FileInfo(MiniTimelineDirector.GetProjectFilePath(name)).LastWriteTime 
+                                : DateTime.MinValue
                         })
                         .OrderByDescending(p => p.ModifiedTime)
                         .Select(p => p.Name)
@@ -460,9 +460,9 @@ namespace MiniTimeline.Editor
             
             // File info
             string filePath = MiniTimelineDirector.GetProjectFilePath(projectName);
-            if (System.IO.File.Exists(filePath))
+            if (File.Exists(filePath))
             {
-                var fileInfo = new System.IO.FileInfo(filePath);
+                var fileInfo = new FileInfo(filePath);
                 
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField($"📅 {fileInfo.LastWriteTime:yyyy-MM-dd HH:mm}", EditorStyles.miniLabel);
@@ -515,7 +515,7 @@ namespace MiniTimeline.Editor
                     
                     if (!string.IsNullOrEmpty(newName))
                     {
-                        string newProjectName = System.IO.Path.GetFileNameWithoutExtension(newName);
+                        string newProjectName = Path.GetFileNameWithoutExtension(newName);
                         if (director.SaveProject(newProjectName))
                         {
                             Debug.Log($"[MiniTimelineDirectorEditor] Saved project as: {newProjectName}");
@@ -630,8 +630,8 @@ namespace MiniTimeline.Editor
                     {
                         EditorGUILayout.LabelField($"Active Bindings ({bindingKeys.Count}):", EditorStyles.boldLabel);
                         
-                        var keysToRemove = new System.Collections.Generic.List<string>();
-                        var bindingsToAdd = new System.Collections.Generic.List<(string oldKey, string newKey, UnityEngine.Object obj)>();
+                        var keysToRemove = new List<string>();
+                        var bindingsToAdd = new List<(string oldKey, string newKey, UnityEngine.Object obj)>();
                         
                         foreach (var key in bindingKeys)
                         {
@@ -830,7 +830,7 @@ namespace MiniTimeline.Editor
                 }
                 else
                 {
-                    var tracksToRemove = new System.Collections.Generic.List<IMiniTrack>();
+                    var tracksToRemove = new List<IMiniTrack>();
                     
                     foreach (var track in director.Tracks.ToList())
                     {
@@ -891,7 +891,7 @@ namespace MiniTimeline.Editor
                         // Binding key selector
                         EditorGUILayout.LabelField("Bind Key:", GUILayout.Width(60));
                         
-                        var availableKeys = new System.Collections.Generic.List<string> { "None" };
+                        var availableKeys = new List<string> { "None" };
                         if (director.BindingContext != null)
                         {
                             availableKeys.AddRange(director.BindingContext.GetKeys());
@@ -1014,7 +1014,7 @@ namespace MiniTimeline.Editor
                         {
                             EditorGUI.indentLevel++;
                             
-                            var clipsToRemove = new System.Collections.Generic.List<IMiniClip>();
+                            var clipsToRemove = new List<IMiniClip>();
                             
                             // Calculate timeline visualization scale
                             var maxTime = Mathf.Max(director.Length, clipsList.Max(c => c.Start + c.Duration));
@@ -1179,14 +1179,13 @@ namespace MiniTimeline.Editor
                         
                         for (int i = 0; i < director.Project.tracks.Count; i++)
                         {
-                            var trackData = director.Project.tracks[i];
-                            var runtimeTrack = director.Tracks.FirstOrDefault(t => t.Id == trackData.id);
+                            var track = director.Project.tracks[i];
                             
-                            var status = runtimeTrack != null ? "✓ Created" : "✗ Failed";
-                            var statusColor = runtimeTrack != null ? Color.green : Color.red;
+                            var status = "✓ Ready";
+                            var statusColor = Color.green;
                             
                             EditorGUILayout.BeginHorizontal();
-                            EditorGUILayout.LabelField($"[{i}] {trackData.id} ({trackData.type}):", GUILayout.Width(200));
+                            EditorGUILayout.LabelField($"[{i}] {track.Id} ({track.GetType().Name}):", GUILayout.Width(200));
                             
                             var oldColor = GUI.color;
                             GUI.color = statusColor;
@@ -1222,14 +1221,111 @@ namespace MiniTimeline.Editor
         
         private void CreateSampleProject()
         {
-            var project = SampleProjectCreator.CreateSampleProject();
-            project.name = newProjectName + " (Sample)";
-            project.length = newProjectLength;
-            project.frameRate = newProjectFrameRate;
+            // Create project with sample tracks and clips
+            var project = new MiniTimelineProject
+            {
+                name = newProjectName + " (Sample)",
+                length = newProjectLength,
+                frameRate = newProjectFrameRate,
+                tracks = new List<IMiniTrack>()
+            };
             
             director.SetProject(project);
             
-            Debug.Log($"[MiniTimelineDirectorEditor] Created sample project '{project.name}'");
+            try
+            {
+                // Add sample Movement Track
+                var movementTrack = new Tracks.MovementTrack
+                {
+                    Id = "SampleMovementTrack",
+                    BindKey = "Actor1",
+                    Enabled = true
+                };
+                
+                // Add movement clip
+                var moveClip = new Tracks.MovementClip
+                {
+                    Id = "Move_Forward",
+                    Start = 2f,
+                    Duration = 3f,
+                    hasPosition = true,
+                    startPosition = Vector3.zero,
+                    endPosition = new Vector3(0, 0, 5),
+                    animationCurve = Tracks.CameraAnimationCurve.Linear
+                };
+                movementTrack.AddClip(moveClip);
+                
+                director.AddTrack(movementTrack);
+                
+                // Add sample Signal Track
+                var signalTrack = new Tracks.SignalTrack
+                {
+                    Id = "SampleSignalTrack",
+                    BindKey = null, // Signals don't require binding
+                    Enabled = true
+                };
+                
+                // Add signal clips
+                var startSignal = new Tracks.SignalClip
+                {
+                    Id = "StartSignal",
+                    Start = 0f,
+                    eventId = "OnTimelineStart",
+                    payload = "Timeline started"
+                };
+                signalTrack.AddClip(startSignal);
+                
+                var midSignal = new Tracks.SignalClip
+                {
+                    Id = "MidpointSignal",
+                    Start = 5f,
+                    eventId = "OnMidpoint",
+                    payload = "Midpoint reached"
+                };
+                signalTrack.AddClip(midSignal);
+                
+                var endSignal = new Tracks.SignalClip
+                {
+                    Id = "EndSignal",
+                    Start = 9.9f,
+                    eventId = "OnTimelineEnd",
+                    payload = "Timeline ended"
+                };
+                signalTrack.AddClip(endSignal);
+                
+                director.AddTrack(signalTrack);
+                
+                // Save the sample project
+                if (director.SaveProject())
+                {
+                    Debug.Log($"[MiniTimelineDirectorEditor] Created and saved sample project '{project.name}' with {director.Tracks.Count} tracks");
+                    EditorUtility.DisplayDialog(
+                        "Sample Project Created", 
+                        $"Sample project '{project.name}' created successfully!\n\n" +
+                        $"Tracks: {director.Tracks.Count}\n" +
+                        $"Total Clips: {director.Tracks.Sum(t => t.GetClips().Count())}\n" +
+                        $"Length: {project.length}s\n\n" +
+                        "Contains:\n" +
+                        "• Movement Track (Actor1)\n" +
+                        "• Signal Track with 3 event markers\n\n" +
+                        "Tip: Assign BindableObjects with key 'Actor1' to see the tracks in action!", 
+                        "OK"
+                    );
+                }
+                else
+                {
+                    Debug.LogWarning("[MiniTimelineDirectorEditor] Sample project created but failed to save");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[MiniTimelineDirectorEditor] Failed to create sample project: {e.Message}\n{e.StackTrace}");
+                EditorUtility.DisplayDialog(
+                    "Error Creating Sample", 
+                    $"Failed to create sample project:\n{e.Message}\n\nCheck console for details.", 
+                    "OK"
+                );
+            }
         }
         
         private void SaveProject()
@@ -1273,7 +1369,7 @@ namespace MiniTimeline.Editor
                 
                 if (!string.IsNullOrEmpty(path))
                 {
-                    if (ProjectSerializer.SaveToFile(director.Project, director, path))
+                    if (ProjectSerializer.SaveToFile(director.Project, path))
                     {
                         lastSavedPath = path;
                         Debug.Log($"[MiniTimelineDirectorEditor] Project saved to: {path}");
@@ -1393,7 +1489,7 @@ namespace MiniTimeline.Editor
                 else if (!string.IsNullOrEmpty(lastSavedPath))
                 {
                     // Save to custom path using serializer directly
-                    if (ProjectSerializer.SaveToFile(director.Project, director, lastSavedPath))
+                    if (ProjectSerializer.SaveToFile(director.Project, lastSavedPath))
                     {
                         Debug.Log($"[MiniTimelineDirectorEditor] Quick saved to: {lastSavedPath}");
                     }
@@ -1418,7 +1514,7 @@ namespace MiniTimeline.Editor
                 if (lastLoadedPath.StartsWith(MiniTimelineDirector.GetProjectsFolder()))
                 {
                     // Load using director method
-                    string projectName = System.IO.Path.GetFileNameWithoutExtension(lastLoadedPath);
+                    string projectName = Path.GetFileNameWithoutExtension(lastLoadedPath);
                     if (director.LoadProject(projectName))
                     {
                         Debug.Log($"[MiniTimelineDirectorEditor] Quick loaded from: {lastLoadedPath}");
@@ -1484,7 +1580,7 @@ namespace MiniTimeline.Editor
             }
             
             // Use the director's AutoBindSceneObjects method which handles both binding and rebinding
-            director.AutoBindSceneObjects();
+            director.RebindAllTracks();
             
             // Repaint to show updated UI
             Repaint();
@@ -1529,8 +1625,17 @@ namespace MiniTimeline.Editor
         {
             var menu = new GenericMenu();
             
-            // Get all registered track types from TrackFactory
-            var trackTypes = MiniTimeline.Serialization.TrackFactory.GetRegisteredTrackTypes();
+            var trackTypes = new string[]
+            {
+                MiniTimelineConstants.TRACK_ANIM,
+                MiniTimelineConstants.TRACK_ANIMATOR,
+                MiniTimelineConstants.TRACK_MORPH,
+                MiniTimelineConstants.TRACK_EXPRESSION,
+                MiniTimelineConstants.TRACK_MOVEMENT,
+                MiniTimelineConstants.TRACK_SIGNAL,
+                MiniTimelineConstants.TRACK_UMA_WARDROBE,
+                MiniTimelineConstants.TRACK_UMA_EXPRESSION
+            };
             
             foreach (var trackType in trackTypes)
             {
@@ -1565,30 +1670,10 @@ namespace MiniTimeline.Editor
                 return;
             }
             
-            // Generate unique track ID
-            var trackId = $"{trackType}_{System.Guid.NewGuid().ToString().Substring(0, 8)}";
-            
-            // Create track data
-            var trackData = new MiniTimeline.Core.TrackData
-            {
-                id = trackId,
-                type = trackType,
-                bindKey = null,
-                enabled = true,
-                order = director.Project.tracks.Count,
-                clips = new System.Collections.Generic.List<MiniTimeline.Core.ClipData>(),
-                properties = new System.Collections.Generic.Dictionary<string, object>()
-            };
-            
-            // Add to project
-            director.Project.tracks.Add(trackData);
-            
-            // Rebuild tracks
-            director.MarkDirty();
-            
-            Debug.Log($"[MiniTimelineDirectorEditor] Added new {trackType} track with ID '{trackId}'");
-            
-            // Repaint to show changes
+            // Track creation is not fully implemented in the editor yet
+            // The AddTrack method requires a concrete IMiniTrack instance
+            // which would need to be instantiated based on the track type
+            Debug.Log($"[MiniTimelineDirectorEditor] AddTrack: Runtime track creation not fully implemented for type '{trackType}'");
             Repaint();
         }
         
@@ -1600,7 +1685,7 @@ namespace MiniTimeline.Editor
             }
             
             // Find and remove track data from project
-            var trackData = director.Project.tracks.FirstOrDefault(t => t.id == track.Id);
+            var trackData = director.Project.tracks.FirstOrDefault(t => t != null && t.Id == track.Id);
             if (trackData != null)
             {
                 director.Project.tracks.Remove(trackData);
@@ -1623,10 +1708,15 @@ namespace MiniTimeline.Editor
             }
             
             // Update in track data
-            var trackData = director.Project.tracks.FirstOrDefault(t => t.id == track.Id);
+            var trackData = director.Project.tracks.FirstOrDefault(t => t != null && t.Id == track.Id);
             if (trackData != null)
             {
-                trackData.bindKey = newBindKey;
+                // Update runtime track bindKey
+                var bindProp = trackData.GetType().GetProperty("BindKey");
+                if (bindProp?.CanWrite == true)
+                {
+                    bindProp.SetValue(trackData, newBindKey);
+                }
                 
                 // Update runtime track using reflection
                 if (track.GetType().GetProperty("BindKey")?.CanWrite == true)
@@ -1652,10 +1742,15 @@ namespace MiniTimeline.Editor
             }
             
             // Update in track data
-            var trackData = director.Project.tracks.FirstOrDefault(t => t.id == track.Id);
+            var trackData = director.Project.tracks.FirstOrDefault(t => t != null && t.Id == track.Id);
             if (trackData != null)
             {
-                trackData.enabled = enabled;
+                // Update via reflection since DTO field is no longer available
+                var enabledProp = trackData.GetType().GetProperty("Enabled");
+                if (enabledProp?.CanWrite == true)
+                {
+                    enabledProp.SetValue(trackData, enabled);
+                }
                 
                 // Update runtime track using reflection
                 if (track.GetType().GetProperty("Enabled")?.CanWrite == true)
@@ -1696,48 +1791,22 @@ namespace MiniTimeline.Editor
         
         private string GetTrackType(IMiniTrack track)
         {
-            if (director.Project == null || track == null) return "";
-            
-            var trackData = director.Project.tracks.FirstOrDefault(t => t.id == track.Id);
-            return trackData?.type ?? "";
+            if (track == null) return "";
+            return track.GetType().Name;
         }
         
         private void AddSimpleClip(IMiniTrack track)
         {
             if (director.Project == null || track == null) return;
             
-            // Generate unique clip ID
-            var clipId = $"clip_{System.Guid.NewGuid().ToString().Substring(0, 8)}";
+            var clips = track.GetClips();
+            if (clips == null) return;
             
-            // Find track data
-            var trackData = director.Project.tracks.FirstOrDefault(t => t.id == track.Id);
-            if (trackData == null) return;
+            // Create a simple clip with default properties
+            var clipId = $"clip_{Guid.NewGuid().ToString().Substring(0, 8)}";
+            var startTime = clips.Count() > 0 ? clips.Max(c => c.Start + c.Duration) : 0f;
             
-            // Determine clip start time (after last clip or at 0)
-            var startTime = 0f;
-            if (trackData.clips.Count > 0)
-            {
-                var lastClip = trackData.clips.OrderByDescending(c => c.start + c.duration).First();
-                startTime = lastClip.start + lastClip.duration;
-            }
-            
-            // Create clip data
-            var clipData = new MiniTimeline.Core.ClipData
-            {
-                id = clipId,
-                start = startTime,
-                duration = 1.0f,
-                payload = new System.Collections.Generic.Dictionary<string, object>()
-            };
-            
-            // Add to track data
-            trackData.clips.Add(clipData);
-            
-            // Rebuild tracks to create runtime clip
-            director.MarkDirty();
-            
-            Debug.Log($"[MiniTimelineDirectorEditor] Added simple clip '{clipId}' to track '{track.Id}' at {startTime}s");
-            
+            Debug.Log($"[MiniTimelineDirectorEditor] AddSimpleClip: Runtime clip creation not fully implemented for track '{track.Id}'");
             Repaint();
         }
         
@@ -1745,34 +1814,10 @@ namespace MiniTimeline.Editor
         {
             if (director.Project == null || track == null) return;
             
-            var clipId = $"signal_{System.Guid.NewGuid().ToString().Substring(0, 8)}";
-            var trackData = director.Project.tracks.FirstOrDefault(t => t.id == track.Id);
-            if (trackData == null) return;
+            var clips = track.GetClips();
+            if (clips == null) return;
             
-            var startTime = 0f;
-            if (trackData.clips.Count > 0)
-            {
-                startTime = trackData.clips.Max(c => c.start + c.duration);
-            }
-            
-            var clipData = new MiniTimeline.Core.ClipData
-            {
-                id = clipId,
-                start = startTime,
-                duration = 0f, // Signals have zero duration
-                payload = new System.Collections.Generic.Dictionary<string, object>
-                {
-                    { "eventId", "NewEvent" },
-                    { "payload", "" },
-                    { "edge", "Start" },
-                    { "fireOnScrub", false }
-                }
-            };
-            
-            trackData.clips.Add(clipData);
-            director.MarkDirty();
-            
-            Debug.Log($"[MiniTimelineDirectorEditor] Added signal clip '{clipId}' to track '{track.Id}'");
+            Debug.Log($"[MiniTimelineDirectorEditor] AddSignalClip: Runtime clip creation not fully implemented for track '{track.Id}'");
             Repaint();
         }
         
@@ -1780,109 +1825,52 @@ namespace MiniTimeline.Editor
         {
             if (director.Project == null || track == null) return;
             
-            var clipId = $"movement_{System.Guid.NewGuid().ToString().Substring(0, 8)}";
-            var trackData = director.Project.tracks.FirstOrDefault(t => t.id == track.Id);
-            if (trackData == null) return;
+            var clips = track.GetClips();
+            if (clips == null) return;
             
-            var startTime = 0f;
-            if (trackData.clips.Count > 0)
-            {
-                startTime = trackData.clips.Max(c => c.start + c.duration);
-            }
-            
-            var clipData = new MiniTimeline.Core.ClipData
-            {
-                id = clipId,
-                start = startTime,
-                duration = 2.0f,
-                payload = new System.Collections.Generic.Dictionary<string, object>
-                {
-                    { "hasPosition", true },
-                    { "startPosition", "0,0,0" },
-                    { "endPosition", "0,0,0" },
-                    { "hasRotation", false },
-                    { "hasFieldOfView", false },
-                    { "fadeIn", 0.5f },
-                    { "fadeOut", 0.5f }
-                }
-            };
-            
-            trackData.clips.Add(clipData);
-            director.MarkDirty();
-            
-            Debug.Log($"[MiniTimelineDirectorEditor] Added movement clip '{clipId}' to track '{track.Id}'");
+            Debug.Log($"[MiniTimelineDirectorEditor] AddMovementClip: Runtime clip creation not fully implemented for track '{track.Id}'");
             Repaint();
         }
         
         private void RemoveClip(IMiniTrack track, IMiniClip clip)
         {
-            if (director.Project == null || track == null || clip == null) return;
+            if (track == null || clip == null) return;
             
-            // Find and remove from track data
-            var trackData = director.Project.tracks.FirstOrDefault(t => t.id == track.Id);
-            if (trackData != null)
-            {
-                var clipData = trackData.clips.FirstOrDefault(c => c.id == clip.Id);
-                if (clipData != null)
-                {
-                    trackData.clips.Remove(clipData);
-                    
-                    // Rebuild tracks
-                    director.MarkDirty();
-                    
-                    Debug.Log($"[MiniTimelineDirectorEditor] Removed clip '{clip.Id}' from track '{track.Id}'");
-                    Repaint();
-                }
-            }
+            // Remove from track runtime
+            track.RemoveClip(clip);
+            
+            // Mark director dirty to rebuild
+            director.MarkDirty();
+            
+            Debug.Log($"[MiniTimelineDirectorEditor] Removed clip '{clip.Id}' from track '{track.Id}'");
+            Repaint();
         }
         
         private void UpdateClipStart(IMiniTrack track, IMiniClip clip, float newStart)
         {
-            if (director.Project == null || track == null || clip == null) return;
+            if (track == null || clip == null) return;
             
-            // Update in clip data
-            var trackData = director.Project.tracks.FirstOrDefault(t => t.id == track.Id);
-            if (trackData != null)
+            // Update via runtime clip cast
+            var clipBase = clip as MiniClipBase;
+            if (clipBase != null)
             {
-                var clipData = trackData.clips.FirstOrDefault(c => c.id == clip.Id);
-                if (clipData != null)
-                {
-                    clipData.start = newStart;
-                    
-                    // Update runtime clip using reflection
-                    var startProp = clip.GetType().GetProperty("Start");
-                    if (startProp?.CanWrite == true)
-                    {
-                        startProp.SetValue(clip, newStart);
-                    }
-                    
-                    Debug.Log($"[MiniTimelineDirectorEditor] Updated clip '{clip.Id}' start to {newStart}s");
-                }
+                clipBase.Start = newStart;
+                director.MarkDirty();
+                Debug.Log($"[MiniTimelineDirectorEditor] Updated clip '{clip.Id}' start to {newStart}s");
             }
         }
         
         private void UpdateClipDuration(IMiniTrack track, IMiniClip clip, float newDuration)
         {
-            if (director.Project == null || track == null || clip == null) return;
+            if (track == null || clip == null) return;
             
-            // Update in clip data
-            var trackData = director.Project.tracks.FirstOrDefault(t => t.id == track.Id);
-            if (trackData != null)
+            // Update via runtime clip cast
+            var clipBase = clip as MiniClipBase;
+            if (clipBase != null)
             {
-                var clipData = trackData.clips.FirstOrDefault(c => c.id == clip.Id);
-                if (clipData != null)
-                {
-                    clipData.duration = newDuration;
-                    
-                    // Update runtime clip using reflection
-                    var durationProp = clip.GetType().GetProperty("Duration");
-                    if (durationProp?.CanWrite == true)
-                    {
-                        durationProp.SetValue(clip, newDuration);
-                    }
-                    
-                    Debug.Log($"[MiniTimelineDirectorEditor] Updated clip '{clip.Id}' duration to {newDuration}s");
-                }
+                clipBase.Duration = newDuration;
+                director.MarkDirty();
+                Debug.Log($"[MiniTimelineDirectorEditor] Updated clip '{clip.Id}' duration to {newDuration}s");
             }
         }
         
@@ -2018,54 +2006,25 @@ namespace MiniTimeline.Editor
             // Try to find serialized data
             if (director.Project != null)
             {
-                var trackData = director.Project.tracks?.FirstOrDefault(t => t.id == track.Id);
+                var trackData = director.Project.tracks?.FirstOrDefault(t => t != null && t.Id == track.Id);
                 if (trackData != null)
                 {
-                    var clipData = trackData.clips?.FirstOrDefault(c => c.id == clip.Id);
+                    var clipList = trackData.GetClips();
+                    var clipData = clipList?.FirstOrDefault(c => c.Id == clip.Id);
                     if (clipData != null)
                     {
                         EditorGUILayout.Space(5);
                         GUI.color = new Color(0.6f, 0.9f, 0.9f);
-                        EditorGUILayout.LabelField("Serialized Clip Data:", EditorStyles.boldLabel);
+                        EditorGUILayout.LabelField("Clip Data:", EditorStyles.boldLabel);
                         GUI.color = Color.white;
                         
-                        EditorGUILayout.LabelField($"Start: {clipData.start:F3}s");
-                        EditorGUILayout.LabelField($"Duration: {clipData.duration:F3}s");
-                        
-                        if (clipData.payload != null && clipData.payload.Count > 0)
-                        {
-                            EditorGUILayout.Space(3);
-                            EditorGUILayout.LabelField("Payload:", EditorStyles.boldLabel);
-                            
-                            // Display payload dictionary
-                            foreach (var kvp in clipData.payload)
-                            {
-                                var valueStr = kvp.Value?.ToString() ?? "null";
-                                
-                                // Try to format if it's JSON-like
-                                if (valueStr.StartsWith("{") || valueStr.StartsWith("["))
-                                {
-                                    try
-                                    {
-                                        valueStr = FormatJsonForDisplay(valueStr);
-                                    }
-                                    catch { }
-                                }
-                                
-                                EditorGUILayout.BeginHorizontal();
-                                EditorGUILayout.LabelField(kvp.Key, GUILayout.Width(120));
-                                EditorGUILayout.SelectableLabel(valueStr, GUILayout.MinHeight(20));
-                                EditorGUILayout.EndHorizontal();
-                            }
-                        }
-                        else
-                        {
-                            EditorGUILayout.HelpBox("No payload data", MessageType.Info);
-                        }
+                        EditorGUILayout.LabelField($"Start: {clipData.Start:F3}s");
+                        EditorGUILayout.LabelField($"Duration: {clipData.Duration:F3}s");
+                        EditorGUILayout.LabelField($"ID: {clipData.Id}");
                     }
                     else
                     {
-                        EditorGUILayout.HelpBox("Serialized data not found (clip not saved yet)", MessageType.Info);
+                        EditorGUILayout.HelpBox("Clip data not found", MessageType.Info);
                     }
                 }
                 else

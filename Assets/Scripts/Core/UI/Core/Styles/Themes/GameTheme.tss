@@ -1,15 +1,19 @@
 @import url("unity-theme://default");
 
-/* @import url("Assets/Scripts/Core/UI/Core/Styles/Tokens.uss");
-@import url("/Assets/Scripts/Core/UI/Core/Styles/Components/Panel.uss");
-@import url("/Assets/Scripts/Core/UI/Core/Styles/Components/Button.uss");
-@import url("/Assets/Scripts/Core/UI/Core/Styles/Components/Icons.uss"); */
-
 :root {
     /* Primary Colors */
-    --color-primary: #4f46e5;
-    --color-primary-hover: #4338ca;
+    --color-primary: #ec135b;
+    --color-primary-hover: #ec135b65;
     --color-secondary: #06b6d4;
+    --color-primary-light: #f8f6f6;
+    --color-primary-dark: #221016;
+
+    --background-color-dark: #f8f6f6;
+    --background-color-dark-opacity: #f8f6f60a;
+    --background-color-light: #181113;
+
+    --surface-color-dark: #241a1d;
+    --surface-color-light: #3a2a30;
 
     /* Status Colors */
     --color-success: #22c55e;
@@ -26,8 +30,8 @@
 
     --font-family: 'Inter', sans-serif;
 
-    --font-size-xs: 12px;
-    --font-size-sm: 14px;
+    --font-size-xs: 10px;
+    --font-size-sm: 12px;
     --font-size-md: 16px;
     --font-size-lg: 18px;
     --font-size-xl: 24px;
@@ -81,40 +85,131 @@
     -unity-text-align: middle-center;
 }
 
-
-/* Button theme */
-.button {
-    -unity-font-style: normal;
-    font-size: var(--font-size-sm);
-    color: var(--color-bg);
-    background-color: var(--color-primary); /* primary blue */
-    padding: var(--space-sm) var(--space-md);
-    -unity-text-align: middle-center;
-    unity-font-style: normal;
-    -unity-transition-property: background-color, color, opacity;
+/* Common Toggle Styles */
+.unity-toggle .unity-toggle__checkmark {
+    background-color: var(--color-primary);
 }
 
-.button:hover {
+.unity-toggle .unity-toggle__input:checked .unity-toggle__checkmark {
+    color: var(--color-primary-light);
+}
+
+/* Common Slider Styles */
+.unity-slider {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.unity-slider .unity-base-slider__drag-container {
+    border-radius: 0px;
+}
+
+.unity-slider .unity-base-slider__tracker {
+    background-color: var(--color-primary-dark);
+    border-radius: 5px;
+}
+
+.unity-slider .unity-base-slider__dragger {
+    background-color: var(--color-primary-light);
+    width: 5px;
+    height: 20px;
+    border-radius: 30%;
+    border-width: 1px;
+    border-color: var(--color-primary-light);
+}
+
+/* Common Scroll View Styles */
+ScrollView {
+    flex-grow: 1;
+}
+
+.unity-scroll-view__content-viewport {
+    background-color: rgba(35, 35, 35, 1);
+}
+
+.unity-scroller {
+    background-color: rgba(30, 30, 30, 1);
+}
+
+.unity-scroller--vertical {
+    width: 12px;
+}
+
+.unity-scroller--horizontal {
+    height: 12px;
+}
+
+.unity-scroller__slider {
+    background-color: rgba(50, 50, 50, 1);
+    border-radius: 6px;
+}
+
+.unity-scroller__slider:hover {
+    background-color: rgba(70, 70, 70, 1);
+}
+
+.unity-scroller__low-button,
+.unity-scroller__high-button {
+    display: none;
+}
+
+/* Common Dropdown Styles */
+DropdownField {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+DropdownField .unity-dropdown-field__input {
+    background-color: rgba(50, 50, 50, 1);
+    border-width: 1px;
+    border-color: rgba(70, 70, 70, 1);
+    border-radius: 3px;
+    color: rgb(255, 255, 255);
+    padding: 4px;
+}
+
+DropdownField .unity-dropdown-field__input:hover {
+    border-color: rgba(100, 100, 100, 1);
+}
+
+DropdownField .unity-dropdown-field__input:focus {
+    border-color: rgb(77, 150, 255);
+}
+
+
+/* Button theme */
+.unity-button {
+    -unity-font-style: normal;
+    font-size: var(--font-size-xs);
+    color: var(--color-bg);
+    background-color: var(--background-color-dark-opacity);
+    -unity-text-align: middle-center;
+    unity-font-style: normal;
+    border-color: var(--background-color-dark-opacity);
+    border-radius: var(--border-radius-md);
+}
+
+.unity-button:hover {
     background-color: var(--color-primary-hover); /* darker on hover */
 }
 
-.button:active {
+.unity-button:active {
     background-color: var(--color-primary-hover);
 }
 
-.button:disabled {
+.unity-button:disabled {
     opacity: 0.5;
     pointer-events: none;
 }
 
-.button--secondary {
+.unity-button--secondary {
     background-color: transparent;
     border-width: var(--border-width);
     border-color: var(--color-border); /* light border */
-    color: var(--color-primary); /* primary text */
+    color: var(--color-primary-light); /* primary text */
 }
 
-.button--icon {
+.unity-button--icon {
     width: 16px;
     height: 16px;
     margin-right: 8px;
@@ -122,45 +217,53 @@
 }
 
 /* Button variants */
-.button--primary {
+.unity-button--primary {
     /* explicit primary — same as base but kept for clarity & tokens */
     background-color: var(--color-primary);
     color: var(--color-bg);
 }
 
-.button--success {
+.unity-button--success {
     background-color: var(--color-success); /* green */
     color: var(--color-bg);
 }
 
-.button--danger {
+.unity-button--danger {
     background-color: var(--color-danger); /* red */
     color: var(--color-bg);
 }
 
-.button--warning {
+.unity-button--warning {
     background-color: var(--color-warning); /* orange */
     color: var(--color-bg);
 }
 
-.button--ghost {
+.unity-button--ghost {
     background-color: transparent;
     color: var(--color-primary); /* using primary color for ghost text */
     border-width: 0;
 }
 
+.unity-button--circle {
+    border-radius: var(--border-radius-full);
+}
+
+.unity-button--no-border {
+    border-width: 0;
+}
+
 /* Hover/active states for variants (uses color darkening) */
-.button--success:hover { background-color: var(--color-success);  }
-.button--success:active { background-color: var(--color-success);  }
+.unity-button--success:hover { background-color: var(--color-success);  }
+.unity-button--success:active { background-color: var(--color-success);  }
 
-.button--danger:hover { background-color: var(--color-danger);  }
-.button--danger:active { background-color: var(--color-danger);  }
+.unity-button--danger:hover { background-color: var(--color-danger);  }
+.unity-button--danger:active { background-color: var(--color-danger);  }
 
-.button--warning:hover { background-color: var(--color-warning);  }
-.button--warning:active { background-color: var(--color-warning);  }
+.unity-button--warning:hover { background-color: var(--color-warning);  }
+.unity-button--warning:active { background-color: var(--color-warning);  }
 
-.button--ghost:hover { background-color: rgba(79,70,229,0.06); }
-.button--ghost:active { background-color: rgba(79,70,229,0.12); }
+.unity-button--ghost:hover { background-color: rgba(79,70,229,0.06); }
+.unity-button--ghost:active { background-color: rgba(79,70,229,0.12); }
 
 
 /* Panel - a generic container used across UI for card/panel backgrounds */

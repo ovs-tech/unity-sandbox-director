@@ -1,0 +1,48 @@
+# Tasks: Modularize Timeline UI with MVVM
+
+- [x] 1. Create folder `Assets/Scripts/MiniTimeline/UI/MVVM/` and subfolders `Timeline/`, `Track/`, `Clip/`, `Ruler/` (no `Core/` folder).
+- [x] 2. Use View classes to load UXML directly via `InitializeView()` (no separate loader), mirroring Inventory.
+- [x] 3. Handle binding via `ViewModel` properties (`BindingProperty`) and controller event wiring (no separate binder), mirroring Inventory.
+- [x] 4. Mirror Inventory MVVM conventions for file/class layout:
+	- [x] `TimelineEditorController.cs` containing `TimelineEditorController`, inner `Builder`, and optional `TimelineEditorViewModel`.
+	- [x] `TimelineEditorView.cs` with `InitializeView()` and typed control references.
+	- [x] `TimelineEditorModel.cs` with serializable state and `Bind()` style events.
+- [x] 5. Scaffold Timeline Editor View, ViewModel, Controller classes; load from `TimelineEditorUIToolkit.uxml` and bind controls using `Initialize()` and `Bind()` lifecycle like `InventoryController`.
+- [x] 6. Scaffold Track View, ViewModel, Controller classes; load from `TrackUIToolkit.uxml` and bind header, lanes, clips.
+- [x] 7. Scaffold Clip View, ViewModel, Controller classes; load from `ClipUIToolkit.uxml` and bind markers, resize handles.
+- [x] 8. Scaffold Ruler View, ViewModel, Controller classes; load from `TimelineRulerToolkit.uxml` and generate markers.
+- [x] 9. Add a bootstrap `MiniTimelineController` that composes editor-level UI without touching `TimelineEditorUIToolkit`.
+- [x] 10. Implement localization hookup for tooltips/labels to mirror existing bindings.
+- [x] 14. Document usage with a short README and code comments in MVVM modules.
+- [ ] 15. Run `openspec validate modularize-timeline-ui-mvvm --strict` and fix any issues.
+- [ ] 16. Port logic from `TimelineEditorUIToolkit` to MVVM Timeline:
+  - [x] Command manager integration (execute, undo, redo)
+  - [x] Play/pause/stop controls with state management
+  - [x] Time slider and zoom slider with snap-to-grid
+  - [x] Track add/remove operations
+  - [x] Clip selection and multi-selection (basic support in Model)
+  - [x] Save/load timeline data
+  - [x] Binding manager integration (placeholder implemented)
+  - [ ] **Remaining**: Advanced clip multi-selection UI, keyboard shortcuts, scroll view optimization
+- [ ] 17. Port logic from `TrackUIToolkit` to MVVM Track:
+  - [x] Track header with title, bind key, type display
+  - [x] Enable/mute/solo toggle buttons
+  - [ ] Long-press detection for context menu (needs UI Toolkit event handlers in View)
+  - [x] Clip container management (add/remove clips)
+  - [x] Clip UI initialization and lifecycle
+  - [ ] **Remaining**: Context menu forms, track color assignment, drag-reorder tracks
+- [ ] 18. Port logic from `ClipUIToolkit` to MVVM Clip:
+  - [x] Selection state with visual feedback (Model ready)
+  - [ ] Drag-and-drop with snap-to-grid (needs UI Toolkit drag handlers in View)
+  - [ ] Resize handles (left/right) with constraints (needs UI Toolkit gesture handlers)
+  - [ ] Long-press detection (0.8s threshold, 20px move tolerance)
+  - [ ] Context menu on right-click or long-press (needs form integration)
+  - [x] Clip type icons and styling (basic structure exists)
+  - [ ] Form-based clip property editing (needs FormSubmitPanel integration)
+  - [ ] **Remaining**: All interactive gestures (drag, resize, long-press), context menus
+- [ ] 19. Port logic from `TimelineRulerToolkit` to MVVM Ruler:
+  - [x] Time markers with zoom-dependent density
+  - [x] Major/minor interval calculations
+  - [x] Playhead positioning
+  - [x] Snap guide rendering
+  - [ ] **Remaining**: Mouse/touch scrubbing interactions

@@ -1,9 +1,5 @@
-/* Track UI Toolkit Styles */
-
-/* Track Root Container */
 .track {
     flex-direction: row;
-    /* allow the track to grow/shrink based on its children (content-driven height) */
     height: auto;
     min-height: 60px;
     width: 100%;
@@ -29,7 +25,6 @@
     background-color: rgb(35, 35, 35);
 }
 
-/* Track Header */
 .track-header {
     width: 200px;
     height: auto;
@@ -41,7 +36,7 @@
     flex-direction: column;
     justify-content: flex-start;
     flex-shrink: 0;
-    position: relative; /* added position relative for absolute children */
+    position: relative;
     align-items: stretch;
 }
 
@@ -49,7 +44,6 @@
     background-color: rgb(55, 55, 55);
 }
 
-/* Track Controls */
 .track-controls {
     flex-direction: row;
     min-height: 20px;
@@ -61,65 +55,23 @@
 }
 
 .track-enabled-toggle {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     margin-right: 4px;
 }
 
 .track-enabled-toggle .unity-toggle__checkmark {
-    background-color: rgb(80, 160, 80);
     border-radius: 2px;
     border-width: 1px;
-    border-color: rgb(60, 140, 60);
-}
-
-.track-enabled-toggle:checked .unity-toggle__checkmark {
-    background-color: rgb(100, 180, 100);
-    border-color: rgb(80, 160, 80);
 }
 
 .track-button {
-    width: 20px;
-    height: 16px;
+    width: 10px;
+    height: 10px;
     margin-left: 2px;
     margin-right: 2px;
-    background-color: rgb(60, 60, 60);
-    border-color: rgb(80, 80, 80);
-    border-width: 1px;
-    border-radius: 2px;
-    color: rgb(180, 180, 180);
-    font-size: 10px;
-    padding: 0;
-    -unity-text-align: middle-center;
 }
 
-.track-button:hover {
-    background-color: rgb(70, 70, 70);
-    border-color: rgb(100, 100, 100);
-}
-
-.track-button:active {
-    background-color: rgb(50, 50, 50);
-}
-
-.track-mute-button.active {
-    background-color: rgb(160, 80, 80);
-    border-color: rgb(180, 100, 100);
-    color: white;
-}
-
-.track-solo-button.active {
-    background-color: rgb(160, 160, 80);
-    border-color: rgb(180, 180, 100);
-    color: white;
-}
-
-.track-menu-button {
-    margin-left: auto;
-    font-size: 12px;
-}
-
-/* Track Info */
 .track-info {
     flex-direction: column;
     flex-grow: 1;
@@ -164,7 +116,6 @@
     width: 100%;
 }
 
-/* Sub-row that groups bind-key and type on a single line */
 .track-subinfo {
     flex-direction: row;
     justify-content: space-between;
@@ -184,7 +135,6 @@
     margin-left: 8px;
 }
 
-/* Track Menu */
 .track-menu {
     min-height: 20px;
     flex-direction: row;
@@ -192,13 +142,12 @@
     align-items: center;
     margin-top: 0;
     flex-shrink: 0;
-    position: absolute; /* position absolute for bottom-right placement */
-    right: 8px; /* updated right positioning */
-    bottom: 8px; /* updated bottom positioning */
-    z-index: 5; /* added z-index for stacking context */
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    z-index: 5;
 }
 
-/* Track Content */
 .track-content {
     flex-grow: 1;
     position: relative;
@@ -210,60 +159,29 @@
     background-color: rgb(45, 45, 45);
 }
 
-/* Track Timeline */
 .track-timeline {
     width: 100%;
-    height: 100%;
+    height: auto;
     position: relative;
 }
 
-/* Track Grid */
-.track-grid {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    opacity: 0.1;
-    pointer-events: none;
-}
-
-.track-grid .grid-line {
-    position: absolute;
-    width: 1px;
-    height: 100%;
-    background-color: rgb(150, 150, 150);
-}
-
-/* Clips Container */
-.clips-container {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    z-index: 10;
-}
-
-/* Track Lanes */
 .track-lanes {
-    position: absolute;
     width: 100%;
-    height: 100%;
+    height: auto;
     flex-direction: column;
-    pointer-events: none;
 }
 
 .track-lane {
     flex-grow: 1;
     border-bottom-width: 1px;
     border-bottom-color: rgba(100, 100, 100, 0.1);
-    pointer-events: none;
+    min-height: 40px;
 }
 
-/* Note: Unity USS doesn't support :last-child pseudo-class.
-   Handle this in C# by adding a "last-lane" USS class to the last lane element. */
 .track-lane.last-lane {
     border-bottom-width: 0;
 }
 
-/* Track Resize Handle */
 .track-resize-handle {
     position: absolute;
     bottom: -2px;
@@ -278,7 +196,6 @@
     background-color: rgba(100, 150, 255, 0.3);
 }
 
-/* Track States */
 .track.muted {
     opacity: 0.6;
 }
@@ -299,7 +216,6 @@
     background-color: rgb(80, 40, 40);
 }
 
-/* Drag and Drop States */
 .track.drag-over {
     background-color: rgba(100, 150, 255, 0.2);
     border-color: rgb(100, 150, 255);
@@ -309,7 +225,6 @@
     box-shadow: inset 0 0 0 2px rgba(100, 150, 255, 0.8);
 }
 
-/* Focus and Selection States */
 .track:focus {
     outline: none;
     box-shadow: inset 0 0 0 1px rgb(100, 150, 255);
@@ -321,7 +236,6 @@
     border-left-color: rgb(100, 150, 255);
 }
 
-/* Compact Mode */
 .track.compact {
     height: 40px;
 }
@@ -349,7 +263,6 @@
     font-size: 9px;
 }
 
-/* Expanded Mode */
 .track.expanded {
     height: 120px;
 }

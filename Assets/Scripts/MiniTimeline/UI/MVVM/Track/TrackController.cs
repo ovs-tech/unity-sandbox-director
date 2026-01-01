@@ -1,10 +1,16 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.UIElements;
 using MiniTimeline.Core;
 using MiniTimeline.UI.MVVM.Clip;
+using MiniTimeline.UI.FormDefinitions;
+using MiniTimeline.UI.Commands;
+using Core.UI.FormSubmit;
+using Core.UI.FormSubmit.Fields;
+using Core.Behaviors.Command;
 
 namespace MiniTimeline.UI.MVVM.Track {
     /// <summary>
@@ -27,7 +33,11 @@ namespace MiniTimeline.UI.MVVM.Track {
         }
 
         void Initialize() {
-            var vm = new ViewModel(_model);
+            var vm = new ViewModel(_model, _view);
+            
+            // Provide a UIElements parent container for forms
+            vm.FormHost = _view?.Root;
+            
             _view.Render(vm, _model);
             _view.InitializeClipControllers(_model, _clipControllers, _clipUxml, _clipUss);
             
@@ -91,9 +101,16 @@ namespace MiniTimeline.UI.MVVM.Track {
             public readonly BindableProperty<float> Zoom;
 
             readonly TrackModel _model;
+            readonly TrackView _view;
             
-            public ViewModel(TrackModel model) {
+            /// <summary>
+            /// Visual element to host form dialogs
+            /// </summary>
+            public VisualElement FormHost { get; set; }
+            
+            public ViewModel(TrackModel model, TrackView view) {
                 _model = model;
+                _view = view;
                 Title = BindableProperty<string>.Bind(() => _model.Title);
                 Enabled = BindableProperty<bool>.Bind(() => _model.Enabled);
                 Muted = BindableProperty<bool>.Bind(() => _model.Muted);
@@ -118,8 +135,147 @@ namespace MiniTimeline.UI.MVVM.Track {
             }
 
             public void ShowSettings() {
-                Debug.Log($"Show settings for track: {_model.Title}");
-                // TODO: Show track settings form
+                if (_model?.Track == null) {
+                    Debug.LogError("Cannot show settings: Track is null");
+                    return;
+                }
+
+                // Show track context actions (only), using context menu definitions
+                var actionFields = TrackContextMenuDefinitions.GetTrackActionFields();
+                FormSubmitPanelUIToolkit.Instance.Show(
+                    TrackContextMenuDefinitions.GetTrackMenuTitle(),
+                    actionFields,
+                    OnTrackActionsFormSubmitted,
+                    OnTrackSettingsFormCancelled,
+                    _view.PanelRoot
+                );
+
+                Debug.Log($"Show track actions for track: {_model.Title}");
+            }
+
+            /// <summary>
+            /// Handle track actions form submission (placeholder wiring).
+            /// </summary>
+            private void OnTrackActionsFormSubmitted(Dictionary<string, object> formData) {
+                Debug.Log($"Track actions submitted for '{_model?.Title}': fields={formData?.Count ?? 0}");
+
+                if (formData == null || formData.Count == 0) return;
+
+                string action = null;
+                if (formData.TryGetValue("action", out var actionObj) && actionObj != null) {
+                    action = actionObj.ToString();
+                } else {
+                    // Fallback: infer from known field keys
+                    if (formData.ContainsKey("addClip")) action = "addClip";
+                    else if (formData.ContainsKey("mute")) action = "mute";
+                    else if (formData.ContainsKey("solo")) action = "solo";
+                    else if (formData.ContainsKey("delete")) action = "delete";
+                    else if (formData.ContainsKey("settings")) action = "settings";
+                }
+
+                switch (action) {
+                    case "mute":
+                        _model.Mute();
+                        FormSubmitPanelUIToolkit.Instance.CloseForm();
+                        break;
+                    case "solo":
+                        _model.ToggleSolo();
+                        FormSubmitPanelUIToolkit.Instance.CloseForm();
+                        break;
+                    case "delete":
+                        _model?.DeleteTrack();
+                        FormSubmitPanelUIToolkit.Instance.CloseForm();
+                        break;
+                    case "addClip":
+                        ShowAddClipForm();
+                        break;
+                    case "settings":
+                        ShowTrackSettingsForm();
+                        break;
+                    default:
+                        Debug.LogWarning($"Unknown track action: '{action}'");
+                        break;
+                }
+            }
+
+            private void ShowTrackSettingsForm() {
+                if (_model?.Track == null) {
+                    Debug.LogError("Cannot show settings: Track is null");
+                    return;
+                }
+
+                string trackType = _model.Type;
+                var fieldDefinitions = TrackFormDefinitions.GetTrackSettingsFields(trackType);
+                SetDefaultValuesForTrackSettings(fieldDefinitions);
+
+                FormSubmitPanelUIToolkit.Instance.Show(
+                    $"Track Settings - {TrackFormDefinitions.GetTrackTypeDisplayName(trackType)}",
+                    fieldDefinitions,
+                    OnTrackSettingsFormSubmitted,
+                    OnTrackSettingsFormCancelled,
+                    _view.PanelRoot
+                );
+            }
+            
+            /// <summary>
+            /// Set default values for track settings form
+            /// </summary>
+            private void SetDefaultValuesForTrackSettings(List<FormFieldDefinition> fieldDefinitions) {
+                foreach (var field in fieldDefinitions) {
+                    switch (field.name) {
+                        case "trackName":
+                            field.defaultValue = _model.Title;
+                            break;
+                        case "bindKey":
+                            field.defaultValue = _model.BindKey ?? "";
+                            break;
+                        case "enabled":
+                            field.defaultValue = _model.Enabled;
+                            break;
+                    }
+                }
+            }
+            
+            /// <summary>
+            /// Handle track settings form submission
+            /// </summary>
+            private void OnTrackSettingsFormSubmitted(Dictionary<string, object> formData) {
+                try {
+                    if (_model == null || _model.Track == null) {
+                        Debug.LogError("Cannot update track: Track is null");
+                        return;
+                    }
+
+                    _model.ApplySettings(formData);
+
+                    Debug.Log($"Track settings updated: {_model.Title}");
+                } catch (Exception ex) {
+                    Debug.LogError($"Failed to update track settings: {ex.Message}");
+                }
+            }
+            
+            /// <summary>
+            /// Update a track property using reflection (for read-only interface properties)
+            /// </summary>
+            private void UpdateTrackProperty(string propertyName, object value) {
+                if (_model?.Track == null) return;
+
+                var trackType = _model.Track.GetType();
+                var property = trackType.GetProperty(propertyName);
+                
+                if (property != null && property.CanWrite) {
+                    property.SetValue(_model.Track, value);
+                    Debug.Log($"Updated track property {propertyName} to {value}");
+                } else {
+                    Debug.LogWarning($"Property {propertyName} is read-only or not found on {trackType.Name}");
+                }
+            }
+            
+            /// <summary>
+            /// Handle track settings form cancellation
+            /// </summary>
+            private void OnTrackSettingsFormCancelled() {
+                Debug.Log("Track settings cancelled");
             }
 
             public void ShowDeleteConfirmation() {

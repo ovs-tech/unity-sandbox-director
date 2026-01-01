@@ -137,7 +137,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &30667279
 Transform:
   m_ObjectHideFlags: 0
@@ -731,7 +731,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3751378087522260266, guid: 5ff9de63dbe2f394ca7ffdf4fe29dd55, type: 3}
   m_PrefabInstance: {fileID: 3427927543822543505}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1037213786}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a8f524a58effd4d5aa3a7395f55a3246, type: 3}
@@ -1121,6 +1121,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: -944628639613478452, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
   m_ActionId: 6417d5ae-fb20-4ffa-a9bb-09c1d687589d
+--- !u!1 &1037213786 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 857453676176504041, guid: 5ff9de63dbe2f394ca7ffdf4fe29dd55, type: 3}
+  m_PrefabInstance: {fileID: 3427927543822543505}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1037213788
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1037213786}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53740e14a407f4aaf869f15312a240d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Core.Behaviors.Command.TimelineCommandManager
+  UnparentOnAwake: 1
+  _debugLog: 1
 --- !u!1 &1039908845
 GameObject:
   m_ObjectHideFlags: 0
@@ -1585,7 +1604,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 857453676176504041, guid: 5ff9de63dbe2f394ca7ffdf4fe29dd55, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1037213788}
   m_SourcePrefab: {fileID: 100100000, guid: 5ff9de63dbe2f394ca7ffdf4fe29dd55, type: 3}
 --- !u!1001 &4027240752856877879
 PrefabInstance:
@@ -1606,6 +1628,34 @@ PrefabInstance:
     - target: {fileID: 444325856237096281, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
       propertyPath: m_Name
       value: Sandbox Scene Builder
+      objectReference: {fileID: 0}
+    - target: {fileID: 725282232409012605, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 725282232409012605, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 725282232409012605, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 398228398}
+    - target: {fileID: 725282232409012605, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 725282232409012605, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: RebindAllTracks
+      objectReference: {fileID: 0}
+    - target: {fileID: 725282232409012605, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: MiniTimeline.Core.MiniTimelineDirector, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 725282232409012605, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 2151407519070486104, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
       propertyPath: _debugLogs
