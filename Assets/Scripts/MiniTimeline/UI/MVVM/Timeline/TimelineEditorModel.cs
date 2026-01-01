@@ -234,7 +234,6 @@ namespace MiniTimeline.UI.MVVM.Timeline
         public void SetTime(float time)
         {
             _time = Mathf.Max(0f, time);
-            Debug.Log($"[TimelineEditorModel] SetTime: {_time}");
             OnTimeChanged?.Invoke(_time);
             if (_director != null) _director.Seek(_time);
         }

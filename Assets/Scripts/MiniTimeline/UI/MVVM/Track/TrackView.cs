@@ -38,14 +38,12 @@ namespace MiniTimeline.UI.MVVM.Track {
         public Button GetButton(string name) => Root?.Q<Button>(name);
         public VisualElement GetElement(string name) => Root?.Q<VisualElement>(name);
 
-        VisualElement _trackContent;
         VisualElement _clipsContainer;
 
         /// <summary>
         /// Renders the track view by binding UI elements and updating displays.
         /// </summary>
         public void Render(TrackController.ViewModel vm, TrackModel model) {
-            _trackContent = GetElement("track-content");
             // State toggles
             var enabled = GetToggle("track-enabled");
             var mute = GetButton("track-mute");
@@ -111,6 +109,8 @@ namespace MiniTimeline.UI.MVVM.Track {
                 Debug.LogWarning("Cannot find 'lane-1' element in TrackView");
                 return;
             }
+
+            _clipsContainer.Clear();
 
             // Create controllers for all current clips
             foreach (var clip in model.Clips) {

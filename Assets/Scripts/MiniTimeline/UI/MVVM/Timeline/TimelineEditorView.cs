@@ -30,6 +30,8 @@ namespace MiniTimeline.UI.MVVM.Timeline
 
         UIDocument _document;
 
+        private VisualElement _tracksContainer;
+
         public IEnumerator InitializeView(TimelineEditorController.ViewModel viewModel)
         {
             if (_document == null) _document = GetComponent<UIDocument>();
@@ -49,6 +51,16 @@ namespace MiniTimeline.UI.MVVM.Timeline
             else
             {
                 Debug.LogWarning("UXML not assigned in TimelineEditorView");
+            }
+
+            _tracksContainer = Root?.Q<VisualElement>("tracks-container");
+            if (_tracksContainer != null)
+            {
+                _tracksContainer.Clear();
+            }
+            else
+            {
+                Debug.LogWarning("Cannot find 'tracks-container' element in TimelineEditorView during initialization");
             }
 
             yield return null;
@@ -204,17 +216,9 @@ namespace MiniTimeline.UI.MVVM.Timeline
 
             try
             {
-                // Get the tracks container
-                var tracksContainer = GetElement("tracks-container");
-                if (tracksContainer == null)
-                {
-                    Debug.LogWarning("Cannot find 'tracks-container' element in TimelineEditorView");
-                    return null;
-                }
-
                 // Create a VisualElement for this track and add it to the container
                 var trackElement = new VisualElement { name = $"track_{track.Id}" };
-                tracksContainer.Add(trackElement);
+                _tracksContainer.Add(trackElement);
 
                 // Create TrackView with the VisualElement and UI assets
                 var trackView = new TrackView(trackElement, TrackUxml, TrackUss, Root);
@@ -244,7 +248,7 @@ namespace MiniTimeline.UI.MVVM.Timeline
         /// </summary>
         public void RemoveTrackElement(string trackId)
         {
-            var tracksContainer = GetElement("tracks-container");
+            var tracksContainer = _tracksContainer ?? GetElement("tracks-container");
             if (tracksContainer == null)
             {
                 Debug.LogWarning("Cannot find 'tracks-container' element in TimelineEditorView");

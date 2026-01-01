@@ -28,26 +28,6 @@
     width: 30px;
     margin-left: 2px;
     margin-right: 2px;
-    background-color: rgb(70, 70, 70);
-    border-color: rgb(85, 85, 85);
-    border-width: 1px;
-    border-radius: 3px;
-    color: rgb(200, 200, 200);
-}
-
-.control-button:hover {
-    background-color: rgb(80, 80, 80);
-    border-color: rgb(100, 100, 100);
-}
-
-.control-button:active {
-    background-color: rgb(60, 60, 60);
-}
-
-.control-button:disabled {
-    background-color: rgb(50, 50, 50);
-    color: rgb(120, 120, 120);
-    border-color: rgb(70, 70, 70);
 }
 
 /* Playback Controls */
@@ -130,16 +110,6 @@
     flex-grow: 1;
     background-color: rgb(42, 42, 42);
     flex-direction: column;
-}
-
-/* Playhead */
-.playhead {
-    position: absolute;
-    width: 2px;
-    height: 100%;
-    margin-left: 200px;
-    background-color: rgb(255, 100, 100);
-    z-index: 1000;
 }
 
 /* Scrollbars */

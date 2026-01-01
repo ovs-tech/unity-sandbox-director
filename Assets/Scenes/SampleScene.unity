@@ -137,7 +137,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &30667279
 Transform:
   m_ObjectHideFlags: 0
@@ -355,7 +355,6 @@ Transform:
   - {fileID: 76071129}
   - {fileID: 1039908846}
   - {fileID: 30667279}
-  - {fileID: 1528340003}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &212141941 stripped
@@ -1444,37 +1443,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: -944628639613478452, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
   m_ActionId: aa6f8ee9-42fd-4638-a74c-1d0819e4a695
---- !u!1 &1528340002
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1528340003}
-  m_Layer: 0
-  m_Name: FormSubmitUI
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1528340003
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1528340002}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 160561601}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1686176358 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6782112333398131214, guid: a54fde34eec40964b94d71ee0aba9889, type: 3}
@@ -1660,6 +1628,34 @@ PrefabInstance:
     - target: {fileID: 444325856237096281, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
       propertyPath: m_Name
       value: Sandbox Scene Builder
+      objectReference: {fileID: 0}
+    - target: {fileID: 725282232409012605, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 725282232409012605, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 725282232409012605, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 398228398}
+    - target: {fileID: 725282232409012605, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 725282232409012605, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: RebindAllTracks
+      objectReference: {fileID: 0}
+    - target: {fileID: 725282232409012605, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: MiniTimeline.Core.MiniTimelineDirector, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 725282232409012605, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
+      propertyPath: _onSceneLoaded.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 2151407519070486104, guid: 96a7fd08f4d938a449c0484d4ef42714, type: 3}
       propertyPath: _debugLogs

@@ -1229,6 +1229,24 @@ namespace MiniTimeline.Core
                 Debug.Log($"[MiniTimelineDirector] Rebound {reboundCount} tracks; reprepared {repreparedCount}");
         }
 
+        public void AutoBindSceneObjects()
+        {
+            if (bindableObjectManager == null)
+            {
+                if (debugMode)
+                    Debug.LogWarning("[MiniTimelineDirector] Cannot auto-bind scene - no binding context available");
+                return;
+            }
+
+            bindableObjectManager.AutoBind();
+
+            if (debugMode)
+                Debug.Log("[MiniTimelineDirector] Auto-bound scene objects to binding context");
+
+            // Rebind all tracks after auto-binding
+            RebindAllTracks();
+        }
+
         #endregion
 
         #region Utility

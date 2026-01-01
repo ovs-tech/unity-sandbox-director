@@ -123,7 +123,6 @@ namespace MiniTimeline.UI.MVVM.Clip {
                 });
                 _clipElement.pickingMode = PickingMode.Position;
                 _clipElement.RegisterCallback<PointerDownEvent>(evt => {
-                    Debug.Log($"[ClipView] clipContent PointerDown fired! Target: {evt.target}");
                     OnPointerDown(evt, model);
                     _clipElement.CapturePointer(evt.pointerId);
                     evt.StopPropagation();
@@ -143,11 +142,11 @@ namespace MiniTimeline.UI.MVVM.Clip {
                 _resizeLeftHandle = resizeLeftHandle;
                 _resizeLeftHandle.pickingMode = PickingMode.Position;
                 resizeLeftHandle.RegisterCallback<PointerDownEvent>(evt => {
-                    Debug.Log($"[ClipView] resizeLeftHandle PointerDown fired!");
                     IsResizingLeft = true;
                     DragStartX = evt.position.x;
                     InitializeResize(viewModel.StartTime.Value, viewModel.Duration.Value, evt.position.x);
                     _resizeLeftHandle.CapturePointer(evt.pointerId);
+                    _resizeLeftHandle.AddToClassList("selected");
                     evt.StopPropagation();
                 });
 
@@ -166,6 +165,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
                         EndResize();
                     }
                     _resizeLeftHandle.ReleasePointer(evt.pointerId);
+                    _resizeLeftHandle.RemoveFromClassList("selected");
                     evt.StopPropagation();
                 });
             }
@@ -175,11 +175,11 @@ namespace MiniTimeline.UI.MVVM.Clip {
                 _resizeRightHandle = resizeRightHandle;
                 _resizeRightHandle.pickingMode = PickingMode.Position;
                 resizeRightHandle.RegisterCallback<PointerDownEvent>(evt => {
-                    Debug.Log($"[ClipView] resizeRightHandle PointerDown fired!");
                     IsResizingRight = true;
                     DragStartX = evt.position.x;
                     InitializeResize(viewModel.StartTime.Value, viewModel.Duration.Value, evt.position.x);
                     _resizeRightHandle.CapturePointer(evt.pointerId);
+                    _resizeRightHandle.AddToClassList("selected");
                     evt.StopPropagation();
                 });
 
@@ -198,6 +198,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
                         EndResize();
                     }
                     _resizeRightHandle.ReleasePointer(evt.pointerId);
+                    _resizeRightHandle.RemoveFromClassList("selected");
                     evt.StopPropagation();
                 });
             }
@@ -213,9 +214,7 @@ namespace MiniTimeline.UI.MVVM.Clip {
                 if (clipElement != null) {
                     clipElement.EnableInClassList("selected", selected);
                 }
-                SetResizeHandlesSelected(selected);
             };
-            SetResizeHandlesSelected(model.Selected);
             model.OnZoomChanged += () => {
                 UpdateClipVisualTiming(viewModel.StartTime.Value, viewModel.Duration.Value);
             };
@@ -341,21 +340,6 @@ namespace MiniTimeline.UI.MVVM.Clip {
             _currentResizeNewStart = ClampStartTime(startTime);
             _currentResizeNewDuration = ClampMinDuration(newDuration);
             UpdateClipVisualTiming(startTime, _currentResizeNewDuration);
-        }
-
-        private void SetResizeHandlesSelected(bool selected)
-        {
-            if (_resizeLeftHandle != null)
-            {
-                if (selected) _resizeLeftHandle.AddToClassList("selected");
-                else _resizeLeftHandle.RemoveFromClassList("selected");
-            }
-
-            if (_resizeRightHandle != null)
-            {
-                if (selected) _resizeRightHandle.AddToClassList("selected");
-                else _resizeRightHandle.RemoveFromClassList("selected");
-            }
         }
 
         /// <summary>
