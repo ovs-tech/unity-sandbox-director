@@ -1,0 +1,25 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:engine="UnityEngine.UIElements">
+    <ui:VisualElement name="login-screen" style="flex-grow: 1; justify-content: space-between;">
+        <ui:VisualElement name="background" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: #221016;" />
+        <ui:VisualElement name="main-content" style="flex-grow: 1; padding: 30px 20px;">
+            <ui:VisualElement name="header" style="align-items: center; justify-content: center; padding-top: 40px;">
+                <ui:VisualElement name="logo" style="width: 50px; height: 50px; background-color: #ec135b; border-radius: 10px; margin-bottom: 10px;" />
+                <engine:Label text="Ero Director" style="font-size: 24px; font-weight: bold; color: white; -unity-font-style: bold;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="body" style="flex-grow: 1; justify-content: center;">
+                <engine:Label text="Welcome Back" style="font-size: 20px; font-weight: bold; color: white; -unity-font-style: bold; -unity-text-align: center; margin-bottom: 5px;" />
+                <engine:Label text="Log in to continue your production." style="font-size: 14px; color: #9ca3af; -unity-text-align: center; margin-bottom: 20px;" />
+                <engine:TextField name="username" label="Username or Email" placeholder="Director@studio.com" style="margin-bottom: 15px;" />
+                <engine:TextField name="password" label="Password" placeholder="••••••••" isPasswordField="true" />
+                <engine:Button text="Forgot Password?" style="align-self: flex-end; color: #9ca3af; background-color: transparent; border-width: 0; margin-top: 5px;" />
+                <engine:Button text="Login" style="width: 100%; background-color: #ec135b; color: white; border-radius: 10px; padding: 15px; font-size: 16px; font-weight: bold; margin-top: 20px;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="footer" style="align-items: center;">
+                <ui:VisualElement style="flex-direction: row; margin-top: 15px;">
+                    <engine:Label text="New Director? " style="color: #9ca3af;" />
+                    <engine:Button text="Create Account" style="color: #ec135b; font-weight: bold; background-color: transparent; border-width: 0;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

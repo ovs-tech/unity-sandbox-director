@@ -1,0 +1,7 @@
+.panel-root {
+    background-color: var(--color-surface-1);
+    border-color: var(--color-surface-border);
+    border-width: var(--border-width);
+    border-radius: var(--border-radius-lg);
+    padding: 8px;
+}

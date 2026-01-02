@@ -1,19 +1,25 @@
 @import url("unity-theme://default");
 
 :root {
-    /* Primary Colors */
+    /* Main Theme Colors */
     --color-primary: #ec135b;
-    --color-primary-hover: #ec135b65;
-    --color-secondary: #06b6d4;
-    --color-primary-light: #f8f6f6;
-    --color-primary-dark: #221016;
+    --color-primary-hover: #d41152;
+    --color-primary-active: #b80f49;
+    --color-primary-contrast: #ffffff;
+    --color-primary-transparent: rgba(236, 19, 91, 0.1);
 
-    --background-color-dark: #f8f6f6;
-    --background-color-dark-opacity: #f8f6f60a;
-    --background-color-light: #181113;
+    /* Text Colors */
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #b99da6;
+    --color-text-muted: #9ca3af;
+    --color-text-disabled: #6b7280;
 
-    --surface-color-dark: #241a1d;
-    --surface-color-light: #3a2a30;
+    /* Background & Surface Colors (Dark Theme) */
+    --color-background: #221016;
+    --color-surface-1: #2d1a1f;
+    --color-surface-2: #3d242a;
+    --color-surface-3: #181113;
+    --color-surface-border: rgba(255, 255, 255, 0.1);
 
     /* Status Colors */
     --color-success: #22c55e;
@@ -21,45 +27,42 @@
     --color-danger: #ef4444;
     --color-info: #3b82f6;
 
-    /* Neutral Colors */
-    --color-bg: #ffffff;
-    --color-bg-alt: #f9fafb;
-    --color-text: #111827;
-    --color-text-muted: #6b7280;
-    --color-border: #e5e7eb;
+    /* DLC Store Theme Colors (as secondary palette) */
+    --color-secondary-theme-primary: #7f13ec;
+    --color-secondary-theme-primary-dark: #5e0eb0;
+    --color-secondary-theme-background: #191022;
+    --color-secondary-theme-surface: #2a1f36;
 
-    --font-family: 'Inter', sans-serif;
+    /* Fonts (will need to be linked in Unity) */
+    --font-family-display: 'Plus Jakarta Sans';
+    --font-family-body: 'Noto Sans';
+    --font-family-special: 'Space Grotesk';
 
+    /* Sizes and Radii from design */
     --font-size-xs: 10px;
     --font-size-sm: 12px;
+    --font-size-base: 14px;
     --font-size-md: 16px;
     --font-size-lg: 18px;
-    --font-size-xl: 24px;
+    --font-size-xl: 20px;
+    --font-size-2xl: 24px;
 
     --font-weight-normal: 400;
     --font-weight-medium: 500;
     --font-weight-bold: 700;
 
-    --line-height: 1.5;
-
-    --space-xs: 4px;
-    --space-sm: 8px;
-    --space-md: 16px;
-    --space-lg: 24px;
-    --space-xl: 32px;
-
-    --container-width: 1200px;
-
-    --border-width: 1px;
     --border-radius-sm: 4px;
     --border-radius-md: 8px;
     --border-radius-lg: 12px;
-    --border-radius-full: 50%;
+    --border-radius-xl: 16px;
+    --border-radius-2xl: 24px;
+    --border-radius-full: 9999px;
 
+    /* Other tokens */
+    --border-width: 1px;
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.15);
-
     --transition: 0.3s ease;
 }
 
@@ -87,106 +90,69 @@
 
 /* Common Toggle Styles */
 .unity-toggle .unity-toggle__checkmark {
+    background-color: var(--color-surface-1);
+    border-color: var(--color-surface-border);
+    border-width: var(--border-width);
+}
+
+.unity-toggle--checked .unity-toggle__checkmark {
     background-color: var(--color-primary);
 }
 
-.unity-toggle .unity-toggle__input:checked .unity-toggle__checkmark {
-    color: var(--color-primary-light);
-}
-
 /* Common Slider Styles */
-.unity-slider {
-    margin-top: 4px;
-    margin-bottom: 4px;
-}
-
-.unity-slider .unity-base-slider__drag-container {
-    border-radius: 0px;
-}
-
 .unity-slider .unity-base-slider__tracker {
-    background-color: var(--color-primary-dark);
-    border-radius: 5px;
+    height: 4px;
+    background-color: var(--color-surface-1);
+    border-radius: 2px;
 }
 
 .unity-slider .unity-base-slider__dragger {
-    background-color: var(--color-primary-light);
-    width: 5px;
-    height: 20px;
-    border-radius: 30%;
-    border-width: 1px;
-    border-color: var(--color-primary-light);
+    width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    background-color: var(--color-text-primary);
+    border-width: 0;
 }
 
 /* Common Scroll View Styles */
-ScrollView {
+.unity-scroll-view {
     flex-grow: 1;
 }
 
-.unity-scroll-view__content-viewport {
-    background-color: rgba(35, 35, 35, 1);
+.unity-scroll-view .unity-scroller--vertical {
+    width: 6px;
 }
 
-.unity-scroller {
-    background-color: rgba(30, 30, 30, 1);
+.unity-scroll-view .unity-scroller--vertical .unity-slider {
+    background-color: var(--color-surface-1);
+    border-radius: 3px;
 }
 
-.unity-scroller--vertical {
-    width: 12px;
-}
-
-.unity-scroller--horizontal {
-    height: 12px;
-}
-
-.unity-scroller__slider {
-    background-color: rgba(50, 50, 50, 1);
-    border-radius: 6px;
-}
-
-.unity-scroller__slider:hover {
-    background-color: rgba(70, 70, 70, 1);
-}
-
-.unity-scroller__low-button,
-.unity-scroller__high-button {
-    display: none;
+.unity-scroll-view .unity-scroller--vertical .unity-slider .unity-slider__dragger {
+    background-color: var(--color-text-secondary);
+    border-radius: 3px;
 }
 
 /* Common Dropdown Styles */
-DropdownField {
-    margin-top: 4px;
-    margin-bottom: 4px;
+.unity-dropdown-field .unity-text-field__input {
+    background-color: var(--color-surface-1);
+    border-width: var(--border-width);
+    border-color: var(--color-surface-border);
+    border-radius: var(--border-radius-md);
+    color: var(--color-text-primary);
 }
-
-DropdownField .unity-dropdown-field__input {
-    background-color: rgba(50, 50, 50, 1);
-    border-width: 1px;
-    border-color: rgba(70, 70, 70, 1);
-    border-radius: 3px;
-    color: rgb(255, 255, 255);
-    padding: 4px;
-}
-
-DropdownField .unity-dropdown-field__input:hover {
-    border-color: rgba(100, 100, 100, 1);
-}
-
-DropdownField .unity-dropdown-field__input:focus {
-    border-color: rgb(77, 150, 255);
-}
-
 
 /* Button theme */
 .unity-button {
-    -unity-font-style: normal;
-    font-size: var(--font-size-xs);
-    color: var(--color-bg);
-    background-color: var(--background-color-dark-opacity);
-    -unity-text-align: middle-center;
-    unity-font-style: normal;
-    border-color: var(--background-color-dark-opacity);
+    -unity-font-style: bold;
+    font-size: var(--font-size-base);
+    color: var(--color-text-primary);
+    background-color: var(--color-surface-1);
+    border-color: var(--color-surface-border);
+    border-width: var(--border-width);
     border-radius: var(--border-radius-md);
+    -unity-text-align: middle-center;
+    padding: 8px 16px;
 }
 
 .unity-button:hover {

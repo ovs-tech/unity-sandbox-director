@@ -1,0 +1,200 @@
+.register-screen {
+    flex-grow: 1;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+}
+
+.background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -unity-background-scale-mode: scale-and-crop;
+    opacity: 0.5;
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 40px 24px 32px;
+    justify-content: center;
+}
+
+.header {
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.icon-container {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--border-radius-lg);
+    background-color: var(--color-primary);
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.icon-container .material-symbols-outlined {
+    font-size: var(--font-size-2xl);
+    color: var(--color-primary-contrast);
+}
+
+.title {
+    font-size: var(--font-size-2xl);
+    -unity-font-style: bold;
+    text-transform: uppercase;
+    color: var(--color-text-primary);
+}
+
+.title-highlight {
+    color: var(--color-primary);
+}
+
+.subtitle {
+    font-size: var(--font-size-base);
+    color: var(--color-text-muted);
+    margin-top: 8px;
+}
+
+.form-container {
+    width: 100%;
+    max-width: 400px;
+    align-self: center;
+}
+
+.form-field {
+    margin-bottom: 16px;
+}
+
+.form-label {
+    font-size: var(--font-size-xs);
+    -unity-font-style: bold;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin-left: 4px;
+    margin-bottom: 4px;
+}
+
+.input-container {
+    flex-direction: row;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-width: var(--border-width);
+    border-color: var(--color-surface-border);
+    border-radius: var(--border-radius-lg);
+}
+
+.input-container:focus {
+    border-color: var(--color-primary);
+}
+
+.input-icon {
+    font-size: var(--font-size-xl);
+    color: var(--color-text-disabled);
+    margin-left: 16px;
+    margin-right: 8px;
+}
+
+.form-input {
+    flex-grow: 1;
+    background-color: transparent;
+    border-width: 0;
+    padding: 14px 16px 14px 0;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-base);
+}
+
+.checkbox-section {
+    margin: 12px 0;
+    padding-left: 4px;
+}
+
+.checkbox {
+    flex-direction: row;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.checkbox .unity-toggle__checkmark {
+    width: 20px;
+    height: 20px;
+    border-width: var(--border-width);
+    border-color: var(--color-text-disabled);
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius-sm);
+    margin-top: 2px;
+    margin-right: 12px;
+}
+
+.checkbox:checked .unity-toggle__checkmark {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.checkbox .unity-text-element {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    white-space: normal;
+}
+
+.link-text {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+.register-button {
+    margin-top: 24px;
+    width: 100%;
+    height: 56px;
+    background-color: var(--color-primary);
+    border-radius: var(--border-radius-lg);
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.register-button .unity-label {
+    font-size: var(--font-size-lg);
+    -unity-font-style: bold;
+    text-transform: uppercase;
+    color: var(--color-primary-contrast);
+}
+
+.register-button .material-symbols-outlined {
+    font-size: var(--font-size-xl);
+    margin-left: 8px;
+}
+
+.footer {
+    margin-top: 32px;
+    align-items: center;
+}
+
+.login-link {
+    background-color: transparent;
+    border-width: 0;
+}
+
+.login-link .unity-label {
+    font-size: var(--font-size-base);
+    -unity-font-style: bold;
+    color: var(--color-text-secondary);
+}
+
+.secure-footer {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 24px;
+    opacity: 0.3;
+}
+
+.secure-footer .material-symbols-outlined {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    margin-right: 8px;
+}
+
+.secure-footer .unity-label {
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    color: var(--color-text-primary);
+}

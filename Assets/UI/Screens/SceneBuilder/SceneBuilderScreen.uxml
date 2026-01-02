@@ -1,0 +1,112 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="scene-builder-screen" class="scene-builder-screen">
+        <!-- 3D Viewport Background -->
+        <ui:VisualElement name="viewport-background" class="viewport-background">
+            <ui:VisualElement class="background-gradient-overlay" />
+        </ui:VisualElement>
+
+        <ui:Instance template="Assets/UI/Components/Header/Header.uxml" name="header" />
+
+        <!-- Main Interactive Area -->
+        <ui:VisualElement name="main-area" class="main-area">
+            <!-- Floating Top Right Tools -->
+            <ui:VisualElement name="top-right-tools" class="top-right-tools">
+                <ui:Button name="ar-toggle" class="floating-tool-button">
+                    <ui:Label class="material-symbols-outlined" text="view_in_ar" />
+                </ui:Button>
+                <ui:Button name="grid-snap" class="floating-tool-button active">
+                    <ui:Label class="material-symbols-outlined" text="grid_4x4" />
+                </ui:Button>
+                <ui:Button name="camera-settings" class="floating-tool-button">
+                    <ui:Label class="material-symbols-outlined" text="videocam" />
+                </ui:Button>
+            </ui:VisualElement>
+
+            <!-- Floating Top Left Info (Undo/Redo) -->
+            <ui:VisualElement name="top-left-tools" class="top-left-tools">
+                <ui:Button name="undo-button" class="floating-undo-redo-button">
+                    <ui:Label class="material-symbols-outlined" text="undo" />
+                </ui:Button>
+                <ui:Button name="redo-button" class="floating-undo-redo-button">
+                    <ui:Label class="material-symbols-outlined" text="redo" />
+                </ui:Button>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- Bottom Controls / Context Panel -->
+        <ui:VisualElement name="bottom-panel-container" class="bottom-panel-container">
+            <!-- Transformation Toolbar -->
+            <ui:VisualElement name="transform-toolbar-container" class="transform-toolbar-container">
+                <ui:VisualElement class="transform-toolbar">
+                    <ui:Button class="transform-tool-button active">
+                        <ui:Label class="material-symbols-outlined" text="open_with" />
+                    </ui:Button>
+                    <ui:Button class="transform-tool-button">
+                        <ui:Label class="material-symbols-outlined" text="rotate_right" />
+                    </ui:Button>
+                    <ui:Button class="transform-tool-button">
+                        <ui:Label class="material-symbols-outlined" text="pinch" />
+                    </ui:Button>
+                    <ui:VisualElement class="toolbar-divider" />
+                    <ui:Button class="transform-tool-button delete">
+                        <ui:Label class="material-symbols-outlined" text="delete" />
+                    </ui:Button>
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <!-- Selected Object Properties Panel -->
+            <ui:VisualElement name="properties-panel" class="properties-panel">
+                <ui:VisualElement class="drag-handle-container">
+                    <ui:VisualElement class="drag-handle" />
+                </ui:VisualElement>
+                <ui:VisualElement class="panel-content">
+                    <ui:VisualElement class="object-header">
+                        <ui:VisualElement class="object-info">
+                            <ui:VisualElement class="object-icon-container">
+                                <ui:Label class="material-symbols-outlined" text="chair" />
+                            </ui:VisualElement>
+                            <ui:VisualElement>
+                                <ui:Label text="Velvet Sofa" class="object-name" />
+                                <ui:VisualElement class="object-tags">
+                                    <ui:Label text="Furniture" class="object-tag" />
+                                    <ui:Label text="ID: #4029" class="object-id" />
+                                </ui:VisualElement>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:Button name="close-panel-button" class="close-panel-button">
+                            <ui:Label class="material-symbols-outlined" text="close" />
+                        </ui:Button>
+                    </ui:VisualElement>
+
+                    <!-- Coordinates / Quick Properties -->
+                    <ui:VisualElement name="quick-properties" class="quick-properties">
+                        <ui:VisualElement class="property-box">
+                            <ui:Label text="X-Pos" class="property-label" />
+                            <ui:Label text="12.0" class="property-value" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="property-box">
+                            <ui:Label text="Y-Pos" class="property-label" />
+                            <ui:Label text="0.0" class="property-value" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="property-box">
+                            <ui:Label text="Rotation" class="property-label" />
+                            <ui:Label text="45°" class="property-value" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <!-- Action Buttons -->
+                    <ui:VisualElement name="action-buttons" class="action-buttons">
+                        <ui:Button name="change-material-button" class="action-button primary">
+                            <ui:Label class="material-symbols-outlined" text="palette" />
+                            <ui:Label text="Change Material" />
+                        </ui:Button>
+                        <ui:Button name="duplicate-button" class="action-button secondary">
+                            <ui:Label class="material-symbols-outlined" text="content_copy" />
+                            <ui:Label text="Duplicate" />
+                        </ui:Button>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

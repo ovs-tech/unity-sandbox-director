@@ -1,0 +1,139 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="directing-tools-screen" class="directing-tools-screen">
+        <!-- SCENE VIEWPORT (Background) -->
+        <ui:VisualElement name="viewport-background" class="viewport-background" />
+        <ui:VisualElement class="background-gradient-overlay" />
+
+        <!-- UI LAYER -->
+        <ui:VisualElement name="ui-layer" class="ui-layer">
+            <ui:Instance template="Assets/UI/Components/Header/Header.uxml" name="header" />
+
+            <!-- MAIN CONTENT AREA -->
+            <ui:VisualElement name="main-content" class="main-content">
+                <!-- RIGHT: INSPECTOR PANEL (Floating) -->
+                <ui:VisualElement name="inspector-container" class="inspector-container">
+                    <!-- Camera Controls -->
+                    <ui:VisualElement name="camera-controls" class="camera-controls glass-panel">
+                        <ui:Button class="camera-control-button">
+                            <ui:Label class="material-symbols-outlined" text="videocam" />
+                        </ui:Button>
+                        <ui:Button class="camera-control-button active">
+                            <ui:Label class="material-symbols-outlined" text="center_focus_strong" />
+                        </ui:Button>
+                        <ui:Button class="camera-control-button">
+                            <ui:Label class="material-symbols-outlined" text="360" />
+                        </ui:Button>
+                    </ui:VisualElement>
+                    <!-- Inspector Card -->
+                    <ui:VisualElement name="inspector-panel" class="inspector-panel glass-panel">
+                        <ui:VisualElement class="inspector-header">
+                            <ui:VisualElement class="actor-info">
+                                <ui:VisualElement name="actor-avatar" class="actor-avatar" />
+                                <ui:VisualElement>
+                                    <ui:Label text="Jenna" class="actor-name" />
+                                    <ui:Label text="Main Actor" class="actor-role" />
+                                </ui:VisualElement>
+                            </ui:VisualElement>
+                            <ui:Button class="more-button">
+                                <ui:Label class="material-symbols-outlined" text="more_vert" />
+                            </ui:Button>
+                        </ui:VisualElement>
+                        <!-- Action Panel: Toggles -->
+                        <ui:VisualElement class="action-toggle">
+                            <ui:VisualElement>
+                                <ui:Label text="Look at Camera" class="toggle-label" />
+                                <ui:Label text="Head tracking" class="toggle-description" />
+                            </ui:VisualElement>
+                            <ui:Toggle name="look-at-camera-toggle" class="custom-toggle" />
+                        </ui:VisualElement>
+                        <!-- Sliders -->
+                        <ui:VisualElement class="slider-control">
+                             <ui:VisualElement class="slider-labels">
+                                <ui:Label text="Animation Speed" class="slider-label" />
+                                <ui:Label text="1.2x" class="slider-value" />
+                            </ui:VisualElement>
+                            <ui:Slider name="animation-speed-slider" class="custom-slider" low-value="0" high-value="2" value="1.2" />
+                        </ui:VisualElement>
+                         <ui:VisualElement class="slider-control">
+                             <ui:VisualElement class="slider-labels">
+                                <ui:Label text="Expression Intensity" class="slider-label" />
+                                <ui:Label text="85%" class="slider-value" />
+                            </ui:VisualElement>
+                            <ui:Slider name="intensity-slider" class="custom-slider" low-value="0" high-value="100" value="85" />
+                        </ui:VisualElement>
+                        <!-- Quick Actions Grid -->
+                        <ui:VisualElement class="quick-actions-grid">
+                            <ui:Button class="quick-action-button">
+                                <ui:Label class="material-symbols-outlined" text="checkroom" />
+                                <ui:Label text="Outfit" />
+                            </ui:Button>
+                            <ui:Button class="quick-action-button">
+                                <ui:Label class="material-symbols-outlined" text="face" />
+                                <ui:Label text="Face" />
+                            </ui:Button>
+                             <ui:Button class="quick-action-button">
+                                <ui:Label class="material-symbols-outlined" text="motion_mode" />
+                                <ui:Label text="Anim" />
+                            </ui:Button>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <!-- BOTTOM CONTROLS (Timeline & Tools) -->
+            <ui:VisualElement name="footer" class="footer">
+                <!-- Timeline Scrubbing -->
+                <ui:VisualElement class="timeline-container">
+                    <ui:Button name="play-pause-button" class="play-pause-button">
+                        <ui:Label class="material-symbols-outlined" text="play_arrow" />
+                    </ui:Button>
+                    <ui:VisualElement class="timeline-scrubber">
+                        <ui:VisualElement class="time-labels">
+                            <ui:Label text="00:12:05" />
+                            <ui:Label text="00:45:00" />
+                        </ui:VisualElement>
+                        <ui:Slider name="timeline-slider" class="timeline-slider" low-value="0" high-value="45" value="12.083" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <!-- Bottom Toolbar Dock -->
+                <ui:VisualElement class="bottom-toolbar">
+                    <ui:VisualElement class="toolbar-group">
+                        <ui:Button class="toolbar-button">
+                            <ui:VisualElement class="toolbar-button-icon-container">
+                                <ui:Label class="material-symbols-outlined" text="person_add" />
+                            </ui:VisualElement>
+                            <ui:Label text="Actor" class="toolbar-button-label" />
+                        </ui:Button>
+                        <ui:Button class="toolbar-button">
+                            <ui:VisualElement class="toolbar-button-icon-container">
+                                <ui:Label class="material-symbols-outlined" text="chair" />
+                            </ui:VisualElement>
+                            <ui:Label text="Prop" class="toolbar-button-label" />
+                        </ui:Button>
+                        <ui:Button class="toolbar-button">
+                             <ui:VisualElement class="toolbar-button-icon-container">
+                                <ui:Label class="material-symbols-outlined" text="lightbulb" />
+                            </ui:VisualElement>
+                            <ui:Label text="Light" class="toolbar-button-label" />
+                        </ui:Button>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="toolbar-divider" />
+                    <ui:VisualElement class="toolbar-group">
+                        <ui:Button class="toolbar-button">
+                            <ui:VisualElement class="toolbar-button-icon-container">
+                                <ui:Label class="material-symbols-outlined" text="view_in_ar" />
+                            </ui:VisualElement>
+                            <ui:Label text="AR Mode" class="toolbar-button-label" />
+                        </ui:Button>
+                        <ui:Button class="toolbar-button">
+                            <ui:VisualElement class="toolbar-button-icon-container">
+                                <ui:Label class="material-symbols-outlined" text="movie" />
+                            </ui:VisualElement>
+                            <ui:Label text="Render" class="toolbar-button-label" />
+                        </ui:Button>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

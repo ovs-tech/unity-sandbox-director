@@ -1,0 +1,65 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:engine="UnityEngine.UIElements">
+    <ui:VisualElement name="register-screen" class="register-screen">
+        <ui:VisualElement name="background" class="background" />
+        <ui:VisualElement name="main-content" class="main-content">
+            <ui:VisualElement name="header" class="header">
+                <ui:VisualElement name="icon-container" class="icon-container">
+                    <ui:Label text="movie_filter" class="material-symbols-outlined" />
+                </ui:VisualElement>
+                <ui:Label text="Create " class="title">
+                    <ui:Label text="Account" class="title-highlight" />
+                </ui:Label>
+                <ui:Label text="Join the studio and start directing." class="subtitle" />
+            </ui:VisualElement>
+            <ui:VisualElement name="form-container" class="form-container">
+                <ui:VisualElement name="form-field" class="form-field">
+                    <ui:Label text="Email" class="form-label" />
+                    <ui:VisualElement class="input-container">
+                        <ui:Label text="mail" class="material-symbols-outlined input-icon" />
+                        <ui:TextField name="email" class="form-input" placeholder="director@example.com" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="form-field" class="form-field">
+                    <ui:Label text="Password" class="form-label" />
+                    <ui:VisualElement class="input-container">
+                        <ui:Label text="lock" class="material-symbols-outlined input-icon" />
+                        <ui:TextField name="password" class="form-input" placeholder="••••••••" is-password="true" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="form-field" class="form-field">
+                    <ui:Label text="Confirm Password" class="form-label" />
+                    <ui:VisualElement class="input-container">
+                        <ui:Label text="lock_reset" class="material-symbols-outlined input-icon" />
+                        <ui:TextField name="password_confirm" class="form-input" placeholder="••••••••" is-password="true" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <ui:VisualElement class="checkbox-section">
+                    <ui:Toggle name="age-check" label="I am 18 years of age or older." class="checkbox" />
+                    <ui:Toggle name="tos-check" class="checkbox">
+                        <ui:Label>
+                            I agree to the <ui:Label text="Terms of Service" class="link-text" /> and <ui:Label text="Privacy Policy" class="link-text" />.
+                        </ui:Label>
+                    </ui:Toggle>
+                </ui:VisualElement>
+
+                <ui:Button name="register-button" class="register-button">
+                    <ui:Label text="Register" />
+                    <ui:Label text="app_registration" class="material-symbols-outlined" />
+                </ui:Button>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="footer" class="footer">
+                <ui:Button name="login-link" class="login-link">
+                    <ui:Label>
+                        Already a Director? <ui:Label text="Login" class="link-text" />
+                    </ui:Label>
+                </ui:Button>
+                <ui:VisualElement class="secure-footer">
+                    <ui:Label text="lock" class="material-symbols-outlined" />
+                    <ui:Label text="Secure Registration" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

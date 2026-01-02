@@ -1,0 +1,122 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="timeline-screen" class="timeline-screen">
+        <ui:Instance template="Assets/UI/Components/Header/Header.uxml" name="header" />
+
+        <!-- Main Content Area -->
+        <ui:VisualElement name="main-content" class="main-content">
+            <!-- Preview Monitor Section -->
+            <ui:VisualElement name="preview-monitor" class="preview-monitor">
+                <ui:VisualElement name="preview-background" class="preview-background" />
+                <ui:VisualElement class="preview-overlay" />
+                <ui:VisualElement class="monitor-top-controls">
+                    <ui:Button class="monitor-button">
+                        <ui:Label class="material-symbols-outlined" text="videocam" />
+                    </ui:Button>
+                    <ui:Button class="monitor-button">
+                        <ui:Label class="material-symbols-outlined" text="view_in_ar" />
+                    </ui:Button>
+                </ui:VisualElement>
+                <ui:VisualElement class="playback-hud">
+                    <ui:Label text="00:15:22 / 00:45:00" class="timecode" />
+                    <ui:VisualElement class="playback-controls">
+                        <ui:Button class="playback-button">
+                            <ui:Label class="material-symbols-outlined" text="skip_previous" />
+                        </ui:Button>
+                        <ui:Button class="play-pause-button">
+                            <ui:Label class="material-symbols-outlined" text="play_arrow" />
+                        </ui:Button>
+                        <ui:Button class="playback-button">
+                            <ui:Label class="material-symbols-outlined" text="skip_next" />
+                        </ui:Button>
+                    </ui:VisualElement>
+                    <ui:Button class="playback-button">
+                        <ui:Label class="material-symbols-outlined" text="fullscreen" />
+                    </ui:Button>
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <!-- Timeline Toolbar -->
+            <ui:VisualElement name="timeline-toolbar" class="timeline-toolbar">
+                <ui:VisualElement class="toolbar-left">
+                    <ui:VisualElement class="zoom-control">
+                        <ui:Label class="material-symbols-outlined" text="zoom_in" />
+                        <ui:Label text="100%" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="toolbar-divider" />
+                    <ui:Button class="toolbar-button active">
+                        <ui:Label class="material-symbols-outlined" text="content_cut" />
+                    </ui:Button>
+                    <ui:Button class="toolbar-button">
+                        <ui:Label class="material-symbols-outlined" text="content_copy" />
+                    </ui:Button>
+                    <ui:Button class="toolbar-button">
+                        <ui:Label class="material-symbols-outlined" text="delete" />
+                    </ui:Button>
+                </ui:VisualElement>
+                <ui:Button name="add-track-button" class="add-track-button">
+                    <ui:Label class="material-symbols-outlined" text="add" />
+                    <ui:Label text="ADD TRACK" />
+                </ui:Button>
+            </ui:VisualElement>
+
+            <!-- Timeline Area -->
+            <ui:VisualElement name="timeline-area" class="timeline-area">
+                <ui:VisualElement name="playhead" class="playhead">
+                    <ui:VisualElement class="playhead-diamond" />
+                </ui:VisualElement>
+                <ui:VisualElement name="time-ruler" class="time-ruler" />
+                <ui:ScrollView name="tracks-scroll-view" class="tracks-scroll-view">
+                    <!-- Tracks will be added here -->
+                    <!-- Example Track -->
+                    <ui:VisualElement class="track">
+                        <ui:VisualElement class="track-header">
+                             <ui:Label class="material-symbols-outlined" text="sentiment_satisfied" />
+                             <ui:Label text="Actor 1" class="track-label" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="track-lanes">
+                            <!-- Example Clip -->
+                            <ui:VisualElement class="clip selected" style="left: 30%; width: 25%;">
+                                <ui:Label text="Interact: Kiss" class="clip-label" />
+                                <ui:VisualElement class="clip-handle-right" />
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:ScrollView>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- Floating Action Button -->
+        <ui:Button name="fab" class="fab">
+            <ui:Label class="material-symbols-outlined" text="add" />
+        </ui:Button>
+
+        <!-- Inspector / Context Panel -->
+        <ui:VisualElement name="inspector-panel" class="inspector-panel">
+            <ui:VisualElement class="drag-handle-container">
+                <ui:VisualElement class="drag-handle" />
+            </ui:VisualElement>
+            <ui:VisualElement class="inspector-content">
+                <ui:VisualElement class="inspector-header">
+                    <ui:Label text="Edit: Interact Kiss" class="inspector-title" />
+                    <ui:Button text="Replace" class="replace-button" />
+                </ui:VisualElement>
+                <ui:VisualElement class="inspector-controls">
+                    <ui:VisualElement class="slider-control">
+                        <ui:VisualElement class="slider-labels">
+                            <ui:Label text="Intensity" />
+                            <ui:Label text="75%" />
+                        </ui:VisualElement>
+                        <ui:Slider name="intensity-slider" class="custom-slider" value="75" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="slider-control">
+                        <ui:VisualElement class="slider-labels">
+                            <ui:Label text="Speed" />
+                            <ui:Label text="1.0x" />
+                        </ui:VisualElement>
+                        <ui:Slider name="speed-slider" class="custom-slider" value="50" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

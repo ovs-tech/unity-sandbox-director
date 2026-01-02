@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="header-component" class="header-root">
+        <ui:VisualElement name="left-container" class="header-container" />
+        <ui:VisualElement name="middle-container" class="header-container" style="flex-grow: 1; align-items: center;" />
+        <ui:VisualElement name="right-container" class="header-container" style="justify-content: flex-end;" />
+    </ui:VisualElement>
+</ui:UXML>

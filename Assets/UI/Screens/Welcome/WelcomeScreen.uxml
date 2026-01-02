@@ -1,0 +1,25 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:engine="UnityEngine.UIElements">
+    <ui:VisualElement name="welcome-screen" style="flex-grow: 1; justify-content: space-between;">
+        <ui:VisualElement name="background" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: #221016;" />
+        <ui:VisualElement name="main-content" style="flex-grow: 1; padding: 30px 20px;">
+            <ui:VisualElement name="header" style="align-items: flex-end;">
+                <ui:VisualElement name="badge" style="background-color: rgba(236, 19, 91, 0.1); border-color: rgba(255, 255, 255, 0.1); border-width: 1px; border-radius: 20px; padding: 5px 10px;">
+                    <engine:Label text="VR/AR Ready" style="color: white; font-size: 12px;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="body" style="flex-grow: 1; align-items: center; justify-content: center;">
+                <ui:VisualElement name="logo" style="width: 60px; height: 60px; background-color: #ec135b; border-radius: 15px; margin-bottom: 15px;" />
+                <engine:Label text="Ero Director" style="font-size: 36px; font-weight: bold; color: white; -unity-font-style: bold;" />
+                <engine:Label text="Your Vision. Your Scene. Your Rules." style="font-size: 16px; color: #d1d5db; margin-top: 10px; -unity-text-align: center;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="footer" style="align-items: center;">
+                <engine:Toggle name="age-check" label="I confirm I am over 18 years of age." style="color: #d1d5db; margin-bottom: 20px;" />
+                <engine:Button text="Start Directing" style="width: 100%; background-color: #ec135b; color: white; border-radius: 10px; padding: 15px; font-size: 16px; font-weight: bold;" />
+                <ui:VisualElement style="flex-direction: row; margin-top: 15px;">
+                    <engine:Label text="Already a Director? " style="color: #9ca3af;" />
+                    <engine:Button text="Login" style="color: #ec135b; font-weight: bold; background-color: transparent; border-width: 0;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

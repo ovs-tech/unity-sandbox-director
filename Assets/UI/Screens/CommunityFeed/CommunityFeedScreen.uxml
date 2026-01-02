@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="community-feed-screen" class="community-feed-screen">
+        <ui:Instance template="Assets/UI/Components/Header/Header.uxml" name="header" />
+        <ui:Instance template="Assets/UI/Components/Panel/Panel.uxml" name="featured-panel" />
+        <ui:Instance template="Assets/UI/Components/NavBar/NavBar.uxml" name="navbar" />
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,0 +1,125 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="actor-management-screen" class="actor-management-screen">
+        <ui:Instance template="Assets/UI/Components/Header/Header.uxml" name="header" />
+
+        <!-- Filter Chips -->
+        <ui:ScrollView horizontal-scroller-visibility="Hidden" class="filter-chips-container no-scrollbar">
+            <ui:Button text="All" class="filter-chip active" />
+            <ui:Button text="Female" class="filter-chip" />
+            <ui:Button text="Male" class="filter-chip" />
+            <ui:Button class="filter-chip">
+                <ui:Label class="material-symbols-outlined" text="favorite" />
+                <ui:Label text="Favorites" />
+            </ui:Button>
+        </ui:ScrollView>
+
+        <!-- Main Content: Actor Grid -->
+        <ui:ScrollView name="actor-grid-scroll" class="actor-grid-scroll no-scrollbar">
+            <ui:VisualElement name="actor-grid" class="actor-grid">
+                <!-- Actor Card 1 (Selected) -->
+                <ui:VisualElement class="actor-card selected">
+                    <ui:VisualElement name="actor-image-1" class="actor-image" />
+                    <ui:VisualElement class="actor-overlay" />
+                    <ui:VisualElement class="selection-indicator-container">
+                        <ui:VisualElement class="selection-indicator">
+                            <ui:Label class="material-symbols-outlined" text="check" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="actor-info">
+                        <ui:VisualElement class="actor-name-container">
+                            <ui:Label text="Chloe" class="actor-name" />
+                            <ui:Label text="Star" class="actor-tag" />
+                        </ui:VisualElement>
+                        <ui:Label text="Playful • Athletic" class="actor-description" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <!-- Actor Card 2 -->
+                <ui:VisualElement class="actor-card">
+                    <ui:VisualElement name="actor-image-2" class="actor-image" />
+                    <ui:VisualElement class="actor-overlay" />
+                    <ui:VisualElement class="selection-indicator-container">
+                        <ui:VisualElement class="selection-indicator-empty" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="actor-info">
+                         <ui:Label text="Alex" class="actor-name" />
+                        <ui:Label text="Serious • Dominant" class="actor-description" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                 <!-- Add New Placeholder -->
+                <ui:VisualElement class="actor-card-placeholder">
+                    <ui:VisualElement class="placeholder-icon-container">
+                        <ui:Label class="material-symbols-outlined" text="add" />
+                    </ui:VisualElement>
+                    <ui:Label text="Empty Slot" class="placeholder-text" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:ScrollView>
+
+        <!-- Bottom Sheet / Customization Panel (Open State) -->
+        <ui:VisualElement name="bottom-sheet" class="bottom-sheet">
+            <!-- Handle -->
+            <ui:VisualElement class="drag-handle-container">
+                <ui:VisualElement class="drag-handle" />
+            </ui:VisualElement>
+            <!-- Sheet Header -->
+            <ui:VisualElement class="sheet-header">
+                <ui:VisualElement>
+                    <ui:Label text="Chloe" class="sheet-title" />
+                    <ui:Label text="Editing Appearance" class="sheet-subtitle" />
+                </ui:VisualElement>
+                <ui:Button name="close-sheet-button" class="close-sheet-button">
+                    <ui:Label class="material-symbols-outlined" text="close" />
+                </ui:Button>
+            </ui:VisualElement>
+            <!-- Tabs -->
+            <ui:VisualElement class="sheet-tabs">
+                <ui:Button text="Appearance" class="tab-button active" />
+                <ui:Button text="Wardrobe" class="tab-button" />
+                <ui:Button text="Personality" class="tab-button" />
+            </ui:VisualElement>
+            <!-- Content Area -->
+            <ui:VisualElement class="sheet-content">
+                <!-- Height Slider -->
+                <ui:VisualElement class="slider-control">
+                    <ui:VisualElement class="slider-label-container">
+                        <ui:Label text="Height" class="slider-label" />
+                        <ui:Label text="172cm" class="slider-value" />
+                    </ui:VisualElement>
+                    <ui:Slider name="height-slider" class="custom-slider" low-value="150" high-value="200" value="172" />
+                </ui:VisualElement>
+                 <!-- Physique Slider -->
+                <ui:VisualElement class="slider-control">
+                    <ui:VisualElement class="slider-label-container">
+                        <ui:Label text="Physique" class="slider-label" />
+                        <ui:Label text="Athletic" class="slider-value" />
+                    </ui:VisualElement>
+                    <ui:Slider name="physique-slider" class="custom-slider" low-value="0" high-value="100" value="65" />
+                </ui:VisualElement>
+                <!-- Skin Tone Swatches -->
+                <ui:VisualElement class="swatch-control">
+                    <ui:Label text="Skin Tone" class="control-label" />
+                    <ui:VisualElement class="swatch-container">
+                        <ui:Button class="swatch-button selected" style="background-color: #f8d9c6;" />
+                        <ui:Button class="swatch-button" style="background-color: #eac0a3;" />
+                        <ui:Button class="swatch-button" style="background-color: #c68642;" />
+                        <ui:Button class="swatch-button" style="background-color: #8d5524;" />
+                        <ui:Button class="swatch-button" style="background-color: #3d2314;" />
+                        <ui:Button class="swatch-button picker">
+                            <ui:Label class="material-symbols-outlined" text="colorize" />
+                        </ui:Button>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <!-- Action Button -->
+                <ui:Button name="save-button" class="save-button">
+                    <ui:Label class="material-symbols-outlined" text="save" />
+                    <ui:Label text="Save Changes" />
+                </ui:Button>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- Background overlay for sheet focus -->
+        <ui:VisualElement class="sheet-overlay" />
+    </ui:VisualElement>
+</ui:UXML>

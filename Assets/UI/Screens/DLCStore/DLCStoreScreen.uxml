@@ -1,0 +1,102 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="dlc-store-screen" class="dlc-store-screen">
+        <ui:Instance template="Assets/UI/Components/Header/Header.uxml" name="header" />
+
+        <ui:ScrollView class="main-scroll-view">
+            <!-- Category Pills -->
+            <ui:ScrollView horizontal-scroller-visibility="Hidden" class="category-pills-container no-scrollbar">
+                <ui:Button class="category-pill active">
+                    <ui:Label class="material-symbols-outlined" text="star" />
+                    <ui:Label text="Featured" />
+                </ui:Button>
+                <ui:Button class="category-pill">
+                    <ui:Label class="material-symbols-outlined" text="person" />
+                    <ui:Label text="Actors" />
+                </ui:Button>
+                <ui:Button class="category-pill">
+                    <ui:Label class="material-symbols-outlined" text="location_city" />
+                    <ui:Label text="Sets" />
+                </ui:Button>
+            </ui:ScrollView>
+
+            <!-- Hero Carousel -->
+            <ui:ScrollView horizontal-scroller-visibility="Hidden" class="hero-carousel no-scrollbar">
+                <ui:VisualElement class="hero-card">
+                    <ui:VisualElement class="hero-card-image-container">
+                        <ui:VisualElement name="hero-image-1" class="hero-card-image" />
+                        <ui:VisualElement class="hero-image-overlay" />
+                        <ui:Label text="VR Ready" class="hero-card-badge" />
+                        <ui:VisualElement class="hero-card-text">
+                            <ui:Label text="Bundle" class="hero-card-tag" />
+                            <ui:Label text="Neon Nights Pack" class="hero-card-title" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="hero-card-footer">
+                        <ui:Label text="Complete immersive environment with interactive lighting and ambient audio." class="hero-card-description" />
+                        <ui:Button name="get-bundle-button" class="hero-card-button">
+                            <ui:Label text="Get Bundle" />
+                            <ui:VisualElement class="button-divider" />
+                            <ui:Label class="material-symbols-outlined currency-icon" text="diamond" />
+                            <ui:Label text="1200" />
+                        </ui:Button>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                 <!-- Add another hero card -->
+            </ui:ScrollView>
+
+            <!-- Trending Actors Section -->
+            <ui:VisualElement class="trending-actors-section">
+                <ui:VisualElement class="section-header">
+                    <ui:Label text="Trending Actors" class="section-title" />
+                    <ui:Button text="View All" class="view-all-button" />
+                </ui:VisualElement>
+                <ui:VisualElement class="actors-grid">
+                    <ui:VisualElement class="actor-card">
+                        <ui:VisualElement class="actor-card-image-container">
+                            <ui:VisualElement name="actor-image-1" class="actor-card-image"/>
+                            <ui:VisualElement class="actor-image-overlay" />
+                            <ui:VisualElement class="actor-price-tag">
+                                <ui:Label class="material-symbols-outlined currency-icon" text="diamond" />
+                                <ui:Label text="450" />
+                            </ui:VisualElement>
+                             <ui:VisualElement class="actor-name-container">
+                                <ui:Label text="Elena V2" class="actor-name" />
+                                <ui:Label text="Realistic skin shaders" class="actor-description" />
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                        <ui:Button name="add-actor-button" class="add-actor-button">
+                            <ui:Label class="material-symbols-outlined" text="add_shopping_cart" />
+                            <ui:Label text="Add" />
+                        </ui:Button>
+                    </ui:VisualElement>
+                    <!-- Add another actor card -->
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:ScrollView>
+
+        <!-- Bottom Navigation Bar -->
+        <ui:VisualElement name="bottom-nav" class="bottom-nav glass-panel">
+            <ui:Button class="nav-item active">
+                <ui:Label class="material-symbols-outlined" text="storefront" />
+                <ui:Label text="Store" />
+            </ui:Button>
+            <ui:Button class="nav-item">
+                <ui:Label class="material-symbols-outlined" text="inventory_2" />
+                <ui:Label text="Vault" />
+            </ui:Button>
+            <ui:VisualElement class="nav-center-item">
+                 <ui:Button class="nav-director-button">
+                    <ui:Label class="material-symbols-outlined" text="movie" />
+                </ui:Button>
+            </ui:VisualElement>
+            <ui:Button class="nav-item">
+                <ui:Label class="material-symbols-outlined" text="favorite" />
+                <ui:Label text="Saved" />
+            </ui:Button>
+            <ui:Button class="nav-item">
+                <ui:Label class="material-symbols-outlined" text="settings" />
+                <ui:Label text="Settings" />
+            </ui:Button>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

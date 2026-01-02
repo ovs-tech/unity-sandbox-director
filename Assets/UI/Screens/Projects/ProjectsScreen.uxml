@@ -1,0 +1,14 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:engine="UnityEngine.UIElements">
+    <ui:VisualElement name="projects-screen" class="projects-screen">
+        <ui:Instance template="Assets/UI/Components/Header/Header.uxml" name="header" />
+        <ui:Instance template="Assets/UI/Components/Panel/Panel.uxml" name="project-grid" />
+
+        <!-- FAB -->
+        <ui:VisualElement name="fab-container" class="fab-container">
+            <ui:Button name="fab" class="fab">
+                <ui:Label class="material-symbols-outlined" text="add" />
+                <ui:Label text="New Production" />
+            </ui:Button>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

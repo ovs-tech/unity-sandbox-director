@@ -1,0 +1,125 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="object-library-screen" class="object-library-screen">
+        <ui:Instance template="Assets/UI/Components/Header/Header.uxml" name="header" />
+
+        <!-- Search Bar -->
+        <ui:VisualElement name="search-container" class="search-container">
+            <ui:VisualElement class="search-bar">
+                <ui:Label class="material-symbols-outlined search-icon" text="search" />
+                <ui:TextField name="search-input" class="search-input" placeholder="Search furniture, props..." />
+                <ui:Button name="qr-scanner-button" class="search-bar-button">
+                    <ui:Label class="material-symbols-outlined" text="qr_code_scanner" />
+                </ui:Button>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- Categories -->
+        <ui:ScrollView horizontal-scroller-visibility="Hidden" class="category-scroll-view no-scrollbar">
+            <ui:Button text="All" class="category-chip active" />
+            <ui:Button text="Furniture" class="category-chip" />
+            <ui:Button text="Interactive" class="category-chip" />
+            <ui:Button text="Lighting" class="category-chip" />
+            <ui:Button text="Decor" class="category-chip" />
+        </ui:ScrollView>
+
+        <!-- Main Content: Asset Grid -->
+        <ui:ScrollView name="asset-grid-scroll" class="asset-grid-scroll">
+            <ui:VisualElement name="asset-grid" class="asset-grid">
+                <!-- Card 1 -->
+                <ui:VisualElement class="asset-card">
+                    <ui:VisualElement class="asset-image-container">
+                        <ui:VisualElement name="asset-image-1" class="asset-image" />
+                        <ui:Label text="Rare" class="rarity-tag" />
+                        <ui:Button name="add-button" class="add-button">
+                            <ui:Label class="material-symbols-outlined" text="add" />
+                        </ui:Button>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="asset-info">
+                        <ui:Label text="Velvet Chaise" class="asset-title" />
+                        <ui:VisualElement class="asset-category">
+                            <ui:Label class="material-symbols-outlined" text="chair" />
+                            <ui:Label text="Furniture" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                 <!-- Card 2 (Epic) -->
+                <ui:VisualElement class="asset-card epic">
+                    <ui:VisualElement class="asset-image-container">
+                        <ui:VisualElement name="asset-image-2" class="asset-image" />
+                        <ui:Label text="Epic" class="rarity-tag epic-tag" />
+                         <ui:Button name="add-button" class="add-button">
+                            <ui:Label class="material-symbols-outlined" text="add" />
+                        </ui:Button>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="asset-info">
+                        <ui:Label text="Silk Sheets" class="asset-title" />
+                        <ui:VisualElement class="asset-category">
+                            <ui:Label class="material-symbols-outlined" text="bed" />
+                            <ui:Label text="Decor" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <!-- Add more cards dynamically -->
+            </ui:VisualElement>
+        </ui:ScrollView>
+
+        <!-- FAB (Inventory) -->
+        <ui:VisualElement name="fab-container" class="fab-container">
+            <ui:Button name="fab" class="fab">
+                <ui:Label class="material-symbols-outlined" text="inventory_2" />
+                <ui:Label text="My Stash" />
+            </ui:Button>
+        </ui:VisualElement>
+
+        <!-- Bottom Sheet Preview (Overlay) -->
+        <ui:VisualElement name="bottom-sheet" class="bottom-sheet">
+            <ui:VisualElement class="drag-handle-container">
+                <ui:VisualElement class="drag-handle" />
+            </ui:VisualElement>
+            <ui:ScrollView class="bottom-sheet-scroll">
+                <ui:VisualElement class="sheet-content">
+                    <ui:VisualElement class="sheet-header">
+                        <ui:VisualElement name="sheet-image" class="sheet-image" />
+                        <ui:VisualElement class="sheet-header-info">
+                             <ui:VisualElement class="sheet-title-row">
+                                <ui:VisualElement>
+                                    <ui:Label text="Velvet Chaise" class="sheet-title" />
+                                    <ui:Label text="Furniture • Rare" class="sheet-subtitle" />
+                                </ui:VisualElement>
+                                <ui:VisualElement class="sheet-header-buttons">
+                                    <ui:Button name="favorite-button" class="sheet-icon-button">
+                                        <ui:Label class="material-symbols-outlined" text="favorite" />
+                                    </ui:Button>
+                                    <ui:Button name="share-button" class="sheet-icon-button">
+                                        <ui:Label class="material-symbols-outlined" text="share" />
+                                    </ui:Button>
+                                </ui:VisualElement>
+                             </ui:VisualElement>
+                             <ui:VisualElement class="sheet-tags">
+                                <ui:VisualElement class="sheet-tag">
+                                    <ui:Label class="material-symbols-outlined" text="accessibility_new" />
+                                    <ui:Label text="Sit" />
+                                </ui:VisualElement>
+                                 <ui:VisualElement class="sheet-tag">
+                                    <ui:Label class="material-symbols-outlined" text="bed" />
+                                    <ui:Label text="Lay" />
+                                </ui:VisualElement>
+                                 <ui:VisualElement class="sheet-tag">
+                                    <ui:Label class="material-symbols-outlined" text="3d_rotation" />
+                                    <ui:Label text="360°" />
+                                </ui:VisualElement>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:Label text="Luxurious red velvet chaise lounge with gold-plated legs. Perfect for romantic scenes or high-end lounge environments." class="sheet-description" />
+                </ui:VisualElement>
+            </ui:ScrollView>
+            <ui:VisualElement class="sheet-footer">
+                <ui:Button name="place-in-scene-button" class="place-in-scene-button">
+                    <ui:Label class="material-symbols-outlined" text="add_circle" />
+                    <ui:Label text="Place in Scene" />
+                </ui:Button>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

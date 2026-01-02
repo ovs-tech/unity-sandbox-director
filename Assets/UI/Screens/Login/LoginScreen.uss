@@ -1,0 +1,108 @@
+.login-screen {
+    flex-grow: 1;
+    justify-content: space-between;
+}
+
+.background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--color-background);
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 30px 20px;
+}
+
+.header {
+    align-items: center;
+    justify-content: center;
+    padding-top: 40px;
+}
+
+.logo {
+    width: 50px;
+    height: 50px;
+    background-color: var(--color-primary);
+    border-radius: var(--border-radius-lg);
+    margin-bottom: 10px;
+}
+
+.header .unity-label {
+    font-size: var(--font-size-2xl);
+    -unity-font-style: bold;
+    color: var(--color-text-primary);
+}
+
+.body {
+    flex-grow: 1;
+    justify-content: center;
+}
+
+.body > .unity-label {
+    -unity-text-align: center;
+    color: var(--color-text-primary);
+}
+
+.body > .unity-label:nth-child(1) {
+    font-size: var(--font-size-xl);
+    -unity-font-style: bold;
+    margin-bottom: 5px;
+}
+
+.body > .unity-label:nth-child(2) {
+    font-size: var(--font-size-base);
+    color: var(--color-text-muted);
+    margin-bottom: 20px;
+}
+
+.body .unity-text-field {
+    margin-bottom: 15px;
+}
+
+.body .unity-text-field .unity-text-element {
+    color: var(--color-text-muted);
+}
+
+.body > .unity-button {
+    color: var(--color-text-muted);
+    background-color: transparent;
+    border-width: 0;
+    margin-top: 5px;
+    align-self: flex-end;
+}
+
+.body > .unity-button:nth-child(5) {
+    width: 100%;
+    background-color: var(--color-primary);
+    color: var(--color-primary-contrast);
+    border-radius: var(--border-radius-lg);
+    padding: 15px;
+    font-size: var(--font-size-md);
+    -unity-font-style: bold;
+    margin-top: 20px;
+    align-self: auto;
+}
+
+.footer {
+    align-items: center;
+}
+
+.footer .unity-visual-element {
+    flex-direction: row;
+    margin-top: 15px;
+}
+
+.footer .unity-label {
+    color: var(--color-text-muted);
+}
+
+.footer .unity-button {
+    color: var(--color-primary);
+    -unity-font-style: bold;
+    background-color: transparent;
+    border-width: 0;
+}

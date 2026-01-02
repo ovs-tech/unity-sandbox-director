@@ -1,0 +1,355 @@
+/* Main Screen Container */
+.scene-builder-screen {
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+/* Background */
+.viewport-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    -unity-background-scale-mode: scale-and-crop;
+    /* The background-image should be set via C# script */
+}
+
+.background-gradient-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* This creates a gradient similar to the example */
+    background-image: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent, rgba(0,0,0,0.8));
+}
+
+/* Header */
+.header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 16px 16px;
+    background-image: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+}
+
+.header-icon-button {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--border-radius-full);
+    background-color: rgba(255, 255, 255, 0.1);
+    justify-content: center;
+    align-items: center;
+    border-width: 0;
+}
+
+.header-icon-button .material-symbols-outlined {
+    font-size: var(--font-size-xl);
+    color: var(--color-text-primary);
+}
+
+.header-title-container {
+    align-items: center;
+}
+
+.header-subtitle {
+    font-size: var(--font-size-sm);
+    -unity-font-style: bold;
+    color: var(--color-text-primary);
+    opacity: 0.7;
+    text-transform: uppercase;
+}
+
+.header-title {
+    font-size: var(--font-size-lg);
+    -unity-font-style: bold;
+    color: var(--color-text-primary);
+}
+
+.header-play-button {
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--color-primary);
+    color: var(--color-primary-contrast);
+    border-radius: var(--border-radius-full);
+    padding: 8px 16px;
+    border-width: 0;
+}
+
+.header-play-button .material-symbols-fill {
+    font-size: var(--font-size-xl);
+    margin-right: 4px;
+}
+
+.header-play-button .unity-label {
+    font-size: var(--font-size-base);
+    -unity-font-style: bold;
+}
+
+/* Main Area & Floating Tools */
+.main-area {
+    flex-grow: 1;
+}
+
+.top-right-tools {
+    position: absolute;
+    top: 90px;
+    right: 16px;
+    align-items: flex-end;
+}
+
+.floating-tool-button {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--border-radius-full);
+    background-color: rgba(0, 0, 0, 0.4);
+    border-width: var(--border-width);
+    border-color: var(--color-surface-border);
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.floating-tool-button.active {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.floating-tool-button .material-symbols-outlined {
+    font-size: var(--font-size-2xl);
+    color: var(--color-text-primary);
+}
+
+.top-left-tools {
+    position: absolute;
+    top: 90px;
+    left: 16px;
+    flex-direction: row;
+}
+
+.floating-undo-redo-button {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--border-radius-full);
+    background-color: rgba(0, 0, 0, 0.2);
+    justify-content: center;
+    align-items: center;
+    margin-right: 8px;
+}
+
+.floating-undo-redo-button .material-symbols-outlined {
+    font-size: var(--font-size-xl);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Bottom Panel */
+.bottom-panel-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    align-items: center;
+}
+
+.transform-toolbar-container {
+    margin-bottom: 12px;
+    align-items: center;
+}
+
+.transform-toolbar {
+    flex-direction: row;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: var(--border-radius-full);
+    padding: 4px;
+    border-width: var(--border-width);
+    border-color: var(--color-surface-border);
+}
+
+.transform-tool-button {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--border-radius-full);
+    justify-content: center;
+    align-items: center;
+    margin: 0 2px;
+}
+
+.transform-tool-button .material-symbols-outlined {
+    font-size: var(--font-size-xl);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.transform-tool-button.active {
+    background-color: var(--color-primary);
+}
+.transform-tool-button.active .material-symbols-outlined {
+    color: var(--color-primary-contrast);
+}
+.transform-tool-button.delete .material-symbols-outlined {
+    color: var(--color-danger);
+}
+
+.toolbar-divider {
+    width: 1px;
+    height: 16px;
+    background-color: rgba(255, 255, 255, 0.2);
+    margin: 0 4px;
+}
+
+.properties-panel {
+    width: 100%;
+    background-color: rgba(26, 12, 17, 0.9);
+    border-top-left-radius: var(--border-radius-xl);
+    border-top-right-radius: var(--border-radius-xl);
+    border-top-width: var(--border-width);
+    border-top-color: var(--color-surface-border);
+}
+
+.drag-handle-container {
+    align-items: center;
+    padding: 12px 0 4px;
+}
+
+.drag-handle {
+    width: 48px;
+    height: 6px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: var(--border-radius-sm);
+}
+
+.panel-content {
+    padding: 8px 20px 24px;
+}
+
+.object-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.object-info {
+    flex-direction: row;
+    align-items: center;
+}
+
+.object-icon-container {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--border-radius-md);
+    background-color: rgba(255, 255, 255, 0.1);
+    border-width: var(--border-width);
+    border-color: rgba(255, 255, 255, 0.05);
+    justify-content: center;
+    align-items: center;
+    margin-right: 12px;
+}
+
+.object-icon-container .material-symbols-outlined {
+    font-size: var(--font-size-2xl);
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.object-name {
+    font-size: var(--font-size-lg);
+    -unity-font-style: bold;
+    color: var(--color-text-primary);
+}
+
+.object-tags {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 2px;
+}
+
+.object-tag {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    background-color: var(--color-surface-1);
+    padding: 2px 6px;
+    border-radius: var(--border-radius-sm);
+    margin-right: 8px;
+}
+
+.object-id {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}
+
+.close-panel-button {
+    width: 32px;
+    height: 32px;
+    justify-content: center;
+    align-items: center;
+}
+.close-panel-button .material-symbols-outlined {
+    color: var(--color-text-muted);
+}
+
+.quick-properties {
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.property-box {
+    flex-grow: 1;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: var(--border-radius-md);
+    padding: 8px;
+    border-width: var(--border-width);
+    border-color: rgba(255, 255, 255, 0.05);
+    align-items: center;
+    margin: 0 4px;
+}
+
+.property-label {
+    font-size: var(--font-size-xs);
+    -unity-font-style: bold;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+}
+
+.property-value {
+    font-size: var(--font-size-base);
+    color: var(--color-text-primary);
+}
+
+.action-buttons {
+    flex-direction: row;
+}
+
+.action-button {
+    flex-grow: 1;
+    height: 48px;
+    border-radius: var(--border-radius-lg);
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    font-size: var(--font-size-base);
+    border-width: 0;
+}
+
+.action-button.primary {
+    background-color: var(--color-primary);
+    color: var(--color-primary-contrast);
+    -unity-font-style: bold;
+    margin-right: 6px;
+}
+
+.action-button.secondary {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--color-text-primary);
+    -unity-font-style: bold;
+    margin-left: 6px;
+}
+
+.action-button .material-symbols-outlined {
+    font-size: var(--font-size-xl);
+    margin-right: 8px;
+}
