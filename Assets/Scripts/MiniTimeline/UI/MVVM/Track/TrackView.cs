@@ -75,6 +75,12 @@ namespace MiniTimeline.UI.MVVM.Track {
                     dataSourcePath = new PropertyPath(nameof(BindableProperty<string>.Value)),
                     bindingMode = BindingMode.ToTarget
                 });
+                title.SetBinding(nameof(Label.tooltip), new DataBinding
+                {
+                    dataSource = vm.Title,
+                    dataSourcePath = new PropertyPath(nameof(BindableProperty<string>.Value)),
+                    bindingMode = BindingMode.ToTarget
+                });
             if (bindInfo != null)
                 bindInfo.SetBinding(nameof(Label.text), new DataBinding {
                     dataSource = vm.BindKey,

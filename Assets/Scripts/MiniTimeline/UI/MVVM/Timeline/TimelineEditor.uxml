@@ -1,21 +1,21 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <ui:Template name="TimelineRulerToolkit" src="project://database/Assets/Scripts/MiniTimeline/UI/Styles/TimelineRulerToolkit.uxml?fileID=9197481963319205126&amp;guid=8fe7f7e8cd6a54e23b82f4d56f802b8c&amp;type=3#TimelineRulerToolkit"/>
-    <ui:Template name="TrackUIToolkit" src="project://database/Assets/Scripts/MiniTimeline/UI/Styles/TrackUIToolkit.uxml?fileID=9197481963319205126&amp;guid=1c67dd123d5f14ad890b6d6c88ed248c&amp;type=3#TrackUIToolkit"/>
-    <Style src="project://database/Assets/Scripts/MiniTimeline/UI/Styles/TimelineEditorUIToolkit.uss?fileID=7433441132597879392&amp;guid=387ede72813e343f59859c3e1038bda0&amp;type=3#TimelineEditorUIToolkit"/>
+    <ui:Template name="TimelineRulerToolkit" src="project://database/Assets/Scripts/MiniTimeline/UI/MVVM/Ruler/TimelineRuler.uxml?fileID=9197481963319205126&amp;guid=8fe7f7e8cd6a54e23b82f4d56f802b8c&amp;type=3#TimelineRuler"/>
+    <ui:Template name="TrackUIToolkit" src="project://database/Assets/Scripts/MiniTimeline/UI/MVVM/Track/Track.uxml?fileID=9197481963319205126&amp;guid=1c67dd123d5f14ad890b6d6c88ed248c&amp;type=3#Track"/>
+    <Style src="project://database/Assets/Scripts/MiniTimeline/UI/MVVM/Timeline/TimelineEditor.uss?fileID=7433441132597879392&amp;guid=387ede72813e343f59859c3e1038bda0&amp;type=3#TimelineEditor"/>
     <ui:VisualElement name="timeline-editor" class="timeline-editor">
         <ui:VisualElement name="controls-container" class="controls-container">
             <ui:VisualElement name="playback-controls" class="playback-controls">
-                <ui:Button text="\uf04b" name="play-button" enable-rich-text="true" emoji-fallback-support="true" double-click-selects-word="false" triple-click-selects-line="false" parse-escape-sequences="true" class="control-button fa-solid button unity-button--icon unity-button--primary unity-button--circle">
+                <ui:Button text="\uf04b" name="play-button" enable-rich-text="true" emoji-fallback-support="true" double-click-selects-word="false" triple-click-selects-line="false" parse-escape-sequences="true" class="control-button unity-button--icon unity-button--primary unity-button--circle">
                     <Bindings>
                         <UnityEngine.Localization.LocalizedString property="tooltip" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="timeline.play.tooltip"/>
                     </Bindings>
                 </ui:Button>
-                <ui:Button text="\uf04c" name="pause-button" parse-escape-sequences="true" class="control-button fa-solid button unity-button--icon">
+                <ui:Button text="\uf04c" name="pause-button" parse-escape-sequences="true" double-click-selects-word="false" triple-click-selects-line="false" class="control-button unity-button--icon">
                     <Bindings>
                         <UnityEngine.Localization.LocalizedString property="tooltip" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="timeline.pause.tooltip"/>
                     </Bindings>
                 </ui:Button>
-                <ui:Button text="\uf04d" name="stop-button" parse-escape-sequences="true" class="button control-button fa-solid">
+                <ui:Button text="\uf04d" name="stop-button" parse-escape-sequences="true" double-click-selects-word="false" triple-click-selects-line="false" class="button control-button unity-button--icon">
                     <Bindings>
                         <UnityEngine.Localization.LocalizedString property="tooltip" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="timeline.stop.tooltip"/>
                     </Bindings>
@@ -26,36 +26,36 @@
                 <ui:Slider picking-mode="Ignore" value="0.54" high-value="1" name="time-slider" fill="true" class="time-slider"/>
             </ui:VisualElement>
             <ui:VisualElement name="edit-controls" class="playback-controls">
-                <ui:Button text="\uf2ea" name="undo-button" parse-escape-sequences="true" class="control-button fa-solid button">
+                <ui:Button text="\uf2ea" name="undo-button" parse-escape-sequences="true" double-click-selects-word="false" triple-click-selects-line="false" class="control-button unity-button--icon">
                     <Bindings>
                         <UnityEngine.Localization.LocalizedString property="tooltip" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="timeline.undo.tooltip"/>
                     </Bindings>
                 </ui:Button>
-                <ui:Button text="\uf2f9" name="redo-button" parse-escape-sequences="true" class="control-button fa-solid button">
+                <ui:Button text="\uf2f9" name="redo-button" parse-escape-sequences="true" double-click-selects-word="false" triple-click-selects-line="false" class="control-button unity-button--icon">
                     <Bindings>
                         <UnityEngine.Localization.LocalizedString property="tooltip" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="timeline.redo.tooltip"/>
                     </Bindings>
                 </ui:Button>
             </ui:VisualElement>
             <ui:VisualElement name="track-controls" class="playback-controls">
-                <ui:Button text="\uf0fe" name="add-track-button" parse-escape-sequences="true" class="control-button fa-solid button">
+                <ui:Button text="\uf0fe" name="add-track-button" parse-escape-sequences="true" double-click-selects-word="false" triple-click-selects-line="false" class="control-button unity-button--icon">
                     <Bindings>
                         <UnityEngine.Localization.LocalizedString property="tooltip" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="timeline.addTrack.tooltip"/>
                     </Bindings>
                 </ui:Button>
-                <ui:Button text="\uf70b" name="binding-manager-button" parse-escape-sequences="true" class="control-button fa-solid button">
+                <ui:Button text="\uf70b" name="binding-manager-button" parse-escape-sequences="true" double-click-selects-word="false" triple-click-selects-line="false" class="control-button unity-button--icon">
                     <Bindings>
                         <UnityEngine.Localization.LocalizedString property="tooltip" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="timeline.bindingManager.tooltip"/>
                     </Bindings>
                 </ui:Button>
             </ui:VisualElement>
             <ui:VisualElement name="project-controls" class="playback-controls">
-                <ui:Button text="\uf093" name="save-button" parse-escape-sequences="true" class="control-button fa-solid button">
+                <ui:Button text="\uf093" name="save-button" parse-escape-sequences="true" double-click-selects-word="false" triple-click-selects-line="false" class="control-button unity-button--icon">
                     <Bindings>
                         <UnityEngine.Localization.LocalizedString property="tooltip" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="timeline.save.tooltip"/>
                     </Bindings>
                 </ui:Button>
-                <ui:Button text="\uf019" name="load-button" parse-escape-sequences="true" class="control-button fa-solid button">
+                <ui:Button text="\uf019" name="load-button" parse-escape-sequences="true" double-click-selects-word="false" triple-click-selects-line="false" class="control-button unity-button--icon">
                     <Bindings>
                         <UnityEngine.Localization.LocalizedString property="tooltip" table="GUID:224f44bb68ac0fc409cf2bd015746ae1" entry="timeline.load.tooltip"/>
                     </Bindings>

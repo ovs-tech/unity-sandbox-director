@@ -99,6 +99,12 @@ namespace MiniTimeline.UI.MVVM.Clip {
                     dataSourcePath = new PropertyPath(nameof(BindableProperty<string>.Value)),
                     bindingMode = BindingMode.ToTarget
                 });
+                title.SetBinding(nameof(Label.tooltip), new DataBinding
+                {
+                    dataSource = viewModel.Title,
+                    dataSourcePath = new PropertyPath(nameof(BindableProperty<string>.Value)),
+                    bindingMode = BindingMode.ToTarget
+                });
             }
             if (durationLabel != null) {
                 durationLabel.text = $"{viewModel.Duration.Value:F2}s";

@@ -3,7 +3,7 @@
 :root {
     /* Primary Colors */
     --color-primary: #ec135b;
-    --color-primary-hover: #ec135b65;
+    --color-primary-hover: #ec135bc9;
     --color-secondary: #06b6d4;
     --color-primary-light: #f8f6f6;
     --color-primary-dark: #221016;
@@ -94,89 +94,6 @@
     color: var(--color-primary-light);
 }
 
-/* Common Slider Styles */
-.unity-slider {
-    margin-top: 4px;
-    margin-bottom: 4px;
-}
-
-.unity-slider .unity-base-slider__drag-container {
-    border-radius: 0px;
-}
-
-.unity-slider .unity-base-slider__tracker {
-    background-color: var(--color-primary-dark);
-    border-radius: 5px;
-}
-
-.unity-slider .unity-base-slider__dragger {
-    background-color: var(--color-primary-light);
-    width: 5px;
-    height: 20px;
-    border-radius: 30%;
-    border-width: 1px;
-    border-color: var(--color-primary-light);
-}
-
-/* Common Scroll View Styles */
-ScrollView {
-    flex-grow: 1;
-}
-
-.unity-scroll-view__content-viewport {
-    background-color: rgba(35, 35, 35, 1);
-}
-
-.unity-scroller {
-    background-color: rgba(30, 30, 30, 1);
-}
-
-.unity-scroller--vertical {
-    width: 12px;
-}
-
-.unity-scroller--horizontal {
-    height: 12px;
-}
-
-.unity-scroller__slider {
-    background-color: rgba(50, 50, 50, 1);
-    border-radius: 6px;
-}
-
-.unity-scroller__slider:hover {
-    background-color: rgba(70, 70, 70, 1);
-}
-
-.unity-scroller__low-button,
-.unity-scroller__high-button {
-    display: none;
-}
-
-/* Common Dropdown Styles */
-DropdownField {
-    margin-top: 4px;
-    margin-bottom: 4px;
-}
-
-DropdownField .unity-dropdown-field__input {
-    background-color: rgba(50, 50, 50, 1);
-    border-width: 1px;
-    border-color: rgba(70, 70, 70, 1);
-    border-radius: 3px;
-    color: rgb(255, 255, 255);
-    padding: 4px;
-}
-
-DropdownField .unity-dropdown-field__input:hover {
-    border-color: rgba(100, 100, 100, 1);
-}
-
-DropdownField .unity-dropdown-field__input:focus {
-    border-color: rgb(77, 150, 255);
-}
-
-
 /* Button theme */
 .unity-button {
     -unity-font-style: normal;
@@ -214,6 +131,10 @@ DropdownField .unity-dropdown-field__input:focus {
     height: 16px;
     margin-right: 8px;
     -unity-content-align: middle-center;
+    -unity-font-definition: url("/Assets/Resources/Fonts/fontawesome/Font Awesome 7 Free-Solid-900 SDF.asset");
+    font-size: 10px;
+    -unity-font-style: normal;
+    -unity-text-align: middle-center;
 }
 
 /* Button variants */
@@ -264,28 +185,3 @@ DropdownField .unity-dropdown-field__input:focus {
 
 .unity-button--ghost:hover { background-color: rgba(79,70,229,0.06); }
 .unity-button--ghost:active { background-color: rgba(79,70,229,0.12); }
-
-
-/* Panel - a generic container used across UI for card/panel backgrounds */
-.panel {
-    background-color: var(--color-bg);
-    border-width: var(--border-width);
-    border-color: var(--color-border); /* subtle border */
-    border-radius: var(--border-radius-md);
-    padding: var(--space-md);
-    color: var(--color-text); /* default panel text color */
-    -unity-transition-property: background-color, opacity;
-}
-
-.panel--elevated {
-    /* Slightly stronger visual elevation variant */
-    border-color: rgba(2,6,23,0.06);
-    /* unity-box-shadow is supported in newer Unity versions; if unavailable it will be ignored */
-    unity-box-shadow: var(--shadow-lg);
-}
-
-.panel__header {
-    font-size: var(--font-size-md);
-    margin-bottom: var(--space-sm);
-    color: var(--color-text);
-}

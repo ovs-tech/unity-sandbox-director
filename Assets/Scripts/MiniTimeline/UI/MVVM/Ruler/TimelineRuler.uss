@@ -1,7 +1,5 @@
 /* Timeline Ruler UI Toolkit Styles */
 
-@import "project://database/Assets/Scripts/Core/UI/Core/Styles/common.uss";
-
 /* Root Ruler Container */
 .ruler {
     flex-direction: row;

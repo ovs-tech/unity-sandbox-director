@@ -1,7 +1,5 @@
 /* Timeline Editor UI Toolkit Styles */
 
-@import "project://database/Assets/Scripts/Core/UI/Core/Styles/common.uss";
-
 /* Root Timeline Editor Container */
 .timeline-editor {
     flex-direction: column;
@@ -110,24 +108,6 @@
     flex-grow: 1;
     background-color: rgb(42, 42, 42);
     flex-direction: column;
-}
-
-/* Scrollbars */
-.unity-scroller {
-    background-color: rgb(35, 35, 35);
-}
-
-.unity-scroller .unity-slider {
-    background-color: rgb(50, 50, 50);
-}
-
-.unity-scroller .unity-slider .unity-dragger {
-    background-color: rgb(100, 100, 100);
-    border-radius: 5px;
-}
-
-.unity-scroller .unity-slider .unity-dragger:hover {
-    background-color: rgb(120, 120, 120);
 }
 
 /* Timeline Grid */
