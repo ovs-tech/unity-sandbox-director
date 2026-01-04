@@ -122,6 +122,7 @@ namespace MiniTimeline.UI.MVVM.Track {
             }
 
             public void ToggleEnabled() => _model.ToggleEnabled();
+            public void SetEnabled(bool enabled) => _model.SetEnabled(enabled);
             public void Mute() => _model.Mute();
             public void ToggleSolo() => _model.ToggleSolo();
             

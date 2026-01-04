@@ -54,15 +54,26 @@
     margin-bottom: 3px;
 }
 
-.track-enabled-toggle {
-    width: 20px;
-    height: 20px;
+.track-enabled > .switch__border {
+    width: 30px;
+    height: 18px;
+    margin-left: 4px;
     margin-right: 4px;
+    border-radius: var(--border-radius-md);
+    padding: 2px;
 }
 
-.track-enabled-toggle .unity-toggle__checkmark {
-    border-radius: 2px;
-    border-width: 1px;
+.track-enabled > .switch__border--on:hover  {
+    background-color: var(--color-primary-hover);
+}
+
+.track-enabled > .switch__border--on {
+    background-color: var(--color-primary)
+}
+
+.track-enabled > .switch__border > .switch__control {
+    width: 14px;
+    height: 14px;
 }
 
 .track-button {

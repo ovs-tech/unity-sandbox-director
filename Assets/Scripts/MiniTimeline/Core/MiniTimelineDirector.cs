@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace MiniTimeline.Core
@@ -865,32 +866,34 @@ namespace MiniTimeline.Core
         /// <param name="trackId">Track ID to update</param>
         /// <param name="enabled">Enable/disable track</param>
         /// <returns>True if successful</returns>
-        public bool UpdateTrack(string trackId, bool enabled)
+        public bool UpdateTrack(string trackId, IMiniTrack trackData)
         {
+            if (trackData == null)
+            {
+                Debug.LogError("[MiniTimelineDirector] Cannot update track - null track data provided");
+                return false;
+            }
+
             if (!trackLookup.TryGetValue(trackId, out var track))
             {
                 Debug.LogWarning($"[MiniTimelineDirector] Track '{trackId}' not found");
                 return false;
             }
 
-            try
-            {
-                // Update runtime track
-                track.Enabled = enabled;
+            track.Enabled = trackData.Enabled;
+            track.BindKey = trackData.BindKey;
+            track.Name = trackData.Name;
+            track.Order = trackData.Order;
 
-                // Publish event
-                OnTrackUpdated?.Invoke(track);
+            // set old and new track data for event
 
-                if (debugMode)
-                    Debug.Log($"[MiniTimelineDirector] Updated track '{trackId}'");
+            // Publish event
+            OnTrackUpdated?.Invoke(track);
 
-                return true;
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"[MiniTimelineDirector] Failed to update track '{trackId}': {e.Message}");
-                return false;
-            }
+            if (debugMode)
+                Debug.Log($"[MiniTimelineDirector] Updated track '{trackId}'");
+
+            return true;
         }
 
         #endregion

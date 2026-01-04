@@ -39,6 +39,18 @@ public partial class IconToggle : VisualElement
 
     public IconToggle()
     {
+        // Load default stylesheet
+        var styleSheet = Resources.Load<StyleSheet>("IconToggle");
+        if (styleSheet == null)
+        {
+            // Try loading from the same directory as the script
+            styleSheet = UnityEngine.Resources.Load<StyleSheet>("Core/UI/Core/Components/IconToggle");
+        }
+        if (styleSheet != null)
+        {
+            styleSheets.Add(styleSheet);
+        }
+
         // Create label to show the icon
         _iconLabel = new Label(_icon);
         _iconLabel.AddToClassList("icon-toggle__label");
@@ -54,7 +66,7 @@ public partial class IconToggle : VisualElement
     private void UpdateVisual()
     {
         if (_iconLabel != null)
-            _iconLabel.text = _icon;
+            _iconLabel.text = value ? _icon : "";
 
         if (value)
         {

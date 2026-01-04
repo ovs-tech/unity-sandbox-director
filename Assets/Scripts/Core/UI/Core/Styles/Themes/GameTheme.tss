@@ -4,6 +4,8 @@
     /* Primary Colors */
     --color-primary: #ec135b;
     --color-primary-hover: #ec135bc9;
+    --color-primary-dark: #9e0a3e;
+    --color-primary-dark-hover: #9e0a3ec9;
     --color-secondary: #06b6d4;
     --color-primary-light: #f8f6f6;
     --color-primary-dark: #221016;

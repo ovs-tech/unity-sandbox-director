@@ -35,6 +35,7 @@ namespace MiniTimeline.UI.MVVM.Track {
 
         public Label GetLabel(string name) => Root?.Q<Label>(name);
         public Toggle GetToggle(string name) => Root?.Q<Toggle>(name);
+        public Switch GetSwitch(string name) => Root?.Q<Switch>(name);
         public Button GetButton(string name) => Root?.Q<Button>(name);
         public VisualElement GetElement(string name) => Root?.Q<VisualElement>(name);
 
@@ -45,7 +46,7 @@ namespace MiniTimeline.UI.MVVM.Track {
         /// </summary>
         public void Render(TrackController.ViewModel vm, TrackModel model) {
             // State toggles
-            var enabled = GetToggle("track-enabled");
+            var enabled = GetSwitch("track-enabled");
             var mute = GetButton("track-mute");
             var solo = GetButton("track-solo");
             
@@ -58,8 +59,12 @@ namespace MiniTimeline.UI.MVVM.Track {
 
             // Wire state toggles
             if (enabled != null) {
-                enabled.value = vm.Enabled.Value;
-                enabled.RegisterValueChangedCallback(_ => vm.ToggleEnabled());
+                enabled.SetBinding(nameof(Switch.Value), new DataBinding{
+                    dataSource = vm.Enabled,
+                    dataSourcePath = new PropertyPath(nameof(BindableProperty<bool>.Value)),
+                    bindingMode = BindingMode.TwoWay
+                });
+                enabled.OnValueChanged += value => vm.SetEnabled(value);
             }
             if (mute != null) {
                 mute.clicked += vm.Mute;
