@@ -45,6 +45,15 @@ namespace MiniTimeline.UI.Commands
                 {
                     ApplySetting(setting.Key, setting.Value);
                 }
+                // Notify director that the track has been updated so it can propagate changes
+                try
+                {
+                    director?.UpdateTrack(track.Id, track);
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogWarning($"Failed to notify director of track update: {ex.Message}");
+                }
             }
             catch (System.Exception ex)
             {

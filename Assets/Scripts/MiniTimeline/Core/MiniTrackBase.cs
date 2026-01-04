@@ -15,7 +15,7 @@ namespace MiniTimeline.Core
         [OdinSerialize] public string Name { get; set; }
         [OdinSerialize] public string BindKey { get; set; }
         [OdinSerialize] public bool Enabled { get; set; } = true;
-        public virtual int Order => 0;
+        [OdinSerialize] public int Order { get; set; } = 0;
         public bool IsBound => isBound;
         public bool IsReady => Enabled && isPrepared;
         [OdinSerialize] public EvaluateMode EvaluateMode { get; set; } = EvaluateMode.Continuous;

@@ -12,9 +12,7 @@ namespace MiniTimeline.Tracks
     /// </summary>
     [Serializable]
     public class MorphTrack : MiniTrackBase<IMorphClip>
-    {
-        public override int Order => 30; // Morph tracks run after animation
-        
+    {   
         private SkinnedMeshRenderer targetRenderer;
         private Mesh targetMesh;
         

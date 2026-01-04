@@ -12,7 +12,6 @@ namespace MiniTimeline.Tracks
     [Serializable]
     public class AnimatorTrack : MiniTrackBase<AnimatorClip>
     {
-        public override int Order => 30; // Animator tracks run after animation and camera
 
         [Header("Animator Settings")]
         public string animatorBinding = ""; // Path to GameObject with Animator

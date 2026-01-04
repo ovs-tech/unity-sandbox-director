@@ -6,8 +6,10 @@ using Core.Behaviors.Command;
 using MiniTimeline.Core;
 using MiniTimeline.UI.Commands;
 
-namespace MiniTimeline.UI.MVVM.Track {
-    public class TrackModel {
+namespace MiniTimeline.UI.MVVM.Track
+{
+    public class TrackModel
+    {
         string _title = "Track";
         bool _enabled = true;
         bool _muted;
@@ -43,13 +45,16 @@ namespace MiniTimeline.UI.MVVM.Track {
         public float PixelsPerSecond => _pixelsPerSecond;
         public MiniTimelineDirector Director => _director;
 
-        public TrackModel() {
+        public TrackModel()
+        {
         }
 
-        public void Initialize(IMiniTrack track, MiniTimelineDirector director) {
+        public void Initialize(IMiniTrack track, MiniTimelineDirector director)
+        {
             _track = track;
             _director = director;
-            if (track != null) {
+            if (track != null)
+            {
                 _title = !string.IsNullOrEmpty(track.Name) ? track.Name : track.Id;
                 _enabled = track.Enabled;
                 _bindKey = track.BindKey ?? string.Empty;
@@ -58,64 +63,76 @@ namespace MiniTimeline.UI.MVVM.Track {
             }
         }
 
-        public void RefreshClips() {
-            if (_track != null) {
+        public void RefreshClips()
+        {
+            if (_track != null)
+            {
                 _clips.Clear();
                 var clips = _track.GetClips();
-                if (clips != null) {
+                if (clips != null)
+                {
                     _clips.AddRange(clips);
                 }
                 OnClipsChanged?.Invoke();
             }
         }
 
-        public void ToggleEnabled() { 
+        public void ToggleEnabled()
+        {
             bool newEnabled = !_enabled;
             ExecuteTrackSettingsCommand(new Dictionary<string, object> { { "enabled", newEnabled } });
 
             bool stateChanged = _enabled != newEnabled;
             _enabled = newEnabled;
-            if (_track != null && TimelineCommandManager.Instance == null) {
+            if (_track != null && TimelineCommandManager.Instance == null)
+            {
                 _track.Enabled = newEnabled;
             }
 
             if (stateChanged) OnStateChanged?.Invoke();
         }
 
-        public void SetEnabled(bool enabled) { 
+        public void SetEnabled(bool enabled)
+        {
             bool newEnabled = enabled;
             ExecuteTrackSettingsCommand(new Dictionary<string, object> { { "enabled", newEnabled } });
 
             bool stateChanged = _enabled != newEnabled;
             _enabled = newEnabled;
-            if (_track != null && TimelineCommandManager.Instance == null) {
+            if (_track != null && TimelineCommandManager.Instance == null)
+            {
                 _track.Enabled = newEnabled;
             }
 
             if (stateChanged) OnStateChanged?.Invoke();
         }
 
-        public void Mute() { 
+        public void Mute()
+        {
             _muted = !_muted;
             OnStateChanged?.Invoke();
         }
 
-        public void ToggleSolo() { 
+        public void ToggleSolo()
+        {
             _solo = !_solo;
             OnStateChanged?.Invoke();
         }
 
-        public void SetTitle(string title) { 
+        public void SetTitle(string title)
+        {
             string newTitle = title ?? string.Empty;
             ExecuteTrackSettingsCommand(new Dictionary<string, object> { { "Name", newTitle } });
 
-            if (_title != newTitle) {
+            if (_title != newTitle)
+            {
                 _title = newTitle;
                 OnTitleChanged?.Invoke();
             }
         }
 
-        public void SetBindKey(string key) { 
+        public void SetBindKey(string key)
+        {
             string newKey = key ?? string.Empty;
             ExecuteTrackSettingsCommand(new Dictionary<string, object> { { "bindKey", newKey } }, allowMerge: true);
 
@@ -124,30 +141,37 @@ namespace MiniTimeline.UI.MVVM.Track {
             if (stateChanged) OnStateChanged?.Invoke();
         }
 
-        public void SetType(string type) { 
+        public void SetType(string type)
+        {
             _type = type;
         }
 
-        public void SetZoom(float zoom) {
+        public void SetZoom(float zoom)
+        {
             _zoom = Mathf.Clamp(zoom, 0.1f, 5f);
             OnZoomChanged?.Invoke();
         }
 
-        public void SetPixelsPerSecond(float pixelsPerSecond) {
+        public void SetPixelsPerSecond(float pixelsPerSecond)
+        {
             _pixelsPerSecond = Mathf.Max(1f, pixelsPerSecond);
             OnPixelsPerSecondChanged?.Invoke();
         }
 
         // Clip management
-        public void AddClip(IMiniClip clip) {
-            if (clip != null && !_clips.Contains(clip)) {
+        public void AddClip(IMiniClip clip)
+        {
+            if (clip != null && !_clips.Contains(clip))
+            {
                 _clips.Add(clip);
                 OnClipsChanged?.Invoke();
             }
         }
 
-        public void RemoveClip(IMiniClip clip) {
-            if (clip != null && _clips.Remove(clip)) {
+        public void RemoveClip(IMiniClip clip)
+        {
+            if (clip != null && _clips.Remove(clip))
+            {
                 OnClipsChanged?.Invoke();
             }
         }
@@ -157,16 +181,21 @@ namespace MiniTimeline.UI.MVVM.Track {
         /// <summary>
         /// Delete this track through the command manager for undo/redo support.
         /// </summary>
-        public void DeleteTrack() {
-            if (_director == null || _track == null) {
+        public void DeleteTrack()
+        {
+            if (_director == null || _track == null)
+            {
                 Debug.LogError("Cannot delete track: Director or Track is null");
                 return;
             }
             var cmd = new RemoveTrackCommand(_director, _track);
             var commandManager = TimelineCommandManager.Instance;
-            if (commandManager != null) {
+            if (commandManager != null)
+            {
                 commandManager.ExecuteCommand(cmd);
-            } else {
+            }
+            else
+            {
                 cmd.Execute();
             }
         }
@@ -174,12 +203,15 @@ namespace MiniTimeline.UI.MVVM.Track {
         /// <summary>
         /// Apply one or more track setting changes via the TimelineCommandManager so they are undoable.
         /// </summary>
-        public void ApplySettings(Dictionary<string, object> formData, bool allowMerge = true) {
+        public void ApplySettings(Dictionary<string, object> formData, bool allowMerge = true)
+        {
             if (formData == null || formData.Count == 0) return;
 
             var newSettings = new Dictionary<string, object>();
-            foreach (var kvp in formData) {
-                switch (kvp.Key) {
+            foreach (var kvp in formData)
+            {
+                switch (kvp.Key)
+                {
                     case "trackName":
                         newSettings["Name"] = kvp.Value?.ToString() ?? string.Empty;
                         break;
@@ -193,25 +225,31 @@ namespace MiniTimeline.UI.MVVM.Track {
 
             bool stateChanged = false;
 
-            if (newSettings.TryGetValue("Name", out var nameValue)) {
+            if (newSettings.TryGetValue("Name", out var nameValue))
+            {
                 string newTitle = nameValue?.ToString() ?? string.Empty;
-                if (_title != newTitle) {
+                if (_title != newTitle)
+                {
                     _title = newTitle;
                     OnTitleChanged?.Invoke();
                 }
             }
 
-            if (newSettings.TryGetValue("bindKey", out var bindKeyValue)) {
+            if (newSettings.TryGetValue("bindKey", out var bindKeyValue))
+            {
                 string newBindKey = bindKeyValue?.ToString() ?? string.Empty;
-                if (_bindKey != newBindKey) {
+                if (_bindKey != newBindKey)
+                {
                     _bindKey = newBindKey;
                     stateChanged = true;
                 }
             }
 
-            if (newSettings.TryGetValue("enabled", out var enabledValue)) {
+            if (newSettings.TryGetValue("enabled", out var enabledValue))
+            {
                 bool newEnabled = Convert.ToBoolean(enabledValue);
-                if (_enabled != newEnabled) {
+                if (_enabled != newEnabled)
+                {
                     _enabled = newEnabled;
                     stateChanged = true;
                 }
@@ -220,12 +258,15 @@ namespace MiniTimeline.UI.MVVM.Track {
             if (stateChanged) OnStateChanged?.Invoke();
         }
 
-        Dictionary<string, object> CaptureCurrentSettings(IEnumerable<string> settingKeys) {
+        Dictionary<string, object> CaptureCurrentSettings(IEnumerable<string> settingKeys)
+        {
             var settings = new Dictionary<string, object>();
             if (settingKeys == null) return settings;
 
-            foreach (var key in settingKeys) {
-                switch (key) {
+            foreach (var key in settingKeys)
+            {
+                switch (key)
+                {
                     case "enabled":
                         settings[key] = _track?.Enabled ?? _enabled;
                         break;
@@ -245,27 +286,32 @@ namespace MiniTimeline.UI.MVVM.Track {
             return settings;
         }
 
-        object GetTrackMemberValue(string memberName, object fallback = null) {
+        object GetTrackMemberValue(string memberName, object fallback = null)
+        {
             if (_track == null || string.IsNullOrEmpty(memberName)) return fallback;
 
             var trackType = _track.GetType();
             var property = trackType.GetProperty(memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (property != null && property.CanRead) {
+            if (property != null && property.CanRead)
+            {
                 return property.GetValue(_track);
             }
 
             var field = trackType.GetField(memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (field != null) {
+            if (field != null)
+            {
                 return field.GetValue(_track);
             }
 
             return fallback;
         }
 
-        void ExecuteTrackSettingsCommand(Dictionary<string, object> newSettings, bool allowMerge = false) {
+        void ExecuteTrackSettingsCommand(Dictionary<string, object> newSettings, bool allowMerge = false)
+        {
             if (newSettings == null || newSettings.Count == 0) return;
 
-            if (_track == null) {
+            if (_track == null)
+            {
                 Debug.LogWarning("Cannot apply track settings: Track is null");
                 return;
             }
@@ -274,9 +320,12 @@ namespace MiniTimeline.UI.MVVM.Track {
             var command = new UpdateTrackSettingsCommand(_track, oldSettings, newSettings, _director);
 
             var commandManager = TimelineCommandManager.Instance;
-            if (commandManager != null) {
+            if (commandManager != null)
+            {
                 commandManager.ExecuteCommand(command, allowMerge);
-            } else {
+            }
+            else
+            {
                 command.Execute();
             }
         }

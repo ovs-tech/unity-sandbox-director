@@ -7,27 +7,33 @@ using MiniTimeline.Core;
 using MiniTimeline.UI.MVVM.Clip;
 using Unity.Properties;
 
-namespace MiniTimeline.UI.MVVM.Track {
-    public class TrackView {
+namespace MiniTimeline.UI.MVVM.Track
+{
+    public class TrackView
+    {
         public VisualElement Root { get; private set; }
         public VisualElement PanelRoot { get; private set; }
 
-        public TrackView(VisualElement root, VisualTreeAsset uxml = null, StyleSheet uss = null, VisualElement panelRoot = null) {
+        public TrackView(VisualElement root, VisualTreeAsset uxml = null, StyleSheet uss = null, VisualElement panelRoot = null)
+        {
             Root = root;
             PanelRoot = panelRoot;
             Initialize(uxml, uss);
         }
 
-        void Initialize(VisualTreeAsset uxml, StyleSheet uss) {
+        void Initialize(VisualTreeAsset uxml, StyleSheet uss)
+        {
             if (Root == null) return;
-            
+
             // Add stylesheet if provided
-            if (uss != null) {
+            if (uss != null)
+            {
                 Root.styleSheets.Add(uss);
             }
-            
+
             // Instantiate and add UXML if provided
-            if (uxml != null) {
+            if (uxml != null)
+            {
                 var tree = uxml.Instantiate();
                 Root.Add(tree);
             }
@@ -44,66 +50,74 @@ namespace MiniTimeline.UI.MVVM.Track {
         /// <summary>
         /// Renders the track view by binding UI elements and updating displays.
         /// </summary>
-        public void Render(TrackController.ViewModel vm, TrackModel model) {
+        public void Render(TrackController.ViewModel vm, TrackModel model)
+        {
+            Root.dataSource = vm;
             // State toggles
             var enabled = GetSwitch("track-enabled");
             var mute = GetButton("track-mute");
             var solo = GetButton("track-solo");
-            
+
             // Display elements
             var title = GetLabel("track-title");
             var bindInfo = GetLabel("track-bind-key");
-            
+
             // Action buttons
             var menuButton = GetButton("track-menu-button");
 
             // Wire state toggles
-            if (enabled != null) {
-                enabled.SetBinding(nameof(Switch.Value), new DataBinding{
-                    dataSource = vm.Enabled,
-                    dataSourcePath = new PropertyPath(nameof(BindableProperty<bool>.Value)),
+            if (enabled != null)
+            {
+                enabled.SetBinding(nameof(Switch.value), new DataBinding
+                {
+                    dataSourcePath = PropertyPath.FromName(nameof(TrackController.ViewModel.Enabled)),
                     bindingMode = BindingMode.TwoWay
                 });
-                enabled.OnValueChanged += value => vm.SetEnabled(value);
+                enabled.RegisterValueChangedCallback(evt =>
+                {
+                    Debug.Log("UI changed: " + evt.newValue);
+                });
+                vm.PropertyChanged += (sender, args) =>
+                {
+                    Debug.Log("Model changed: " + args.PropertyName);
+                };
             }
-            if (mute != null) {
+            if (mute != null)
+            {
                 mute.clicked += vm.Mute;
             }
-            if (solo != null) {
+            if (solo != null)
+            {
                 solo.clicked += vm.ToggleSolo;
             }
 
             // Update display labels
-            if (title != null) 
-                title.SetBinding(nameof(Label.text), new DataBinding{
-                    dataSource = vm.Title,
-                    dataSourcePath = new PropertyPath(nameof(BindableProperty<string>.Value)),
-                    bindingMode = BindingMode.ToTarget
-                });
-                title.SetBinding(nameof(Label.tooltip), new DataBinding
+            if (title != null)
+                title.SetBinding(nameof(Label.text), new DataBinding
                 {
                     dataSource = vm.Title,
                     dataSourcePath = new PropertyPath(nameof(BindableProperty<string>.Value)),
-                    bindingMode = BindingMode.ToTarget
+                    bindingMode = BindingMode.TwoWay
                 });
+            title.SetBinding(nameof(Label.tooltip), new DataBinding
+            {
+                dataSource = vm.Title,
+                dataSourcePath = new PropertyPath(nameof(BindableProperty<string>.Value)),
+                bindingMode = BindingMode.ToTarget
+            });
             if (bindInfo != null)
-                bindInfo.SetBinding(nameof(Label.text), new DataBinding {
+                bindInfo.SetBinding(nameof(Label.text), new DataBinding
+                {
                     dataSource = vm.BindKey,
                     dataSourcePath = new PropertyPath(nameof(BindableProperty<string>.Value)),
-                    bindingMode = BindingMode.ToTarget
+                    bindingMode = BindingMode.TwoWay
                 });
 
             // Wire action buttons
             if (menuButton != null) menuButton.clicked += vm.ShowSettings;
 
-            // Subscribe to model changes
-            model.OnTitleChanged += () => {
-                if (title != null) title.text = vm.Title.Value;
-            };
-            model.OnStateChanged += () => {
-                if (bindInfo != null) bindInfo.text = vm.BindKey.Value;
-            };
-            model.OnClipsChanged += () => {
+            model.OnClipsChanged += () =>
+            {
                 vm.RefreshClips();
             };
         }
@@ -111,12 +125,14 @@ namespace MiniTimeline.UI.MVVM.Track {
         /// <summary>
         /// Initialize ClipControllers for all existing clips in the track.
         /// </summary>
-        public void InitializeClipControllers(TrackModel model, Dictionary<string, ClipController> clipControllers, VisualTreeAsset clipUxml, StyleSheet clipUss) {
+        public void InitializeClipControllers(TrackModel model, Dictionary<string, ClipController> clipControllers, VisualTreeAsset clipUxml, StyleSheet clipUss)
+        {
             if (model.Track == null) return;
 
             // Get clips container from track view (place clips under first lane)
             _clipsContainer = GetElement("lane-1");
-            if (_clipsContainer == null) {
+            if (_clipsContainer == null)
+            {
                 Debug.LogWarning("Cannot find 'lane-1' element in TrackView");
                 return;
             }
@@ -124,7 +140,8 @@ namespace MiniTimeline.UI.MVVM.Track {
             _clipsContainer.Clear();
 
             // Create controllers for all current clips
-            foreach (var clip in model.Clips) {
+            foreach (var clip in model.Clips)
+            {
                 CreateAndRegisterClipController(clip.Id, clip, model, _clipsContainer, clipControllers, clipUxml, clipUss);
             }
 
@@ -134,20 +151,25 @@ namespace MiniTimeline.UI.MVVM.Track {
         /// <summary>
         /// Syncs clip controllers based on the current clip list in the model.
         /// </summary>
-        public void SyncClipControllers(TrackModel model, Dictionary<string, ClipController> clipControllers, VisualTreeAsset clipUxml, StyleSheet clipUss) {
-            if (_clipsContainer == null) {
+        public void SyncClipControllers(TrackModel model, Dictionary<string, ClipController> clipControllers, VisualTreeAsset clipUxml, StyleSheet clipUss)
+        {
+            if (_clipsContainer == null)
+            {
                 Debug.LogWarning("Cannot find 'lane-1' element in TrackView");
                 return;
             }
 
             // Get the set of clip IDs currently in the model
             var clipIdsInModel = new HashSet<string>();
-            foreach (var clip in model.Clips) {
-                if (clip != null) {
+            foreach (var clip in model.Clips)
+            {
+                if (clip != null)
+                {
                     clipIdsInModel.Add(clip.Id);
 
                     // Create controller if it doesn't exist
-                    if (!clipControllers.ContainsKey(clip.Id)) {
+                    if (!clipControllers.ContainsKey(clip.Id))
+                    {
                         CreateAndRegisterClipController(clip.Id, clip, model, _clipsContainer, clipControllers, clipUxml, clipUss);
                     }
                 }
@@ -155,13 +177,16 @@ namespace MiniTimeline.UI.MVVM.Track {
 
             // Remove controllers for clips no longer in the model
             var clipsToRemove = new List<string>();
-            foreach (var clipId in clipControllers.Keys) {
-                if (!clipIdsInModel.Contains(clipId)) {
+            foreach (var clipId in clipControllers.Keys)
+            {
+                if (!clipIdsInModel.Contains(clipId))
+                {
                     clipsToRemove.Add(clipId);
                 }
             }
 
-            foreach (var clipId in clipsToRemove) {
+            foreach (var clipId in clipsToRemove)
+            {
                 UnregisterClipController(clipId, clipControllers);
             }
         }
@@ -169,18 +194,22 @@ namespace MiniTimeline.UI.MVVM.Track {
         /// <summary>
         /// Creates and registers a ClipController for a given clip.
         /// </summary>
-        private ClipController CreateAndRegisterClipController(string clipId, IMiniClip clip, TrackModel model, VisualElement clipsContainer, Dictionary<string, ClipController> clipControllers, VisualTreeAsset clipUxml, StyleSheet clipUss) {
-            if (string.IsNullOrEmpty(clipId) || clip == null) {
+        private ClipController CreateAndRegisterClipController(string clipId, IMiniClip clip, TrackModel model, VisualElement clipsContainer, Dictionary<string, ClipController> clipControllers, VisualTreeAsset clipUxml, StyleSheet clipUss)
+        {
+            if (string.IsNullOrEmpty(clipId) || clip == null)
+            {
                 Debug.LogWarning("Cannot create ClipController: Invalid clipId or clip");
                 return null;
             }
 
-            if (clipControllers.ContainsKey(clipId)) {
+            if (clipControllers.ContainsKey(clipId))
+            {
                 Debug.LogWarning($"ClipController already exists for clip {clipId}");
                 return clipControllers[clipId];
             }
 
-            try {
+            try
+            {
                 // Create a VisualElement for this clip and add it to the container
                 var clipElement = new VisualElement { name = $"clip_{clipId}" };
                 clipsContainer.Add(clipElement);
@@ -204,7 +233,9 @@ namespace MiniTimeline.UI.MVVM.Track {
 
                 Debug.Log($"Successfully created and registered ClipController for clip: {clipId}");
                 return clipController;
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 Debug.LogError($"Failed to create ClipController for clip '{clipId}': {e.Message}\n{e.StackTrace}");
                 return null;
             }
@@ -213,8 +244,10 @@ namespace MiniTimeline.UI.MVVM.Track {
         /// <summary>
         /// Unregisters a ClipController for a given clip ID.
         /// </summary>
-        private void UnregisterClipController(string clipId, Dictionary<string, ClipController> clipControllers) {
-            if (clipControllers.ContainsKey(clipId)) {
+        private void UnregisterClipController(string clipId, Dictionary<string, ClipController> clipControllers)
+        {
+            if (clipControllers.ContainsKey(clipId))
+            {
                 clipControllers.Remove(clipId);
                 Debug.Log($"Unregistered ClipController for clip: {clipId}");
             }
@@ -223,14 +256,17 @@ namespace MiniTimeline.UI.MVVM.Track {
         /// <summary>
         /// Updates the zoom level and timeline width, refreshing clip layouts.
         /// </summary>
-        public void UpdateZoom(TrackModel model, Dictionary<string, ClipController> clipControllers) {
+        public void UpdateZoom(TrackModel model, Dictionary<string, ClipController> clipControllers)
+        {
             // Update track width based on timeline width
-            if (_clipsContainer != null) {
+            if (_clipsContainer != null)
+            {
                 _clipsContainer.style.width = model.TimelineWidth;
             }
 
             // Update all clip controllers to reflect new zoom level
-            foreach (var clipController in clipControllers.Values) {
+            foreach (var clipController in clipControllers.Values)
+            {
                 // Clips will be updated through their own UpdateLayout method
                 // This can be extended to call specific clip update methods if needed
             }

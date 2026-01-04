@@ -3,16 +3,12 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 [UxmlElement]
-public partial class Switch : VisualElement
+public partial class Switch : BaseBoolField
 {
   [UxmlAttribute]
   public string Text { get => _label.text; set => _label.text = value; }
   [UxmlAttribute]
-  public bool Value { get => _value; set => SetValue(value); }
-  [UxmlAttribute]
   public bool ShowLabel { get => _label.visible; set => SetShowLabel(value); }
-
-  public Action<bool> OnValueChanged { get; set; }
 
   private Label _label;
 
@@ -23,7 +19,7 @@ public partial class Switch : VisualElement
 
   private const string StyleSheetPath = "Core/UI/Core/Components/Switch/Switch";
 
-  public Switch()
+  public Switch() : base(null)
   {
     // Load default stylesheet
     var styleSheet = Resources.Load<StyleSheet>(StyleSheetPath);
@@ -45,14 +41,7 @@ public partial class Switch : VisualElement
     Add(_label);
     Add(_border);
     _border.Add(_control);
-    RegisterCallback<ClickEvent>(evt => { SetValue(!_value); });
-  }
-
-  private void SetValue(bool value)
-  {
-    _value = value;
-    OnValueChanged?.Invoke(_value);
-    SetState(value);
+    RegisterCallback<ClickEvent>(evt => { value = !value; });
   }
 
   private void SetShowLabel(bool show)

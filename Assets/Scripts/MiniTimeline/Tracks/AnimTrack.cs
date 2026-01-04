@@ -17,9 +17,7 @@ namespace MiniTimeline.Tracks
     /// </summary>
     [Serializable]
     public class AnimTrack : MiniTrackBase<AnimClip>
-    {
-        public override int Order => 10;
-        
+    {   
         // Target references
         private Animator _animator;
         
