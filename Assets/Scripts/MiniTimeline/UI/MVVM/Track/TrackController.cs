@@ -7,11 +7,10 @@ using UnityEngine.UIElements;
 using MiniTimeline.Core;
 using MiniTimeline.UI.MVVM.Clip;
 using MiniTimeline.UI.FormDefinitions;
-using MiniTimeline.UI.Commands;
 using Core.UI.FormSubmit;
 using Core.UI.FormSubmit.Fields;
-using Core.Behaviors.Command;
 using System.ComponentModel;
+using Unity.Properties;
 
 namespace MiniTimeline.UI.MVVM.Track
 {
@@ -103,15 +102,16 @@ namespace MiniTimeline.UI.MVVM.Track
             }
         }
 
-        public class ViewModel : INotifyPropertyChanged
+        public class ViewModel
         {
             public readonly SettableBindableProperty<string> Title;
+            [CreateProperty]
             public bool Enabled
             {
-                get => _model.Enabled; set
+                get => _model.Enabled; 
+                set
                 {
                     _model.SetEnabled(value);
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Enabled)));
                 }
             }
             public readonly BindableProperty<bool> Muted;
@@ -123,8 +123,6 @@ namespace MiniTimeline.UI.MVVM.Track
 
             readonly TrackModel _model;
             readonly TrackView _view;
-
-            public event PropertyChangedEventHandler PropertyChanged;
 
             /// <summary>
             /// Visual element to host form dialogs
@@ -144,8 +142,6 @@ namespace MiniTimeline.UI.MVVM.Track
                 TimelineWidth = BindableProperty<float>.Bind(() => _model.TimelineWidth);
                 Zoom = BindableProperty<float>.Bind(() => _model.Zoom);
             }
-
-            public void ToggleEnabled() => _model.ToggleEnabled();
             public void SetEnabled(bool enabled) => _model.SetEnabled(enabled);
             public void Mute() => _model.Mute();
             public void ToggleSolo() => _model.ToggleSolo();

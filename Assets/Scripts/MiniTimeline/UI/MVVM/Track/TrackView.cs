@@ -52,7 +52,6 @@ namespace MiniTimeline.UI.MVVM.Track
         /// </summary>
         public void Render(TrackController.ViewModel vm, TrackModel model)
         {
-            Root.dataSource = vm;
             // State toggles
             var enabled = GetSwitch("track-enabled");
             var mute = GetButton("track-mute");
@@ -68,19 +67,13 @@ namespace MiniTimeline.UI.MVVM.Track
             // Wire state toggles
             if (enabled != null)
             {
+                Debug.Log("[TrackView] Binding enabled switch: " + vm.Title.Value);
                 enabled.SetBinding(nameof(Switch.value), new DataBinding
                 {
+                    dataSource = vm,
                     dataSourcePath = PropertyPath.FromName(nameof(TrackController.ViewModel.Enabled)),
                     bindingMode = BindingMode.TwoWay
                 });
-                enabled.RegisterValueChangedCallback(evt =>
-                {
-                    Debug.Log("UI changed: " + evt.newValue);
-                });
-                vm.PropertyChanged += (sender, args) =>
-                {
-                    Debug.Log("Model changed: " + args.PropertyName);
-                };
             }
             if (mute != null)
             {

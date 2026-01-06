@@ -77,21 +77,6 @@ namespace MiniTimeline.UI.MVVM.Track
             }
         }
 
-        public void ToggleEnabled()
-        {
-            bool newEnabled = !_enabled;
-            ExecuteTrackSettingsCommand(new Dictionary<string, object> { { "enabled", newEnabled } });
-
-            bool stateChanged = _enabled != newEnabled;
-            _enabled = newEnabled;
-            if (_track != null && TimelineCommandManager.Instance == null)
-            {
-                _track.Enabled = newEnabled;
-            }
-
-            if (stateChanged) OnStateChanged?.Invoke();
-        }
-
         public void SetEnabled(bool enabled)
         {
             bool newEnabled = enabled;

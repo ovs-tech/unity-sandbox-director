@@ -50,40 +50,6 @@ namespace MiniTimeline.UI.MVVM.Timeline
     {
       // Delegate UI bindings to the View (only pass ViewModel)
       _view.Bind(vm, _rulerModel);
-
-      // Subscribe to track changes via ViewModel
-      vm.OnTracksChanged += () => {
-        Debug.Log("Tracks changed - syncing via ViewModel");
-      };
-      vm.OnTrackAdded += track => {
-        if (track != null) {
-          Debug.Log($"[TimelineEditorController] Track added: {track.Id}");
-        }
-      };
-      vm.OnTrackRemoved += (track, trackId) => {
-        if (track != null) {
-          Debug.Log($"[TimelineEditorController] Track removed: {track.Id}");
-        }
-      };
-      vm.OnTrackUpdated += track => {
-        if (track != null) {
-          Debug.Log($"[TimelineEditorController] Track updated: {track.Id}");
-        }
-      };
-      
-      // Subscribe to clip changes via ViewModel
-      vm.OnClipsChanged += () => {
-        Debug.Log("Clips changed - syncing via ViewModel");
-      };
-      vm.OnClipAdded += (clip, trackId) => {
-        Debug.Log($"Clip added to track {trackId}");
-      };
-      vm.OnClipRemoved += (clip, trackId) => {
-        Debug.Log($"Clip removed from track {trackId}");
-      };
-      vm.OnClipUpdated += (clip, trackId) => {
-        Debug.Log($"Clip updated in track {trackId}");
-      };
       
       // Subscribe to zoom changes to sync with all tracks
       vm.OnZoomChanged += zoom => {
@@ -374,11 +340,6 @@ namespace MiniTimeline.UI.MVVM.Timeline
         _model.OnTrackRemoved += (track, trackId) => {
           if (track != null) {
             RemoveTrackFromArray(track);
-          }
-        };
-        _model.OnTrackUpdated += track => {
-          if (track != null) {
-            SyncTracks();
           }
         };
       }

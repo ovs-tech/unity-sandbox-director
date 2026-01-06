@@ -15,7 +15,6 @@ public partial class Switch : BaseBoolField
   private VisualElement _border;
   private VisualElement _control;
 
-  private bool _value;
 
   private const string StyleSheetPath = "Core/UI/Core/Components/Switch/Switch";
 
@@ -41,7 +40,9 @@ public partial class Switch : BaseBoolField
     Add(_label);
     Add(_border);
     _border.Add(_control);
-    RegisterCallback<ClickEvent>(evt => { value = !value; });
+
+    // Initialize visual state to current value
+    SetState(value);
   }
 
   private void SetShowLabel(bool show)
@@ -54,5 +55,12 @@ public partial class Switch : BaseBoolField
   {
     _border.EnableInClassList("switch__border--on", value);
     _control.EnableInClassList("switch__control--on", value);
+  }
+
+  // Ensure visual state is updated whenever the value changes
+  public override void SetValueWithoutNotify(bool newValue)
+  {
+    base.SetValueWithoutNotify(newValue);
+    SetState(newValue);
   }
 }

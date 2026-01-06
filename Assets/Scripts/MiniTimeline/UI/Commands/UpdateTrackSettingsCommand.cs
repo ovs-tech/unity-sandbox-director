@@ -112,68 +112,17 @@ namespace MiniTimeline.UI.Commands
 
         private void SetTrackEnabled(bool enabled)
         {
-            var trackType = track.GetType();
-            var enabledProperty = trackType.GetProperty("Enabled");
-            
-            if (enabledProperty != null && enabledProperty.CanWrite)
-            {
-                enabledProperty.SetValue(track, enabled);
-                Debug.Log($"Updated track {track.Id} enabled state to: {enabled}");
-            }
-            else
-            {
-                // Try to access enabled field directly
-                var enabledField = trackType.GetField("enabled", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-                if (enabledField != null)
-                {
-                    enabledField.SetValue(track, enabled);
-                    Debug.Log($"Updated track {track.Id} enabled state (field) to: {enabled}");
-                }
-                else
-                {
-                    Debug.LogWarning($"Cannot update enabled state for track {track.Id}: no writable property or field found");
-                }
-            }
+            track.Enabled = enabled;
         }
 
         private void SetTrackOrder(int order)
         {
-            // Track order now managed by IMiniTrack runtime or list ordering
-            // If track exposes a writable Order property, set it; else no-op
-            var trackType = track.GetType();
-            var orderProp = trackType.GetProperty("Order");
-            if (orderProp != null && orderProp.CanWrite)
-            {
-                try
-                {
-                    orderProp.SetValue(track, order);
-                    Debug.Log($"Updated track {track.Id} order to: {order}");
-                    return;
-                }
-                catch (System.Exception)
-                {
-                    // Fallthrough to list reorder
-                }
-            }
-
-            // Fallback: reorder project's track list (move track to index)
-            if (director?.Project?.tracks != null)
-            {
-                var list = director.Project.tracks;
-                int currentIndex = list.FindIndex(t => t.Id == track.Id);
-                if (currentIndex >= 0 && order >= 0 && order < list.Count)
-                {
-                    list.RemoveAt(currentIndex);
-                    list.Insert(order, track);
-                    Debug.Log($"Reordered track {track.Id} to index {order}");
-                }
-            }
+            track.Order = order;
         }
 
         private void SetBindingContext(string bindingContext)
         {
-            // Removed - binding context is now managed through the binding manager
-            Debug.LogWarning("SetBindingContext called but binding context is now managed through binding manager");
+           track.BindKey = bindingContext;
         }
 
         private void SetTrackSpecificSetting(string settingName, object value)

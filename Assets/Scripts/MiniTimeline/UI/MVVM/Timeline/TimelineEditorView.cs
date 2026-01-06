@@ -75,9 +75,23 @@ namespace MiniTimeline.UI.MVVM.Timeline
         {
             // Playback controls
             var playButton = GetButton("play-button");
-            if (playButton != null) playButton.clicked += vm.Play;
-            var pauseButton = GetButton("pause-button");
-            if (pauseButton != null) pauseButton.clicked += vm.Pause;
+            if (playButton != null) {
+                playButton.clicked += () => {
+                    if( vm.IsPlaying.Value ) {
+                        vm.Pause();
+                        return;
+                    }
+                    vm.Play();
+                };
+                var playButtonDataBinding = new DataBinding
+                {
+                    dataSource = vm.IsPlaying,
+                    dataSourcePath = new PropertyPath(nameof(BindableProperty<bool>.Value)),
+                    bindingMode = BindingMode.ToTarget
+                };
+                playButtonDataBinding.sourceToUiConverters.AddConverter<bool, string>((ref bool val) => val ? "\uf04c" : "\uf04b");
+                playButton.SetBinding(nameof(Button.text), playButtonDataBinding);
+            }
             var stopButton = GetButton("stop-button");
             if (stopButton != null) stopButton.clicked += vm.Stop;
 
@@ -115,6 +129,37 @@ namespace MiniTimeline.UI.MVVM.Timeline
 
             // Time slider
             var timeLabel = GetLabel("time-label");
+            if( timeLabel != null )
+            {
+                var timeDataBinding = new DataBinding
+                {
+                    dataSource = vm.Time,
+                    dataSourcePath = new PropertyPath(nameof(BindableProperty<float>.Value)),
+                    bindingMode = BindingMode.ToTarget
+                };
+                timeDataBinding.sourceToUiConverters.AddConverter<float, string>((ref float val) =>
+                {
+                    TimeSpan time = TimeSpan.FromSeconds(val);
+                    return string.Format("{0:D2}:{1:D2}:{2:D2}", time.Hours, time.Minutes, time.Seconds);
+                });
+                timeLabel.SetBinding(nameof(Label.text), timeDataBinding);
+            }
+            var durationLabel = GetLabel("duration-label");
+            if( durationLabel != null )
+            {
+                var durationDataBinding = new DataBinding
+                {
+                    dataSource = vm.Length,
+                    dataSourcePath = new PropertyPath(nameof(BindableProperty<float>.Value)),
+                    bindingMode = BindingMode.ToTarget
+                };
+                durationDataBinding.sourceToUiConverters.AddConverter<float, string>((ref float val) =>
+                {
+                    TimeSpan time = TimeSpan.FromSeconds(val);
+                    return string.Format("{0:D2}:{1:D2}:{2:D2}", time.Hours, time.Minutes, time.Seconds);
+                });
+                durationLabel.SetBinding(nameof(Label.text), durationDataBinding);
+            }
             var timeSlider = GetSlider("time-slider");
             if (timeSlider != null)
             {
