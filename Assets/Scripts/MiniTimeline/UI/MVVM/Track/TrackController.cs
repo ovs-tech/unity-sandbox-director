@@ -120,6 +120,7 @@ namespace MiniTimeline.UI.MVVM.Track
             public readonly BindableProperty<int> ClipCount;
             public readonly BindableProperty<float> TimelineWidth;
             public readonly BindableProperty<float> Zoom;
+            public readonly BindableProperty<string> TrackType;
 
             readonly TrackModel _model;
             readonly TrackView _view;
@@ -141,6 +142,7 @@ namespace MiniTimeline.UI.MVVM.Track
                 ClipCount = BindableProperty<int>.Bind(() => _model.Clips.Count);
                 TimelineWidth = BindableProperty<float>.Bind(() => _model.TimelineWidth);
                 Zoom = BindableProperty<float>.Bind(() => _model.Zoom);
+                TrackType = BindableProperty<string>.Bind(() => _model.Type);
             }
             public void SetEnabled(bool enabled) => _model.SetEnabled(enabled);
             public void Mute() => _model.Mute();
@@ -291,27 +293,6 @@ namespace MiniTimeline.UI.MVVM.Track
                 catch (Exception ex)
                 {
                     Debug.LogError($"Failed to update track settings: {ex.Message}");
-                }
-            }
-
-            /// <summary>
-            /// Update a track property using reflection (for read-only interface properties)
-            /// </summary>
-            private void UpdateTrackProperty(string propertyName, object value)
-            {
-                if (_model?.Track == null) return;
-
-                var trackType = _model.Track.GetType();
-                var property = trackType.GetProperty(propertyName);
-
-                if (property != null && property.CanWrite)
-                {
-                    property.SetValue(_model.Track, value);
-                    Debug.Log($"Updated track property {propertyName} to {value}");
-                }
-                else
-                {
-                    Debug.LogWarning($"Property {propertyName} is read-only or not found on {trackType.Name}");
                 }
             }
 

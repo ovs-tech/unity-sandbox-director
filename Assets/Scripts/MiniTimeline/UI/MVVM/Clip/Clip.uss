@@ -4,34 +4,34 @@
     height: 100%;
     min-width: 20px;
     min-height: 40px;
-    background-color: rgba(80, 120, 160, 0.7);
-    border-color: rgb(60, 100, 140);
-    border-width: 1px;
-    border-radius: 4px;
+    background-color: rgba(6, 182, 212, 0.5);
+    border-color: var(--color-secondary);
+    border-width: var(--border-width);
+    border-radius: var(--border-radius-sm);
     overflow: hidden;
     flex-direction: column;
     max-height: 40px;
 }
 
 .clip:hover {
-    background-color: rgb(90, 130, 170);
-    border-color: rgb(70, 110, 150);
+    background-color: rgba(6, 182, 212, 0.65);
+    border-color: var(--color-secondary);
 }
 
 .clip.selected {
-    background-color: rgb(100, 140, 180);
-    border-color: rgb(120, 160, 200);
+    background-color: rgba(6, 182, 212, 0.7);
+    border-color: var(--color-secondary);
     border-width: 2px;
 }
 
 .clip.multi-selected {
-    border-color: rgb(255, 200, 100);
+    border-color: var(--color-warning);
 }
 
 .clip.disabled {
     opacity: 0.5;
-    background-color: rgb(60, 60, 60);
-    border-color: rgb(80, 80, 80);
+    background-color: var(--surface-color-dark);
+    border-color: var(--color-border);
 }
 
 .clip-header {
@@ -58,14 +58,14 @@
 
 .clip-type-icon {
     font-size: 10px;
-    color: white;
+    color: var(--color-primary-light);
     -unity-text-align: middle-center;
 }
 
 .clip-title {
     flex-grow: 1;
-    color: white;
-    font-size: 11px;
+    color: var(--color-primary-light);
+    font-size: var(--font-size-sm);
     -unity-font-style: bold;
     -unity-text-align: middle-left;
     overflow: hidden;
@@ -94,11 +94,11 @@
 }
 
 .clip-lock-icon.active {
-    background-color: rgb(255, 200, 100);
+    background-color: var(--color-warning);
 }
 
 .clip-mute-icon.active {
-    background-color: rgb(255, 100, 100);
+    background-color: var(--color-danger);
 }
 
 .clip-content {
@@ -151,19 +151,14 @@
 }
 
 .clip-duration {
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--color-text-light);
     font-size: 9px;
     -unity-text-align: middle-left;
 }
 
 .clip-details {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 8px;
-    -unity-text-align: middle-right;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 60px;
+    width: 6px;
+    height: 6px;
 }
 
 .clip-resize-handles {
@@ -182,7 +177,7 @@
     height: 100%;
     min-width: 10px;
     min-height: 20px;
-    background-color: rgba(255, 200, 100, 0.9);
+    background-color: rgba(250, 204, 21, 0.7);
 }
 
 .clip-resize-left {
@@ -194,15 +189,15 @@
 }
 
 .clip-resize-handle:hover {
-    background-color: rgba(255, 150, 50, 0.9);
+    background-color: var(--color-warning);
 }
 
 .clip.selected .clip-resize-handle {
-    background-color: rgba(255, 200, 100, 0.8);
+    background-color: var(--color-warning);
 }
 
 .clip.selected .clip-resize-handle:hover {
-    background-color: rgb(255, 220, 100);
+    background-color: var(--color-warning);
 }
 
 .clip-selection-border {
@@ -216,79 +211,109 @@
 
 .clip.selected .clip-selection-border {
     border-width: 2px;
-    border-color: rgb(120, 160, 200);
+    border-color: var(--color-secondary);
 }
 
 .clip.anim {
-    background-color: rgb(80, 160, 80);
-    border-color: rgb(60, 140, 60);
+    background-color: rgba(34, 197, 94, 0.5);
+    border-color: var(--color-success);
 }
 
 .clip.anim:hover {
-    background-color: rgb(90, 170, 90);
-    border-color: rgb(70, 150, 70);
+    background-color: rgba(34, 197, 94, 0.65);
+    border-color: var(--color-success);
 }
 
 .clip.anim.selected {
-    background-color: rgb(100, 180, 100);
-    border-color: rgb(120, 200, 120);
+    background-color: rgba(34, 197, 94, 0.7);
+    border-color: var(--color-success);
 }
 
 .clip.anim .clip-type-icon {
 }
 
 .clip.audio {
-    background-color: rgb(160, 80, 80);
-    border-color: rgb(140, 60, 60);
+    background-color: rgba(239, 68, 68, 0.5);
+    border-color: var(--color-danger);
 }
 
 .clip.audio:hover {
-    background-color: rgb(170, 90, 90);
-    border-color: rgb(150, 70, 70);
+    background-color: rgba(239, 68, 68, 0.65);
+    border-color: var(--color-danger);
 }
 
 .clip.audio.selected {
-    background-color: rgb(180, 100, 100);
-    border-color: rgb(200, 120, 120);
+    background-color: rgba(239, 68, 68, 0.7);
+    border-color: var(--color-danger);
 }
 
 .clip.audio .clip-type-icon {
 }
 
 .clip.camera {
-    background-color: rgb(160, 160, 80);
-    border-color: rgb(140, 140, 60);
+    background-color: rgba(250, 204, 21, 0.5);
+    border-color: var(--color-warning);
 }
 
 .clip.camera:hover {
-    background-color: rgb(170, 170, 90);
-    border-color: rgb(150, 150, 70);
+    background-color: rgba(250, 204, 21, 0.65);
+    border-color: var(--color-warning);
 }
 
 .clip.camera.selected {
-    background-color: rgb(180, 180, 100);
-    border-color: rgb(200, 200, 120);
+    background-color: rgba(250, 204, 21, 0.7);
+    border-color: var(--color-warning);
 }
 
 .clip.camera .clip-type-icon {
 }
 
 .clip.custom {
-    background-color: rgb(160, 80, 160);
-    border-color: rgb(140, 60, 140);
+    background-color: rgba(236, 19, 91, 0.5);
+    border-color: var(--color-primary);
 }
 
 .clip.custom:hover {
-    background-color: rgb(170, 90, 170);
-    border-color: rgb(150, 70, 150);
+    background-color: rgba(236, 19, 91, 0.65);
+    border-color: var(--color-primary);
 }
 
 .clip.custom.selected {
-    background-color: rgb(180, 100, 180);
-    border-color: rgb(200, 120, 200);
+    background-color: rgba(236, 19, 91, 0.7);
+    border-color: var(--color-primary);
 }
 
 .clip.custom .clip-type-icon {
+}
+
+.track-movementtrack .clip {
+    background-color: rgba(59, 130, 246, 0.5);
+    border-color: var(--color-primary);
+}
+
+.track-movementtrack .clip:hover {
+    background-color: rgba(59, 130, 246, 0.65);
+    border-color: var(--color-primary);
+}
+
+.track-movementtrack .clip.selected {
+    background-color: rgba(59, 130, 246, 0.75);
+    border-color: var(--color-primary);
+}
+
+.track-signaltrack .clip {
+    background-color: rgba(139, 92, 246, 0.5);
+    border-color: var(--color-secondary);
+}
+
+.track-signaltrack .clip:hover {
+    background-color: rgba(139, 92, 246, 0.65);
+    border-color: var(--color-secondary);
+}
+
+.track-signaltrack .clip.selected {
+    background-color: rgba(139, 92, 246, 0.75);
+    border-color: var(--color-secondary);
 }
 
 .clip.locked {
@@ -305,21 +330,21 @@
 
 .clip.solo {
     border-width: 2px;
-    border-color: rgb(255, 255, 100);
+    border-color: var(--color-warning);
 }
 
 .clip.playing {
     border-width: 2px;
-    border-color: rgba(100, 255, 100, 0.8);
+    border-color: var(--color-success);
 }
 
 .clip.error {
-    background-color: rgb(160, 40, 40);
-    border-color: rgb(180, 60, 60);
+    background-color: rgba(239, 68, 68, 0.3);
+    border-color: var(--color-danger);
 }
 
 .clip.error .clip-title {
-    color: rgb(255, 200, 200);
+    color: var(--color-danger);
 }
 
 .clip.dragging {
@@ -327,13 +352,13 @@
 }
 
 .clip.drag-target {
-    background-color: rgba(100, 150, 255, 0.3);
-    border-color: rgb(100, 150, 255);
+    background-color: rgba(6, 182, 212, 0.2);
+    border-color: var(--color-secondary);
 }
 
 .clip.drop-preview {
     opacity: 0.5;
-    background-color: rgba(100, 150, 255, 0.2);
+    background-color: rgba(6, 182, 212, 0.15);
 }
 
 .clip.small {
@@ -382,13 +407,13 @@
     left: 50%;
     width: 4px;
     height: 4px;
-    background-color: rgb(255, 200, 100);
+    background-color: var(--color-warning);
     border-radius: 2px;
 }
 
 .clip:focus {
     border-width: 2px;
-    border-color: rgba(100, 150, 255, 0.8);
+    border-color: var(--color-secondary);
 }
 
 .clip {

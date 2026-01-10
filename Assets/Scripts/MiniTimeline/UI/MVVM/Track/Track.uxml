@@ -1,7 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:Template name="ClipUIToolkit" src="project://database/Assets/Scripts/MiniTimeline/UI/MVVM/Clip/Clip.uxml?fileID=9197481963319205126&amp;guid=b210696a67dbc4884852b941f6beb9f1&amp;type=3#Clip"/>
-    <Style src="project://database/Assets/Scripts/MiniTimeline/UI/MVVM/Track/Track.uss?fileID=7433441132597879392&amp;guid=e6fdb4a10f7c64fa98798f201db686f4&amp;type=3#Track"/>
-    <Style src="project://database/Assets/Scripts/Core/UI/Core/Components/Switch/Switch.uss?fileID=7433441132597879392&amp;guid=6460a47954e654f2bb5eeca64265ed7d&amp;type=3#Switch"/>
+    <Style src="project://database/Assets/Scripts/MiniTimeline/UI/MVVM/Track/Track.uss?fileID=7433441132597879392&amp;guid=e6fdb4a10f7c64fa98798f201db686f4&amp;type=3"/>
+    <Style src="project://database/Assets/Scripts/Core/UI/Core/Components/Switch/Switch.uss?fileID=7433441132597879392&amp;guid=6460a47954e654f2bb5eeca64265ed7d&amp;type=3"/>
     <ui:VisualElement name="track-root" class="track">
         <ui:VisualElement name="track-header" class="track-header">
             <ui:VisualElement name="track-info" class="track-info">

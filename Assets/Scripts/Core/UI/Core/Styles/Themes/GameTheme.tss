@@ -10,7 +10,7 @@
     --color-primary-light: #f8f6f6;
     --color-primary-dark: #221016;
 
-    --background-color-dark: #f8f6f6;
+    --background-color-dark: #99a1af;
     --background-color-dark-opacity: #f8f6f60a;
     --background-color-light: #181113;
 
@@ -28,7 +28,11 @@
     --color-bg-alt: #f9fafb;
     --color-text: #111827;
     --color-text-muted: #6b7280;
-    --color-border: #e5e7eb;
+    --color-text-dark: #374151;
+    --color-text-light: #ffffffb6;
+    --color-border: #1f1f1f4b;
+    --color-border-light: #e5e7eb;
+    --color-border-dark: #374151;
 
     --font-family: 'Inter', sans-serif;
 

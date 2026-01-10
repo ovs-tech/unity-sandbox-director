@@ -27,7 +27,7 @@
                 </ui:Button>
             </ui:VisualElement>
             <ui:VisualElement name="time-controls" class="time-controls">
-                <ui:VisualElement name="time-container" class="time-container">
+                <ui:VisualElement name="time-container" class="time-container" style="flex-direction: row;">
                     <ui:Label text="00:00:00" name="time-label" class="time-label"/>
                     <ui:Label text="00:00:00" name="duration-label" class="time-label"/>
                 </ui:VisualElement>
@@ -76,6 +76,8 @@
                     <ui:Instance template="TimelineRulerToolkit"/>
                 </ui:VisualElement>
                 <ui:VisualElement name="tracks-container" class="tracks-container">
+                    <ui:Instance template="TrackUIToolkit"/>
+                    <ui:Instance template="TrackUIToolkit"/>
                     <ui:Instance template="TrackUIToolkit"/>
                 </ui:VisualElement>
             </ui:VisualElement>

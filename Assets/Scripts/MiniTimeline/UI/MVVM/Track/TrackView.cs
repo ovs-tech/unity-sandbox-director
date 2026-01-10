@@ -52,6 +52,12 @@ namespace MiniTimeline.UI.MVVM.Track
         /// </summary>
         public void Render(TrackController.ViewModel vm, TrackModel model)
         {
+            var trackRoot = GetElement("track-root");
+            if (trackRoot != null)
+            {
+                trackRoot.AddToClassList($"track-{vm.TrackType.Value.ToLower()}");
+            }
+
             // State toggles
             var enabled = GetSwitch("track-enabled");
             var mute = GetButton("track-mute");
@@ -208,7 +214,7 @@ namespace MiniTimeline.UI.MVVM.Track
                 clipsContainer.Add(clipElement);
 
                 // Create ClipView with the VisualElement and optional UI assets
-                var clipView = new ClipView(clipElement, clipUxml, clipUss);
+                var clipView = new ClipView(clipElement, clipUxml, clipUss, PanelRoot);
 
                 // Create ClipModel and initialize with clip
                 var clipModel = new ClipModel();

@@ -2,18 +2,20 @@
     flex-direction: column;
     width: 100%;
     height: 100%;
-    background-color: rgba(45, 45, 45, 0);
 }
 
 .controls-container {
     flex-direction: row;
     height: auto;
     background-color: rgba(60, 60, 60, 0.8);
-    border-bottom-width: 1px;
-    border-bottom-color: rgb(35, 35, 35);
-    padding-left: 5px;
-    padding-right: 5px;
+    border-bottom-width: var(--border-width);
+    border-bottom-color: var(--color-border);
+    padding-left: var(--space-sm);
+    padding-right: var(--space-sm);
     align-items: center;
+    flex-grow: 1;
+    justify-content: space-around;
+    min-height: 50px;
 }
 
 .control-button {
@@ -28,11 +30,14 @@
 
 .playback-controls {
     flex-direction: row;
-    margin-right: 10px;
+    margin-right: 0;
     justify-content: space-between;
     align-self: center;
     align-content: center;
     align-items: center;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 0;
 }
 
 .time-controls {
@@ -46,18 +51,24 @@
 .time-slider {
     flex-grow: 1;
     width: 100%;
+    align-content: center;
+    align-self: center;
+    justify-content: center;
+    height: auto;
 }
 
 .time-label {
     width: auto;
-    color: rgb(200, 200, 200);
-    font-size: 12px;
+    color: var(--color-text-light);
+    font-size: var(--font-size-sm);
     -unity-text-align: middle-center;
+    padding: 0;
+    margin: 0;
 }
 
 .timeline-container {
     flex-grow: 1;
-    background-color: rgb(40, 40, 40);
+    background-color: var(--surface-color-dark);
     position: relative;
 }
 
@@ -66,12 +77,13 @@
 }
 
 .ruler-container {
-    height: 30px;
+    height: auto;
     margin-left: 200px;
-    background-color: rgb(55, 55, 55);
-    border-bottom-width: 1px;
-    border-bottom-color: rgb(30, 30, 30);
+    background-color: var(--surface-color-light);
+    border-bottom-width: var(--border-width);
+    border-bottom-color: var(--color-border);
     flex-direction: row;
+    min-height: 20px;
 }
 
 .ruler {
@@ -84,24 +96,25 @@
 .ruler-marker {
     position: absolute;
     height: 100%;
-    border-left-width: 1px;
-    border-left-color: rgb(100, 100, 100);
+    border-left-width: var(--border-width);
+    border-left-color: var(--color-border);
     justify-content: flex-end;
     align-items: flex-start;
 }
 
 .ruler-label {
-    color: rgb(180, 180, 180);
-    font-size: 10px;
-    margin-left: 2px;
-    margin-top: 2px;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    margin-left: var(--space-xs);
+    margin-top: var(--space-xs);
     -unity-font-style: normal;
 }
 
 .tracks-container {
     flex-grow: 1;
-    background-color: rgb(42, 42, 42);
+    background-color: var(--surface-color-dark);
     flex-direction: column;
+    min-height: 200px;
 }
 
 .timeline-grid {
@@ -120,17 +133,17 @@
 
 .selection-rectangle {
     position: absolute;
-    border-color: rgb(100, 150, 255);
-    border-width: 1px;
-    background-color: rgba(100, 150, 255, 0.2);
+    border-color: var(--color-secondary);
+    border-width: var(--border-width);
+    background-color: rgba(6, 182, 212, 0.2);
 }
 
 .drag-preview {
     position: absolute;
     opacity: 0.7;
     border-style: dashed;
-    border-width: 1px;
-    border-color: rgb(200, 200, 200);
+    border-width: var(--border-width);
+    border-color: var(--color-text-muted);
 }
 
 .resize-handle {
@@ -150,23 +163,27 @@
 }
 
 .resize-handle:hover {
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(236, 19, 91, 0.3);
 }
 
 .status-bar {
-    height: 35px;
-    background-color: rgb(35, 35, 35);
-    border-top-width: 1px;
-    border-top-color: rgb(25, 25, 25);
+    height: auto;
+    background-color: var(--surface-color-dark);
+    border-top-width: var(--border-width);
+    border-top-color: var(--color-border);
     flex-direction: row;
-    align-items: center;
-    padding-left: 5px;
-    padding-right: 5px;
+    align-items: stretch;
+    padding-left: var(--space-sm);
+    padding-right: var(--space-sm);
+    flex-grow: 1;
+    justify-content: space-between;
+    min-height: 30px;
 }
 
 .status-text {
-    color: rgb(180, 180, 180);
-    font-size: 11px;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    -unity-text-align: middle-left;
 }
 
 .zoom-controls {
@@ -177,8 +194,8 @@
 .zoom-slider {
     width: 100px;
     height: 35px;
-    margin-left: 5px;
-    margin-right: 5px;
+    margin-left: var(--space-sm);
+    margin-right: var(--space-sm);
 }
 
 .loading-indicator {
@@ -195,41 +212,40 @@
     height: 40px;
     border-radius: 20px;
     border-width: 3px;
-    border-color: rgb(100, 150, 255);
+    border-color: var(--color-secondary);
     border-top-color: transparent;
 }
 
 .error-message {
-    background-color: rgb(120, 40, 40);
-    border-color: rgb(160, 60, 60);
-    border-width: 1px;
-    padding: 10px;
-    margin: 5px;
-    border-radius: 3px;
+    background-color: rgba(239, 68, 68, 0.2);
+    border-color: var(--color-danger);
+    border-width: var(--border-width);
+    padding: var(--space-md);
+    margin: var(--space-sm);
+    border-radius: var(--border-radius-sm);
 }
 
 .error-text {
-    color: rgb(255, 200, 200);
-    font-size: 12px;
+    color: var(--color-danger);
+    font-size: var(--font-size-sm);
 }
 
 .success-message {
-    background-color: rgb(40, 120, 40);
-    border-color: rgb(60, 160, 60);
-    border-width: 1px;
-    padding: 10px;
-    margin: 5px;
-    border-radius: 3px;
+    background-color: rgba(34, 197, 94, 0.2);
+    border-color: var(--color-success);
+    border-width: var(--border-width);
+    padding: var(--space-md);
+    margin: var(--space-sm);
+    border-radius: var(--border-radius-sm);
 }
 
 .success-text {
-    color: rgb(200, 255, 200);
-    font-size: 12px;
+    color: var(--color-success);
+    font-size: var(--font-size-sm);
 }
 
 .time-container {
-    flex-grow: 1;
-    flex-direction: row;
+    flex-direction: column;
     justify-content: space-between;
     width: 100%;
 }

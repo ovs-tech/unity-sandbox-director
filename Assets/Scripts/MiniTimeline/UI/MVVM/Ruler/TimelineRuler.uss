@@ -4,9 +4,9 @@
 .ruler {
     flex-direction: row;
     height: 30px;
-    background-color: rgb(50, 50, 50);
-    border-bottom-width: 1px;
-    border-bottom-color: rgb(35, 35, 35);
+    background-color: var(--surface-color-dark);
+    border-bottom-width: var(--border-width);
+    border-bottom-color: var(--color-border);
     position: relative;
     overflow: visible;
 }
@@ -16,7 +16,7 @@
     position: absolute;
     height: 100%;
     width: 1px;
-    background-color: rgb(100, 100, 100);
+    background-color: var(--color-border);
     flex-direction: column;
     justify-content: flex-start;
     align-items: flex-start;
@@ -24,13 +24,13 @@
 
 /* Major time markers (every 5 seconds) */
 .ruler-marker.major {
-    background-color: rgb(150, 150, 150);
+    background-color: var(--color-text-muted);
     width: 2px;
 }
 
 /* Minor time markers (every second) */
 .ruler-marker.minor {
-    background-color: rgb(80, 80, 80);
+    background-color: var(--surface-color-light);
     height: 60%;
     top: 40%;
 }
@@ -38,11 +38,11 @@
 /* Time Labels */
 .ruler-label {
     position: absolute;
-    font-size: 10px;
-    color: rgb(200, 200, 200);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
     -unity-text-align: upper-left;
-    padding-left: 3px;
-    padding-top: 2px;
+    padding-left: var(--space-xs);
+    padding-top: var(--space-xs);
     background-color: rgba(0, 0, 0, 0);
     white-space: nowrap;
     overflow: hidden;
@@ -62,13 +62,13 @@
 
 /* Hover effects for interactivity */
 .ruler:hover {
-    background-color: rgb(55, 55, 55);
+    background-color: var(--surface-color-light);
 }
 
 /* Selected state for ruler */
 .ruler.selected {
-    background-color: rgb(70, 100, 130);
-    border-bottom-color: rgb(90, 130, 170);
+    background-color: rgba(6, 182, 212, 0.2);
+    border-bottom-color: var(--color-secondary);
 }
 
 /* Current time indicator line */
@@ -76,7 +76,7 @@
     position: absolute;
     width: 2px;
     height: 100%;
-    background-color: rgb(255, 100, 100);
+    background-color: var(--color-danger);
     left: 0px;
     z-index: 100;
     pointer-events: none;
@@ -84,15 +84,15 @@
 
 /* Ruler measurement units */
 .ruler-unit-seconds .ruler-label {
-    color: rgb(200, 200, 200);
+    color: var(--color-text-muted);
 }
 
 .ruler-unit-frames .ruler-label {
-    color: rgb(150, 200, 150);
+    color: var(--color-success);
 }
 
 .ruler-unit-samples .ruler-label {
-    color: rgb(200, 150, 200);
+    color: var(--color-primary);
 }
 
 /* Zoom level specific styles */
@@ -121,7 +121,7 @@
     position: absolute;
     width: 1px;
     height: 100%;
-    background-color: rgba(255, 255, 0, 0.7);
+    background-color: var(--color-warning);
     pointer-events: none;
     opacity: 0;
     transition-property: opacity;

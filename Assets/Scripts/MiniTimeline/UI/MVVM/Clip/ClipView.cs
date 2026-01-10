@@ -7,6 +7,8 @@ namespace MiniTimeline.UI.MVVM.Clip {
     public class ClipView {
         public VisualElement Root { get; private set; }
 
+        public VisualElement PanelRoot { get; private set; }
+
         private const float MinClipDuration = 0.001f;
         private const float MinClipWidthPixels = 10f;
 
@@ -33,8 +35,9 @@ namespace MiniTimeline.UI.MVVM.Clip {
         private VisualElement _resizeLeftHandle;
         private VisualElement _resizeRightHandle;
 
-        public ClipView(VisualElement root, VisualTreeAsset uxml = null, StyleSheet uss = null) {
+        public ClipView(VisualElement root, VisualTreeAsset uxml = null, StyleSheet uss = null, VisualElement panelRoot = null) {
             Root = root;
+            PanelRoot = panelRoot;
             Initialize(uxml, uss);
         }
 
@@ -209,12 +212,12 @@ namespace MiniTimeline.UI.MVVM.Clip {
                 });
             }
 
-            // Update display on changes
-            model.OnPropertyChanged += () => {
-                if (durationLabel != null) durationLabel.text = $"{viewModel.Duration.Value:F2}s";
-                if (lockedIcon != null) lockedIcon.style.display = viewModel.Locked.Value ? DisplayStyle.Flex : DisplayStyle.None;
-                if (mutedIcon != null) mutedIcon.style.display = viewModel.Muted.Value ? DisplayStyle.Flex : DisplayStyle.None;
-            };
+            var detailButton = GetButton("clip-details");
+            if (detailButton != null) {
+                detailButton.clicked += () => {
+                    viewModel.ShowClipSettingForm();
+                };
+            }
 
             model.OnSelectionChanged += (selected) => {
                 if (clipElement != null) {

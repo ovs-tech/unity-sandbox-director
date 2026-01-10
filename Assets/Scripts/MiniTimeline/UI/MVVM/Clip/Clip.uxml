@@ -1,5 +1,5 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/Scripts/MiniTimeline/UI/Styles/ClipUIToolkit.uss?fileID=7433441132597879392&amp;guid=d3ec1ec3c88ca4e0aadc6bf7055f5416&amp;type=3#ClipUIToolkit"/>
+    <Style src="project://database/Assets/Scripts/MiniTimeline/UI/MVVM/Clip/Clip.uss?fileID=7433441132597879392&amp;guid=d3ec1ec3c88ca4e0aadc6bf7055f5416&amp;type=3#Clip"/>
     <ui:VisualElement name="clip-root" picking-mode="Position" class="clip">
         <ui:VisualElement name="clip-header" class="clip-header">
             <ui:VisualElement name="clip-icon" class="clip-icon">
@@ -19,7 +19,7 @@
             </ui:VisualElement>
             <ui:VisualElement name="clip-info" picking-mode="Ignore" class="clip-info">
                 <ui:Label name="clip-duration" text="2.5s" class="clip-duration"/>
-                <ui:Label name="clip-details" text="Details" class="clip-details"/>
+                <ui:Button text="&#8942;" name="clip-details" class="clip-details"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="clip-resize-handles" picking-mode="Position" class="clip-resize-handles">

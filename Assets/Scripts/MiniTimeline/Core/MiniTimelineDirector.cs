@@ -885,7 +885,7 @@ namespace MiniTimeline.Core
             track.Name = trackData.Name;
             track.Order = trackData.Order;
 
-            // set old and new track data for event
+            track.Bind(bindableObjectManager);
 
             // Publish event
             OnTrackUpdated?.Invoke(track);

@@ -154,6 +154,7 @@ namespace MiniTimeline.UI.FormDefinitions
                     tooltip = "Select a binding key to associate this track with scene objects",
                     options = new Dictionary<string, object>
                     {
+                        { "items", GetAvailableBindingKeys() },
                         { "allowCustom", true },
                         { "placeholder", "Select or enter binding key..." }
                     }
