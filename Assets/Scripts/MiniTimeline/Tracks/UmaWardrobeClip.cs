@@ -1,9 +1,9 @@
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 using System;
 using System.Collections.Generic;
 using Sirenix.OdinSerializer;
 
-namespace MiniTimeline.Tracks
+namespace Systems.MiniTimeline.Tracks
 {
     [Serializable]
     public class UmaWardrobeClip : MiniClipBase

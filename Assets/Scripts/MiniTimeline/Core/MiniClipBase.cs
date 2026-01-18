@@ -2,7 +2,7 @@ using System;
 using Sirenix.OdinSerializer;
 using UnityEngine;
 
-namespace MiniTimeline.Core
+namespace Systems.MiniTimeline.Core
 {
     /// <summary>
     /// Base implementation of IMiniClip with common functionality

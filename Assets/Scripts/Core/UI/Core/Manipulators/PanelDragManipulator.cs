@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Systems.Inventory {
+namespace Systems {
     public class PanelDragManipulator : PointerManipulator {
         bool isDragging;
         Vector2 offset;

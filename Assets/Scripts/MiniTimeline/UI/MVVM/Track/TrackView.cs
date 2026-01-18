@@ -3,11 +3,11 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
-using MiniTimeline.Core;
-using MiniTimeline.UI.MVVM.Clip;
+using Systems.MiniTimeline.Core;
+using Systems.MiniTimeline.UI.MVVM.Clip;
 using Unity.Properties;
 
-namespace MiniTimeline.UI.MVVM.Track
+namespace Systems.MiniTimeline.UI.MVVM.Track
 {
     public class TrackView
     {
@@ -119,6 +119,7 @@ namespace MiniTimeline.UI.MVVM.Track
             {
                 vm.RefreshClips();
             };
+            model.OnZoomChanged += () => UpdateZoom(model);
         }
 
         /// <summary>
@@ -255,19 +256,12 @@ namespace MiniTimeline.UI.MVVM.Track
         /// <summary>
         /// Updates the zoom level and timeline width, refreshing clip layouts.
         /// </summary>
-        public void UpdateZoom(TrackModel model, Dictionary<string, ClipController> clipControllers)
+        public void UpdateZoom(TrackModel model)
         {
             // Update track width based on timeline width
             if (_clipsContainer != null)
             {
-                _clipsContainer.style.width = model.TimelineWidth;
-            }
-
-            // Update all clip controllers to reflect new zoom level
-            foreach (var clipController in clipControllers.Values)
-            {
-                // Clips will be updated through their own UpdateLayout method
-                // This can be extended to call specific clip update methods if needed
+                _clipsContainer.style.width = model.TimelineWidth * model.PixelsPerSecond;
             }
         }
     }

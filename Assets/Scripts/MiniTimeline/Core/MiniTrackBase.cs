@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Sirenix.OdinSerializer;
 using UnityEngine;
 
-namespace MiniTimeline.Core
+namespace Systems.MiniTimeline.Core
 {
     /// <summary>
     /// Base implementation of IMiniTrack with common functionality

@@ -7,9 +7,9 @@ using UnityEngine.Animations;
 using UnityEngine.Playables;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 
-namespace MiniTimeline.Tracks
+namespace Systems.MiniTimeline.Tracks
 {
     /// <summary>
     /// Track for playing Unity Animation clips on timeline.

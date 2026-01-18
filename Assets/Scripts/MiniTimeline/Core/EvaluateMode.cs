@@ -1,4 +1,4 @@
-namespace MiniTimeline.Core
+namespace Systems.MiniTimeline.Core
 {
     /// <summary>
     /// Defines when a track should trigger evaluation callbacks

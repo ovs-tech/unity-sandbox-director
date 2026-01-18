@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using Core.Behaviors.Command;
-using MiniTimeline.Core;
-using MiniTimeline.UI.Commands;
+using Systems.MiniTimeline.Core;
+using Systems.MiniTimeline.UI.Commands;
 
-namespace MiniTimeline.UI.MVVM.Track
+namespace Systems.MiniTimeline.UI.MVVM.Track
 {
     public class TrackModel
     {
@@ -29,8 +29,6 @@ namespace MiniTimeline.UI.MVVM.Track
         public event Action OnStateChanged;
         public event Action OnClipsChanged;
         public event Action OnZoomChanged;
-        public event Action OnTimelineWidthChanged;
-        public event Action OnPixelsPerSecondChanged;
 
         public string Title => _title;
         public bool Enabled => _enabled;
@@ -40,7 +38,18 @@ namespace MiniTimeline.UI.MVVM.Track
         public string Type => _type;
         public IMiniTrack Track => _track;
         public IReadOnlyList<IMiniClip> Clips => _clips.AsReadOnly();
-        public float Zoom => _zoom;
+        public float Zoom
+        {
+            get => _zoom;
+            set
+            {
+                if (_zoom != value)
+                {
+                    _zoom = value;
+                    OnZoomChanged?.Invoke();
+                }
+            }
+        }
         public float TimelineWidth => _director != null ? _director.Length * _pixelsPerSecond : 1000f;
         public float PixelsPerSecond => _pixelsPerSecond;
         public MiniTimelineDirector Director => _director;
@@ -140,16 +149,163 @@ namespace MiniTimeline.UI.MVVM.Track
         public void SetPixelsPerSecond(float pixelsPerSecond)
         {
             _pixelsPerSecond = Mathf.Max(1f, pixelsPerSecond);
-            OnPixelsPerSecondChanged?.Invoke();
+            OnZoomChanged?.Invoke();
         }
 
         // Clip management
         public void AddClip(IMiniClip clip)
         {
-            if (clip != null && !_clips.Contains(clip))
+            if (clip == null || _clips.Contains(clip))
+                return;
+
+            if (_track == null || _director == null)
+            {
+                Debug.LogWarning("Cannot add clip: Track or Director is null");
+                return;
+            }
+
+            // Create and execute command for undo/redo support
+            var command = new AddClipCommand(_director, _track.Id, clip);
+            var commandManager = TimelineCommandManager.Instance;
+            
+            if (commandManager != null)
+            {
+                commandManager.ExecuteCommand(command);
+            }
+            else
+            {
+                command.Execute();
+            }
+
+            // Update local state
+            if (!_clips.Contains(clip))
             {
                 _clips.Add(clip);
                 OnClipsChanged?.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// Creates and adds a clip from form data dictionary
+        /// </summary>
+        public IMiniClip AddClip(Dictionary<string, object> formData)
+        {
+            if (formData == null || _track == null || _director == null)
+            {
+                Debug.LogError("Cannot create clip: Invalid parameters");
+                return null;
+            }
+
+            try
+            {
+                // Extract clip parameters from form data
+                string clipId = formData.ContainsKey("id") ? formData["id"].ToString() : Guid.NewGuid().ToString();
+                float start = formData.ContainsKey("start") ? Convert.ToSingle(formData["start"]) : 0f;
+                float duration = formData.ContainsKey("duration") ? Convert.ToSingle(formData["duration"]) : 1f;
+
+                // Create clip instance based on track type
+                IMiniClip newClip = CreateClipForTrackType(clipId, start, duration, formData);
+
+                if (newClip != null)
+                {
+                    // Add clip using the command pattern
+                    AddClip(newClip);
+                }
+
+                return newClip;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to create clip from form data: {ex.Message}");
+                return null;
+            }
+        }
+
+        private IMiniClip CreateClipForTrackType(string clipId, float start, float duration, Dictionary<string, object> formData)
+        {
+            if (string.IsNullOrEmpty(_type))
+            {
+                Debug.LogError("Cannot create clip: Track type is not set");
+                return null;
+            }
+
+            try
+            {
+                IMiniClip newClip = null;
+
+                // Create clip based on track type
+                switch (_type)
+                {
+                    case "AnimatorTrack":
+                        newClip = new MiniTimeline.Tracks.AnimatorClip
+                        {
+                            Id = clipId,
+                            Start = start,
+                            Duration = duration
+                        };
+                        break;
+
+                    case "AnimTrack":
+                        newClip = new MiniTimeline.Tracks.AnimClip
+                        {
+                            Id = clipId,
+                            Start = start,
+                            Duration = duration
+                        };
+                        break;
+
+                    case "MovementTrack":
+                        newClip = new MiniTimeline.Tracks.MovementClip
+                        {
+                            Id = clipId,
+                            Start = start,
+                            Duration = duration
+                        };
+                        break;
+
+                    case "UMAExpressionTrack":
+                        newClip = new MiniTimeline.Tracks.UMAExpressionClip
+                        {
+                            Id = clipId,
+                            Start = start,
+                            Duration = duration
+                        };
+                        break;
+
+                    case "UmaWardrobeTrack":
+                        newClip = new MiniTimeline.Tracks.UmaWardrobeClip
+                        {
+                            Id = clipId,
+                            Start = start,
+                            Duration = duration
+                        };
+                        break;
+
+                    case "SignalTrack":
+                        newClip = new MiniTimeline.Tracks.SignalClip
+                        {
+                            Id = clipId,
+                            Start = start,
+                            Duration = duration
+                        };
+                        break;
+
+                    default:
+                        Debug.LogWarning($"Clip creation not implemented for track type: {_type}");
+                        return null;
+                }
+
+                if (newClip != null)
+                {
+                    Debug.Log($"Created {_type} clip '{clipId}' at {start}s for {duration}s");
+                }
+
+                return newClip;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to create clip for track type '{_type}': {ex.Message}");
+                return null;
             }
         }
 

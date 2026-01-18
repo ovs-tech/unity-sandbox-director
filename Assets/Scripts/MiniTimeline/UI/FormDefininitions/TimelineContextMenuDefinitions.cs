@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 using Core.UI.FormSubmit.Fields;
 
-namespace MiniTimeline.UI.FormDefinitions
+namespace Systems.MiniTimeline.UI.FormDefinitions
 {
     /// <summary>
     /// Provides form field definitions for timeline context menu actions

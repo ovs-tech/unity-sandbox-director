@@ -1,12 +1,12 @@
 using System.Collections;
 using UnityEngine;
-using MiniTimeline.UI.MVVM.Timeline;
-using MiniTimeline.UI.MVVM.Track;
-using MiniTimeline.UI.MVVM.Clip;
-using MiniTimeline.UI.MVVM.Ruler;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.UI.MVVM.Timeline;
+using Systems.MiniTimeline.UI.MVVM.Track;
+using Systems.MiniTimeline.UI.MVVM.Clip;
+using Systems.MiniTimeline.UI.MVVM.Ruler;
+using Systems.MiniTimeline.Core;
 
-namespace MiniTimeline.UI.MVVM
+namespace Systems.MiniTimeline.UI.MVVM
 {
     /// <summary>
     /// Bootstrap controller that composes MVVM timeline UI without modifying legacy classes.

@@ -2,16 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using MiniTimeline.Core;
-using MiniTimeline.UI.Commands;
+using Systems.MiniTimeline.Core;
+using Systems.MiniTimeline.UI.Commands;
 using Core.UI.FormSubmit;
 using Core.UI.FormSubmit.Fields;
 using UnityEngine;
 using UnityEngine.UIElements;
-using MiniTimeline.UI.FormDefinitions;
-using MiniTimeline.Serialization;
+using Systems.MiniTimeline.UI.FormDefinitions;
+using Systems.MiniTimeline.Serialization;
 
-namespace MiniTimeline.UI
+namespace Systems.MiniTimeline.UI
 {
     /// <summary>
     /// UI Toolkit version of TrackUI - represents a timeline track

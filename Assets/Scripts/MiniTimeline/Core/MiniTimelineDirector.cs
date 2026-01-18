@@ -5,7 +5,7 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 
-namespace MiniTimeline.Core
+namespace Systems.MiniTimeline.Core
 {
     /// <summary>
     /// Playback state of the timeline

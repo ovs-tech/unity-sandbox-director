@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Core.Behaviors.Command;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 using UnityEngine;
 
-namespace MiniTimeline.UI.Commands
+namespace Systems.MiniTimeline.UI.Commands
 {
     /// <summary>
     /// Command for updating track settings including bind key, enabled state, order, and binding context

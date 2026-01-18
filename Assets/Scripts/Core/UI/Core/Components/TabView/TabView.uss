@@ -1,0 +1,41 @@
+.tab-container {
+    flex-direction: row;
+    border-bottom-width: 2px;
+    border-bottom-color: rgb(50, 50, 50);
+    margin-bottom: 5px;
+}
+
+.content-container {
+    flex-grow: 1;
+    padding: 10px;
+}
+
+.tab-button {
+    padding: 8px 16px;
+    margin: 0 2px;
+    border-width: 1px;
+    border-radius: 4px 4px 0 0;
+    border-bottom-width: 0;
+    transition-duration: 0.2s;
+}
+
+.tab-button--unselected {
+    background-color: rgb(60, 60, 60);
+    border-color: rgb(50, 50, 50);
+    color: rgb(180, 180, 180);
+}
+
+.tab-button--unselected:hover {
+    background-color: rgb(70, 70, 70);
+}
+
+.tab-button--selected {
+    background-color: rgb(80, 80, 80);
+    border-color: rgb(100, 100, 100);
+    color: rgb(220, 220, 220);
+    font-weight: bold;
+}
+
+.tab-content {
+    flex-grow: 1;
+}

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace MiniTimeline.UI.Input
+namespace Systems.MiniTimeline.UI.Input
 {
     /// <summary>
     /// Handles tap (quick click) interactions

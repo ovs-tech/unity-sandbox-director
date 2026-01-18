@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 
-namespace MiniTimeline.Tracks
+namespace Systems.MiniTimeline.Tracks
 {
 	/// <summary>
 	/// Signal track for triggering signals and markers

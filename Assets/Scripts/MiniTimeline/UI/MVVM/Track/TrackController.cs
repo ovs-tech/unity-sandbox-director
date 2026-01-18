@@ -4,15 +4,15 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.UIElements;
-using MiniTimeline.Core;
-using MiniTimeline.UI.MVVM.Clip;
-using MiniTimeline.UI.FormDefinitions;
+using Systems.MiniTimeline.Core;
+using Systems.MiniTimeline.UI.MVVM.Clip;
+using Systems.MiniTimeline.UI.FormDefinitions;
 using Core.UI.FormSubmit;
 using Core.UI.FormSubmit.Fields;
 using System.ComponentModel;
 using Unity.Properties;
 
-namespace MiniTimeline.UI.MVVM.Track
+namespace Systems.MiniTimeline.UI.MVVM.Track
 {
     /// <summary>
     /// Controller for Track MVVM.
@@ -54,11 +54,7 @@ namespace MiniTimeline.UI.MVVM.Track
             // Subscribe to zoom/width changes
             _model.OnZoomChanged += () =>
             {
-                _view.UpdateZoom(_model, _clipControllers);
-            };
-            _model.OnTimelineWidthChanged += () =>
-            {
-                _view.UpdateZoom(_model, _clipControllers);
+                _view.UpdateZoom(_model);
             };
         }
 
@@ -108,7 +104,7 @@ namespace MiniTimeline.UI.MVVM.Track
             [CreateProperty]
             public bool Enabled
             {
-                get => _model.Enabled; 
+                get => _model.Enabled;
                 set
                 {
                     _model.SetEnabled(value);
@@ -135,7 +131,7 @@ namespace MiniTimeline.UI.MVVM.Track
                 _model = model;
                 _view = view;
                 Title = SettableBindableProperty<string>.Bind(() => _model.Title, value => _model.SetTitle(value));
-                
+
                 Muted = BindableProperty<bool>.Bind(() => _model.Muted);
                 Solo = BindableProperty<bool>.Bind(() => _model.Solo);
                 BindKey = SettableBindableProperty<string>.Bind(() => _model.BindKey, value => _model.SetBindKey(value));
@@ -155,8 +151,40 @@ namespace MiniTimeline.UI.MVVM.Track
 
             public void ShowAddClipForm()
             {
-                Debug.Log($"Show add clip form for track: {_model.Title}");
-                // TODO: Show form to add new clip to this track
+                var clipForm = ClipFormDefinitions.GetFieldsForTrackType(_model.Type);
+                FormSubmitPanelUIToolkit.Instance.Show(
+                    "Add New Clip",
+                    clipForm,
+                    OnAddClipFormSubmitted,
+                    OnAddClipFormCancelled,
+                    _view.PanelRoot
+                );
+            }
+
+            private void OnAddClipFormCancelled()
+            {
+                Debug.Log("Add Clip form cancelled");
+            }
+
+            private void OnAddClipFormSubmitted(Dictionary<string, object> dictionary)
+            {
+                try
+                {
+                    var newClip = _model.AddClip(dictionary);
+                    
+                    if (newClip != null)
+                    {
+                        Debug.Log($"New clip added: {newClip.Id} to track {_model.Title}");
+                    }
+                    else
+                    {
+                        Debug.LogError("Failed to create clip: returned null");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Failed to add new clip: {ex.Message}\n{ex.StackTrace}");
+                }
             }
 
             public void ShowSettings()

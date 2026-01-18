@@ -3,7 +3,7 @@ using Unity.Properties;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace MiniTimeline.UI.MVVM.Clip {
+namespace Systems.MiniTimeline.UI.MVVM.Clip {
     public class ClipView {
         public VisualElement Root { get; private set; }
 

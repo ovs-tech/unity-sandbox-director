@@ -1,12 +1,12 @@
 using System;
 using UnityEngine;
 using UnityEngine.UIElements;
-using MiniTimeline.Core;
-using MiniTimeline.UI.FormDefinitions;
+using Systems.MiniTimeline.Core;
+using Systems.MiniTimeline.UI.FormDefinitions;
 using Core.UI.FormSubmit;
 using System.Collections.Generic;
 
-namespace MiniTimeline.UI.MVVM.Clip
+namespace Systems.MiniTimeline.UI.MVVM.Clip
 {
     /// <summary>
     /// Controller for Clip MVVM.

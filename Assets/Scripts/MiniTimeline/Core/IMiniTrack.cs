@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace MiniTimeline.Core
+namespace Systems.MiniTimeline.Core
 {
     /// <summary>
     /// Base interface for all timeline tracks

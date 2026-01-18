@@ -4,17 +4,17 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.Localization;
-using MiniTimeline.Core;
-using MiniTimeline.Serialization;
-using MiniTimeline.UI.Commands;
+using Systems.MiniTimeline.Core;
+using Systems.MiniTimeline.Serialization;
+using Systems.MiniTimeline.UI.Commands;
 using Core.UI.FormSubmit;
 using Core.UI.Core.Helpers;
 using Core.Behaviors.Command;
-using MiniTimeline.UI.FormDefinitions;
+using Systems.MiniTimeline.UI.FormDefinitions;
 using Core.UI.FormSubmit.Fields;
-using BindingContextCore = MiniTimeline.Core.BindableObjectManager;
+using BindingContextCore = Systems.MiniTimeline.Core.BindableObjectManager;
 
-namespace MiniTimeline.UI
+namespace Systems.MiniTimeline.UI
 {
     /// <summary>
     /// Main in-game timeline editor UI using UI Toolkit

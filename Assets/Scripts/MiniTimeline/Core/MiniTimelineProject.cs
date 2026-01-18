@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Sirenix.OdinSerializer;
 
-namespace MiniTimeline.Core
+namespace Systems.MiniTimeline.Core
 {
     /// <summary>
     /// Serializable project data for Mini Timeline

@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace MiniTimeline.UI
+namespace Systems.MiniTimeline.UI
 {
     
     /// <summary>

@@ -1,10 +1,10 @@
 using System;
 using System.IO;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 using UnityEngine;
 using Sirenix.OdinSerializer;
 
-namespace MiniTimeline.Serialization
+namespace Systems.MiniTimeline.Serialization
 {
     /// <summary>
     /// Unified serializer for MiniTimelineProject.

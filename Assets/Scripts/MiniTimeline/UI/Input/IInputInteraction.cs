@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace MiniTimeline.UI.Input
+namespace Systems.MiniTimeline.UI.Input
 {
     /// <summary>
     /// Base interface for input interactions like tap, hold, drag, etc.

@@ -1,14 +1,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using MiniTimeline.Core;
-using MiniTimeline.UI.Commands;
+using Systems.MiniTimeline.Core;
+using Systems.MiniTimeline.UI.Commands;
 using Core.UI.FormSubmit;
 using Core.UI.FormSubmit.Fields;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace MiniTimeline.UI
+namespace Systems.MiniTimeline.UI
 {
     
     /// <summary>

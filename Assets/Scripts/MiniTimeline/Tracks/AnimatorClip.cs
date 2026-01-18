@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Sirenix.OdinSerializer;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 
-namespace MiniTimeline.Tracks
+namespace Systems.MiniTimeline.Tracks
 {
     /// <summary>
     /// Clip for controlling Animator parameters over time

@@ -1,9 +1,9 @@
 using System;
 using UnityEngine;
 using Sirenix.OdinSerializer;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 
-namespace MiniTimeline.Tracks
+namespace Systems.MiniTimeline.Tracks
 {
     /// <summary>
     /// Event trigger edge type

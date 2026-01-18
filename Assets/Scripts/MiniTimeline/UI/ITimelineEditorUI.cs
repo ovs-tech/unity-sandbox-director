@@ -1,4 +1,4 @@
-namespace MiniTimeline.UI
+namespace Systems.MiniTimeline.UI
 {
     /// <summary>
     /// Interface for timeline editor UI implementations that can be used by commands

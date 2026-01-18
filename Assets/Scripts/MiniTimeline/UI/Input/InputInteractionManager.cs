@@ -3,7 +3,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace MiniTimeline.UI.Input
+namespace Systems.MiniTimeline.UI.Input
 {
     /// <summary>
     /// Manages multiple input interactions and ensures only the appropriate ones are active

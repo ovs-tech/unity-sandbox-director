@@ -1,8 +1,8 @@
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 using UnityEngine;
 using Sirenix.OdinSerializer;
 
-namespace MiniTimeline.Tracks
+namespace Systems.MiniTimeline.Tracks
 {
     [System.Serializable]
     public class UMAExpressionClip : MiniClipBase

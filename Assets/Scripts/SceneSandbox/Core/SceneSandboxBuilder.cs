@@ -4,7 +4,7 @@ using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using Systems.SceneSandbox.Data;
 using Systems.SceneSandbox.Serialization;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 
 namespace Systems.SceneSandbox.Core
 {

@@ -5,10 +5,10 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEditor;
-using MiniTimeline.Core;
-using MiniTimeline.Serialization;
+using Systems.MiniTimeline.Core;
+using Systems.MiniTimeline.Serialization;
 
-namespace MiniTimeline.Editor
+namespace Systems.MiniTimeline.Editor
 {
     /// <summary>
     /// Custom editor for MiniTimelineDirector component
