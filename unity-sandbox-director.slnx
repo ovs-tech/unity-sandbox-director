@@ -6,7 +6,10 @@
   <Project Path="Sirenix.OdinSerializer.csproj" />
   <Project Path="UMA_Examples.csproj" />
   <Project Path="UMA_Content.csproj" />
+  <Project Path="Unity.AppUI.Samples.MVVM.csproj" />
+  <Project Path="Unity.AppUI.Samples.UndoRedo.csproj" />
   <Project Path="Shaderpackager-editor.csproj" />
-  <Project Path="UMA_Examples_Editor.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="UMA_Examples_Editor.csproj" />
+  <Project Path="Unity.AppUI.Samples.Navigation.csproj" />
 </Solution>
