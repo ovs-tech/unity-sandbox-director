@@ -18,6 +18,11 @@ class WelcomeScreen : NavigationScreen
 
     hierarchy.Add(AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/Scripts/UI/Screens/Welcome/WelcomeScreen.uxml").CloneTree());
 
+    this.Q<Unity.AppUI.UI.Button>("btn-login").clicked += () =>
+    {
+      _ = this.FindNavController().Navigate(Actions.welcome_to_auth);
+    };
+
     // schedule.Execute((timer) =>
     // {
     //   var loggedIn = PlayerPrefs.GetInt("logged_in", 0) == 1;

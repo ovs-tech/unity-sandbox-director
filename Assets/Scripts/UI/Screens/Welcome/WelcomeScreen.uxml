@@ -1,29 +1,30 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/Scripts/UI/AppUIIcons.uss?fileID=7433441132597879392&amp;guid=e2ca0048e687d4a03945e3e41e373600&amp;type=3#AppUIIcons"/>
-    <ui:VisualElement name="welcome-header" style="flex-grow: 0; flex-direction: row-reverse;">
-        <Unity.AppUI.UI.ActionButton icon="lock" label="VR/AR Ready" selected="false" name="btn-vr-ar-ready"/>
-    </ui:VisualElement>
-    <ui:VisualElement name="welcome-logo" style="flex-grow: 1; align-items: center; justify-content: center;">
-        <ui:Image source="project://database/Assets/Resources/Fonts/fontawesome/svgs/solid/lock.svg?fileID=7388822144124034973&amp;guid=4bc17d68952c44166b9276feb3048bfd&amp;type=3#lock" tint-color="rgb(76, 76, 76)" style="width: 50px; height: 50px;"/>
-        <ui:VisualElement name="app-logo" style="flex-grow: 0; flex-direction: row; flex-shrink: 0;">
-            <Unity.AppUI.UI.Text text="ERO" size="XXXL"/>
-            <Unity.AppUI.UI.Text text="DIRECTOR" size="XXXL"/>
+    <Unity.AppUI.UI.Panel scale="small" theme="dark" name="Panel">
+        <ui:VisualElement name="welcome-header" style="flex-grow: 0; flex-direction: row-reverse; padding-top: 10px; padding-right: 5px; padding-bottom: 10px; padding-left: 5px;">
+            <Unity.AppUI.UI.ActionButton icon="lock" label="VR/AR Ready" selected="false" name="btn-vr-ar-ready" size="S" accent="false" quiet="false" style="font-size: 8px;"/>
         </ui:VisualElement>
-        <Unity.AppUI.UI.Text text="Your vision. Your scene. Your rules. " size="S"/>
-    </ui:VisualElement>
-    <ui:VisualElement name="welcome-footer" style="flex-grow: 0; align-items: center;">
-        <ui:VisualElement style="flex-grow: 0; flex-direction: row; width: 100%; justify-content: center; flex-shrink: 0; align-items: center;">
-            <Unity.AppUI.UI.Checkbox/>
-            <Unity.AppUI.UI.InputLabel label="I confirm I am over 18 age" dir="" style="flex-grow: 0; flex-shrink: 0; flex-direction: row; flex-wrap: nowrap; align-items: auto; justify-content: flex-start;"/>
+        <ui:VisualElement name="welcome-logo" style="flex-grow: 1; align-items: center; justify-content: flex-start; padding-top: 5px; padding-right: 5px; padding-bottom: 5px; padding-left: 5px;">
+            <ui:Image source="project://database/Assets/Resources/Fonts/fontawesome/svgs/solid/lock.svg?fileID=7388822144124034973&amp;guid=4bc17d68952c44166b9276feb3048bfd&amp;type=3#lock" tint-color="rgb(76, 76, 76)" style="width: 50px; height: 50px;"/>
+            <ui:VisualElement name="app-logo" style="flex-grow: 0; flex-direction: row; flex-shrink: 0;">
+                <Unity.AppUI.UI.Text text="ERO" size="XXXL" name="Text" style="-unity-font-style: bold; -unity-font-definition: url(&quot;project://database/Packages/com.unity.dt.app-ui/PackageResources/Fonts/Inter-SemiBold.ttf?fileID=12800000&amp;guid=8c9d11570d1ef4f4cbeb28d1c7e6b763&amp;type=3#Inter-SemiBold&quot;); margin-right: 5px;"/>
+                <Unity.AppUI.UI.Text text="DIRECTOR" size="XXXL" style="-unity-font-definition: url(&quot;project://database/Packages/com.unity.dt.app-ui/PackageResources/Fonts/Inter-SemiBold.ttf?fileID=12800000&amp;guid=8c9d11570d1ef4f4cbeb28d1c7e6b763&amp;type=3#Inter-SemiBold&quot;);"/>
+            </ui:VisualElement>
+            <Unity.AppUI.UI.Text text="Your vision. Your scene. Your rules. " size="S"/>
         </ui:VisualElement>
-        <Unity.AppUI.UI.ActionButton label="START DIRECTING" size="L"/>
-        <ui:VisualElement style="flex-grow: 1; flex-direction: row; justify-content: center;">
-            <Unity.AppUI.UI.Link text="Login"/>
-            <Unity.AppUI.UI.Text text="Already a Director?"/>
+        <ui:VisualElement name="welcome-footer" style="flex-grow: 0; align-items: center; padding-top: 20px; padding-right: 10px; padding-bottom: 20px; padding-left: 10px;">
+            <ui:VisualElement style="flex-grow: 0; flex-direction: row; width: 100%; justify-content: center; flex-shrink: 0; align-items: center;">
+                <Unity.AppUI.UI.Checkbox/>
+                <Unity.AppUI.UI.InputLabel label="I confirm I am over 18 age" style="-unity-text-align: middle-left;"/>
+            </ui:VisualElement>
+            <Unity.AppUI.UI.ActionButton label="START DIRECTING" size="L"/>
+            <ui:VisualElement style="flex-grow: 1; flex-direction: row; justify-content: center;">
+                <Unity.AppUI.UI.Text text="Already a Director?" size="S"/>
+                <Unity.AppUI.UI.Button text="Login" size="S" name="btn-login" title="Login"/>
+            </ui:VisualElement>
+            <ui:VisualElement style="flex-grow: 1; flex-direction: row;">
+                <Unity.AppUI.UI.Icon icon-name="lock" size="XS"/>
+                <Unity.AppUI.UI.Text text="SECURE &amp; PRIVATE " size="XS"/>
+            </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement style="flex-grow: 1; flex-direction: row;">
-            <Unity.AppUI.UI.Icon icon-name="lock" size="XS"/>
-            <Unity.AppUI.UI.Text text="SECURE &amp; PRIVATE "/>
-        </ui:VisualElement>
-    </ui:VisualElement>
+    </Unity.AppUI.UI.Panel>
 </ui:UXML>
