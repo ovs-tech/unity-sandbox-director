@@ -2,13 +2,13 @@ using System;
 using System.IO;
 using Systems.MiniTimeline.Core;
 using UnityEngine;
-using Sirenix.OdinSerializer;
 
 namespace Systems.MiniTimeline.Serialization
 {
     /// <summary>
     /// Unified serializer for MiniTimelineProject.
-    /// Uses Odin Serializer to directly serialize polymorphic IMiniTrack/IMiniClip runtime instances.
+    /// Uses native JsonUtility for serialization. 
+    /// Polymorphism is handled internally by ISerializationCallbackReceiver in Project/Tracks/Clips.
     /// </summary>
     public static class ProjectSerializer
     {
@@ -21,9 +21,7 @@ namespace Systems.MiniTimeline.Serialization
             }
             try
             {
-                // Use Odin Serializer with JSON format for human-readable output
-                byte[] bytes = SerializationUtility.SerializeValue(project, DataFormat.JSON);
-                return System.Text.Encoding.UTF8.GetString(bytes);
+                return JsonUtility.ToJson(project, true);
             }
             catch (Exception e)
             {
@@ -59,9 +57,7 @@ namespace Systems.MiniTimeline.Serialization
             }
             try
             {
-                // Use Odin Serializer to deserialize with polymorphic support
-                byte[] bytes = System.Text.Encoding.UTF8.GetBytes(json);
-                return SerializationUtility.DeserializeValue<MiniTimelineProject>(bytes, DataFormat.JSON);
+                return JsonUtility.FromJson<MiniTimelineProject>(json);
             }
             catch (Exception e)
             {

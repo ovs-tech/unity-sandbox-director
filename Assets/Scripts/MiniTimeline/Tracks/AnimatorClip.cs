@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Sirenix.OdinSerializer;
+
 using Systems.MiniTimeline.Core;
 
 namespace Systems.MiniTimeline.Tracks
@@ -13,15 +13,15 @@ namespace Systems.MiniTimeline.Tracks
     public class AnimatorClip : MiniClipBase
     {
         [Header("Parameter Settings")]
-        [OdinSerialize]
+        
         public List<AnimatorParameterKey> parameterKeys = new List<AnimatorParameterKey>();
         
         [Header("Blending")]
-        [OdinSerialize]
+        
         public float fadeIn = 0f;
-        [OdinSerialize]
+        
         public float fadeOut = 0f;
-        [OdinSerialize]
+        
         public AnimatorBlendMode blendMode = AnimatorBlendMode.Override;
         
         #region Animator Specific Methods

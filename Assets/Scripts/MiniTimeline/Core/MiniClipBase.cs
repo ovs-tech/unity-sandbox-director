@@ -1,5 +1,4 @@
 using System;
-using Sirenix.OdinSerializer;
 using UnityEngine;
 
 namespace Systems.MiniTimeline.Core
@@ -10,9 +9,13 @@ namespace Systems.MiniTimeline.Core
     [Serializable]
     public abstract class MiniClipBase : IMiniClip
     {
-        [OdinSerialize] public string Id { get; set; }
-        [OdinSerialize] public float Start { get; set; }
-        [OdinSerialize] public float Duration { get; set; }
+        [SerializeField] private string id;
+        [SerializeField] private float start;
+        [SerializeField] private float duration;
+
+        public string Id { get => id; set => id = value; }
+        public float Start { get => start; set => start = value; }
+        public float Duration { get => duration; set => duration = value; }
 
         public virtual bool Contains(float time)
         {

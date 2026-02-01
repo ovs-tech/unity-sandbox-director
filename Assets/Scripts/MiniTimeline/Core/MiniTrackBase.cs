@@ -1,30 +1,75 @@
 using System;
 using System.Collections.Generic;
-using Sirenix.OdinSerializer;
 using UnityEngine;
+using Systems.MiniTimeline.Serialization;
 
 namespace Systems.MiniTimeline.Core
 {
     /// <summary>
     /// Base implementation of IMiniTrack with common functionality
     /// </summary>
-    public abstract class MiniTrackBase<TClip> : IMiniTrack 
+    [Serializable]
+    public abstract class MiniTrackBase<TClip> : IMiniTrack, ISerializationCallbackReceiver
         where TClip : IMiniClip
     {
-        [OdinSerialize] public string Id { get; set; }
-        [OdinSerialize] public string Name { get; set; }
-        [OdinSerialize] public string BindKey { get; set; }
-        [OdinSerialize] public bool Enabled { get; set; } = true;
-        [OdinSerialize] public int Order { get; set; } = 0;
+        [SerializeField] private string id;
+        [SerializeField] private string name;
+        [SerializeField] private string bindKey;
+        [SerializeField] private bool enabled = true;
+        [SerializeField] private int order = 0;
+        [SerializeField] private EvaluateMode evaluateMode = EvaluateMode.Continuous;
+
+        public string Id { get => id; set => id = value; }
+        public string Name { get => name; set => name = value; }
+        public string BindKey { get => bindKey; set => bindKey = value; }
+        public bool Enabled { get => enabled; set => enabled = value; }
+        public int Order { get => order; set => order = value; }
+        public EvaluateMode EvaluateMode { get => evaluateMode; set => evaluateMode = value; }
+
         public bool IsBound => isBound;
         public bool IsReady => Enabled && isPrepared;
-        [OdinSerialize] public EvaluateMode EvaluateMode { get; set; } = EvaluateMode.Continuous;
         
-        [OdinSerialize] protected List<TClip> clips = new List<TClip>();
+        [NonSerialized] protected List<TClip> clips = new List<TClip>();
+        [SerializeField] private List<SerializedWrapper> _serializedClips = new List<SerializedWrapper>();
+
         [NonSerialized] protected UnityEngine.Object targetObject;
         [NonSerialized] protected bool isBound;
         [NonSerialized] protected bool isPrepared;
         [NonSerialized] protected bool wasActive; // Track previous active state for OnEnter/OnExit detection
+
+        public void OnBeforeSerialize()
+        {
+            _serializedClips.Clear();
+            if (clips == null) return;
+
+            foreach (var clip in clips)
+            {
+                if (clip == null) continue;
+                _serializedClips.Add(new SerializedWrapper
+                {
+                    type = clip.GetType().AssemblyQualifiedName,
+                    data = JsonUtility.ToJson(clip)
+                });
+            }
+        }
+
+        public void OnAfterDeserialize()
+        {
+            if (clips == null) clips = new List<TClip>();
+            clips.Clear();
+
+            if (_serializedClips == null) return;
+
+            foreach (var wrapped in _serializedClips)
+            {
+                Type type = Type.GetType(wrapped.type);
+                if (type != null)
+                {
+                    TClip clip = (TClip)JsonUtility.FromJson(wrapped.data, type);
+                    clips.Add(clip);
+                }
+            }
+        }
         
         public virtual void Bind(BindableObjectManager context)
         {
