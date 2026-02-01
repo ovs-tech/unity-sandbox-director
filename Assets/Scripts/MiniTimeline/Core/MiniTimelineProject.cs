@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Systems.MiniTimeline.Serialization;
 
 namespace Systems.MiniTimeline.Core
 {
@@ -213,6 +212,7 @@ namespace Systems.MiniTimeline.Core
         public const string TRACK_SIGNAL = "SignalTrack";
         public const string TRACK_UMA_WARDROBE = "UmaWardrobeTrack";
         public const string TRACK_UMA_EXPRESSION = "UMAExpressionTrack";
+        public const string TRACK_CINEMACHINE = "CinemachineTrack";
 
         // Asset reference prefixes
         public const string ASSET_ADDRESSABLE = "addr:";
