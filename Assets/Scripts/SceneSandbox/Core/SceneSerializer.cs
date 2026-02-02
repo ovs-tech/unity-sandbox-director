@@ -211,6 +211,17 @@ namespace Systems.SceneSandbox.Core
             OnSceneLoaded?.Invoke(_currentScene);
         }
 
+        /// <summary>
+        /// Public wrapper to load a scene configuration from external callers (e.g., builder).
+        /// This ensures the same internal loading logic and events are used.
+        /// </summary>
+        /// <param name="sceneConfig">Scene configuration to apply</param>
+        public void SetCurrentSceneConfiguration(SceneConfiguration sceneConfig)
+        {
+            if (sceneConfig == null) return;
+            LoadSceneConfiguration(sceneConfig);
+        }
+
         #endregion
 
         #region Project Save/Load
