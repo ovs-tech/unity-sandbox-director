@@ -939,9 +939,18 @@ namespace Systems.SceneSandbox.Core
             ClearScene();
 
             var newScene = new SceneConfiguration(sceneName ?? "New Scene");
-            _currentSceneName = newScene.sceneName;
 
-            _onSceneLoaded?.Invoke(newScene);
+            // Ensure serializer is updated so its CurrentScene matches the new scene
+            if (_sceneSerializer != null)
+            {
+                _sceneSerializer.SetCurrentSceneConfiguration(newScene);
+            }
+            else
+            {
+                // Fallback: update builder's internal name and invoke event
+                _currentSceneName = newScene.sceneName;
+                _onSceneLoaded?.Invoke(newScene);
+            }
         }
 
         /// <summary>

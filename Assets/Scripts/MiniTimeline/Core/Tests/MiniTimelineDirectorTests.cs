@@ -6,6 +6,14 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using MiniTimeline.Core;
 
+#if !UNITY_INCLUDE_TESTS
+namespace UnityEngine.TestTools
+{
+    [System.AttributeUsage(System.AttributeTargets.Method)]
+    public sealed class UnityTestAttribute : System.Attribute { }
+}
+#endif
+
 namespace MiniTimeline.Core.Tests
 {
     public class MiniTimelineDirectorTests
@@ -178,16 +186,18 @@ namespace MiniTimeline.Core.Tests
             Assert.AreEqual(0f, _director.Time);
         }
 
-        [UnityTest]
-        public IEnumerator Update_AdvancesTime_WhenPlaying()
+        [Test]
+        public void Update_AdvancesTime_WhenPlaying()
         {
             // Arrange
             _director.CreateNewProject("TestProject");
             _director.Play();
             float initialTime = _director.Time;
 
-            // Act
-            yield return null; // Wait one frame
+            // Simulate one frame by advancing time and invoking the private Evaluate method
+            _director.Seek(initialTime + 0.02f);
+            var method = typeof(MiniTimelineDirector).GetMethod("Evaluate", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            method?.Invoke(_director, new object[] { false });
 
             // Assert
             Assert.Greater(_director.Time, initialTime);

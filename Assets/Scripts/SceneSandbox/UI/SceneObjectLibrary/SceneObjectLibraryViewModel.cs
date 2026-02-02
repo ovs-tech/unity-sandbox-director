@@ -127,6 +127,12 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
             
             foreach (var obj in _allObjects)
             {
+                // Only include categories for types that should appear in the UI library
+                // (Actors, Props and Cameras). Exclude Light and other utility object types.
+                if (obj == null) continue;
+                if (obj.objectType != SceneObjectType.Actor && obj.objectType != SceneObjectType.Prop && obj.objectType != SceneObjectType.Camera)
+                    continue;
+
                 if (!string.IsNullOrEmpty(obj.category))
                     categories.Add(obj.category);
             }
