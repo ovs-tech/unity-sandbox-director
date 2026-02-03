@@ -1,10 +1,16 @@
-name: Actions 😎
+name: Test and Build
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request: {}
 
 jobs:
   test:
-    name: Test my project 🧪
+    name: Test project 🧪
     runs-on: ubuntu-latest
     steps:
       # Checkout
@@ -32,11 +38,12 @@ jobs:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
 
   build:
-    name: Build my project ✨
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    name: Build project ✨
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        targetPlatform: [StandaloneWindows64, Android]
+        targetPlatform: [StandaloneWindows64]
     steps:
       # Checkout
       - name: Checkout repository
@@ -68,3 +75,47 @@ jobs:
         with:
           name: Build-${{ matrix.targetPlatform }}
           path: build
+
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: downloaded-artifacts
+
+      - name: Zip downloaded artifacts
+        run: |
+          cd downloaded-artifacts
+          # Zip everything into a single archive for upload
+          zip -r ../build-${{ github.ref_name }}.zip .
+
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          body: Automated release from tag ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build-${{ github.ref_name }}.zip
+          asset_name: build-${{ github.ref_name }}.zip
+          asset_content_type: application/zip
