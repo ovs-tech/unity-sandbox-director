@@ -10,6 +10,14 @@ namespace Systems.SceneSandbox.Core
         [SerializeField] private LayerMask _raycastMask = ~0; // default: everything
         [SerializeField] private float _maxDistance = 1000f;
 
+        private void Awake()
+        {
+            if (_camera == null)
+            {
+                _camera = Camera.main;
+            }
+        }
+
         public Camera TargetCamera
         {
             get => _camera != null ? _camera : Camera.main;
