@@ -27,8 +27,10 @@ namespace Systems.MiniTimeline.Tracks
         {
             if (expressionPlayer == null) return;
 
-            // Reset all expression weights
-            var values = expressionPlayer.Values;
+            // Reset all expression weights (use reflection to avoid hard UMA dependency)
+            var valuesObj = expressionPlayer.GetType().GetProperty("Values")?.GetValue(expressionPlayer)
+                ?? expressionPlayer.GetType().GetField("Values")?.GetValue(expressionPlayer);
+            float[] values = valuesObj as float[] ?? new float[0];
             for (int i = 0; i < values.Length; i++)
             {
                 values[i] = 0f;
@@ -47,20 +49,28 @@ namespace Systems.MiniTimeline.Tracks
                 SetExpressionValue(clip.expression, expressionValue, values);
             }
             
-            // Apply the updated values back to the expression player
-            expressionPlayer.Values = values;
+                // Apply the updated values back to the expression player (property or field)
+            var prop = expressionPlayer.GetType().GetProperty("Values");
+            var field = expressionPlayer.GetType().GetField("Values");
+            if (prop != null) prop.SetValue(expressionPlayer, values);
+            else if (field != null) field.SetValue(expressionPlayer, values);
         }
 
         protected override void OnCleanup()
         {
             if (expressionPlayer != null)
             {
-                var values = expressionPlayer.Values;
-                for (int i = 0; i < values.Length; i++)
+                var valuesObj2 = expressionPlayer.GetType().GetProperty("Values")?.GetValue(expressionPlayer)
+                    ?? expressionPlayer.GetType().GetField("Values")?.GetValue(expressionPlayer);
+                float[] values2 = valuesObj2 as float[] ?? new float[0];
+                for (int i = 0; i < values2.Length; i++)
                 {
-                    values[i] = 0f;
+                    values2[i] = 0f;
                 }
-                expressionPlayer.Values = values;
+                var prop2 = expressionPlayer.GetType().GetProperty("Values");
+                var field2 = expressionPlayer.GetType().GetField("Values");
+                if (prop2 != null) prop2.SetValue(expressionPlayer, values2);
+                else if (field2 != null) field2.SetValue(expressionPlayer, values2);
             }
         }
 
@@ -83,7 +93,7 @@ namespace Systems.MiniTimeline.Tracks
             }
 
             // If not found in standard poses, try to set using reflection as fallback
-            var field = typeof(UMAExpressionPlayer).GetField(expressionName);
+            var field = expressionPlayer.GetType().GetField(expressionName);
             if (field != null && field.FieldType == typeof(float))
             {
                 field.SetValue(expressionPlayer, value);

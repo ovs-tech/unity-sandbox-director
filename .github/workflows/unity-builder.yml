@@ -12,6 +12,8 @@ jobs:
   test:
     name: Test project 🧪
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
     steps:
       # Checkout
       - name: Checkout repository
