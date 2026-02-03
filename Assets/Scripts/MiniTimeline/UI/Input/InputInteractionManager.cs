@@ -13,7 +13,7 @@ namespace MiniTimeline.UI.Input
         /// <summary>
         /// Static debug mode to enable/disable logging
         /// </summary>
-        public static bool DebugMode { get; set; } = true; // Set to true by default for debugging
+        public static bool DebugMode { get; set; } = false;
         
     private readonly List<IInputInteraction> _interactions;
     private IInputInteraction _activeInteraction;
