@@ -577,11 +577,26 @@ namespace MiniTimeline.Tracks
         
         public float GetProgress(IEnumerable<string> assetPaths)
         {
-            var paths = assetPaths.Where(p => !string.IsNullOrEmpty(p)).ToList();
-            if (paths.Count == 0) return 1.0f;
+            if (assetPaths == null) return 1.0f;
+
+            int totalCount = 0;
+            int loadedCount = 0;
+
+            foreach (var path in assetPaths)
+            {
+                if (!string.IsNullOrEmpty(path))
+                {
+                    totalCount++;
+                    if (_loadedClips.ContainsKey(path))
+                    {
+                        loadedCount++;
+                    }
+                }
+            }
+
+            if (totalCount == 0) return 1.0f;
             
-            int loaded = paths.Count(p => _loadedClips.ContainsKey(p));
-            return (float)loaded / paths.Count;
+            return (float)loadedCount / totalCount;
         }
         
         public async Task WaitForAllLoaded()
