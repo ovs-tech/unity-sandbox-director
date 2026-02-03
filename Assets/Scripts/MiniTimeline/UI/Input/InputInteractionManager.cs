@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 
 namespace MiniTimeline.UI.Input
@@ -16,6 +17,7 @@ namespace MiniTimeline.UI.Input
         public static bool DebugMode { get; set; } = false;
         
     private readonly List<IInputInteraction> _interactions;
+    private StringBuilder _debugStringBuilder = new StringBuilder();
     private IInputInteraction _activeInteraction;
     private bool _isPressed;
     private Vector2 _currentPosition;
@@ -135,38 +137,71 @@ namespace MiniTimeline.UI.Input
             }
             if (!_isPressed) return;
             _currentPosition = screenPosition;
+
             // Update all interactions
-            foreach (var interaction in _interactions)
+            int interactionCount = _interactions.Count;
+            for (int i = 0; i < interactionCount; i++)
             {
+                var interaction = _interactions[i];
                 if (interaction.IsActive)
                 {
                     interaction.OnInteractionUpdate(screenPosition, deltaTime);
                 }
             }
+
             // Debug: Log active interactions
-            var activeInteractions = _interactions.Where(i => i.IsActive).ToList();
-            if (DebugMode && activeInteractions.Any())
+            if (DebugMode)
             {
-                var activeNames = string.Join(", ", activeInteractions.Select(i => 
+                _debugStringBuilder.Clear();
+                bool hasActive = false;
+
+                for (int i = 0; i < interactionCount; i++)
                 {
-                    string status = "";
-                    if (i is HoldInteraction holdInt)
+                    var interaction = _interactions[i];
+                    if (interaction.IsActive)
                     {
-                        status = $"(IsHolding: {holdInt.IsHolding})";
+                        if (hasActive)
+                        {
+                            _debugStringBuilder.Append(", ");
+                        }
+                        hasActive = true;
+
+                        _debugStringBuilder.Append(interaction.GetType().Name);
+
+                        if (interaction is HoldInteraction holdInt)
+                        {
+                            _debugStringBuilder.Append("(IsHolding: ").Append(holdInt.IsHolding).Append(")");
+                        }
+                        else if (interaction is DragInteraction dragInt)
+                        {
+                            _debugStringBuilder.Append("(IsDragging: ").Append(dragInt.IsDragging).Append(")");
+                        }
                     }
-                    else if (i is DragInteraction dragInt)
-                    {
-                        status = $"(IsDragging: {dragInt.IsDragging})";
-                    }
-                    return $"{i.GetType().Name}{status}";
-                }));
-                Debug.Log($"[InputInteractionManager] Active interactions: {activeNames}");
+                }
+
+                if (hasActive)
+                {
+                    Debug.Log($"[InputInteractionManager] Active interactions: {_debugStringBuilder}");
+                }
             }
+
             // Check if any high-priority interaction is actually performing its main action
-            var performingInteraction = activeInteractions
-                .Where(i => IsInteractionPerforming(i))
-                .OrderByDescending(i => i.Priority)
-                .FirstOrDefault();
+            IInputInteraction performingInteraction = null;
+            int highestPriority = int.MinValue;
+
+            for (int i = 0; i < interactionCount; i++)
+            {
+                var interaction = _interactions[i];
+                if (interaction.IsActive && IsInteractionPerforming(interaction))
+                {
+                    if (performingInteraction == null || interaction.Priority > highestPriority)
+                    {
+                        performingInteraction = interaction;
+                        highestPriority = interaction.Priority;
+                    }
+                }
+            }
+
             if (performingInteraction != null)
             {
                 if (DebugMode && performingInteraction != _activeInteraction)
@@ -176,9 +211,10 @@ namespace MiniTimeline.UI.Input
                 if (performingInteraction != _activeInteraction)
                 {
                     // Cancel lower priority interactions only when a higher priority one is actually performing
-                    foreach (var interaction in activeInteractions)
+                    for (int i = 0; i < interactionCount; i++)
                     {
-                        if (interaction != performingInteraction && interaction.Priority < performingInteraction.Priority)
+                        var interaction = _interactions[i];
+                        if (interaction.IsActive && interaction != performingInteraction && interaction.Priority < performingInteraction.Priority)
                         {
                             interaction.OnInteractionCancel();
                         }
