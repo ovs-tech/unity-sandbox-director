@@ -27,6 +27,8 @@ namespace MiniTimeline.Tracks
         private readonly List<IMorphClip> tempActiveClips = new List<IMorphClip>();
         private readonly Dictionary<string, float> tempMorphValues = new Dictionary<string, float>();
         private readonly List<string> tempMorphIds = new List<string>();
+        private readonly List<IMorphClip> tempOverrideClips = new List<IMorphClip>();
+        private readonly HashSet<string> processedMorphs = new HashSet<string>();
         
         #region Track Lifecycle
         
@@ -219,15 +221,24 @@ namespace MiniTimeline.Tracks
         private void ProcessOverrideClips(List<IMorphClip> activeClips, float time)
         {
             // Group override clips by morph ID and find highest priority for each
-            var overrideClips = activeClips.Where(c => c.BlendMode == MorphBlendMode.Override).ToList();
-            if (overrideClips.Count == 0) return;
+            tempOverrideClips.Clear();
+            for (int i = 0; i < activeClips.Count; i++)
+            {
+                var clip = activeClips[i];
+                if (clip.BlendMode == MorphBlendMode.Override)
+                {
+                    tempOverrideClips.Add(clip);
+                }
+            }
+
+            if (tempOverrideClips.Count == 0) return;
             
             // Sort by priority (highest first)
-            overrideClips.Sort((a, b) => b.Priority.CompareTo(a.Priority));
+            tempOverrideClips.Sort((a, b) => b.Priority.CompareTo(a.Priority));
             
-            var processedMorphs = new HashSet<string>();
+            processedMorphs.Clear();
             
-            foreach (var clip in overrideClips)
+            foreach (var clip in tempOverrideClips)
             {
                 tempMorphValues.Clear();
                 clip.GetAllMorphValues(time, tempMorphValues);
@@ -242,6 +253,8 @@ namespace MiniTimeline.Tracks
                     }
                 }
             }
+
+            tempOverrideClips.Clear();
         }
         
         /// <summary>
