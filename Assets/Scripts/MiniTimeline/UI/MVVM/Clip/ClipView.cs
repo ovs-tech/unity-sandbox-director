@@ -1,4 +1,4 @@
-#if UNITY_EDITOR
+
 using Unity.Properties;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -373,4 +373,3 @@ namespace Systems.MiniTimeline.UI.MVVM.Clip {
         }
     }
 }
-#endif
