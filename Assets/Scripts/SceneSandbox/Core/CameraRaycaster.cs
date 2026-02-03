@@ -20,7 +20,14 @@ namespace Systems.SceneSandbox.Core
 
         public Camera TargetCamera
         {
-            get => _camera != null ? _camera : Camera.main;
+            get
+            {
+                if (_camera == null)
+                {
+                    _camera = Camera.main;
+                }
+                return _camera;
+            }
             set => _camera = value;
         }
 
