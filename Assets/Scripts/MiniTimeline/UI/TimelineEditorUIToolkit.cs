@@ -1777,8 +1777,23 @@ namespace Systems.MiniTimeline.UI
 
         private void SplitClipAtPlayhead(ClipUIToolkit clipUI)
         {
-            Debug.Log($"Split clip at playhead: {clipUI?.Clip?.Id}");
-            // TODO: Implement split functionality
+            if (clipUI == null || clipUI.Clip == null || director == null) return;
+
+            float splitTime = director.Time;
+
+            // Check if playhead is within clip bounds
+            if (!clipUI.Clip.Contains(splitTime))
+            {
+                Debug.LogWarning($"Cannot split clip: Playhead at {splitTime:F2}s is outside clip bounds [{clipUI.Clip.Start:F2}s, {clipUI.Clip.End:F2}s]");
+                return;
+            }
+
+            // Create and execute split command
+            var splitCommand = new SplitClipCommand(clipUI.ParentTrack.Track, clipUI.Clip, splitTime);
+            ExecuteCommand(splitCommand);
+
+            // Note: UI update is handled by OnCommandExecuted -> RefreshTimelineUI -> TrackUIToolkit.UpdateLayout
+            // which now rebuilds clips if the count or IDs change.
         }
 
         private void ShowClipProperties(ClipUIToolkit clipUI)
