@@ -14,12 +14,16 @@ namespace Systems.MiniTimeline.Tracks
     public class CinemachineTrack : MultiTargetMiniTrackBase<CinemachineClip>
     {
         private CinemachineCamera vcam;
+        private CinemachineThirdPersonFollow thirdPerson;
+        private CinemachineOrbitalFollow orbital;
         
         protected override void OnPrepare()
         {
             base.OnPrepare();
             
             vcam = null;
+            thirdPerson = null;
+            orbital = null;
             Transform vcamTransform = null;
             
             if (targetObject is Transform t)
@@ -38,6 +42,9 @@ namespace Systems.MiniTimeline.Tracks
             if (vcamTransform != null)
             {
                 vcam = vcamTransform.GetComponent<CinemachineCamera>();
+                // Cache common Cinemachine body components if present
+                thirdPerson = vcamTransform.GetComponent<CinemachineThirdPersonFollow>();
+                orbital = vcamTransform.GetComponent<CinemachineOrbitalFollow>();
             }
             
             if (vcam == null)
@@ -93,78 +100,95 @@ namespace Systems.MiniTimeline.Tracks
             // Calculate base direction from yaw
             float angleRad = clip.yaw * Mathf.Deg2Rad;
             Vector3 horizontalDir = new Vector3(Mathf.Sin(angleRad), 0, -Mathf.Cos(angleRad));
-            
-            // Calculate offset relative to target (local offset logic)
-            // We'll calculate the 'World Offset' first
+
+            // Use an effective distance for body components (allows per-shot tuning)
+            float distanceForComponent = clip.distance;
             Vector3 calculatedWorldOffset = Vector3.zero;
 
             switch (clip.shotType)
             {
                 case CinemachineShotType.EyeLevel:
-                    calculatedWorldOffset = horizontalDir * clip.distance;
+                    calculatedWorldOffset = horizontalDir * distanceForComponent;
                     break;
 
                 case CinemachineShotType.HighAngle:
-                    calculatedWorldOffset = horizontalDir * clip.distance + Vector3.up * (clip.distance * 0.7f);
+                    distanceForComponent *= 0.9f;
+                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.up * (distanceForComponent * 0.7f);
                     break;
 
                 case CinemachineShotType.LowAngle:
-                    calculatedWorldOffset = horizontalDir * clip.distance - Vector3.up * (clip.distance * 0.3f);
+                    distanceForComponent *= 0.9f;
+                    calculatedWorldOffset = horizontalDir * distanceForComponent - Vector3.up * (distanceForComponent * 0.3f);
                     break;
 
                 case CinemachineShotType.Overhead:
-                    calculatedWorldOffset = Vector3.up * clip.distance;
+                    distanceForComponent *= 1.2f;
+                    calculatedWorldOffset = Vector3.up * distanceForComponent;
                     break;
 
                 case CinemachineShotType.BirdEye:
-                    calculatedWorldOffset = horizontalDir * (clip.distance * 2f) + Vector3.up * (clip.distance * 2f);
+                    distanceForComponent *= 3f;
+                    calculatedWorldOffset = horizontalDir * (distanceForComponent * 2f) + Vector3.up * (distanceForComponent * 2f);
                     break;
 
                 case CinemachineShotType.WormEye:
+                    distanceForComponent *= 0.8f;
                     // Worm eye: very low, near-ground looking up
-                    calculatedWorldOffset = horizontalDir * clip.distance + Vector3.down * 0.5f;
+                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.down * 0.5f;
                     break;
 
                 case CinemachineShotType.SideView:
+                    distanceForComponent *= 1f;
                     Vector3 sideDir = Vector3.Cross(Vector3.up, horizontalDir);
-                    calculatedWorldOffset = sideDir * clip.distance;
+                    calculatedWorldOffset = sideDir * distanceForComponent;
                     break;
 
                 case CinemachineShotType.CloseUp:
-                    calculatedWorldOffset = horizontalDir * (clip.distance * 0.3f);
+                    distanceForComponent *= 0.3f;
+                    calculatedWorldOffset = horizontalDir * (distanceForComponent);
                     break;
 
                 case CinemachineShotType.DutchAngle:
                     // Tilted shot: position similar to EyeLevel but apply roll
-                    calculatedWorldOffset = horizontalDir * clip.distance;
+                    calculatedWorldOffset = horizontalDir * distanceForComponent;
                     break;
 
                 case CinemachineShotType.OverTheShoulder:
                     // Position behind the shoulder: back and to the side relative to target forward
-                    Vector3 back = -target.forward * (clip.distance * 0.6f);
-                    Vector3 otsSide = Vector3.Cross(Vector3.up, target.forward).normalized * (clip.distance * 0.4f);
+                    distanceForComponent *= 0.8f;
+                    Vector3 back = -target.forward * (distanceForComponent * 0.6f);
+                    Vector3 otsSide = Vector3.Cross(Vector3.up, target.forward).normalized * (distanceForComponent * 0.4f);
                     calculatedWorldOffset = back + otsSide + Vector3.up * 0.2f;
                     break;
 
                 case CinemachineShotType.POV:
                     // Point-of-view: sit very close to target, adopt target rotation
-                    calculatedWorldOffset = target.forward * 0.15f + Vector3.up * 0.15f;
+                    distanceForComponent = 0.15f;
+                    calculatedWorldOffset = target.forward * distanceForComponent + Vector3.up * 0.15f;
                     break;
 
                 case CinemachineShotType.ExtremeLongShot:
-                    calculatedWorldOffset = horizontalDir * (clip.distance * 4f);
+                    distanceForComponent *= 4f;
+                    calculatedWorldOffset = horizontalDir * (distanceForComponent);
                     break;
 
                 case CinemachineShotType.LongShot:
-                    calculatedWorldOffset = horizontalDir * (clip.distance * 2f);
+                    distanceForComponent *= 2f;
+                    calculatedWorldOffset = horizontalDir * (distanceForComponent);
                     break;
 
                 case CinemachineShotType.MediumShot:
-                    calculatedWorldOffset = horizontalDir * (clip.distance * 1f);
+                    distanceForComponent *= 1f;
+                    calculatedWorldOffset = horizontalDir * (distanceForComponent);
                     break;
 
                 case CinemachineShotType.ExtremeCloseUp:
-                    calculatedWorldOffset = horizontalDir * (clip.distance * 0.05f) + Vector3.up * 0.05f;
+                    distanceForComponent *= 0.05f;
+                    calculatedWorldOffset = horizontalDir * (distanceForComponent) + Vector3.up * 0.05f;
+                    break;
+
+                default:
+                    calculatedWorldOffset = horizontalDir * distanceForComponent;
                     break;
             }
             
@@ -174,11 +198,10 @@ namespace Systems.MiniTimeline.Tracks
             if (clip.pitch != 0) desiredWorldRot *= Quaternion.Euler(clip.pitch, 0, 0);
             if (clip.roll != 0) desiredWorldRot *= Quaternion.Euler(0, 0, clip.roll);
 
-            // 1. Try to set via CinemachineThirdPersonFollow
-            var thirdPerson = vcam.GetComponent<CinemachineThirdPersonFollow>();
+            // 1. Try to set via cached CinemachineThirdPersonFollow
             if (thirdPerson != null)
             {
-                thirdPerson.CameraDistance = clip.distance;
+                thirdPerson.CameraDistance = distanceForComponent;
                 // Shoulder offset approximates the directional offset
                 // But ThirdPerson usually handles rotation via Input.
                 // We can force the rig orientation? No easy way without input provider override.
@@ -187,13 +210,12 @@ namespace Systems.MiniTimeline.Tracks
                 // If we simply set transform, the body will overwrite it.
                 // UNLESS we are in "Do Nothing" mode.
             }
-            
-            // 2. Try to set via CinemachineOrbitalFollow
-            var orbital = vcam.GetComponent<CinemachineOrbitalFollow>();
+
+            // 2. Try to set via cached CinemachineOrbitalFollow
             if (orbital != null)
             {
                 // We can set the orbit angles
-                orbital.Radius = clip.distance;
+                orbital.Radius = distanceForComponent;
                 // orbital.VerticalAxis.Value = ... 
                 // orbital.HorizontalAxis.Value = ...
                 // This requires manipulating the Axis objects which drives the camera.
