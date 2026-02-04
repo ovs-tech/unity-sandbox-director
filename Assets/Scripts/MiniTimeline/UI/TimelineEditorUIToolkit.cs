@@ -1800,8 +1800,73 @@ namespace Systems.MiniTimeline.UI
 
         private void DuplicateClip(ClipUIToolkit clipUI)
         {
-            Debug.Log($"Duplicate clip: {clipUI?.Clip?.Id}");
-            // TODO: Implement duplicate functionality
+            if (clipUI?.Clip == null || clipUI?.ParentTrack?.Track == null)
+            {
+                Debug.LogError("Cannot duplicate clip: clip or parent track is null");
+                return;
+            }
+
+            Debug.Log($"Duplicate clip: {clipUI.Clip.Id}");
+
+            try
+            {
+                // 1. Serialize existing clip to JSON
+                string json = JsonUtility.ToJson(clipUI.Clip);
+
+                if (string.IsNullOrEmpty(json))
+                {
+                    Debug.LogError($"Failed to serialize clip {clipUI.Clip.Id}");
+                    return;
+                }
+
+                // 2. Deserialize to new instance
+                // We need the concrete type of the clip
+                Type clipType = clipUI.Clip.GetType();
+                IMiniClip newClip = (IMiniClip)JsonUtility.FromJson(json, clipType);
+
+                if (newClip == null)
+                {
+                    Debug.LogError($"Failed to clone clip {clipUI.Clip.Id}");
+                    return;
+                }
+
+                // 3. Modify new clip
+                if (newClip is MiniClipBase clipBase)
+                {
+                    // Generate new ID - ensure uniqueness
+                    clipBase.Id = $"{clipUI.Clip.Id}_Copy_{Guid.NewGuid().ToString().Substring(0, 8)}";
+
+                    // Offset start time - place after current clip
+                    float newStart = clipUI.Clip.End;
+
+                    // Snap the new start time
+                    newStart = SnapTime(newStart);
+
+                    clipBase.Start = newStart;
+
+                    // Ensure valid duration
+                    clipBase.Duration = Mathf.Max(0.1f, clipBase.Duration);
+                }
+                else
+                {
+                    Debug.LogError("Clip is not derived from MiniClipBase, cannot set properties.");
+                    return;
+                }
+
+                // 4. Execute Command
+                var command = new CreateClipCommand(clipUI.ParentTrack.Track, newClip);
+                ExecuteCommand(command);
+
+                // 5. Update UI
+                // Rebuild clips for this track to show the new clip
+                clipUI.ParentTrack.RebuildClipUIs();
+
+                Debug.Log($"Successfully duplicated clip: {clipUI.Clip.Id} -> {newClip.Id}");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Exception during duplicate clip: {ex.Message}\n{ex.StackTrace}");
+            }
         }
 
         private void SplitClipAtPlayhead(ClipUIToolkit clipUI)
