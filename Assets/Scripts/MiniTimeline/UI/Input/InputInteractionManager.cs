@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using UnityEngine;
 
@@ -319,7 +318,18 @@ namespace Systems.MiniTimeline.UI.Input
         /// <summary>
         /// Check if any interaction is currently active
         /// </summary>
-        public bool HasActiveInteraction => _interactions.Any(i => i.IsActive);
+        public bool HasActiveInteraction
+        {
+            get
+            {
+                var count = _interactions.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    if (_interactions[i].IsActive) return true;
+                }
+                return false;
+            }
+        }
         
         /// <summary>
         /// Check if currently in a pressed state
