@@ -1215,6 +1215,45 @@ namespace Systems.MiniTimeline.UI
             }
         }
 
+        /// <summary>
+        /// Refresh clips to match data model (rebuild if structure changed, update layout if not)
+        /// </summary>
+        public void RefreshClips()
+        {
+            if (track == null) return;
+
+            var currentClips = track.GetClips().ToList();
+
+            // Check if rebuild is needed
+            bool rebuildNeeded = false;
+
+            if (currentClips.Count != clipUIs.Count)
+            {
+                rebuildNeeded = true;
+            }
+            else
+            {
+                // Check if any clip reference doesn't match
+                for (int i = 0; i < currentClips.Count; i++)
+                {
+                    if (clipUIs[i].Clip != currentClips[i])
+                    {
+                        rebuildNeeded = true;
+                        break;
+                    }
+                }
+            }
+
+            if (rebuildNeeded)
+            {
+                RebuildClipUIs();
+            }
+            else
+            {
+                UpdateLayout();
+            }
+        }
+
         public void UpdateZoom()
         {
             // Update track width to match timeline width

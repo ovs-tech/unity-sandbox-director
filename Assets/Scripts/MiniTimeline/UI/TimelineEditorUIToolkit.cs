@@ -205,7 +205,7 @@ namespace Systems.MiniTimeline.UI
             // Refresh all track UIs to reflect command changes
             foreach (var trackUI in trackUIs)
             {
-                trackUI?.UpdateLayout();
+                trackUI?.RefreshClips();
             }
         }
 
@@ -1763,10 +1763,9 @@ namespace Systems.MiniTimeline.UI
 
             Debug.Log($"Delete clip: {clipUI.Clip.Id}");
             
-            // TODO: Implement DeleteClipCommand that works with TrackUIToolkit
-            // For now, just remove the clip directly
-            clipUI.ParentTrack.Track.RemoveClip(clipUI.Clip);
-            clipUI.ParentTrack.RebuildClipUIs();
+            // Execute delete command
+            var deleteCommand = new DeleteClipCommand(clipUI.ParentTrack.Track, clipUI.Clip);
+            ExecuteCommand(deleteCommand);
         }
 
         private void DuplicateClip(ClipUIToolkit clipUI)
