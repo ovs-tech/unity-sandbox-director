@@ -131,7 +131,7 @@
 					"Label" : "Base Color",
 					"Value" : "#ffffff",
 					"Data Type" : "Color",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_02/G9Feminine02_Nails_D_1005.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Nails_D_1005.jpg"
 				},
 				{
 					"Name" : "Diffuse Roughness",
@@ -159,7 +159,7 @@
 					"Label" : "Translucency Color",
 					"Value" : "#ffffff",
 					"Data Type" : "Color",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_02/G9Feminine02_Nails_SSS_1005.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Nails_SSS_1005.jpg"
 				},
 				{
 					"Name" : "Invert Transmission Normal",
@@ -201,7 +201,7 @@
 					"Label" : "Specular Lobe 1 Roughness",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/runtime/textures/daz/characters/genesis9/base/feminine_02/g9feminine02_nails_r_1005.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Nails_R_1005.jpg"
 				},
 				{
 					"Name" : "Specular Lobe 2 Roughness Mult",
@@ -285,7 +285,7 @@
 					"Label" : "Ambient Occlusion Weight",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_02/G9Feminine02_Nails_SO_1005.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Nails_SO_1005.jpg"
 				},
 				{
 					"Name" : "Specular Occlusion Grazing",
@@ -311,14 +311,14 @@
 				{
 					"Name" : "Detail Weight",
 					"Label" : "Detail Weight",
-					"Value" : 0.6,
+					"Value" : 1,
 					"Data Type" : "Double",
 					"Texture" : ""
 				},
 				{
 					"Name" : "Detail Horizontal Tiles",
 					"Label" : "Detail Horizontal Tiles",
-					"Value" : 10,
+					"Value" : 1,
 					"Data Type" : "Double",
 					"Texture" : ""
 				},
@@ -332,7 +332,7 @@
 				{
 					"Name" : "Detail Vertical Tiles",
 					"Label" : "Detail Vertical Tiles",
-					"Value" : 10,
+					"Value" : 1,
 					"Data Type" : "Double",
 					"Texture" : ""
 				},
@@ -701,7 +701,7 @@
 					"Label" : "Base Color",
 					"Value" : "#ffffff",
 					"Data Type" : "Color",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_02/G9Feminine02_Nails_D_1005.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Nails_D_1005.jpg"
 				},
 				{
 					"Name" : "Diffuse Roughness",
@@ -729,7 +729,7 @@
 					"Label" : "Translucency Color",
 					"Value" : "#ffffff",
 					"Data Type" : "Color",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_02/G9Feminine02_Nails_SSS_1005.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Nails_SSS_1005.jpg"
 				},
 				{
 					"Name" : "Invert Transmission Normal",
@@ -771,7 +771,7 @@
 					"Label" : "Specular Lobe 1 Roughness",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/runtime/textures/daz/characters/genesis9/base/feminine_02/g9feminine02_nails_r_1005.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Nails_R_1005.jpg"
 				},
 				{
 					"Name" : "Specular Lobe 2 Roughness Mult",
@@ -855,7 +855,7 @@
 					"Label" : "Ambient Occlusion Weight",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_02/G9Feminine02_Nails_SO_1005.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Nails_SO_1005.jpg"
 				},
 				{
 					"Name" : "Specular Occlusion Grazing",
@@ -881,14 +881,14 @@
 				{
 					"Name" : "Detail Weight",
 					"Label" : "Detail Weight",
-					"Value" : 0.6,
+					"Value" : 1,
 					"Data Type" : "Double",
 					"Texture" : ""
 				},
 				{
 					"Name" : "Detail Horizontal Tiles",
 					"Label" : "Detail Horizontal Tiles",
-					"Value" : 10,
+					"Value" : 1,
 					"Data Type" : "Double",
 					"Texture" : ""
 				},
@@ -902,7 +902,7 @@
 				{
 					"Name" : "Detail Vertical Tiles",
 					"Label" : "Detail Vertical Tiles",
-					"Value" : 10,
+					"Value" : 1,
 					"Data Type" : "Double",
 					"Texture" : ""
 				},
@@ -1271,7 +1271,7 @@
 					"Label" : "Base Color",
 					"Value" : "#ffffff",
 					"Data Type" : "Color",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_02/G9Feminine02_Legs_D_1003.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Legs_D_1003.jpg"
 				},
 				{
 					"Name" : "Diffuse Roughness",
@@ -1299,7 +1299,7 @@
 					"Label" : "Translucency Color",
 					"Value" : "#ffffff",
 					"Data Type" : "Color",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_02/G9Feminine02_Legs_SSS_1003.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Legs_SSS_1003.jpg"
 				},
 				{
 					"Name" : "Invert Transmission Normal",
@@ -1341,7 +1341,7 @@
 					"Label" : "Specular Lobe 1 Roughness",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/runtime/textures/daz/characters/genesis9/base/feminine_02/g9feminine02_legs_r_1003.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Legs_R_1003.jpg"
 				},
 				{
 					"Name" : "Specular Lobe 2 Roughness Mult",
@@ -1425,7 +1425,7 @@
 					"Label" : "Ambient Occlusion Weight",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_02/G9Feminine02_Legs_SO_1003.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Legs_SO_1003.jpg"
 				},
 				{
 					"Name" : "Specular Occlusion Grazing",
@@ -1495,7 +1495,7 @@
 					"Label" : "Detail Normal Map",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/runtime/textures/daz/characters/genesis9/base/feminine_02/g9feminine02_legs_nm_1003.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Legs_NM_1003.jpg"
 				},
 				{
 					"Name" : "Detail Specular Roughness Mult",
@@ -1841,7 +1841,7 @@
 					"Label" : "Base Color",
 					"Value" : "#ffffff",
 					"Data Type" : "Color",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_02/G9Feminine02_Head_D_1001.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Head_D_1001.jpg"
 				},
 				{
 					"Name" : "Diffuse Roughness",
@@ -1869,7 +1869,7 @@
 					"Label" : "Translucency Color",
 					"Value" : "#ffffff",
 					"Data Type" : "Color",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_02/G9Feminine02_Head_SSS_1001.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Head_SSS_1001.jpg"
 				},
 				{
 					"Name" : "Invert Transmission Normal",
@@ -1888,9 +1888,9 @@
 				{
 					"Name" : "Dual Lobe Specular Weight",
 					"Label" : "Dual Lobe Specular Weight",
-					"Value" : 1,
+					"Value" : 0.6,
 					"Data Type" : "Double",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Skin_SLW.jpg"
+					"Texture" : ""
 				},
 				{
 					"Name" : "Dual Lobe Specular Reflectivity",
@@ -1911,7 +1911,7 @@
 					"Label" : "Specular Lobe 1 Roughness",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/runtime/textures/daz/characters/genesis9/base/feminine_02/g9feminine02_head_r_1001.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Head_R_1001.jpg"
 				},
 				{
 					"Name" : "Specular Lobe 2 Roughness Mult",
@@ -1995,7 +1995,7 @@
 					"Label" : "Ambient Occlusion Weight",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_02/G9Feminine02_Head_SO_1001.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Head_SO_1001.jpg"
 				},
 				{
 					"Name" : "Specular Occlusion Grazing",
@@ -2065,7 +2065,7 @@
 					"Label" : "Detail Normal Map",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/runtime/textures/daz/characters/genesis9/base/feminine_02/g9feminine02_head_nm_1001.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Head_NM_1001.jpg"
 				},
 				{
 					"Name" : "Detail Specular Roughness Mult",
@@ -2411,7 +2411,7 @@
 					"Label" : "Base Color",
 					"Value" : "#ffffff",
 					"Data Type" : "Color",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_02/G9Feminine02_Arms_D_1004.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Arms_D_1004.jpg"
 				},
 				{
 					"Name" : "Diffuse Roughness",
@@ -2439,7 +2439,7 @@
 					"Label" : "Translucency Color",
 					"Value" : "#ffffff",
 					"Data Type" : "Color",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_02/G9Feminine02_Arms_SSS_1004.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Arms_SSS_1004.jpg"
 				},
 				{
 					"Name" : "Invert Transmission Normal",
@@ -2481,7 +2481,7 @@
 					"Label" : "Specular Lobe 1 Roughness",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/runtime/textures/daz/characters/genesis9/base/feminine_02/g9feminine02_arms_r_1004.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Arms_R_1004.jpg"
 				},
 				{
 					"Name" : "Specular Lobe 2 Roughness Mult",
@@ -2565,7 +2565,7 @@
 					"Label" : "Ambient Occlusion Weight",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_02/G9Feminine02_Arms_SO_1004.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Arms_SO_1004.jpg"
 				},
 				{
 					"Name" : "Specular Occlusion Grazing",
@@ -2635,7 +2635,7 @@
 					"Label" : "Detail Normal Map",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/runtime/textures/daz/characters/genesis9/base/feminine_02/g9feminine02_arms_nm_1004.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Arms_NM_1004.jpg"
 				},
 				{
 					"Name" : "Detail Specular Roughness Mult",
@@ -2981,7 +2981,7 @@
 					"Label" : "Base Color",
 					"Value" : "#ffffff",
 					"Data Type" : "Color",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_02/G9Feminine02_Head_D_1001.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Head_D_1001.jpg"
 				},
 				{
 					"Name" : "Diffuse Roughness",
@@ -3009,7 +3009,7 @@
 					"Label" : "Translucency Color",
 					"Value" : "#ffffff",
 					"Data Type" : "Color",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_02/G9Feminine02_Head_SSS_1001.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Head_SSS_1001.jpg"
 				},
 				{
 					"Name" : "Invert Transmission Normal",
@@ -3051,7 +3051,7 @@
 					"Label" : "Specular Lobe 1 Roughness",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/runtime/textures/daz/characters/genesis9/base/feminine_02/g9feminine02_head_r_1001.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Head_R_1001.jpg"
 				},
 				{
 					"Name" : "Specular Lobe 2 Roughness Mult",
@@ -3135,7 +3135,7 @@
 					"Label" : "Ambient Occlusion Weight",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_02/G9Feminine02_Head_SO_1001.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Head_SO_1001.jpg"
 				},
 				{
 					"Name" : "Specular Occlusion Grazing",
@@ -3205,7 +3205,7 @@
 					"Label" : "Detail Normal Map",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/runtime/textures/daz/characters/genesis9/base/feminine_02/g9feminine02_head_nm_1001.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Head_NM_1001.jpg"
 				},
 				{
 					"Name" : "Detail Specular Roughness Mult",
@@ -3551,7 +3551,7 @@
 					"Label" : "Base Color",
 					"Value" : "#ffffff",
 					"Data Type" : "Color",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_02/G9Feminine02_Body_D_1002.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Body_D_1002.jpg"
 				},
 				{
 					"Name" : "Diffuse Roughness",
@@ -3579,7 +3579,7 @@
 					"Label" : "Translucency Color",
 					"Value" : "#ffffff",
 					"Data Type" : "Color",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_02/G9Feminine02_Body_SSS_1002.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Body_SSS_1002.jpg"
 				},
 				{
 					"Name" : "Invert Transmission Normal",
@@ -3621,7 +3621,7 @@
 					"Label" : "Specular Lobe 1 Roughness",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/runtime/textures/daz/characters/genesis9/base/feminine_02/g9feminine02_body_r_1002.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Body_R_1002.jpg"
 				},
 				{
 					"Name" : "Specular Lobe 2 Roughness Mult",
@@ -3705,7 +3705,7 @@
 					"Label" : "Ambient Occlusion Weight",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_02/G9Feminine02_Body_SO_1002.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Body_SO_1002.jpg"
 				},
 				{
 					"Name" : "Specular Occlusion Grazing",
@@ -3775,7 +3775,7 @@
 					"Label" : "Detail Normal Map",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/Shared/My DAZ 3D Library/runtime/textures/daz/characters/genesis9/base/feminine_02/g9feminine02_body_nm_1002.jpg"
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/Characters/Genesis9/Base/Feminine_01/G9Feminine01_Body_NM_1002.jpg"
 				},
 				{
 					"Name" : "Detail Specular Roughness Mult",
@@ -6937,7 +6937,7 @@
 					"Label" : "Normal Map",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Daz3D/chipu/ExportTextures/d23_Eye Normal-3_2d3256c1-f866-7b4c-63b6-d2be80b24b21.png"
+					"Texture" : "/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Daz3D/chipu/ExportTextures/d28_Eye Normal-3_0845bc00-0fbd-8be0-b036-94e1e0ee92b9.png"
 				},
 				{
 					"Name" : "Metallic Flakes Weight",
@@ -7465,7 +7465,7 @@
 					"Label" : "Base Color",
 					"Value" : "#ffffff",
 					"Data Type" : "Color",
-					"Texture" : "/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Daz3D/chipu/ExportTextures/d24_Eye Color-1_5e9ba475-b988-aecc-f7cf-bd8d5e474a2c.png"
+					"Texture" : "/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Daz3D/chipu/ExportTextures/d26_Eye Color-1_1997ca78-cedd-9603-f9e6-39ba374a1b68.png"
 				},
 				{
 					"Name" : "Diffuse Roughness",
@@ -7493,7 +7493,7 @@
 					"Label" : "Translucency Color",
 					"Value" : "#ffffff",
 					"Data Type" : "Color",
-					"Texture" : "/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Daz3D/chipu/ExportTextures/d25_Eye Translucency-1_5e9ba475-b988-aecc-f7cf-bd8d5e474a2c.png"
+					"Texture" : "/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Daz3D/chipu/ExportTextures/d27_Eye Translucency-1_1997ca78-cedd-9603-f9e6-39ba374a1b68.png"
 				},
 				{
 					"Name" : "Invert Transmission Normal",
@@ -7570,7 +7570,7 @@
 					"Label" : "Normal Map",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Daz3D/chipu/ExportTextures/d23_Eye Normal-3_2d3256c1-f866-7b4c-63b6-d2be80b24b21.png"
+					"Texture" : "/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Daz3D/chipu/ExportTextures/d28_Eye Normal-3_0845bc00-0fbd-8be0-b036-94e1e0ee92b9.png"
 				},
 				{
 					"Name" : "Makeup Enable",
@@ -8035,7 +8035,7 @@
 					"Label" : "Base Color",
 					"Value" : "#ffffff",
 					"Data Type" : "Color",
-					"Texture" : "/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Daz3D/chipu/ExportTextures/d24_Eye Color-1_5e9ba475-b988-aecc-f7cf-bd8d5e474a2c.png"
+					"Texture" : "/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Daz3D/chipu/ExportTextures/d26_Eye Color-1_1997ca78-cedd-9603-f9e6-39ba374a1b68.png"
 				},
 				{
 					"Name" : "Diffuse Roughness",
@@ -8063,7 +8063,7 @@
 					"Label" : "Translucency Color",
 					"Value" : "#ffffff",
 					"Data Type" : "Color",
-					"Texture" : "/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Daz3D/chipu/ExportTextures/d25_Eye Translucency-1_5e9ba475-b988-aecc-f7cf-bd8d5e474a2c.png"
+					"Texture" : "/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Daz3D/chipu/ExportTextures/d27_Eye Translucency-1_1997ca78-cedd-9603-f9e6-39ba374a1b68.png"
 				},
 				{
 					"Name" : "Invert Transmission Normal",
@@ -8140,7 +8140,7 @@
 					"Label" : "Normal Map",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Daz3D/chipu/ExportTextures/d23_Eye Normal-3_2d3256c1-f866-7b4c-63b6-d2be80b24b21.png"
+					"Texture" : "/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Daz3D/chipu/ExportTextures/d28_Eye Normal-3_0845bc00-0fbd-8be0-b036-94e1e0ee92b9.png"
 				},
 				{
 					"Name" : "Makeup Enable",
@@ -8913,7 +8913,7 @@
 					"Label" : "Normal Map",
 					"Value" : 1,
 					"Data Type" : "Double",
-					"Texture" : "/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Daz3D/chipu/ExportTextures/d23_Eye Normal-3_2d3256c1-f866-7b4c-63b6-d2be80b24b21.png"
+					"Texture" : "/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Daz3D/chipu/ExportTextures/d28_Eye Normal-3_0845bc00-0fbd-8be0-b036-94e1e0ee92b9.png"
 				},
 				{
 					"Name" : "Metallic Flakes Weight",
@@ -19658,6 +19658,4186 @@
 					"Texture" : ""
 				}
 			]
+		},
+		{
+			"Version" : 4,
+			"Asset Name" : "dForce Pixie Hair Cap_1085",
+			"Asset Label" : "dForce Pixie Hair Cap",
+			"Material Name" : "Head_1",
+			"Material Type" : "Iray Uber",
+			"Value" : "Follower/Hair",
+			"Properties" : [
+				{
+					"Name" : "Asset Type",
+					"Label" : "Asset Type",
+					"Value" : "Follower/Hair",
+					"Data Type" : "String",
+					"Texture" : ""
+				},
+				{
+					"Name" : "UV Set",
+					"Label" : "UV Set",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Smooth On",
+					"Label" : "Smooth",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Smooth Angle",
+					"Label" : "Angle",
+					"Value" : 89.9,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Line Preview Color",
+					"Label" : "Line Preview Color",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Line Start Width",
+					"Label" : "Line Start Width (mm)",
+					"Value" : 0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Line End Width",
+					"Label" : "Line End Width (mm)",
+					"Value" : 0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Line UV Width",
+					"Label" : "Line UV Width",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Render Priority",
+					"Label" : "Render Priority",
+					"Value" : 3,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Propagate Priority",
+					"Label" : "Propagate Priority",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Follow Blend",
+					"Label" : "Follow Blend",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Base Mixing",
+					"Label" : "Base Mixing",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Weight",
+					"Label" : "Metallicity",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Weight",
+					"Label" : "Diffuse Weight",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Color",
+					"Label" : "Base Color",
+					"Value" : "#4f3c33",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Strength",
+					"Label" : "Diffuse Strength",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Roughness",
+					"Label" : "Diffuse Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Weight",
+					"Label" : "Diffuse Overlay Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Weight Squared",
+					"Label" : "Diffuse Overlay Weight Squared",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Color",
+					"Label" : "Diffuse Overlay Color",
+					"Value" : "#c0c0c0",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Color Effect",
+					"Label" : "Diffuse Overlay Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Roughness",
+					"Label" : "Diffuse Overlay Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Translucency Weight",
+					"Label" : "Translucency Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Base Color Effect",
+					"Label" : "Base Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Translucency Color",
+					"Label" : "Translucency Color",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Invert Transmission Normal",
+					"Label" : "Invert Transmission Normal",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Reflectance Tint",
+					"Label" : "SSS Reflectance Tint",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Dual Lobe Specular Weight",
+					"Label" : "Dual Lobe Specular Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Dual Lobe Specular Reflectivity",
+					"Label" : "Dual Lobe Specular Reflectivity",
+					"Value" : 0.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Specular Lobe 1 Roughness",
+					"Label" : "Specular Lobe 1 Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Specular Lobe 2 Roughness",
+					"Label" : "Specular Lobe 2 Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Specular Lobe 1 Glossiness",
+					"Label" : "Specular Lobe 1 Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Specular Lobe 2 Glossiness",
+					"Label" : "Specular Lobe 2 Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Dual Lobe Specular Ratio",
+					"Label" : "Dual Lobe Specular Ratio",
+					"Value" : 0.85,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Weight",
+					"Label" : "Glossy Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Layered Weight",
+					"Label" : "Glossy Layered Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Share Glossy Inputs",
+					"Label" : "Share Glossy Inputs",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Color",
+					"Label" : "Glossy Color",
+					"Value" : "#4f3c33",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Color Effect",
+					"Label" : "Glossy Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Reflectivity",
+					"Label" : "Glossy Reflectivity",
+					"Value" : 0.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Specular",
+					"Label" : "Glossy Specular",
+					"Value" : "#3b3b3b",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Roughness",
+					"Label" : "Glossy Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossiness",
+					"Label" : "Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Anisotropy",
+					"Label" : "Glossy Anisotropy",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Weight",
+					"Label" : "Backscattering Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Color",
+					"Label" : "Backscattering Color",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Roughness",
+					"Label" : "Backscattering Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Glossiness",
+					"Label" : "Backscattering Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Anisotropy",
+					"Label" : "Backscattering Anisotropy",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Index",
+					"Label" : "Refraction Index",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Weight",
+					"Label" : "Refraction Weight",
+					"Value" : 0.5947368,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Color",
+					"Label" : "Refraction Color",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Roughness",
+					"Label" : "Refraction Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Glossiness",
+					"Label" : "Refraction Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Abbe",
+					"Label" : "Abbe",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Anisotropy Rotations",
+					"Label" : "Glossy Anisotropy Rotations",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Base Thin Film",
+					"Label" : "Base Thin Film",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Base Thin Film IOR",
+					"Label" : "Base Thin Film IOR",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Bump Strength",
+					"Label" : "Base Bump",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Normal Map",
+					"Label" : "Normal Map",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Weight",
+					"Label" : "Metallic Flakes Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Color",
+					"Label" : "Metallic Flakes Color",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Color Effect",
+					"Label" : "Metallic Flakes Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Roughness",
+					"Label" : "Metallic Flakes Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Glossiness",
+					"Label" : "Metallic Flakes Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Size",
+					"Label" : "Metallic Flakes Size",
+					"Value" : 0.001,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Strength",
+					"Label" : "Metallic Flakes Strength",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Density",
+					"Label" : "Metallic Flakes Density",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Thin Film",
+					"Label" : "Metallic Flakes Thin Film",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Thin Film IOR",
+					"Label" : "Metallic Flakes Thin Film IOR",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Weight",
+					"Label" : "Top Coat Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Color",
+					"Label" : "Top Coat Color",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Color Effect",
+					"Label" : "Top Coat Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Roughness",
+					"Label" : "Top Coat Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Glossiness",
+					"Label" : "Top Coat Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Layering Mode",
+					"Label" : "Top Coat Layering Mode",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Reflectivity",
+					"Label" : "Reflectivity",
+					"Value" : 0.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat IOR",
+					"Label" : "Top Coat IOR",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Curve Normal",
+					"Label" : "Top Coat Curve 0",
+					"Value" : 0.04,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Curve Grazing",
+					"Label" : "Top Coat Curve 90",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Curve Exponent",
+					"Label" : "Top Coat Curve Exponent",
+					"Value" : 5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Anisotropy",
+					"Label" : "Top Coat Anisotropy",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Rotations",
+					"Label" : "Top Coat Rotations",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Thin Film",
+					"Label" : "Top Coat Thin Film",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Thin Film IOR",
+					"Label" : "Top Coat Thin Film IOR",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Bump Mode",
+					"Label" : "Top Coat Bump Mode",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Bump",
+					"Label" : "Top Coat Bump",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Thin Walled",
+					"Label" : "Thin Walled",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Transmitted Measurement Distance",
+					"Label" : "Transmitted Measurement Distance",
+					"Value" : 0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Transmitted Color",
+					"Label" : "Transmitted Color",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Mode",
+					"Label" : "SSS Mode",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Scattering Measurement Distance",
+					"Label" : "Scattering Measurement Distance",
+					"Value" : 0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Amount",
+					"Label" : "SSS Amount",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Color",
+					"Label" : "SSS Color",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Direction",
+					"Label" : "SSS Direction",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Emission Color",
+					"Label" : "Emission Color",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Emission Temperature",
+					"Label" : "Emission Temperature (K)",
+					"Value" : 6500,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Two Sided Light",
+					"Label" : "Two Sided Light",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Luminance",
+					"Label" : "Luminance",
+					"Value" : 1500,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Luminance Units",
+					"Label" : "Luminance Units",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Luminous Efficacy",
+					"Label" : "Luminous Efficacy (lm/W)",
+					"Value" : 15,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Cutout Opacity",
+					"Label" : "Cutout Opacity",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : "/Users/Shared/My DAZ 3D Library/Runtime/Textures/DAZ/G9SE/dForcePixieHair/dForcePixieCap_Opacity.png"
+				},
+				{
+					"Name" : "Displacement Strength",
+					"Label" : "Displacement Strength",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Minimum Displacement",
+					"Label" : "Minimum Displacement",
+					"Value" : -0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Maximum Displacement",
+					"Label" : "Maximum Displacement",
+					"Value" : 0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SubD Displacement Level",
+					"Label" : "SubD Displacement Level",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Horizontal Tiles",
+					"Label" : "Horizontal Tiles",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Horizontal Offset",
+					"Label" : "Horizontal Offset",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Vertical Tiles",
+					"Label" : "Vertical Tiles",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Vertical Offset",
+					"Label" : "Vertical Offset",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Round Corners Radius",
+					"Label" : "Round Corners Radius",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Round Corners Across Materials",
+					"Label" : "Round Corners Across Materials",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Round Corners Roundness",
+					"Label" : "Round Corners Roundness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Roughness Squared",
+					"Label" : "Roughness Squared",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossiness Squared",
+					"Label" : "Glossiness Squared",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "BSDF Type",
+					"Label" : "BSDF Type",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "OutlineColorID",
+					"Label" : "Material ID",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Exclude From White Mode",
+					"Label" : "Exclude From White Mode",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				}
+			]
+		},
+		{
+			"Version" : 4,
+			"Asset Name" : "dForce Pixie Cut_708408",
+			"Asset Label" : "dForce Pixie Cut",
+			"Material Name" : "Hair02",
+			"Material Type" : "Iray Uber",
+			"Value" : "Follower/Hair",
+			"Properties" : [
+				{
+					"Name" : "Asset Type",
+					"Label" : "Asset Type",
+					"Value" : "Follower/Hair",
+					"Data Type" : "String",
+					"Texture" : ""
+				},
+				{
+					"Name" : "UV Set",
+					"Label" : "UV Set",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Smooth On",
+					"Label" : "Smooth",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Smooth Angle",
+					"Label" : "Angle",
+					"Value" : 89.9,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Line Preview Color",
+					"Label" : "Line Preview Color",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Line Start Width",
+					"Label" : "Line Start Width (mm)",
+					"Value" : 0.05,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Line End Width",
+					"Label" : "Line End Width (mm)",
+					"Value" : 0.02,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Line UV Width",
+					"Label" : "Line UV Width",
+					"Value" : 0.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Render Priority",
+					"Label" : "Render Priority",
+					"Value" : 3,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Propagate Priority",
+					"Label" : "Propagate Priority",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Follow Blend",
+					"Label" : "Follow Blend",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Base Mixing",
+					"Label" : "Base Mixing",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Weight",
+					"Label" : "Metallicity",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Weight",
+					"Label" : "Diffuse Weight",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Color",
+					"Label" : "Base Color",
+					"Value" : "#4f3c33",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Strength",
+					"Label" : "Diffuse Strength",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Roughness",
+					"Label" : "Diffuse Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Weight",
+					"Label" : "Diffuse Overlay Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Weight Squared",
+					"Label" : "Diffuse Overlay Weight Squared",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Color",
+					"Label" : "Diffuse Overlay Color",
+					"Value" : "#c0c0c0",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Color Effect",
+					"Label" : "Diffuse Overlay Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Roughness",
+					"Label" : "Diffuse Overlay Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Translucency Weight",
+					"Label" : "Translucency Weight",
+					"Value" : 0.3263158,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Base Color Effect",
+					"Label" : "Base Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Translucency Color",
+					"Label" : "Translucency Color",
+					"Value" : "#4f3c33",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Invert Transmission Normal",
+					"Label" : "Invert Transmission Normal",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Reflectance Tint",
+					"Label" : "SSS Reflectance Tint",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Dual Lobe Specular Weight",
+					"Label" : "Dual Lobe Specular Weight",
+					"Value" : 0.5263158,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Dual Lobe Specular Reflectivity",
+					"Label" : "Dual Lobe Specular Reflectivity",
+					"Value" : 0.4210526,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Specular Lobe 1 Roughness",
+					"Label" : "Specular Lobe 1 Roughness",
+					"Value" : 0.5526316,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Specular Lobe 2 Roughness",
+					"Label" : "Specular Lobe 2 Roughness",
+					"Value" : 0.5736842,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Specular Lobe 1 Glossiness",
+					"Label" : "Specular Lobe 1 Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Specular Lobe 2 Glossiness",
+					"Label" : "Specular Lobe 2 Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Dual Lobe Specular Ratio",
+					"Label" : "Dual Lobe Specular Ratio",
+					"Value" : 0.85,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Weight",
+					"Label" : "Glossy Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Layered Weight",
+					"Label" : "Glossy Layered Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Share Glossy Inputs",
+					"Label" : "Share Glossy Inputs",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Color",
+					"Label" : "Glossy Color",
+					"Value" : "#ab957f",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Color Effect",
+					"Label" : "Glossy Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Reflectivity",
+					"Label" : "Glossy Reflectivity",
+					"Value" : 0.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Specular",
+					"Label" : "Glossy Specular",
+					"Value" : "#3b3b3b",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Roughness",
+					"Label" : "Glossy Roughness",
+					"Value" : 0.3631579,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossiness",
+					"Label" : "Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Anisotropy",
+					"Label" : "Glossy Anisotropy",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Weight",
+					"Label" : "Backscattering Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Color",
+					"Label" : "Backscattering Color",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Roughness",
+					"Label" : "Backscattering Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Glossiness",
+					"Label" : "Backscattering Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Anisotropy",
+					"Label" : "Backscattering Anisotropy",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Index",
+					"Label" : "Refraction Index",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Weight",
+					"Label" : "Refraction Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Color",
+					"Label" : "Refraction Color",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Roughness",
+					"Label" : "Refraction Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Glossiness",
+					"Label" : "Refraction Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Abbe",
+					"Label" : "Abbe",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Anisotropy Rotations",
+					"Label" : "Glossy Anisotropy Rotations",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Base Thin Film",
+					"Label" : "Base Thin Film",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Base Thin Film IOR",
+					"Label" : "Base Thin Film IOR",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Bump Strength",
+					"Label" : "Base Bump",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Normal Map",
+					"Label" : "Normal Map",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Weight",
+					"Label" : "Metallic Flakes Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Color",
+					"Label" : "Metallic Flakes Color",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Color Effect",
+					"Label" : "Metallic Flakes Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Roughness",
+					"Label" : "Metallic Flakes Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Glossiness",
+					"Label" : "Metallic Flakes Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Size",
+					"Label" : "Metallic Flakes Size",
+					"Value" : 0.001,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Strength",
+					"Label" : "Metallic Flakes Strength",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Density",
+					"Label" : "Metallic Flakes Density",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Thin Film",
+					"Label" : "Metallic Flakes Thin Film",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Thin Film IOR",
+					"Label" : "Metallic Flakes Thin Film IOR",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Weight",
+					"Label" : "Top Coat Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Color",
+					"Label" : "Top Coat Color",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Color Effect",
+					"Label" : "Top Coat Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Roughness",
+					"Label" : "Top Coat Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Glossiness",
+					"Label" : "Top Coat Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Layering Mode",
+					"Label" : "Top Coat Layering Mode",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Reflectivity",
+					"Label" : "Reflectivity",
+					"Value" : 0.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat IOR",
+					"Label" : "Top Coat IOR",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Curve Normal",
+					"Label" : "Top Coat Curve 0",
+					"Value" : 0.04,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Curve Grazing",
+					"Label" : "Top Coat Curve 90",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Curve Exponent",
+					"Label" : "Top Coat Curve Exponent",
+					"Value" : 5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Anisotropy",
+					"Label" : "Top Coat Anisotropy",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Rotations",
+					"Label" : "Top Coat Rotations",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Thin Film",
+					"Label" : "Top Coat Thin Film",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Thin Film IOR",
+					"Label" : "Top Coat Thin Film IOR",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Bump Mode",
+					"Label" : "Top Coat Bump Mode",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Bump",
+					"Label" : "Top Coat Bump",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Thin Walled",
+					"Label" : "Thin Walled",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Transmitted Measurement Distance",
+					"Label" : "Transmitted Measurement Distance",
+					"Value" : 0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Transmitted Color",
+					"Label" : "Transmitted Color",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Mode",
+					"Label" : "SSS Mode",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Scattering Measurement Distance",
+					"Label" : "Scattering Measurement Distance",
+					"Value" : 0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Amount",
+					"Label" : "SSS Amount",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Color",
+					"Label" : "SSS Color",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Direction",
+					"Label" : "SSS Direction",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Emission Color",
+					"Label" : "Emission Color",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Emission Temperature",
+					"Label" : "Emission Temperature (K)",
+					"Value" : 6500,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Two Sided Light",
+					"Label" : "Two Sided Light",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Luminance",
+					"Label" : "Luminance",
+					"Value" : 1500,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Luminance Units",
+					"Label" : "Luminance Units",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Luminous Efficacy",
+					"Label" : "Luminous Efficacy (lm/W)",
+					"Value" : 15,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Cutout Opacity",
+					"Label" : "Cutout Opacity",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Displacement Strength",
+					"Label" : "Displacement Strength",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Minimum Displacement",
+					"Label" : "Minimum Displacement",
+					"Value" : -0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Maximum Displacement",
+					"Label" : "Maximum Displacement",
+					"Value" : 0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SubD Displacement Level",
+					"Label" : "SubD Displacement Level",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Horizontal Tiles",
+					"Label" : "Horizontal Tiles",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Horizontal Offset",
+					"Label" : "Horizontal Offset",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Vertical Tiles",
+					"Label" : "Vertical Tiles",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Vertical Offset",
+					"Label" : "Vertical Offset",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Round Corners Radius",
+					"Label" : "Round Corners Radius",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Round Corners Across Materials",
+					"Label" : "Round Corners Across Materials",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Round Corners Roundness",
+					"Label" : "Round Corners Roundness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Roughness Squared",
+					"Label" : "Roughness Squared",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossiness Squared",
+					"Label" : "Glossiness Squared",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "BSDF Type",
+					"Label" : "BSDF Type",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "OutlineColorID",
+					"Label" : "Material ID",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Exclude From White Mode",
+					"Label" : "Exclude From White Mode",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				}
+			]
+		},
+		{
+			"Version" : 4,
+			"Asset Name" : "dForce Pixie Cut_708408",
+			"Asset Label" : "dForce Pixie Cut",
+			"Material Name" : "Hair01",
+			"Material Type" : "Iray Uber",
+			"Value" : "Follower/Hair",
+			"Properties" : [
+				{
+					"Name" : "Asset Type",
+					"Label" : "Asset Type",
+					"Value" : "Follower/Hair",
+					"Data Type" : "String",
+					"Texture" : ""
+				},
+				{
+					"Name" : "UV Set",
+					"Label" : "UV Set",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Smooth On",
+					"Label" : "Smooth",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Smooth Angle",
+					"Label" : "Angle",
+					"Value" : 89.9,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Line Preview Color",
+					"Label" : "Line Preview Color",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Line Start Width",
+					"Label" : "Line Start Width (mm)",
+					"Value" : 0.05,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Line End Width",
+					"Label" : "Line End Width (mm)",
+					"Value" : 0.02,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Line UV Width",
+					"Label" : "Line UV Width",
+					"Value" : 0.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Render Priority",
+					"Label" : "Render Priority",
+					"Value" : 3,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Propagate Priority",
+					"Label" : "Propagate Priority",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Follow Blend",
+					"Label" : "Follow Blend",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Base Mixing",
+					"Label" : "Base Mixing",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Weight",
+					"Label" : "Metallicity",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Weight",
+					"Label" : "Diffuse Weight",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Color",
+					"Label" : "Base Color",
+					"Value" : "#4f3c33",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Strength",
+					"Label" : "Diffuse Strength",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Roughness",
+					"Label" : "Diffuse Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Weight",
+					"Label" : "Diffuse Overlay Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Weight Squared",
+					"Label" : "Diffuse Overlay Weight Squared",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Color",
+					"Label" : "Diffuse Overlay Color",
+					"Value" : "#c0c0c0",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Color Effect",
+					"Label" : "Diffuse Overlay Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Roughness",
+					"Label" : "Diffuse Overlay Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Translucency Weight",
+					"Label" : "Translucency Weight",
+					"Value" : 0.3263158,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Base Color Effect",
+					"Label" : "Base Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Translucency Color",
+					"Label" : "Translucency Color",
+					"Value" : "#4f3c33",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Invert Transmission Normal",
+					"Label" : "Invert Transmission Normal",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Reflectance Tint",
+					"Label" : "SSS Reflectance Tint",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Dual Lobe Specular Weight",
+					"Label" : "Dual Lobe Specular Weight",
+					"Value" : 0.5263158,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Dual Lobe Specular Reflectivity",
+					"Label" : "Dual Lobe Specular Reflectivity",
+					"Value" : 0.4210526,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Specular Lobe 1 Roughness",
+					"Label" : "Specular Lobe 1 Roughness",
+					"Value" : 0.5526316,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Specular Lobe 2 Roughness",
+					"Label" : "Specular Lobe 2 Roughness",
+					"Value" : 0.5736842,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Specular Lobe 1 Glossiness",
+					"Label" : "Specular Lobe 1 Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Specular Lobe 2 Glossiness",
+					"Label" : "Specular Lobe 2 Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Dual Lobe Specular Ratio",
+					"Label" : "Dual Lobe Specular Ratio",
+					"Value" : 0.85,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Weight",
+					"Label" : "Glossy Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Layered Weight",
+					"Label" : "Glossy Layered Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Share Glossy Inputs",
+					"Label" : "Share Glossy Inputs",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Color",
+					"Label" : "Glossy Color",
+					"Value" : "#ab957f",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Color Effect",
+					"Label" : "Glossy Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Reflectivity",
+					"Label" : "Glossy Reflectivity",
+					"Value" : 0.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Specular",
+					"Label" : "Glossy Specular",
+					"Value" : "#3b3b3b",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Roughness",
+					"Label" : "Glossy Roughness",
+					"Value" : 0.3631579,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossiness",
+					"Label" : "Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Anisotropy",
+					"Label" : "Glossy Anisotropy",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Weight",
+					"Label" : "Backscattering Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Color",
+					"Label" : "Backscattering Color",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Roughness",
+					"Label" : "Backscattering Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Glossiness",
+					"Label" : "Backscattering Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Anisotropy",
+					"Label" : "Backscattering Anisotropy",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Index",
+					"Label" : "Refraction Index",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Weight",
+					"Label" : "Refraction Weight",
+					"Value" : 0.2842105,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Color",
+					"Label" : "Refraction Color",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Roughness",
+					"Label" : "Refraction Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Glossiness",
+					"Label" : "Refraction Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Abbe",
+					"Label" : "Abbe",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Anisotropy Rotations",
+					"Label" : "Glossy Anisotropy Rotations",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Base Thin Film",
+					"Label" : "Base Thin Film",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Base Thin Film IOR",
+					"Label" : "Base Thin Film IOR",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Bump Strength",
+					"Label" : "Base Bump",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Normal Map",
+					"Label" : "Normal Map",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Weight",
+					"Label" : "Metallic Flakes Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Color",
+					"Label" : "Metallic Flakes Color",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Color Effect",
+					"Label" : "Metallic Flakes Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Roughness",
+					"Label" : "Metallic Flakes Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Glossiness",
+					"Label" : "Metallic Flakes Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Size",
+					"Label" : "Metallic Flakes Size",
+					"Value" : 0.001,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Strength",
+					"Label" : "Metallic Flakes Strength",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Density",
+					"Label" : "Metallic Flakes Density",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Thin Film",
+					"Label" : "Metallic Flakes Thin Film",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Thin Film IOR",
+					"Label" : "Metallic Flakes Thin Film IOR",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Weight",
+					"Label" : "Top Coat Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Color",
+					"Label" : "Top Coat Color",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Color Effect",
+					"Label" : "Top Coat Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Roughness",
+					"Label" : "Top Coat Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Glossiness",
+					"Label" : "Top Coat Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Layering Mode",
+					"Label" : "Top Coat Layering Mode",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Reflectivity",
+					"Label" : "Reflectivity",
+					"Value" : 0.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat IOR",
+					"Label" : "Top Coat IOR",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Curve Normal",
+					"Label" : "Top Coat Curve 0",
+					"Value" : 0.04,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Curve Grazing",
+					"Label" : "Top Coat Curve 90",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Curve Exponent",
+					"Label" : "Top Coat Curve Exponent",
+					"Value" : 5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Anisotropy",
+					"Label" : "Top Coat Anisotropy",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Rotations",
+					"Label" : "Top Coat Rotations",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Thin Film",
+					"Label" : "Top Coat Thin Film",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Thin Film IOR",
+					"Label" : "Top Coat Thin Film IOR",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Bump Mode",
+					"Label" : "Top Coat Bump Mode",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Bump",
+					"Label" : "Top Coat Bump",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Thin Walled",
+					"Label" : "Thin Walled",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Transmitted Measurement Distance",
+					"Label" : "Transmitted Measurement Distance",
+					"Value" : 0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Transmitted Color",
+					"Label" : "Transmitted Color",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Mode",
+					"Label" : "SSS Mode",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Scattering Measurement Distance",
+					"Label" : "Scattering Measurement Distance",
+					"Value" : 0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Amount",
+					"Label" : "SSS Amount",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Color",
+					"Label" : "SSS Color",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Direction",
+					"Label" : "SSS Direction",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Emission Color",
+					"Label" : "Emission Color",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Emission Temperature",
+					"Label" : "Emission Temperature (K)",
+					"Value" : 6500,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Two Sided Light",
+					"Label" : "Two Sided Light",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Luminance",
+					"Label" : "Luminance",
+					"Value" : 1500,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Luminance Units",
+					"Label" : "Luminance Units",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Luminous Efficacy",
+					"Label" : "Luminous Efficacy (lm/W)",
+					"Value" : 15,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Cutout Opacity",
+					"Label" : "Cutout Opacity",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Displacement Strength",
+					"Label" : "Displacement Strength",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Minimum Displacement",
+					"Label" : "Minimum Displacement",
+					"Value" : -0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Maximum Displacement",
+					"Label" : "Maximum Displacement",
+					"Value" : 0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SubD Displacement Level",
+					"Label" : "SubD Displacement Level",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Horizontal Tiles",
+					"Label" : "Horizontal Tiles",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Horizontal Offset",
+					"Label" : "Horizontal Offset",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Vertical Tiles",
+					"Label" : "Vertical Tiles",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Vertical Offset",
+					"Label" : "Vertical Offset",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Round Corners Radius",
+					"Label" : "Round Corners Radius",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Round Corners Across Materials",
+					"Label" : "Round Corners Across Materials",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Round Corners Roundness",
+					"Label" : "Round Corners Roundness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Roughness Squared",
+					"Label" : "Roughness Squared",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossiness Squared",
+					"Label" : "Glossiness Squared",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "BSDF Type",
+					"Label" : "BSDF Type",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "OutlineColorID",
+					"Label" : "Material ID",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Exclude From White Mode",
+					"Label" : "Exclude From White Mode",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				}
+			]
+		},
+		{
+			"Version" : 4,
+			"Asset Name" : "dForce Pixie Cut_708408",
+			"Asset Label" : "dForce Pixie Cut",
+			"Material Name" : "Hairline01",
+			"Material Type" : "Iray Uber",
+			"Value" : "Follower/Hair",
+			"Properties" : [
+				{
+					"Name" : "Asset Type",
+					"Label" : "Asset Type",
+					"Value" : "Follower/Hair",
+					"Data Type" : "String",
+					"Texture" : ""
+				},
+				{
+					"Name" : "UV Set",
+					"Label" : "UV Set",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Smooth On",
+					"Label" : "Smooth",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Smooth Angle",
+					"Label" : "Angle",
+					"Value" : 89.9,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Line Preview Color",
+					"Label" : "Line Preview Color",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Line Start Width",
+					"Label" : "Line Start Width (mm)",
+					"Value" : 0.05,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Line End Width",
+					"Label" : "Line End Width (mm)",
+					"Value" : 0.02,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Line UV Width",
+					"Label" : "Line UV Width",
+					"Value" : 0.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Render Priority",
+					"Label" : "Render Priority",
+					"Value" : 3,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Propagate Priority",
+					"Label" : "Propagate Priority",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Follow Blend",
+					"Label" : "Follow Blend",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Base Mixing",
+					"Label" : "Base Mixing",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Weight",
+					"Label" : "Metallicity",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Weight",
+					"Label" : "Diffuse Weight",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Color",
+					"Label" : "Base Color",
+					"Value" : "#4f3c33",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Strength",
+					"Label" : "Diffuse Strength",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Roughness",
+					"Label" : "Diffuse Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Weight",
+					"Label" : "Diffuse Overlay Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Weight Squared",
+					"Label" : "Diffuse Overlay Weight Squared",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Color",
+					"Label" : "Diffuse Overlay Color",
+					"Value" : "#c0c0c0",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Color Effect",
+					"Label" : "Diffuse Overlay Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Roughness",
+					"Label" : "Diffuse Overlay Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Translucency Weight",
+					"Label" : "Translucency Weight",
+					"Value" : 0.3263158,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Base Color Effect",
+					"Label" : "Base Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Translucency Color",
+					"Label" : "Translucency Color",
+					"Value" : "#4f3c33",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Invert Transmission Normal",
+					"Label" : "Invert Transmission Normal",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Reflectance Tint",
+					"Label" : "SSS Reflectance Tint",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Dual Lobe Specular Weight",
+					"Label" : "Dual Lobe Specular Weight",
+					"Value" : 0.5263158,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Dual Lobe Specular Reflectivity",
+					"Label" : "Dual Lobe Specular Reflectivity",
+					"Value" : 0.4210526,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Specular Lobe 1 Roughness",
+					"Label" : "Specular Lobe 1 Roughness",
+					"Value" : 0.5526316,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Specular Lobe 2 Roughness",
+					"Label" : "Specular Lobe 2 Roughness",
+					"Value" : 0.5736842,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Specular Lobe 1 Glossiness",
+					"Label" : "Specular Lobe 1 Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Specular Lobe 2 Glossiness",
+					"Label" : "Specular Lobe 2 Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Dual Lobe Specular Ratio",
+					"Label" : "Dual Lobe Specular Ratio",
+					"Value" : 0.85,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Weight",
+					"Label" : "Glossy Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Layered Weight",
+					"Label" : "Glossy Layered Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Share Glossy Inputs",
+					"Label" : "Share Glossy Inputs",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Color",
+					"Label" : "Glossy Color",
+					"Value" : "#ab957f",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Color Effect",
+					"Label" : "Glossy Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Reflectivity",
+					"Label" : "Glossy Reflectivity",
+					"Value" : 0.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Specular",
+					"Label" : "Glossy Specular",
+					"Value" : "#3b3b3b",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Roughness",
+					"Label" : "Glossy Roughness",
+					"Value" : 0.3631579,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossiness",
+					"Label" : "Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Anisotropy",
+					"Label" : "Glossy Anisotropy",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Weight",
+					"Label" : "Backscattering Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Color",
+					"Label" : "Backscattering Color",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Roughness",
+					"Label" : "Backscattering Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Glossiness",
+					"Label" : "Backscattering Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Anisotropy",
+					"Label" : "Backscattering Anisotropy",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Index",
+					"Label" : "Refraction Index",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Weight",
+					"Label" : "Refraction Weight",
+					"Value" : 0.2842105,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Color",
+					"Label" : "Refraction Color",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Roughness",
+					"Label" : "Refraction Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Glossiness",
+					"Label" : "Refraction Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Abbe",
+					"Label" : "Abbe",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Anisotropy Rotations",
+					"Label" : "Glossy Anisotropy Rotations",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Base Thin Film",
+					"Label" : "Base Thin Film",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Base Thin Film IOR",
+					"Label" : "Base Thin Film IOR",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Bump Strength",
+					"Label" : "Base Bump",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Normal Map",
+					"Label" : "Normal Map",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Weight",
+					"Label" : "Metallic Flakes Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Color",
+					"Label" : "Metallic Flakes Color",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Color Effect",
+					"Label" : "Metallic Flakes Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Roughness",
+					"Label" : "Metallic Flakes Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Glossiness",
+					"Label" : "Metallic Flakes Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Size",
+					"Label" : "Metallic Flakes Size",
+					"Value" : 0.001,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Strength",
+					"Label" : "Metallic Flakes Strength",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Density",
+					"Label" : "Metallic Flakes Density",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Thin Film",
+					"Label" : "Metallic Flakes Thin Film",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Thin Film IOR",
+					"Label" : "Metallic Flakes Thin Film IOR",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Weight",
+					"Label" : "Top Coat Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Color",
+					"Label" : "Top Coat Color",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Color Effect",
+					"Label" : "Top Coat Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Roughness",
+					"Label" : "Top Coat Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Glossiness",
+					"Label" : "Top Coat Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Layering Mode",
+					"Label" : "Top Coat Layering Mode",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Reflectivity",
+					"Label" : "Reflectivity",
+					"Value" : 0.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat IOR",
+					"Label" : "Top Coat IOR",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Curve Normal",
+					"Label" : "Top Coat Curve 0",
+					"Value" : 0.04,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Curve Grazing",
+					"Label" : "Top Coat Curve 90",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Curve Exponent",
+					"Label" : "Top Coat Curve Exponent",
+					"Value" : 5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Anisotropy",
+					"Label" : "Top Coat Anisotropy",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Rotations",
+					"Label" : "Top Coat Rotations",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Thin Film",
+					"Label" : "Top Coat Thin Film",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Thin Film IOR",
+					"Label" : "Top Coat Thin Film IOR",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Bump Mode",
+					"Label" : "Top Coat Bump Mode",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Bump",
+					"Label" : "Top Coat Bump",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Thin Walled",
+					"Label" : "Thin Walled",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Transmitted Measurement Distance",
+					"Label" : "Transmitted Measurement Distance",
+					"Value" : 0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Transmitted Color",
+					"Label" : "Transmitted Color",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Mode",
+					"Label" : "SSS Mode",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Scattering Measurement Distance",
+					"Label" : "Scattering Measurement Distance",
+					"Value" : 0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Amount",
+					"Label" : "SSS Amount",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Color",
+					"Label" : "SSS Color",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Direction",
+					"Label" : "SSS Direction",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Emission Color",
+					"Label" : "Emission Color",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Emission Temperature",
+					"Label" : "Emission Temperature (K)",
+					"Value" : 6500,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Two Sided Light",
+					"Label" : "Two Sided Light",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Luminance",
+					"Label" : "Luminance",
+					"Value" : 1500,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Luminance Units",
+					"Label" : "Luminance Units",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Luminous Efficacy",
+					"Label" : "Luminous Efficacy (lm/W)",
+					"Value" : 15,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Cutout Opacity",
+					"Label" : "Cutout Opacity",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Displacement Strength",
+					"Label" : "Displacement Strength",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Minimum Displacement",
+					"Label" : "Minimum Displacement",
+					"Value" : -0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Maximum Displacement",
+					"Label" : "Maximum Displacement",
+					"Value" : 0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SubD Displacement Level",
+					"Label" : "SubD Displacement Level",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Horizontal Tiles",
+					"Label" : "Horizontal Tiles",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Horizontal Offset",
+					"Label" : "Horizontal Offset",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Vertical Tiles",
+					"Label" : "Vertical Tiles",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Vertical Offset",
+					"Label" : "Vertical Offset",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Round Corners Radius",
+					"Label" : "Round Corners Radius",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Round Corners Across Materials",
+					"Label" : "Round Corners Across Materials",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Round Corners Roundness",
+					"Label" : "Round Corners Roundness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Roughness Squared",
+					"Label" : "Roughness Squared",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossiness Squared",
+					"Label" : "Glossiness Squared",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "BSDF Type",
+					"Label" : "BSDF Type",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "OutlineColorID",
+					"Label" : "Material ID",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Exclude From White Mode",
+					"Label" : "Exclude From White Mode",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				}
+			]
+		},
+		{
+			"Version" : 4,
+			"Asset Name" : "dForce Pixie Cut_708408",
+			"Asset Label" : "dForce Pixie Cut",
+			"Material Name" : "Hairline02",
+			"Material Type" : "Iray Uber",
+			"Value" : "Follower/Hair",
+			"Properties" : [
+				{
+					"Name" : "Asset Type",
+					"Label" : "Asset Type",
+					"Value" : "Follower/Hair",
+					"Data Type" : "String",
+					"Texture" : ""
+				},
+				{
+					"Name" : "UV Set",
+					"Label" : "UV Set",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Smooth On",
+					"Label" : "Smooth",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Smooth Angle",
+					"Label" : "Angle",
+					"Value" : 89.9,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Line Preview Color",
+					"Label" : "Line Preview Color",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Line Start Width",
+					"Label" : "Line Start Width (mm)",
+					"Value" : 0.05,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Line End Width",
+					"Label" : "Line End Width (mm)",
+					"Value" : 0.02,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Line UV Width",
+					"Label" : "Line UV Width",
+					"Value" : 0.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Render Priority",
+					"Label" : "Render Priority",
+					"Value" : 3,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Propagate Priority",
+					"Label" : "Propagate Priority",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Follow Blend",
+					"Label" : "Follow Blend",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Base Mixing",
+					"Label" : "Base Mixing",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Weight",
+					"Label" : "Metallicity",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Weight",
+					"Label" : "Diffuse Weight",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Color",
+					"Label" : "Base Color",
+					"Value" : "#4f3c33",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Strength",
+					"Label" : "Diffuse Strength",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Roughness",
+					"Label" : "Diffuse Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Weight",
+					"Label" : "Diffuse Overlay Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Weight Squared",
+					"Label" : "Diffuse Overlay Weight Squared",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Color",
+					"Label" : "Diffuse Overlay Color",
+					"Value" : "#c0c0c0",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Color Effect",
+					"Label" : "Diffuse Overlay Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Diffuse Overlay Roughness",
+					"Label" : "Diffuse Overlay Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Translucency Weight",
+					"Label" : "Translucency Weight",
+					"Value" : 0.3263158,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Base Color Effect",
+					"Label" : "Base Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Translucency Color",
+					"Label" : "Translucency Color",
+					"Value" : "#4f3c33",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Invert Transmission Normal",
+					"Label" : "Invert Transmission Normal",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Reflectance Tint",
+					"Label" : "SSS Reflectance Tint",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Dual Lobe Specular Weight",
+					"Label" : "Dual Lobe Specular Weight",
+					"Value" : 0.5263158,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Dual Lobe Specular Reflectivity",
+					"Label" : "Dual Lobe Specular Reflectivity",
+					"Value" : 0.4210526,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Specular Lobe 1 Roughness",
+					"Label" : "Specular Lobe 1 Roughness",
+					"Value" : 0.5526316,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Specular Lobe 2 Roughness",
+					"Label" : "Specular Lobe 2 Roughness",
+					"Value" : 0.5736842,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Specular Lobe 1 Glossiness",
+					"Label" : "Specular Lobe 1 Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Specular Lobe 2 Glossiness",
+					"Label" : "Specular Lobe 2 Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Dual Lobe Specular Ratio",
+					"Label" : "Dual Lobe Specular Ratio",
+					"Value" : 0.85,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Weight",
+					"Label" : "Glossy Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Layered Weight",
+					"Label" : "Glossy Layered Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Share Glossy Inputs",
+					"Label" : "Share Glossy Inputs",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Color",
+					"Label" : "Glossy Color",
+					"Value" : "#ab957f",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Color Effect",
+					"Label" : "Glossy Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Reflectivity",
+					"Label" : "Glossy Reflectivity",
+					"Value" : 0.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Specular",
+					"Label" : "Glossy Specular",
+					"Value" : "#3b3b3b",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Roughness",
+					"Label" : "Glossy Roughness",
+					"Value" : 0.3631579,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossiness",
+					"Label" : "Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Anisotropy",
+					"Label" : "Glossy Anisotropy",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Weight",
+					"Label" : "Backscattering Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Color",
+					"Label" : "Backscattering Color",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Roughness",
+					"Label" : "Backscattering Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Glossiness",
+					"Label" : "Backscattering Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Backscattering Anisotropy",
+					"Label" : "Backscattering Anisotropy",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Index",
+					"Label" : "Refraction Index",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Weight",
+					"Label" : "Refraction Weight",
+					"Value" : 0.2842105,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Color",
+					"Label" : "Refraction Color",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Roughness",
+					"Label" : "Refraction Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Refraction Glossiness",
+					"Label" : "Refraction Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Abbe",
+					"Label" : "Abbe",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossy Anisotropy Rotations",
+					"Label" : "Glossy Anisotropy Rotations",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Base Thin Film",
+					"Label" : "Base Thin Film",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Base Thin Film IOR",
+					"Label" : "Base Thin Film IOR",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Bump Strength",
+					"Label" : "Base Bump",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Normal Map",
+					"Label" : "Normal Map",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Weight",
+					"Label" : "Metallic Flakes Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Color",
+					"Label" : "Metallic Flakes Color",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Color Effect",
+					"Label" : "Metallic Flakes Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Roughness",
+					"Label" : "Metallic Flakes Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Glossiness",
+					"Label" : "Metallic Flakes Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Size",
+					"Label" : "Metallic Flakes Size",
+					"Value" : 0.001,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Strength",
+					"Label" : "Metallic Flakes Strength",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Density",
+					"Label" : "Metallic Flakes Density",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Thin Film",
+					"Label" : "Metallic Flakes Thin Film",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Metallic Flakes Thin Film IOR",
+					"Label" : "Metallic Flakes Thin Film IOR",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Weight",
+					"Label" : "Top Coat Weight",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Color",
+					"Label" : "Top Coat Color",
+					"Value" : "#ffffff",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Color Effect",
+					"Label" : "Top Coat Color Effect",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Roughness",
+					"Label" : "Top Coat Roughness",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Glossiness",
+					"Label" : "Top Coat Glossiness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Layering Mode",
+					"Label" : "Top Coat Layering Mode",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Reflectivity",
+					"Label" : "Reflectivity",
+					"Value" : 0.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat IOR",
+					"Label" : "Top Coat IOR",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Curve Normal",
+					"Label" : "Top Coat Curve 0",
+					"Value" : 0.04,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Curve Grazing",
+					"Label" : "Top Coat Curve 90",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Curve Exponent",
+					"Label" : "Top Coat Curve Exponent",
+					"Value" : 5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Anisotropy",
+					"Label" : "Top Coat Anisotropy",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Rotations",
+					"Label" : "Top Coat Rotations",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Thin Film",
+					"Label" : "Top Coat Thin Film",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Thin Film IOR",
+					"Label" : "Top Coat Thin Film IOR",
+					"Value" : 1.5,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Bump Mode",
+					"Label" : "Top Coat Bump Mode",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Top Coat Bump",
+					"Label" : "Top Coat Bump",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Thin Walled",
+					"Label" : "Thin Walled",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Transmitted Measurement Distance",
+					"Label" : "Transmitted Measurement Distance",
+					"Value" : 0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Transmitted Color",
+					"Label" : "Transmitted Color",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Mode",
+					"Label" : "SSS Mode",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Scattering Measurement Distance",
+					"Label" : "Scattering Measurement Distance",
+					"Value" : 0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Amount",
+					"Label" : "SSS Amount",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Color",
+					"Label" : "SSS Color",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SSS Direction",
+					"Label" : "SSS Direction",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Emission Color",
+					"Label" : "Emission Color",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Emission Temperature",
+					"Label" : "Emission Temperature (K)",
+					"Value" : 6500,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Two Sided Light",
+					"Label" : "Two Sided Light",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Luminance",
+					"Label" : "Luminance",
+					"Value" : 1500,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Luminance Units",
+					"Label" : "Luminance Units",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Luminous Efficacy",
+					"Label" : "Luminous Efficacy (lm/W)",
+					"Value" : 15,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Cutout Opacity",
+					"Label" : "Cutout Opacity",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Displacement Strength",
+					"Label" : "Displacement Strength",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Minimum Displacement",
+					"Label" : "Minimum Displacement",
+					"Value" : -0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Maximum Displacement",
+					"Label" : "Maximum Displacement",
+					"Value" : 0.1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "SubD Displacement Level",
+					"Label" : "SubD Displacement Level",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Horizontal Tiles",
+					"Label" : "Horizontal Tiles",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Horizontal Offset",
+					"Label" : "Horizontal Offset",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Vertical Tiles",
+					"Label" : "Vertical Tiles",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Vertical Offset",
+					"Label" : "Vertical Offset",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Round Corners Radius",
+					"Label" : "Round Corners Radius",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Round Corners Across Materials",
+					"Label" : "Round Corners Across Materials",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Round Corners Roundness",
+					"Label" : "Round Corners Roundness",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Roughness Squared",
+					"Label" : "Roughness Squared",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Glossiness Squared",
+					"Label" : "Glossiness Squared",
+					"Value" : 1,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "BSDF Type",
+					"Label" : "BSDF Type",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				},
+				{
+					"Name" : "OutlineColorID",
+					"Label" : "Material ID",
+					"Value" : "#000000",
+					"Data Type" : "Color",
+					"Texture" : ""
+				},
+				{
+					"Name" : "Exclude From White Mode",
+					"Label" : "Exclude From White Mode",
+					"Value" : 0,
+					"Data Type" : "Double",
+					"Texture" : ""
+				}
+			]
 		}
 	],
 	"Morphs" : [
@@ -28326,5 +32506,3283 @@
 	"Subdivisions" : [
 	],
 	"dForce" : [
+		{
+			"Version" : 4,
+			"Asset Name" : "dForce Pixie Cut",
+			"Modifier Count" : 4,
+			"Material Count" : 4,
+			"DForce-Modifiers" : [
+				{
+					"Modifier Name" : "dForce Hair Follow",
+					"Modifier Class" : "DzDForceHairFollowModifier"
+				},
+				{
+					"Modifier Name" : "dForce Hair Generator",
+					"Modifier Class" : "DzDForceHairGenerationModifier"
+				},
+				{
+					"Modifier Name" : "dForce Simulation",
+					"Modifier Class" : "DzDForceModifier"
+				},
+				{
+					"Modifier Name" : "dForce Render Hair Generator",
+					"Modifier Class" : "DzDForceHairGenerationModifier"
+				}
+			],
+			"dForce-Materials" : [
+				{
+					"Version" : 3,
+					"Asset Name" : "dForce Pixie Cut",
+					"Material Name" : "Hair02",
+					"Material Type" : "Iray Uber",
+					"Value" : "Follower/Hair",
+					"Properties" : [
+						{
+							"Name" : "Visible in Simulation",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Friction",
+							"Value" : "0.4",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Collision Layer",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Collide",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Self Collide",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Collision Offset",
+							"Value" : "0.2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Collision Response Damping",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Dynamics Strength",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Stretch Stiffness",
+							"Value" : "0.8",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Shear Stiffness",
+							"Value" : "0.2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Bend Stiffness",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Buckling Stiffness",
+							"Value" : "0.05",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Buckling Ratio",
+							"Value" : "0.7",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Density",
+							"Value" : "180",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Contraction-Expansion Ratio",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Damping",
+							"Value" : "0.08",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Stretch Damping",
+							"Value" : "0.1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Shear Damping",
+							"Value" : "0.1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Bend Damping",
+							"Value" : "0.1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Velocity Shock Propagation",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Velocity Shock Propagation Threshold",
+							"Value" : "1.4",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Local Shape Constraint Stiffness",
+							"Value" : "0.600939",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Local Shape Constraint Stiffness Bias",
+							"Value" : "0.497653",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Local Shape Constraint Stiffness Gain",
+							"Value" : "0.99999",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Local Shape Constraint Tip Stiffness",
+							"Value" : "0.112685",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Hair Sample Rate",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Hair Constraint Iterations",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Local Shape Constraint Iterations",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Length Constraints Iterations",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Global Shape Constraint Stiffness",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Global Shape Range",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Hair Generation Mode",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Use Target Surface UVs",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Hair Growth Group ID",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Vertex Style Curve Tolerance",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hairs Density",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hair Seed",
+							"Value" : "5784",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Points Per Hair",
+							"Value" : "8",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hairs Per Guide",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hair Distribution Radius",
+							"Value" : "0.11",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hair Tip Separation",
+							"Value" : "0.1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hair Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hair Gain",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Generated Style Curve Segment Length",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Segment Length",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Mode",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Auto Parting Angle",
+							"Value" : "180",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Single Guide Strength",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Single Guide Base",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Single Guide Tip",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Single Guide Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 1 Curves Density",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumpiness 1",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 1 Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 1 Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 2 Curves Density",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumpiness 2",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 2 Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 2 Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Length Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Length Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Reduce Length Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Pitch Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Roll Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Yaw Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Angle Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 1 Mode",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggliness 1",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 1 Frequency ",
+							"Value" : "0.01",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 1 Freq Depth ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 1 Freq Ratio",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 1 Freq Mult",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 2 Mode",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggliness 2",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 2 Frequency ",
+							"Value" : "0.01",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 2 Freq Depth ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 2 Freq Ratio",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 2 Freq Mult",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Frizz Base Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Frizz Tip Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Frizz Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Generated Hair Scale",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Minimum Generated Hair Scale",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PS Hairs at Style Curves",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hairs Density",
+							"Value" : "120",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hair Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Points Per Hair",
+							"Value" : "10",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hairs Per Guide",
+							"Value" : "3",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hair Distribution Radius",
+							"Value" : "0.2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hair Tip Separation",
+							"Value" : "0.01",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hair Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hair Gain",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Generated Style Curve Segment Length",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Segment Length",
+							"Value" : "0.3",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Mode",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Auto Parting Angle",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Single Guide Strength",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Single Guide Base",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Single Guide Tip",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Single Guide Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 1 Curves Density",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumpiness 1",
+							"Value" : "0.85",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 1 Bias",
+							"Value" : "0.647366",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 1 Seed",
+							"Value" : "1990",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 2 Curves Density",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumpiness 2",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 2 Bias",
+							"Value" : "0.226321",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 2 Seed",
+							"Value" : "1986",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Length Amount",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Length Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Reduce Length Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Pitch Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Roll Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Yaw Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Angle Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 1 Mode",
+							"Value" : "5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggliness 1",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 1 Frequency ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 1 Freq Depth ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 1 Freq Ratio",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 1 Freq Mult",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 2 Mode",
+							"Value" : "3",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggliness 2",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 2 Frequency ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 2 Freq Depth ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 2 Freq Ratio",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 2 Freq Mult",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Frizz Base Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Frizz Tip Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Frizz Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Generated Hair Scale",
+							"Value" : "1.05",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Minimum Generated Hair Scale",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Velocity Smoothing",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Velocity Smoothing Iterations",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						}
+					]
+				},
+				{
+					"Version" : 3,
+					"Asset Name" : "dForce Pixie Cut",
+					"Material Name" : "Hair01",
+					"Material Type" : "Iray Uber",
+					"Value" : "Follower/Hair",
+					"Properties" : [
+						{
+							"Name" : "Visible in Simulation",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Friction",
+							"Value" : "0.4",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Collision Layer",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Collide",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Self Collide",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Collision Offset",
+							"Value" : "0.2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Collision Response Damping",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Dynamics Strength",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Stretch Stiffness",
+							"Value" : "0.8",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Shear Stiffness",
+							"Value" : "0.2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Bend Stiffness",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Buckling Stiffness",
+							"Value" : "0.05",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Buckling Ratio",
+							"Value" : "0.7",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Density",
+							"Value" : "180",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Contraction-Expansion Ratio",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Damping",
+							"Value" : "0.08",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Stretch Damping",
+							"Value" : "0.1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Shear Damping",
+							"Value" : "0.1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Bend Damping",
+							"Value" : "0.1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Velocity Shock Propagation",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Velocity Shock Propagation Threshold",
+							"Value" : "1.4",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Local Shape Constraint Stiffness",
+							"Value" : "0.600939",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Local Shape Constraint Stiffness Bias",
+							"Value" : "0.497653",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Local Shape Constraint Stiffness Gain",
+							"Value" : "0.99999",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Local Shape Constraint Tip Stiffness",
+							"Value" : "0.112685",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Hair Sample Rate",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Hair Constraint Iterations",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Local Shape Constraint Iterations",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Length Constraints Iterations",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Global Shape Constraint Stiffness",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Global Shape Range",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Hair Generation Mode",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Use Target Surface UVs",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Hair Growth Group ID",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Vertex Style Curve Tolerance",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hairs Density",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hair Seed",
+							"Value" : "5784",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Points Per Hair",
+							"Value" : "8",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hairs Per Guide",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hair Distribution Radius",
+							"Value" : "0.11",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hair Tip Separation",
+							"Value" : "0.1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hair Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hair Gain",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Generated Style Curve Segment Length",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Segment Length",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Mode",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Auto Parting Angle",
+							"Value" : "180",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Single Guide Strength",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Single Guide Base",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Single Guide Tip",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Single Guide Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 1 Curves Density",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumpiness 1",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 1 Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 1 Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 2 Curves Density",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumpiness 2",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 2 Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 2 Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Length Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Length Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Reduce Length Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Pitch Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Roll Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Yaw Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Angle Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 1 Mode",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggliness 1",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 1 Frequency ",
+							"Value" : "0.01",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 1 Freq Depth ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 1 Freq Ratio",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 1 Freq Mult",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 2 Mode",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggliness 2",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 2 Frequency ",
+							"Value" : "0.01",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 2 Freq Depth ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 2 Freq Ratio",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 2 Freq Mult",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Frizz Base Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Frizz Tip Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Frizz Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Generated Hair Scale",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Minimum Generated Hair Scale",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PS Hairs at Style Curves",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hairs Density",
+							"Value" : "120",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hair Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Points Per Hair",
+							"Value" : "10",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hairs Per Guide",
+							"Value" : "3",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hair Distribution Radius",
+							"Value" : "0.2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hair Tip Separation",
+							"Value" : "0.01",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hair Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hair Gain",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Generated Style Curve Segment Length",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Segment Length",
+							"Value" : "0.3",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Mode",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Auto Parting Angle",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Single Guide Strength",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Single Guide Base",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Single Guide Tip",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Single Guide Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 1 Curves Density",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumpiness 1",
+							"Value" : "0.85",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 1 Bias",
+							"Value" : "0.647366",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 1 Seed",
+							"Value" : "1990",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 2 Curves Density",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumpiness 2",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 2 Bias",
+							"Value" : "0.226321",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 2 Seed",
+							"Value" : "1986",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Length Amount",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Length Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Reduce Length Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Pitch Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Roll Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Yaw Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Angle Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 1 Mode",
+							"Value" : "5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggliness 1",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 1 Frequency ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 1 Freq Depth ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 1 Freq Ratio",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 1 Freq Mult",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 2 Mode",
+							"Value" : "3",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggliness 2",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 2 Frequency ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 2 Freq Depth ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 2 Freq Ratio",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 2 Freq Mult",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Frizz Base Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Frizz Tip Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Frizz Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Generated Hair Scale",
+							"Value" : "1.05",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Minimum Generated Hair Scale",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Velocity Smoothing",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Velocity Smoothing Iterations",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						}
+					]
+				},
+				{
+					"Version" : 3,
+					"Asset Name" : "dForce Pixie Cut",
+					"Material Name" : "Hairline01",
+					"Material Type" : "Iray Uber",
+					"Value" : "Follower/Hair",
+					"Properties" : [
+						{
+							"Name" : "Visible in Simulation",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Friction",
+							"Value" : "0.4",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Collision Layer",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Collide",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Self Collide",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Collision Offset",
+							"Value" : "0.2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Collision Response Damping",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Dynamics Strength",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Stretch Stiffness",
+							"Value" : "0.8",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Shear Stiffness",
+							"Value" : "0.2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Bend Stiffness",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Buckling Stiffness",
+							"Value" : "0.05",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Buckling Ratio",
+							"Value" : "0.7",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Density",
+							"Value" : "180",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Contraction-Expansion Ratio",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Damping",
+							"Value" : "0.497653",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Stretch Damping",
+							"Value" : "0.1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Shear Damping",
+							"Value" : "0.1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Bend Damping",
+							"Value" : "0.1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Velocity Shock Propagation",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Velocity Shock Propagation Threshold",
+							"Value" : "1.4",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Local Shape Constraint Stiffness",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Local Shape Constraint Stiffness Bias",
+							"Value" : "0.497653",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Local Shape Constraint Stiffness Gain",
+							"Value" : "0.99999",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Local Shape Constraint Tip Stiffness",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Hair Sample Rate",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Hair Constraint Iterations",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Local Shape Constraint Iterations",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Length Constraints Iterations",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Global Shape Constraint Stiffness",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Global Shape Range",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Hair Generation Mode",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Use Target Surface UVs",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Hair Growth Group ID",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Vertex Style Curve Tolerance",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hairs Density",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hair Seed",
+							"Value" : "5784",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Points Per Hair",
+							"Value" : "8",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hairs Per Guide",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hair Distribution Radius",
+							"Value" : "0.25",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hair Tip Separation",
+							"Value" : "0.1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hair Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hair Gain",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Generated Style Curve Segment Length",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Segment Length",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Mode",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Auto Parting Angle",
+							"Value" : "180",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Single Guide Strength",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Single Guide Base",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Single Guide Tip",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Single Guide Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 1 Curves Density",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumpiness 1",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 1 Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 1 Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 2 Curves Density",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumpiness 2",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 2 Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 2 Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Length Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Length Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Reduce Length Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Pitch Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Roll Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Yaw Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Angle Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 1 Mode",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggliness 1",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 1 Frequency ",
+							"Value" : "0.01",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 1 Freq Depth ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 1 Freq Ratio",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 1 Freq Mult",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 2 Mode",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggliness 2",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 2 Frequency ",
+							"Value" : "0.01",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 2 Freq Depth ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 2 Freq Ratio",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 2 Freq Mult",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Frizz Base Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Frizz Tip Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Frizz Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Generated Hair Scale",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Minimum Generated Hair Scale",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PS Hairs at Style Curves",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hairs Density",
+							"Value" : "120",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hair Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Points Per Hair",
+							"Value" : "20",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hairs Per Guide",
+							"Value" : "3",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hair Distribution Radius",
+							"Value" : "0.2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hair Tip Separation",
+							"Value" : "0.0569251",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hair Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hair Gain",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Generated Style Curve Segment Length",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Segment Length",
+							"Value" : "0.3",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Mode",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Auto Parting Angle",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Single Guide Strength",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Single Guide Base",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Single Guide Tip",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Single Guide Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 1 Curves Density",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumpiness 1",
+							"Value" : "0.85",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 1 Bias",
+							"Value" : "0.647366",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 1 Seed",
+							"Value" : "1990",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 2 Curves Density",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumpiness 2",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 2 Bias",
+							"Value" : "0.226321",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 2 Seed",
+							"Value" : "1986",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Length Amount",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Length Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Reduce Length Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Pitch Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Roll Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Yaw Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Angle Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 1 Mode",
+							"Value" : "5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggliness 1",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 1 Frequency ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 1 Freq Depth ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 1 Freq Ratio",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 1 Freq Mult",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 2 Mode",
+							"Value" : "3",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggliness 2",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 2 Frequency ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 2 Freq Depth ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 2 Freq Ratio",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 2 Freq Mult",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Frizz Base Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Frizz Tip Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Frizz Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Generated Hair Scale",
+							"Value" : "1.05",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Minimum Generated Hair Scale",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Velocity Smoothing",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Velocity Smoothing Iterations",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						}
+					]
+				},
+				{
+					"Version" : 3,
+					"Asset Name" : "dForce Pixie Cut",
+					"Material Name" : "Hairline02",
+					"Material Type" : "Iray Uber",
+					"Value" : "Follower/Hair",
+					"Properties" : [
+						{
+							"Name" : "Visible in Simulation",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Friction",
+							"Value" : "0.4",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Collision Layer",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Collide",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Self Collide",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Collision Offset",
+							"Value" : "0.2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Collision Response Damping",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Dynamics Strength",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Stretch Stiffness",
+							"Value" : "0.8",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Shear Stiffness",
+							"Value" : "0.2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Bend Stiffness",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Buckling Stiffness",
+							"Value" : "0.05",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Buckling Ratio",
+							"Value" : "0.7",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Density",
+							"Value" : "180",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Contraction-Expansion Ratio",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Damping",
+							"Value" : "0.497653",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Stretch Damping",
+							"Value" : "0.1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Shear Damping",
+							"Value" : "0.1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Bend Damping",
+							"Value" : "0.1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Velocity Shock Propagation",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Velocity Shock Propagation Threshold",
+							"Value" : "1.4",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Local Shape Constraint Stiffness",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Local Shape Constraint Stiffness Bias",
+							"Value" : "0.497653",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Local Shape Constraint Stiffness Gain",
+							"Value" : "0.99999",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Local Shape Constraint Tip Stiffness",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Hair Sample Rate",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Hair Constraint Iterations",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Local Shape Constraint Iterations",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Length Constraints Iterations",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Global Shape Constraint Stiffness",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Global Shape Range",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Hair Generation Mode",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Use Target Surface UVs",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Hair Growth Group ID",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Vertex Style Curve Tolerance",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hairs Density",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hair Seed",
+							"Value" : "5784",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Points Per Hair",
+							"Value" : "8",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hairs Per Guide",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hair Distribution Radius",
+							"Value" : "0.25",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hair Tip Separation",
+							"Value" : "0.1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hair Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Hair Gain",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Generated Style Curve Segment Length",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Segment Length",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Mode",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Auto Parting Angle",
+							"Value" : "180",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Single Guide Strength",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Single Guide Base",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Single Guide Tip",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Interpolation Single Guide Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 1 Curves Density",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumpiness 1",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 1 Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 1 Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 2 Curves Density",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumpiness 2",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 2 Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Clumping 2 Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Length Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Length Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Reduce Length Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Pitch Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Roll Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Yaw Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Random Angle Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 1 Mode",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggliness 1",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 1 Frequency ",
+							"Value" : "0.01",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 1 Freq Depth ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 1 Freq Ratio",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 1 Freq Mult",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 2 Mode",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggliness 2",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 2 Frequency ",
+							"Value" : "0.01",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 2 Freq Depth ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 2 Freq Ratio",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Scraggle 2 Freq Mult",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Frizz Base Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Frizz Tip Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Frizz Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Generated Hair Scale",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreSim Minimum Generated Hair Scale",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PS Hairs at Style Curves",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hairs Density",
+							"Value" : "120",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hair Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Points Per Hair",
+							"Value" : "20",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hairs Per Guide",
+							"Value" : "3",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hair Distribution Radius",
+							"Value" : "0.2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hair Tip Separation",
+							"Value" : "0.0415611",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hair Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Hair Gain",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Generated Style Curve Segment Length",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Segment Length",
+							"Value" : "0.3",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Mode",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Auto Parting Angle",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Single Guide Strength",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Single Guide Base",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Single Guide Tip",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Interpolation Single Guide Bias",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 1 Curves Density",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumpiness 1",
+							"Value" : "0.85",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 1 Bias",
+							"Value" : "0.647366",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 1 Seed",
+							"Value" : "1990",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 2 Curves Density",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumpiness 2",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 2 Bias",
+							"Value" : "0.226321",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Clumping 2 Seed",
+							"Value" : "1986",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Length Amount",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Length Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Reduce Length Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Pitch Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Roll Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Yaw Angle",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Random Angle Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 1 Mode",
+							"Value" : "5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggliness 1",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 1 Frequency ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 1 Freq Depth ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 1 Freq Ratio",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 1 Freq Mult",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 2 Mode",
+							"Value" : "3",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggliness 2",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 2 Frequency ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 2 Freq Depth ",
+							"Value" : "1",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 2 Freq Ratio",
+							"Value" : "0.5",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Scraggle 2 Freq Mult",
+							"Value" : "2",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Frizz Base Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Frizz Tip Amount",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Frizz Seed",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Generated Hair Scale",
+							"Value" : "1.05",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "PreRender Minimum Generated Hair Scale",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Velocity Smoothing",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						},
+						{
+							"Name" : "Velocity Smoothing Iterations",
+							"Value" : "0",
+							"Data Type" : "Double",
+							"Texture" : ""
+						}
+					]
+				}
+			]
+		}
 	]
 }
