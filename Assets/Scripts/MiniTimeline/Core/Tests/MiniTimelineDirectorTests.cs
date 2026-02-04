@@ -4,7 +4,7 @@ using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 
 #if !UNITY_INCLUDE_TESTS
 namespace UnityEngine.TestTools

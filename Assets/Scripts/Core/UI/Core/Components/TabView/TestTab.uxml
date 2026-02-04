@@ -1,0 +1,10 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <TabView name="tab-view">
+        <TabElement name="managed-tab" label="Managed">
+            <Switch/>
+        </TabElement>
+        <TabElement name="edit-tab" label="Edit">
+            <Switch/>
+        </TabElement>
+    </TabView>
+</ui:UXML>

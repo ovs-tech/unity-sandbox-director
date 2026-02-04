@@ -29,8 +29,8 @@ In the Unity Editor:
 ### 2. Basic Usage
 
 ```csharp
-using MiniTimeline.Core;
-using MiniTimeline.Serialization;
+using Systems.MiniTimeline.Core;
+using Systems.MiniTimeline.Serialization;
 
 // Create a timeline director
 var director = gameObject.AddComponent<MiniTimelineDirector>();
@@ -51,8 +51,8 @@ director.Seek(2.5f); // Jump to 2.5 seconds
 ### 3. Creating Custom Projects
 
 ```csharp
-using MiniTimeline.Core;
-using MiniTimeline.Tracks;
+using Systems.MiniTimeline.Core;
+using Systems.MiniTimeline.Tracks;
 
 // Create a new project
 var project = new MiniTimelineProject

@@ -1,9 +1,9 @@
 using System;
 using UnityEngine;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 using System.Collections.Generic;
 
-namespace MiniTimeline.Tracks
+namespace Systems.MiniTimeline.Tracks
 {
     [Serializable]
     public class UmaWardrobeTrack : MiniTrackBase<UmaWardrobeClip>
@@ -71,11 +71,19 @@ namespace MiniTimeline.Tracks
                 {
                     if (currentClip.WardrobeRecipes != null)
                     {
-                        umaAvatar.SetWardrobe(currentClip.WardrobeRecipes);
+                        var mi = umaAvatar.GetType().GetMethod("SetWardrobe");
+                        if (mi != null)
+                        {
+                            mi.Invoke(umaAvatar, new object[] { currentClip.WardrobeRecipes });
+                        }
                     }
                     if (currentClip.WardrobeColors != null)
                     {
-                        umaAvatar.SetColors(currentClip.WardrobeColors);
+                        var mi2 = umaAvatar.GetType().GetMethod("SetColors");
+                        if (mi2 != null)
+                        {
+                            mi2.Invoke(umaAvatar, new object[] { currentClip.WardrobeColors });
+                        }
                     }
                 }
             }

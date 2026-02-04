@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Sirenix.OdinSerializer;
+
 using UnityEngine;
 
 namespace Core.Behaviors.Command
@@ -11,9 +11,9 @@ namespace Core.Behaviors.Command
     /// </summary>
     public class TimelineCommandManager : PersistentSingleton<TimelineCommandManager>
     {
-        [OdinSerialize]
+        
         private readonly Stack<ITimelineCommand> undoStack = new Stack<ITimelineCommand>();
-        [OdinSerialize]
+        
         private readonly Stack<ITimelineCommand> redoStack = new Stack<ITimelineCommand>();
         [SerializeField]
         private readonly int maxHistorySize = 100;

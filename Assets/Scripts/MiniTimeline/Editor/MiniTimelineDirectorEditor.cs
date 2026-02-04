@@ -1,14 +1,13 @@
-#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEditor;
-using MiniTimeline.Core;
-using MiniTimeline.Serialization;
+using Systems.MiniTimeline.Core;
+using Systems.MiniTimeline.Serialization;
 
-namespace MiniTimeline.Editor
+namespace Systems.MiniTimeline.Editor
 {
     /// <summary>
     /// Custom editor for MiniTimelineDirector component
@@ -970,6 +969,9 @@ namespace MiniTimeline.Editor
                         }
                         EditorGUILayout.EndHorizontal();
                         
+                        // Multi-target bindings
+                        DrawMultiTargetBindings(track);
+                        
                         // EvaluateMode display
                         EditorGUILayout.BeginHorizontal();
                         EditorGUILayout.LabelField("Evaluate Mode:", GUILayout.Width(100));
@@ -1761,6 +1763,127 @@ namespace MiniTimeline.Editor
                 Debug.Log($"[MiniTimelineDirectorEditor] Updated track '{track.Id}' enabled to {enabled}");
             }
         }
+
+        private void DrawMultiTargetBindings(IMiniTrack track)
+        {
+            var targetBindKeysProp = track.GetType().GetProperty("TargetBindKeys");
+            if (targetBindKeysProp == null) return;
+
+            var targetBindKeys = targetBindKeysProp.GetValue(track) as List<string>;
+            // If the list is null, we can't really edit it. The track usually initializes it.
+            if (targetBindKeys == null) return;
+
+            EditorGUILayout.Space(2);
+            EditorGUILayout.BeginVertical(GUI.skin.box);
+            EditorGUILayout.LabelField("Multi-Target Bindings:", EditorStyles.boldLabel);
+            
+            var keysToRemove = new List<int>();
+            var keysToUpdate = new Dictionary<int, string>();
+            
+            for (int i = 0; i < targetBindKeys.Count; i++)
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField($"Target {i}:", GUILayout.Width(60));
+                
+                // Dropdown for available keys
+                var availableKeys = new List<string> { "None" };
+                if (director.BindingContext != null)
+                {
+                    availableKeys.AddRange(director.BindingContext.GetKeys());
+                }
+
+                var currentKey = targetBindKeys[i] ?? "None";
+                var currentIndex = availableKeys.IndexOf(currentKey);
+                if (currentIndex == -1) 
+                {
+                     availableKeys.Add(currentKey);
+                     currentIndex = availableKeys.Count - 1;
+                }
+
+                var newIndex = EditorGUILayout.Popup(currentIndex, availableKeys.ToArray());
+                if (newIndex != currentIndex)
+                {
+                    var newKey = availableKeys[newIndex];
+                    if (newKey == "None") newKey = null; // Map "None" back to null or keep as null
+                    keysToUpdate[i] = newKey;
+                }
+
+                if (GUILayout.Button("×", GUILayout.Width(20)))
+                {
+                    keysToRemove.Add(i);
+                }
+                
+                EditorGUILayout.EndHorizontal();
+            }
+
+            // Add new target button
+            if (GUILayout.Button("+ Add Target"))
+            {
+                // We need to create a new list to trigger the update logic properly if we want to be safe, 
+                // or just modify and call update.
+                // Since UpdateTrackTargetBindKeys sets the property, let's copy the list.
+                var newList = new List<string>(targetBindKeys);
+                newList.Add(null);
+                UpdateTrackTargetBindKeys(track, newList);
+            }
+
+            // Apply updates
+            if (keysToUpdate.Count > 0 || keysToRemove.Count > 0)
+            {
+                var newList = new List<string>(targetBindKeys);
+                
+                foreach (var kvp in keysToUpdate)
+                {
+                    if (kvp.Key < newList.Count)
+                        newList[kvp.Key] = kvp.Value;
+                }
+                
+                // Remove in reverse order
+                keysToRemove.Sort((a, b) => b.CompareTo(a));
+                foreach (var index in keysToRemove)
+                {
+                    if (index < newList.Count)
+                        newList.RemoveAt(index);
+                }
+
+                UpdateTrackTargetBindKeys(track, newList);
+            }
+            
+            EditorGUILayout.EndVertical();
+        }
+
+        private void UpdateTrackTargetBindKeys(IMiniTrack track, List<string> newKeys)
+        {
+             if (director.Project == null || track == null) return;
+
+            // Update in track data (Project.tracks)
+            var trackData = director.Project.tracks.FirstOrDefault(t => t != null && t.Id == track.Id);
+            if (trackData != null)
+            {
+                var prop = trackData.GetType().GetProperty("TargetBindKeys");
+                if (prop?.CanWrite == true)
+                {
+                    prop.SetValue(trackData, newKeys);
+                }
+            }
+            
+            // Update runtime track
+             var runtimeProp = track.GetType().GetProperty("TargetBindKeys");
+            if (runtimeProp?.CanWrite == true)
+            {
+                 runtimeProp.SetValue(track, newKeys);
+            }
+            
+            // Rebind
+            if (director.BindingContext != null)
+            {
+                track.Bind(director.BindingContext);
+            }
+            
+            director.MarkDirty();
+            Debug.Log($"[MiniTimelineDirectorEditor] Updated target bind keys for track '{track.Id}'");
+        }
+
         
         #endregion
         
@@ -2130,4 +2253,3 @@ namespace MiniTimeline.Editor
         #endregion
     }
 }
-#endif

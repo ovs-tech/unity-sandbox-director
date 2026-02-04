@@ -1,8 +1,8 @@
-#if UNITY_EDITOR
+using Unity.Properties;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace MiniTimeline.UI.MVVM.Ruler
+namespace Systems.MiniTimeline.UI.MVVM.Ruler
 {
     public class TimelineRulerView
     {
@@ -31,13 +31,28 @@ namespace MiniTimeline.UI.MVVM.Ruler
         public VisualElement GetElement(string name) => Root?.Q<VisualElement>(name);
         public Label GetLabel(string name) => Root?.Q<Label>(name);
 
-        public void Bind(TimelineRulerModel model)
+        public void Bind(TimelineRulerModel model, TimelineRulerController.ViewModel vm)
         {
             _rulerElement = GetElement("timeline-ruler");
             _playheadElement = GetElement("ruler-current-time");
             _playheadAreaElement = GetElement("ruler-playhead-area");
             _snapGuideElement = GetElement("ruler-snap-guide");
             _markersContainer = _rulerElement;
+
+            if(_rulerElement != null)
+            {
+                var rulerDataBinding = new DataBinding
+                {
+                    dataSource = vm,
+                    dataSourcePath = new PropertyPath(nameof(TimelineRulerController.ViewModel.PixelsPerSecond)),
+                    bindingMode = BindingMode.ToTarget
+                };
+                rulerDataBinding.sourceToUiConverters.AddConverter<float, float>((ref float pixelsPerSecond) =>
+                {
+                    return vm.Length.Value * pixelsPerSecond;
+                });
+                _rulerElement.SetBinding(nameof(VisualElement.style.width), rulerDataBinding);
+            }
 
             var inputTarget = _playheadAreaElement ?? _rulerElement;
             if (inputTarget != null)
@@ -49,8 +64,8 @@ namespace MiniTimeline.UI.MVVM.Ruler
 
             // Subscribe to model changes for live updates
             model.OnTimeChanged += () => UpdatePlayheadPosition(model);
-            model.OnMarkersChanged += () => GenerateMarkerDisplay(model);
-            model.OnZoomChanged += () => GenerateMarkerDisplay(model);
+            model.OnMarkersChanged += () => GenerateMarkerDisplay(model, vm);
+            model.OnZoomChanged += () => GenerateMarkerDisplay(model, vm);
 
             // Register a geometry changed callback once so we update playhead after layout
             if (!_geometryCallbackRegistered && _rulerElement != null)
@@ -59,12 +74,12 @@ namespace MiniTimeline.UI.MVVM.Ruler
                 _geometryCallbackRegistered = true;
             }
 
-            Regenerate(model);
+            Regenerate(model, vm);
         }
 
-        public void Regenerate(TimelineRulerModel model)
+        public void Regenerate(TimelineRulerModel model, TimelineRulerController.ViewModel vm)
         {
-            GenerateMarkerDisplay(model);
+            GenerateMarkerDisplay(model, vm);
             UpdatePlayheadPosition(model);
         }
 
@@ -152,16 +167,13 @@ namespace MiniTimeline.UI.MVVM.Ruler
             UpdatePlayheadPosition(model);
         }
 
-        private void GenerateMarkerDisplay(TimelineRulerModel model)
+        private void GenerateMarkerDisplay(TimelineRulerModel model, TimelineRulerController.ViewModel vm)
         {
             if (_markersContainer == null) return;
 
             // Set ruler width to match timeline duration
             if (_rulerElement != null)
             {
-                float rulerWidth = model.Length * model.PixelsPerSecond;
-                _rulerElement.style.width = rulerWidth;
-
                 // Zoom-based classes for conditional styling
                 _rulerElement.RemoveFromClassList("zoom-low");
                 _rulerElement.RemoveFromClassList("zoom-high");
@@ -256,4 +268,3 @@ namespace MiniTimeline.UI.MVVM.Ruler
         }
     }
 }
-#endif

@@ -2,12 +2,12 @@ using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UIElements;
-using MiniTimeline.UI.MVVM.Ruler;
-using MiniTimeline.UI.MVVM.Track;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.UI.MVVM.Ruler;
+using Systems.MiniTimeline.UI.MVVM.Track;
+using Systems.MiniTimeline.Core;
 using Unity.Properties;
 
-namespace MiniTimeline.UI.MVVM.Timeline
+namespace Systems.MiniTimeline.UI.MVVM.Timeline
 {
     public class TimelineEditorView : MonoBehaviour
     {
@@ -75,9 +75,23 @@ namespace MiniTimeline.UI.MVVM.Timeline
         {
             // Playback controls
             var playButton = GetButton("play-button");
-            if (playButton != null) playButton.clicked += vm.Play;
-            var pauseButton = GetButton("pause-button");
-            if (pauseButton != null) pauseButton.clicked += vm.Pause;
+            if (playButton != null) {
+                playButton.clicked += () => {
+                    if( vm.IsPlaying.Value ) {
+                        vm.Pause();
+                        return;
+                    }
+                    vm.Play();
+                };
+                var playButtonDataBinding = new DataBinding
+                {
+                    dataSource = vm.IsPlaying,
+                    dataSourcePath = new PropertyPath(nameof(BindableProperty<bool>.Value)),
+                    bindingMode = BindingMode.ToTarget
+                };
+                playButtonDataBinding.sourceToUiConverters.AddConverter<bool, string>((ref bool val) => val ? "\uf04c" : "\uf04b");
+                playButton.SetBinding(nameof(Button.text), playButtonDataBinding);
+            }
             var stopButton = GetButton("stop-button");
             if (stopButton != null) stopButton.clicked += vm.Stop;
 
@@ -115,6 +129,37 @@ namespace MiniTimeline.UI.MVVM.Timeline
 
             // Time slider
             var timeLabel = GetLabel("time-label");
+            if( timeLabel != null )
+            {
+                var timeDataBinding = new DataBinding
+                {
+                    dataSource = vm.Time,
+                    dataSourcePath = new PropertyPath(nameof(BindableProperty<float>.Value)),
+                    bindingMode = BindingMode.ToTarget
+                };
+                timeDataBinding.sourceToUiConverters.AddConverter<float, string>((ref float val) =>
+                {
+                    TimeSpan time = TimeSpan.FromSeconds(val);
+                    return string.Format("{0:D2}:{1:D2}:{2:D2}", time.Hours, time.Minutes, time.Seconds);
+                });
+                timeLabel.SetBinding(nameof(Label.text), timeDataBinding);
+            }
+            var durationLabel = GetLabel("duration-label");
+            if( durationLabel != null )
+            {
+                var durationDataBinding = new DataBinding
+                {
+                    dataSource = vm.Length,
+                    dataSourcePath = new PropertyPath(nameof(BindableProperty<float>.Value)),
+                    bindingMode = BindingMode.ToTarget
+                };
+                durationDataBinding.sourceToUiConverters.AddConverter<float, string>((ref float val) =>
+                {
+                    TimeSpan time = TimeSpan.FromSeconds(val);
+                    return string.Format("{0:D2}:{1:D2}:{2:D2}", time.Hours, time.Minutes, time.Seconds);
+                });
+                durationLabel.SetBinding(nameof(Label.text), durationDataBinding);
+            }
             var timeSlider = GetSlider("time-slider");
             if (timeSlider != null)
             {
@@ -140,28 +185,54 @@ namespace MiniTimeline.UI.MVVM.Timeline
             var zoomLabel = GetLabel("zoom-label");
             if (zoomLabel != null)
             {
-                zoomLabel.text = $"{vm.Zoom.Value * 100:F0}%";
+                var zoomDataBinding = new DataBinding
+                {
+                    dataSource = vm,
+                    dataSourcePath = new PropertyPath(nameof(TimelineEditorController.ViewModel.Zoom)),
+                    bindingMode = BindingMode.ToTarget
+                };
+                zoomDataBinding.sourceToUiConverters.AddConverter<float, string>((ref float val) =>
+                {
+                    return $"{val * 100:F0}%";
+                });
+                zoomLabel.SetBinding(nameof(Label.text), zoomDataBinding);
             }
 
             // Zoom slider
             var zoomSlider = GetSlider("zoom-slider");
             if (zoomSlider != null)
             {
-                zoomSlider.value = vm.Zoom.Value;
+                var zoomDataBinding = new DataBinding
+                {
+                    dataSource = vm,
+                    dataSourcePath = new PropertyPath(nameof(TimelineEditorController.ViewModel.Zoom)),
+                    bindingMode = BindingMode.TwoWay
+                };
+                zoomDataBinding.uiToSourceConverters.AddConverter<float, float>((ref float val) =>
+                {
+                    return Mathf.Clamp(val, 0.05f, 4f);
+                });
+                zoomSlider.SetBinding(nameof(Slider.value), zoomDataBinding);
                 zoomSlider.RegisterValueChangedCallback(evt =>
                 {
-                    var newZoom = Mathf.Clamp(evt.newValue, 0.05f, 4f);
-                    vm.SetZoom(newZoom);
-                    if (rulerModel != null)
-                    {
-                        rulerModel.SetZoom(newZoom);
-                    }
-
-                    if (zoomLabel != null)
-                    {
-                        zoomLabel.text = $"{newZoom * 100:F0}%";
-                    }
+                    var newValue = Mathf.Clamp(evt.newValue, 0.05f, 4f);
+                    rulerModel.SetZoom(newValue);
                 });
+            }
+
+            if( _tracksContainer == null )
+            {
+                var trackContainerDataBinding = new DataBinding
+                {
+                    dataSource = vm,
+                    dataSourcePath = new PropertyPath(nameof(TimelineEditorController.ViewModel.PixelsPerSecond)),
+                    bindingMode = BindingMode.ToTarget
+                };
+                trackContainerDataBinding.sourceToUiConverters.AddConverter<float, float>((ref float pixelsPerSecond) =>
+                {
+                    return vm.Length.Value * pixelsPerSecond;
+                });
+                _tracksContainer.SetBinding(nameof(VisualElement.style.width), trackContainerDataBinding);
             }
         }
 

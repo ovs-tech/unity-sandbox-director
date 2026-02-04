@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
-using MiniTimeline.Core;
-using UMA.PoseTools;
+using Systems.MiniTimeline.Core;
 using Core.UI.FormSubmit;
 using Core.UI.FormSubmit.Fields;
 
-namespace MiniTimeline.UI.FormDefinitions
+namespace Systems.MiniTimeline.UI.FormDefinitions
 {
     /// <summary>
     /// Provides form field definitions for creating different types of clips

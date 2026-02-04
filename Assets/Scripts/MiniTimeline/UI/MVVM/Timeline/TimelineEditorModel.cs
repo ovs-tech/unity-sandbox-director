@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using MiniTimeline.Core;
-using MiniTimeline.UI.Commands;
+using Systems.MiniTimeline.Core;
+using Systems.MiniTimeline.UI.Commands;
 using Core.Behaviors.Command;
 
-namespace MiniTimeline.UI.MVVM.Timeline
+namespace Systems.MiniTimeline.UI.MVVM.Timeline
 {
     /// <summary>
     /// Model for Timeline Editor holding state, command manager, and director reference.

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 
-namespace MiniTimeline.Tracks
+namespace Systems.MiniTimeline.Tracks
 {
     /// <summary>
     /// Track for controlling blendshapes/morph targets
@@ -12,9 +12,7 @@ namespace MiniTimeline.Tracks
     /// </summary>
     [Serializable]
     public class MorphTrack : MiniTrackBase<IMorphClip>
-    {
-        public override int Order => 30; // Morph tracks run after animation
-        
+    {   
         private SkinnedMeshRenderer targetRenderer;
         private Mesh targetMesh;
         

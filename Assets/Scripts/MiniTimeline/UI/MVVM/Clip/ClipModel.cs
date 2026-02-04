@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Core.Behaviors.Command;
-using MiniTimeline.Core;
-using MiniTimeline.UI.Commands;
+using Systems.MiniTimeline.Core;
+using Systems.MiniTimeline.UI.Commands;
 
-namespace MiniTimeline.UI.MVVM.Clip {
+namespace Systems.MiniTimeline.UI.MVVM.Clip {
     public class ClipModel {
         string _title = "Clip";
         float _duration = 1f;

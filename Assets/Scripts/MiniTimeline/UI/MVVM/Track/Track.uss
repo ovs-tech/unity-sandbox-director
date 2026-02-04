@@ -1,0 +1,284 @@
+.track {
+    flex-direction: row;
+    height: auto;
+    min-height: 60px;
+    width: 100%;
+    border-bottom-width: var(--border-width);
+    border-bottom-color: var(--color-border-dark);
+    position: relative;
+    align-items: stretch;
+}
+
+.track:hover {
+    background-color: var(--surface-color-light);
+}
+
+.track.selected {
+    background-color: rgba(6, 182, 212, 0.15);
+    border-bottom-color: var(--color-secondary);
+    border-bottom-width: 2px;
+}
+
+.track.disabled {
+    opacity: 0.5;
+}
+
+.track-header {
+    width: 200px;
+    height: auto;
+    min-width: 150px;
+    max-width: 300px;
+    background-color: var(--surface-color-light);
+    flex-direction: column;
+    justify-content: flex-start;
+    flex-shrink: 0;
+    position: relative;
+    align-items: stretch;
+    border-top-width: 0;
+    border-bottom-width: 0;
+    border-left-width: 0;
+}
+
+.track-header:hover {
+    background-color: rgba(58, 42, 48, 0.8);
+}
+
+.track-controls {
+    flex-direction: row;
+    min-height: 20px;
+    justify-content: flex-start;
+    align-items: center;
+    flex-shrink: 0;
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+.track-enabled > .switch__border {
+    width: 30px;
+    height: 18px;
+    margin-left: 4px;
+    margin-right: 4px;
+    border-radius: var(--border-radius-md);
+    padding: 2px;
+}
+
+.track-enabled > .switch__border--on:hover {
+    background-color: var(--color-primary-hover);
+}
+
+.track-enabled > .switch__border--on {
+    background-color: var(--color-primary);
+}
+
+.track-enabled > .switch__border > .switch__control {
+    width: 14px;
+    height: 14px;
+}
+
+.track-button {
+    width: 10px;
+    height: 10px;
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+.track-info {
+    flex-direction: column;
+    flex-grow: 1;
+    flex-shrink: 1;
+    justify-content: flex-start;
+}
+
+.track-title {
+    color: var(--color-text-light);
+    font-size: var(--font-size-xs);
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    flex-shrink: 0;
+    display: block;
+    width: 100%;
+}
+
+.track-bind-key {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    -unity-text-align: middle-left;
+    margin-bottom: 1px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    flex-shrink: 0;
+    display: block;
+    width: 100%;
+}
+
+.track-type {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    -unity-text-align: middle-left;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    display: block;
+    width: 100%;
+}
+
+.track-subinfo {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.track-subinfo .track-bind-key {
+    width: auto;
+    flex: 1 1 auto;
+    margin-bottom: 0;
+}
+
+.track-subinfo .track-type {
+    width: auto;
+    flex: 0 0 auto;
+    margin-left: 8px;
+}
+
+.track-menu {
+    min-height: 20px;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 0;
+    flex-shrink: 0;
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    z-index: 5;
+}
+
+.track-content {
+    flex-grow: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.track-content:hover {
+    background-color: rgba(58, 42, 48, 0.6);
+}
+
+.track-timeline {
+    width: 100%;
+    height: auto;
+    position: relative;
+}
+
+.track-lanes {
+    width: 100%;
+    height: auto;
+    flex-direction: column;
+}
+
+.track-lane {
+    flex-grow: 1;
+    min-height: 40px;
+}
+
+.track-lane.last-lane {
+    border-bottom-width: 0;
+}
+
+.track-resize-handle {
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background-color: transparent;
+    cursor: resize-vertical;
+}
+
+.track-resize-handle:hover {
+    background-color: rgba(6, 182, 212, 0.3);
+}
+
+.track.muted {
+    opacity: 0.6;
+}
+
+.track.muted .track-content {
+    background-color: var(--surface-color-dark);
+}
+
+.track.solo .track-content {
+    box-shadow: inset 0 0 0 2px var(--color-warning);
+}
+
+.track.recording {
+    box-shadow: inset 0 0 0 2px var(--color-danger);
+}
+
+.track.recording .track-header {
+    background-color: rgba(239, 68, 68, 0.15);
+}
+
+.track.drag-over {
+    background-color: rgba(6, 182, 212, 0.2);
+    border-color: var(--color-secondary);
+}
+
+.track.drag-target {
+    box-shadow: inset 0 0 0 2px var(--color-secondary);
+}
+
+.track:focus {
+    outline: none;
+    box-shadow: inset 0 0 0 1px var(--color-secondary);
+}
+
+.track.multi-selected {
+    background-color: rgba(6, 182, 212, 0.1);
+    border-left-width: 3px;
+    border-left-color: var(--color-secondary);
+}
+
+.track.compact {
+    height: 40px;
+}
+
+.track.compact .track-header {
+    width: 120px;
+}
+
+.track.compact .track-title {
+    font-size: 11px;
+}
+
+.track.compact .track-bind-key,
+.track.compact .track-type {
+    display: none;
+}
+
+.track.compact .track-controls {
+    height: 16px;
+}
+
+.track.compact .track-button {
+    width: 16px;
+    height: 14px;
+    font-size: 9px;
+}
+
+.track.expanded {
+    height: 120px;
+}
+
+.track.expanded .track-lanes {
+    opacity: 1;
+}
+
+.track.expanded .track-lane {
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(100, 100, 100, 0.2);
+}

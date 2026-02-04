@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
-namespace MiniTimeline.Core
+namespace Systems.MiniTimeline.Core
 {
     /// <summary>
     /// Playback state of the timeline
@@ -65,7 +66,6 @@ namespace MiniTimeline.Core
 
         // Project data
         private MiniTimelineProject project;
-        private List<IMiniTrack> tracks = new List<IMiniTrack>();
         private Dictionary<string, IMiniTrack> trackLookup = new Dictionary<string, IMiniTrack>();
 
         // Performance optimization
@@ -151,9 +151,9 @@ namespace MiniTimeline.Core
         public bool IsPlaying => state == PlaybackState.Playing;
 
         /// <summary>
-        /// All tracks (read-only)
+        /// All tracks (read-only) - directly from project.tracks
         /// </summary>
-        public IReadOnlyList<IMiniTrack> Tracks => tracks;
+        public IReadOnlyList<IMiniTrack> Tracks => (IReadOnlyList<IMiniTrack>)(project?.tracks ?? new List<IMiniTrack>());
 
         /// <summary>
         /// Current project
@@ -619,7 +619,7 @@ namespace MiniTimeline.Core
             OnProjectLoaded?.Invoke();
 
             if (debugMode)
-                Debug.Log($"[MiniTimelineDirector] Loaded project '{project.name}' with {tracks.Count} tracks");
+                Debug.Log($"[MiniTimelineDirector] Loaded project '{project.name}' with {(project?.tracks?.Count ?? 0)} tracks");
         }
 
         /// <summary>
@@ -632,12 +632,12 @@ namespace MiniTimeline.Core
             Stop();
 
             // Cleanup all tracks
-            foreach (var track in tracks)
+            foreach (var track in (project?.tracks ?? System.Linq.Enumerable.Empty<IMiniTrack>()).ToList())
             {
-                track.OnProjectClosed();
+                try { track.OnProjectClosed(); } catch { }
             }
 
-            tracks.Clear();
+            project?.tracks?.Clear();
             trackLookup.Clear();
             project = null;
 
@@ -728,7 +728,7 @@ namespace MiniTimeline.Core
         /// <returns>First track of type T or null</returns>
         public T GetTrack<T>() where T : class, IMiniTrack
         {
-            return tracks.OfType<T>().FirstOrDefault();
+            return (project?.tracks ?? System.Linq.Enumerable.Empty<IMiniTrack>()).OfType<T>().FirstOrDefault();
         }
 
         /// <summary>
@@ -749,7 +749,7 @@ namespace MiniTimeline.Core
         /// <returns>Collection of tracks</returns>
         public IEnumerable<T> GetTracks<T>() where T : class, IMiniTrack
         {
-            return tracks.OfType<T>();
+            return (project?.tracks ?? System.Linq.Enumerable.Empty<IMiniTrack>()).OfType<T>();
         }
 
         /// <summary>
@@ -781,7 +781,6 @@ namespace MiniTimeline.Core
             {
                 // Add to project runtime list
                 project.tracks.Add(track);
-                tracks.Add(track);
                 trackLookup[track.Id] = track;
 
                 // Bind and prepare
@@ -803,7 +802,6 @@ namespace MiniTimeline.Core
                 var existing = project.tracks.FirstOrDefault(t => t != null && t.Id == track.Id);
                 if (existing != null)
                     project.tracks.Remove(existing);
-                tracks.Remove(track);
                 trackLookup.Remove(track.Id);
                 return false;
             }
@@ -838,7 +836,6 @@ namespace MiniTimeline.Core
                 }
 
                 // Remove from runtime
-                tracks.Remove(track);
                 trackLookup.Remove(trackId);
 
                 // Cleanup
@@ -865,32 +862,34 @@ namespace MiniTimeline.Core
         /// <param name="trackId">Track ID to update</param>
         /// <param name="enabled">Enable/disable track</param>
         /// <returns>True if successful</returns>
-        public bool UpdateTrack(string trackId, bool enabled)
+        public bool UpdateTrack(string trackId, IMiniTrack trackData)
         {
+            if (trackData == null)
+            {
+                Debug.LogError("[MiniTimelineDirector] Cannot update track - null track data provided");
+                return false;
+            }
+
             if (!trackLookup.TryGetValue(trackId, out var track))
             {
                 Debug.LogWarning($"[MiniTimelineDirector] Track '{trackId}' not found");
                 return false;
             }
 
-            try
-            {
-                // Update runtime track
-                track.Enabled = enabled;
+            track.Enabled = trackData.Enabled;
+            track.BindKey = trackData.BindKey;
+            track.Name = trackData.Name;
+            track.Order = trackData.Order;
 
-                // Publish event
-                OnTrackUpdated?.Invoke(track);
+            track.Bind(bindableObjectManager);
 
-                if (debugMode)
-                    Debug.Log($"[MiniTimelineDirector] Updated track '{trackId}'");
+            // Publish event
+            OnTrackUpdated?.Invoke(track);
 
-                return true;
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"[MiniTimelineDirector] Failed to update track '{trackId}': {e.Message}");
-                return false;
-            }
+            if (debugMode)
+                Debug.Log($"[MiniTimelineDirector] Updated track '{trackId}'");
+
+            return true;
         }
 
         #endregion
@@ -1062,10 +1061,10 @@ namespace MiniTimeline.Core
             // Randomly log (5% chance) to reduce spam
             bool shouldLog = debugMode && UnityEngine.Random.value < 0.05f;
 
-            if (project == null || tracks.Count == 0)
+            if (project == null || project.tracks == null || project.tracks.Count == 0)
             {
                 if (debugMode && UnityEngine.Random.value < 0.1f) // 10% chance for warnings
-                    Debug.LogWarning($"[MiniTimelineDirector] Cannot evaluate - project: {(project != null ? "loaded" : "null")}, track count: {tracks.Count}");
+                    Debug.LogWarning($"[MiniTimelineDirector] Cannot evaluate - project: {(project != null ? "loaded" : "null")}, track count: {(project?.tracks?.Count ?? 0)}");
                 return;
             }
 
@@ -1080,11 +1079,11 @@ namespace MiniTimeline.Core
 
             // Sort tracks by evaluation order and evaluate
             tempTrackList.Clear();
-            tempTrackList.AddRange(tracks.Where(t => t.Enabled));
+            tempTrackList.AddRange((project.tracks ?? System.Linq.Enumerable.Empty<IMiniTrack>()).Where(t => t.Enabled));
             tempTrackList.Sort((a, b) => a.Order.CompareTo(b.Order));
 
             if (shouldLog)
-                Debug.Log($"[MiniTimelineDirector] Evaluating {tempTrackList.Count} enabled tracks out of {tracks.Count} total tracks");
+                Debug.Log($"[MiniTimelineDirector] Evaluating {tempTrackList.Count} enabled tracks out of {(project?.tracks?.Count ?? 0)} total tracks");
 
             int successCount = 0;
             int errorCount = 0;
@@ -1137,14 +1136,13 @@ namespace MiniTimeline.Core
             if (debugMode)
                 Debug.Log($"[MiniTimelineDirector] Building tracks from project '{project.name}' with {project.tracks.Count} runtime tracks");
 
-            // Clear existing tracks
-            foreach (var track in tracks)
+            // Clear existing runtime state (use lookup to cleanup previous runtime instances)
+            foreach (var existing in trackLookup.Values.ToList())
             {
                 if (debugMode)
-                    Debug.Log($"[MiniTimelineDirector] Cleaning up existing track '{track.Id}'");
-                track.OnProjectClosed();
+                    Debug.Log($"[MiniTimelineDirector] Cleaning up existing track '{existing.Id}'");
+                existing.OnProjectClosed();
             }
-            tracks.Clear();
             trackLookup.Clear();
 
             int successCount = 0;
@@ -1160,7 +1158,6 @@ namespace MiniTimeline.Core
                     continue;
                 }
 
-                tracks.Add(runtimeTrack);
                 trackLookup[runtimeTrack.Id] = runtimeTrack;
 
                 try
@@ -1182,13 +1179,12 @@ namespace MiniTimeline.Core
                     Debug.LogError($"[MiniTimelineDirector] Failed to bind/prepare track '{runtimeTrack.Id}': {e.Message}\nStackTrace: {e.StackTrace}");
 
                     // Remove failed track
-                    tracks.Remove(runtimeTrack);
                     trackLookup.Remove(runtimeTrack.Id);
                 }
             }
 
             if (debugMode)
-                Debug.Log($"[MiniTimelineDirector] Track building complete - Success: {successCount}, Failures: {failureCount}, Total tracks: {tracks.Count}");
+                Debug.Log($"[MiniTimelineDirector] Track building complete - Success: {successCount}, Failures: {failureCount}, Total tracks: {(project?.tracks?.Count ?? 0)}");
         }
 
         // No factory-based creation; project contains runtime tracks.
@@ -1210,7 +1206,7 @@ namespace MiniTimeline.Core
             int reboundCount = 0;
             int repreparedCount = 0;
 
-            foreach (var track in tracks)
+            foreach (var track in (project?.tracks ?? System.Linq.Enumerable.Empty<IMiniTrack>()))
             {
                 try
                 {

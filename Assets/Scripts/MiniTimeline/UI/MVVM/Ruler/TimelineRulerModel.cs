@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 
-namespace MiniTimeline.UI.MVVM.Ruler {
+namespace Systems.MiniTimeline.UI.MVVM.Ruler {
     [Serializable]
     public class TimelineRulerModel {
         [SerializeField] float _currentTime;
@@ -22,7 +22,7 @@ namespace MiniTimeline.UI.MVVM.Ruler {
 
         public float CurrentTime => _currentTime;
         public float Zoom => _zoom;
-        public float Length => _length;
+        public float Length => _director.Length;
         public int FrameRate => _frameRate;
         public float PixelsPerSecond => _pixelsPerSecond * _zoom;
         public IReadOnlyList<TimelineMarker> Markers => _markers.AsReadOnly();

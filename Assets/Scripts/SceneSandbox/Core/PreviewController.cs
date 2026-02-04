@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 
 namespace Systems.SceneSandbox.Core
 {

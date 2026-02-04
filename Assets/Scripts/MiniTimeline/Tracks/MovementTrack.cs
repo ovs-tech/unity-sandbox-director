@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 
-namespace MiniTimeline.Tracks
+namespace Systems.MiniTimeline.Tracks
 {
     /// <summary>
     /// Movement track for controlling Transform position and rotation.
@@ -12,9 +12,7 @@ namespace MiniTimeline.Tracks
     /// </summary>
     [Serializable]
     public class MovementTrack : MiniTrackBase<MovementClip>
-    {
-        public override int Order => 20; // Movement tracks run after animation
-        
+    {   
         private Transform targetTransform;
         
         // Animation state

@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Sirenix.OdinSerializer;
-using MiniTimeline.Core;
 
-namespace MiniTimeline.Tracks
+using Systems.MiniTimeline.Core;
+
+namespace Systems.MiniTimeline.Tracks
 {
     /// <summary>
     /// Blend mode for morph clips
@@ -25,19 +25,19 @@ namespace MiniTimeline.Tracks
         /// <summary>
         /// Blendshape name or ID
         /// </summary>
-        [OdinSerialize]
+        
         public string id;
         
         /// <summary>
         /// Start value (0-100)
         /// </summary>
-        [OdinSerialize]
+        
         public float startValue;
         
         /// <summary>
         /// End value (0-100)
         /// </summary>
-        [OdinSerialize]
+        
         public float endValue;
         
         /// <summary>
@@ -67,25 +67,25 @@ namespace MiniTimeline.Tracks
         /// <summary>
         /// Blend mode for this clip
         /// </summary>
-        [OdinSerialize]
+        
         public MorphBlendMode blendMode = MorphBlendMode.Additive;
         
         /// <summary>
         /// Priority for Override blend mode (higher = more priority)
         /// </summary>
-        [OdinSerialize]
+        
         public int priority = 0;
         
         /// <summary>
         /// Overall clip weight multiplier
         /// </summary>
-        [OdinSerialize]
+        
         public float weight = 1f;
         
         /// <summary>
         /// Morph keys in this clip
         /// </summary>
-        [OdinSerialize]
+        
         public List<MorphKey> keys = new List<MorphKey>();
         
         /// <summary>
@@ -140,36 +140,36 @@ namespace MiniTimeline.Tracks
         [Serializable]
         public struct CurveChannel
         {
-            [OdinSerialize]
+            
             public string id;
-            [OdinSerialize]
+            
             public AnimationCurve curve;
-            [OdinSerialize]
+            
             public float multiplier;
         }
         
         /// <summary>
         /// Blend mode for this clip
         /// </summary>
-        [OdinSerialize]
+        
         public MorphBlendMode blendMode = MorphBlendMode.Additive;
         
         /// <summary>
         /// Priority for Override blend mode
         /// </summary>
-        [OdinSerialize]
+        
         public int priority = 0;
         
         /// <summary>
         /// Overall clip weight
         /// </summary>
-        [OdinSerialize]
+        
         public float weight = 1f;
         
         /// <summary>
         /// Curve channels in this clip
         /// </summary>
-        [OdinSerialize]
+        
         public List<CurveChannel> channels = new List<CurveChannel>();
         
         /// <summary>

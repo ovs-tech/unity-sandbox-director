@@ -1,9 +1,9 @@
 using System;
 using UnityEngine;
-using Sirenix.OdinSerializer;
-using MiniTimeline.Core;
 
-namespace MiniTimeline.Tracks
+using Systems.MiniTimeline.Core;
+
+namespace Systems.MiniTimeline.Tracks
 {
     /// <summary>
     /// Wrap mode for animation clips
@@ -45,41 +45,41 @@ namespace MiniTimeline.Tracks
     {
         [Header("Animation Asset")]
         [Tooltip("Path to the animation asset (supports Addressables with 'addr:' prefix)")]
-        [OdinSerialize]
+        
         public string animationAsset;
         
         [Header("Playback Settings")]
         [Tooltip("Playback speed multiplier (1.0 = normal speed)")]
-        [OdinSerialize]
+        
         public float speed = 1.0f;
         
         [Tooltip("How the animation should wrap when it reaches the end")]
-        [OdinSerialize]
+        
         public AnimWrapMode wrapMode = AnimWrapMode.Once;
         
         [Tooltip("Animation layer for blending (higher layers override lower ones)")]
-        [OdinSerialize]
+        
         public int layer = 0;
         
         [Header("Blending")]
         [Tooltip("Fade-in duration in seconds")]
         [Range(0f, 5f)]
-        [OdinSerialize]
+        
         public float fadeIn = 0f;
         
         [Tooltip("Fade-out duration in seconds")]
         [Range(0f, 5f)]
-        [OdinSerialize]
+        
         public float fadeOut = 0f;
         
         [Tooltip("Weight of this animation clip (0-1)")]
         [Range(0f, 1f)]
-        [OdinSerialize]
+        
         public float weight = 1f;
         
         [Header("Timing")]
         [Tooltip("Offset into the animation clip (in seconds)")]
-        [OdinSerialize]
+        
         public float clipOffset = 0f;
         
         #region Animation Specific Methods

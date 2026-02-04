@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
+using Systems.MiniTimeline.Tracks;
 using UnityEngine;
-using MiniTimeline.Tracks;
-using MiniTimeline.Core;
 
 namespace MiniTimeline.Tracks.Tests
 {

@@ -1,7 +1,7 @@
 using Core.Behaviors.Command;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 
-namespace MiniTimeline.UI.Commands
+namespace Systems.MiniTimeline.UI.Commands
 {
     /// <summary>
     /// Command for resizing a clip (changing duration and/or start time)

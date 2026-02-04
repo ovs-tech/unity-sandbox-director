@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 
-namespace MiniTimeline.Tracks
+namespace Systems.MiniTimeline.Tracks
 {
     /// <summary>
     /// Track for controlling Animator parameters over time
@@ -12,7 +12,6 @@ namespace MiniTimeline.Tracks
     [Serializable]
     public class AnimatorTrack : MiniTrackBase<AnimatorClip>
     {
-        public override int Order => 30; // Animator tracks run after animation and camera
 
         [Header("Animator Settings")]
         public string animatorBinding = ""; // Path to GameObject with Animator

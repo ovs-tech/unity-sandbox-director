@@ -1,8 +1,8 @@
-using MiniTimeline.Core;
-using MiniTimeline.Tracks;
+using Systems.MiniTimeline.Core;
+using Systems.MiniTimeline.Tracks;
 using UnityEngine;
 
-namespace MiniTimeline.UI
+namespace Systems.MiniTimeline.UI
 {
     /// <summary>
     /// Helper utility class for Track UI operations

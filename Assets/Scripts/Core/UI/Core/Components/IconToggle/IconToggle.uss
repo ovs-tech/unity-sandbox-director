@@ -1,0 +1,40 @@
+/* IconToggle Component Styles */
+
+IconToggle {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: rgba(128, 128, 128, 0.5);
+    background-color: rgba(40, 40, 40, 0.8);
+    justify-content: center;
+    align-items: center;
+    cursor: link;
+    transition-property: background-color, border-color;
+    transition-duration: 0.2s;
+}
+
+IconToggle:hover {
+    background-color: rgba(60, 60, 60, 0.9);
+    border-color: rgba(150, 150, 150, 0.7);
+}
+
+IconToggle.icon-toggle--active {
+    background-color: rgba(0, 120, 215, 0.8);
+    border-color: rgba(0, 150, 255, 1);
+}
+
+IconToggle.icon-toggle--active:hover {
+    background-color: rgba(0, 140, 235, 0.9);
+}
+
+.icon-toggle__label {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.9);
+    -unity-text-align: middle-center;
+    -unity-font-definition: url('project://database/Assets/TextMesh%20Pro/Resources/Fonts%20&%20Materials/LiberationSans%20SDF.asset');
+}
+
+IconToggle.icon-toggle--active .icon-toggle__label {
+    color: rgb(255, 255, 255);
+}

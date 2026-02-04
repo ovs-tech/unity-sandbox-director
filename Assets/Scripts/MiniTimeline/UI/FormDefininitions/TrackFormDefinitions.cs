@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 using Core.UI.FormSubmit;
 using Core.UI.FormSubmit.Fields;
 
-namespace MiniTimeline.UI.FormDefinitions
+namespace Systems.MiniTimeline.UI.FormDefinitions
 {
     /// <summary>
     /// Provides form field definitions for track settings and configuration
@@ -154,6 +154,7 @@ namespace MiniTimeline.UI.FormDefinitions
                     tooltip = "Select a binding key to associate this track with scene objects",
                     options = new Dictionary<string, object>
                     {
+                        { "items", GetAvailableBindingKeys() },
                         { "allowCustom", true },
                         { "placeholder", "Select or enter binding key..." }
                     }

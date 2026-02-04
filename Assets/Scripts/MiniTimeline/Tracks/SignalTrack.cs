@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 
-namespace MiniTimeline.Tracks
+namespace Systems.MiniTimeline.Tracks
 {
 	/// <summary>
 	/// Signal track for triggering signals and markers
@@ -15,41 +15,39 @@ namespace MiniTimeline.Tracks
 	[Serializable]
 	public class SignalTrack : MiniTrackBase<SignalClip>
 	{
-		public override int Order => 0; // Signal tracks run first to allow other systems to react
-        
 		// Events
 		public event Action<TimelineEvent> OnTimelineEvent;
-        
+
 		// Unity Events for editor binding
 		[SerializeField] private UnityEvent<TimelineEvent> onTimelineEvent = new UnityEvent<TimelineEvent>();
-        
+
 		// Event routing
 		private readonly Dictionary<string, Action<TimelineEvent>> eventHandlers = new Dictionary<string, Action<TimelineEvent>>();
-        
+
 		// Performance optimization
 		private readonly List<SignalClip> tempActiveSignals = new List<SignalClip>();
-        
+
 		#region Track Lifecycle
-        
+
 		protected override void OnPrepare()
 		{
 			// Sort clips by time for efficient processing
 			clips.Sort((a, b) => a.Start.CompareTo(b.Start));
-            
+
 			// Debug.Log($"[SignalTrack] Prepared track '{Id}' with {clips.Count} signal clips");
 		}
-        
+
 		protected override void OnEvaluate(float time, bool scrub)
 		{
 			// Get the director to access previous time
 			var director = UnityEngine.Object.FindFirstObjectByType<MiniTimelineDirector>();
 			if (director == null) return;
-            
+
 			float previousTime = director.PreviousTime;
-            
+
 			// Check all signal clips for triggers
 			tempActiveSignals.Clear();
-            
+
 			foreach (var signal in clips)
 			{
 				if (signal.ShouldTrigger(previousTime, time, scrub))
@@ -57,16 +55,16 @@ namespace MiniTimeline.Tracks
 					tempActiveSignals.Add(signal);
 				}
 			}
-            
+
 			// Fire events for triggered signals
 			foreach (var signal in tempActiveSignals)
 			{
 				FireEvent(signal, time, scrub, previousTime);
 			}
-            
+
 			tempActiveSignals.Clear();
 		}
-        
+
 		protected override void OnCleanup()
 		{
 			// Clear event handlers
@@ -74,14 +72,14 @@ namespace MiniTimeline.Tracks
 			{
 				eventHandlers.Clear();
 			}
-            
+
 			// Debug.Log($"[SignalTrack] Cleaned up track '{Id}'");
 		}
-        
+
 		#endregion
-        
+
 		#region Event Handling
-        
+
 		/// <summary>
 		/// Fire an event for a signal clip
 		/// </summary>
@@ -100,21 +98,21 @@ namespace MiniTimeline.Tracks
 				isScrub = scrub,
 				sourceClip = signal
 			};
-            
+
 			try
 			{
 				// Fire global event
 				OnTimelineEvent?.Invoke(timelineEvent);
-                
+
 				// Fire Unity event
 				onTimelineEvent?.Invoke(timelineEvent);
-                
+
 				// Fire specific event handler if registered
 				if (eventHandlers != null && eventHandlers.TryGetValue(signal.eventId, out var handler))
 				{
 					handler.Invoke(timelineEvent);
 				}
-                
+
 				// Debug.Log($"[SignalTrack] Fired event '{signal.eventId}' at time {signal.Start:F2} (payload: '{signal.payload}')");
 			}
 			catch (Exception)
@@ -122,7 +120,7 @@ namespace MiniTimeline.Tracks
 				// Debug.LogError($"[SignalTrack] Error firing event '{signal.eventId}': {e.Message}");
 			}
 		}
-        
+
 		/// <summary>
 		/// Register a specific event handler
 		/// </summary>
@@ -132,7 +130,7 @@ namespace MiniTimeline.Tracks
 		{
 			if (string.IsNullOrEmpty(eventId) || handler == null) return;
 			if (eventHandlers == null) return;
-            
+
 			if (eventHandlers.ContainsKey(eventId))
 			{
 				eventHandlers[eventId] += handler;
@@ -141,10 +139,10 @@ namespace MiniTimeline.Tracks
 			{
 				eventHandlers[eventId] = handler;
 			}
-            
+
 			// Debug.Log($"[SignalTrack] Registered handler for event '{eventId}'");
 		}
-        
+
 		/// <summary>
 		/// Unregister a specific event handler
 		/// </summary>
@@ -154,18 +152,18 @@ namespace MiniTimeline.Tracks
 		{
 			if (string.IsNullOrEmpty(eventId) || handler == null) return;
 			if (eventHandlers == null) return;
-            
+
 			if (eventHandlers.TryGetValue(eventId, out var existingHandler))
 			{
 				eventHandlers[eventId] = existingHandler - handler;
-                
+
 				if (eventHandlers[eventId] == null)
 				{
 					eventHandlers.Remove(eventId);
 				}
 			}
 		}
-        
+
 		/// <summary>
 		/// Clear all event handlers for a specific event ID
 		/// </summary>
@@ -177,7 +175,7 @@ namespace MiniTimeline.Tracks
 				eventHandlers.Remove(eventId);
 			}
 		}
-        
+
 		/// <summary>
 		/// Clear all event handlers
 		/// </summary>
@@ -188,11 +186,11 @@ namespace MiniTimeline.Tracks
 				eventHandlers.Clear();
 			}
 		}
-        
+
 		#endregion
-        
+
 		#region Public API
-        
+
 		/// <summary>
 		/// Add a signal clip to this track
 		/// </summary>
@@ -209,15 +207,15 @@ namespace MiniTimeline.Tracks
 				eventId = eventId,
 				payload = payload
 			};
-            
+
 			clips.Add(signal);
-            
+
 			// Keep clips sorted by time
 			clips.Sort((a, b) => a.Start.CompareTo(b.Start));
-            
+
 			return signal;
 		}
-        
+
 		/// <summary>
 		/// Remove a signal clip
 		/// </summary>
@@ -233,7 +231,7 @@ namespace MiniTimeline.Tracks
 			}
 			return false;
 		}
-        
+
 		/// <summary>
 		/// Get all signals with a specific event ID
 		/// </summary>
@@ -243,7 +241,7 @@ namespace MiniTimeline.Tracks
 		{
 			return clips.Where(c => c.eventId == eventId);
 		}
-        
+
 		/// <summary>
 		/// Get signal at specific time
 		/// </summary>
@@ -254,7 +252,7 @@ namespace MiniTimeline.Tracks
 		{
 			return clips.FirstOrDefault(c => Mathf.Abs(c.Start - time) <= tolerance);
 		}
-        
+
 		/// <summary>
 		/// Get all signals within a time range
 		/// </summary>
@@ -265,7 +263,7 @@ namespace MiniTimeline.Tracks
 		{
 			return clips.Where(c => c.Start >= startTime && c.Start <= endTime);
 		}
-        
+
 		/// <summary>
 		/// Manually fire an event (useful for testing)
 		/// </summary>
@@ -283,16 +281,16 @@ namespace MiniTimeline.Tracks
 				isScrub = false,
 				sourceClip = null
 			};
-            
+
 			OnTimelineEvent?.Invoke(manualEvent);
 			onTimelineEvent?.Invoke(manualEvent);
-            
+
 			if (eventHandlers != null && eventHandlers.TryGetValue(eventId, out var handler))
 			{
 				handler.Invoke(manualEvent);
 			}
 		}
-        
+
 		/// <summary>
 		/// Get Unity event for editor binding
 		/// </summary>
@@ -301,7 +299,7 @@ namespace MiniTimeline.Tracks
 		{
 			return onTimelineEvent;
 		}
-        
+
 		#endregion
 	}
 }

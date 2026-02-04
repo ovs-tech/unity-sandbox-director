@@ -1,9 +1,9 @@
 using System;
 using Core.Behaviors.Command;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 using UnityEngine;
 
-namespace MiniTimeline.UI.Commands
+namespace Systems.MiniTimeline.UI.Commands
 {
     /// <summary>
     /// Command for deleting a clip from a track.

@@ -4,15 +4,16 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
-using MiniTimeline.Core;
-using MiniTimeline.UI.MVVM.Track;
-using MiniTimeline.UI.MVVM.Ruler;
-using MiniTimeline.UI.Commands;
-using MiniTimeline.UI.FormDefinitions;
+using Systems.MiniTimeline.Core;
+using Systems.MiniTimeline.UI.MVVM.Track;
+using Systems.MiniTimeline.UI.MVVM.Ruler;
+using Systems.MiniTimeline.UI.Commands;
+using Systems.MiniTimeline.UI.FormDefinitions;
 using Core.UI.FormSubmit;
 using Core.UI.FormSubmit.Fields;
+using Unity.Properties;
 
-namespace MiniTimeline.UI.MVVM.Timeline
+namespace Systems.MiniTimeline.UI.MVVM.Timeline
 {
   /// <summary>
   /// Controller for Timeline Editor MVVM.
@@ -51,45 +52,12 @@ namespace MiniTimeline.UI.MVVM.Timeline
       // Delegate UI bindings to the View (only pass ViewModel)
       _view.Bind(vm, _rulerModel);
 
-      // Subscribe to track changes via ViewModel
-      vm.OnTracksChanged += () => {
-        Debug.Log("Tracks changed - syncing via ViewModel");
-      };
-      vm.OnTrackAdded += track => {
-        if (track != null) {
-          Debug.Log($"[TimelineEditorController] Track added: {track.Id}");
-        }
-      };
-      vm.OnTrackRemoved += (track, trackId) => {
-        if (track != null) {
-          Debug.Log($"[TimelineEditorController] Track removed: {track.Id}");
-        }
-      };
-      vm.OnTrackUpdated += track => {
-        if (track != null) {
-          Debug.Log($"[TimelineEditorController] Track updated: {track.Id}");
-        }
-      };
-      
-      // Subscribe to clip changes via ViewModel
-      vm.OnClipsChanged += () => {
-        Debug.Log("Clips changed - syncing via ViewModel");
-      };
-      vm.OnClipAdded += (clip, trackId) => {
-        Debug.Log($"Clip added to track {trackId}");
-      };
-      vm.OnClipRemoved += (clip, trackId) => {
-        Debug.Log($"Clip removed from track {trackId}");
-      };
-      vm.OnClipUpdated += (clip, trackId) => {
-        Debug.Log($"Clip updated in track {trackId}");
-      };
-      
       // Subscribe to zoom changes to sync with all tracks
-      vm.OnZoomChanged += zoom => {
+      vm.OnZoomChanged += zoom =>
+      {
         SyncZoomToAllTracks(zoom);
       };
-      
+
       // Listen to observable array changes for track controller registration
       vm.Tracks.AnyValueChanged += tracks =>
       {
@@ -120,7 +88,7 @@ namespace MiniTimeline.UI.MVVM.Timeline
       {
         if (trackController != null)
         {
-          trackController.UpdateZoom(zoom, _viewModel.PixelsPerSecond);
+          trackController.UpdateZoom(zoom, _viewModel.PixelsPerSecond.Value);
         }
       }
     }
@@ -140,7 +108,7 @@ namespace MiniTimeline.UI.MVVM.Timeline
         if (track != null)
         {
           trackIdsInArray.Add(track.Id);
-          
+
           // Create controller if it doesn't exist
           if (!_trackControllers.ContainsKey(track.Id))
           {
@@ -258,9 +226,9 @@ namespace MiniTimeline.UI.MVVM.Timeline
       var trackController = _view.CreateAndRenderTrackController(
         track,
         _viewModel.Director,
-        _viewModel.PixelsPerSecond,
+        _viewModel.PixelsPerSecond.Value,
         _viewModel.Length.Value,
-        _viewModel.Zoom.Value
+        _viewModel.Zoom
       );
 
       if (trackController != null)
@@ -277,7 +245,15 @@ namespace MiniTimeline.UI.MVVM.Timeline
       public readonly BindableProperty<bool> IsPlaying;
       public readonly BindableProperty<float> Time;
       public readonly BindableProperty<float> Length;
-      public readonly BindableProperty<float> Zoom;
+      [CreateProperty]
+      public float Zoom
+      {
+        get => _model.Zoom;
+        set
+        {
+          _model.SetZoom(value);
+        }
+      }
       public readonly BindableProperty<string> StatusText;
       public readonly BindableProperty<bool> CanUndo;
       public readonly BindableProperty<bool> CanRedo;
@@ -289,7 +265,7 @@ namespace MiniTimeline.UI.MVVM.Timeline
 
       // Expose Model properties needed by Controller
       public MiniTimelineDirector Director => _model.Director;
-      public float PixelsPerSecond => _model.PixelsPerSecond;
+      public readonly BindableProperty<float> PixelsPerSecond;
 
       // Expose Model events needed by Controller
       public event Action OnTracksChanged
@@ -352,11 +328,11 @@ namespace MiniTimeline.UI.MVVM.Timeline
         IsPlaying = BindableProperty<bool>.Bind(() => _model.IsPlaying);
         Time = BindableProperty<float>.Bind(() => _model.Time);
         Length = BindableProperty<float>.Bind(() => _model.Length);
-        Zoom = BindableProperty<float>.Bind(() => _model.Zoom);
         StatusText = BindableProperty<string>.Bind(() => _model.StatusText);
         CanUndo = BindableProperty<bool>.Bind(() => _model.CanUndo);
         CanRedo = BindableProperty<bool>.Bind(() => _model.CanRedo);
         TrackCount = BindableProperty<int>.Bind(() => _model.Director?.Project?.tracks.Count ?? 0);
+        PixelsPerSecond = BindableProperty<float>.Bind(() => _model.PixelsPerSecond);
 
         // Initialize observable array with initial tracks if director is loaded
         var initialTracks = _model.Director?.Tracks != null
@@ -366,19 +342,18 @@ namespace MiniTimeline.UI.MVVM.Timeline
 
         // Subscribe to track changes to keep the observable array in sync
         _model.OnTracksChanged += SyncTracks;
-        _model.OnTrackAdded += track => {
-          if (track != null) {
+        _model.OnTrackAdded += track =>
+        {
+          if (track != null)
+          {
             AddTrackToArray(track);
           }
         };
-        _model.OnTrackRemoved += (track, trackId) => {
-          if (track != null) {
+        _model.OnTrackRemoved += (track, trackId) =>
+        {
+          if (track != null)
+          {
             RemoveTrackFromArray(track);
-          }
-        };
-        _model.OnTrackUpdated += track => {
-          if (track != null) {
-            SyncTracks();
           }
         };
       }
@@ -482,7 +457,7 @@ namespace MiniTimeline.UI.MVVM.Timeline
         }
 
         var fieldDefinitions = TrackFormDefinitions.GetCreateTrackFields();
-        
+
         FormSubmitPanelUIToolkit.Instance.Show(
           "Add Track",
           fieldDefinitions,
@@ -573,7 +548,7 @@ namespace MiniTimeline.UI.MVVM.Timeline
           {
             string key = formData["newBindingKey"]?.ToString();
             string objectName = formData["newBindingObject"]?.ToString();
-            
+
             if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(objectName))
             {
               var targetObject = GameObject.Find(objectName);
@@ -600,7 +575,7 @@ namespace MiniTimeline.UI.MVVM.Timeline
         if (bindingContext == null) return "No bindings";
         var keys = bindingContext.GetKeys();
         if (keys == null || !keys.Any()) return "No bindings registered";
-        return string.Join("\n", keys.Select(key => 
+        return string.Join("\n", keys.Select(key =>
         {
           var obj = bindingContext.Resolve<GameObject>(key);
           return $"{key}: {(obj != null ? obj.name : "null")}";

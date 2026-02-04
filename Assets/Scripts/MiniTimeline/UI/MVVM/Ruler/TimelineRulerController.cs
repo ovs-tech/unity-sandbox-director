@@ -1,9 +1,9 @@
 using System;
 using UnityEngine;
 using UnityEngine.UIElements;
-using MiniTimeline.Core;
+using Systems.MiniTimeline.Core;
 
-namespace MiniTimeline.UI.MVVM.Ruler {
+namespace Systems.MiniTimeline.UI.MVVM.Ruler {
     /// <summary>
     /// Controller for Timeline Ruler MVVM.
     /// Manages ruler display, playhead positioning, markers, and time scrubbing.
@@ -11,41 +11,22 @@ namespace MiniTimeline.UI.MVVM.Ruler {
     public class TimelineRulerController {
         readonly TimelineRulerView _view;
         readonly TimelineRulerModel _model;
+        readonly ViewModel _vm;
 
 
         TimelineRulerController(TimelineRulerView view, TimelineRulerModel model) {
             _view = view;
             _model = model;
-            Initialize();
+            _vm = new ViewModel(_model);
+            _view.Bind(_model, _vm);
         }
-
-        void Initialize() {
-            Bind();
-        }
-
-        public void Bind() {
-            _view.Bind(_model);
-        }
-
-        public void SetZoom(float zoom) {
-            _model.SetZoom(zoom);
-            _view.Regenerate(_model);
-        }
-
-        public void Regenerate() { _view.Regenerate(_model); }
-
-        public void UpdatePlayheadPosition() { _view.UpdatePlayheadPosition(_model); }
-
-        // Event handlers and helper methods were moved to the View
-
-        
-
-        // Removed coroutine-based drag helper; using synchronous updates
 
         public class ViewModel {
             public readonly BindableProperty<float> CurrentTime;
             public readonly BindableProperty<float> Zoom;
             public readonly BindableProperty<int> MarkerCount;
+            public readonly BindableProperty<float> Length;
+            public readonly BindableProperty<float> PixelsPerSecond;
 
             readonly TimelineRulerModel _model;
             
@@ -54,6 +35,8 @@ namespace MiniTimeline.UI.MVVM.Ruler {
                 CurrentTime = BindableProperty<float>.Bind(() => _model.CurrentTime);
                 Zoom = BindableProperty<float>.Bind(() => _model.Zoom);
                 MarkerCount = BindableProperty<int>.Bind(() => _model.Markers.Count);
+                Length = BindableProperty<float>.Bind(() => _model.Length);
+                PixelsPerSecond = BindableProperty<float>.Bind(() => _model.PixelsPerSecond);
             }
 
             public void MovePlayhead(float time) => _model.SetTime(time);

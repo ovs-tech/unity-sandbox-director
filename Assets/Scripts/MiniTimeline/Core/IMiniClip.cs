@@ -1,4 +1,4 @@
-namespace MiniTimeline.Core
+namespace Systems.MiniTimeline.Core
 {
     /// <summary>
     /// Base interface for all timeline clips

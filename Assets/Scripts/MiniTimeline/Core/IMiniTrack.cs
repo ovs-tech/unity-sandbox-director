@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace MiniTimeline.Core
+namespace Systems.MiniTimeline.Core
 {
     /// <summary>
     /// Base interface for all timeline tracks
@@ -11,17 +11,17 @@ namespace MiniTimeline.Core
         /// <summary>
         /// Unique identifier for this track
         /// </summary>
-        string Id { get; }
+        string Id { get; set; }
         
         /// <summary>
         /// Display name for this track
         /// </summary>
-        string Name { get; }
+        string Name { get; set; }
         
         /// <summary>
         /// Binding key to resolve target object from BindingContext
         /// </summary>
-        string BindKey { get; }
+        string BindKey { get; set; }
         
         /// <summary>
         /// Whether this track is currently enabled
@@ -31,7 +31,7 @@ namespace MiniTimeline.Core
         /// <summary>
         /// Evaluation order (lower values evaluated first)
         /// </summary>
-        int Order { get; }
+        int Order { get; set; }
         
         /// <summary>
         /// Whether this track is bound to its target object

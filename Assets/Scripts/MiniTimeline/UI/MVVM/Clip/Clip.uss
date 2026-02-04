@@ -1,0 +1,438 @@
+.clip {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    min-width: 20px;
+    min-height: 40px;
+    background-color: rgba(6, 182, 212, 0.5);
+    border-color: var(--color-secondary);
+    border-width: var(--border-width);
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+    flex-direction: column;
+    max-height: 40px;
+}
+
+.clip:hover {
+    background-color: rgba(6, 182, 212, 0.65);
+    border-color: var(--color-secondary);
+}
+
+.clip.selected {
+    background-color: rgba(6, 182, 212, 0.7);
+    border-color: var(--color-secondary);
+    border-width: 2px;
+}
+
+.clip.multi-selected {
+    border-color: var(--color-warning);
+}
+
+.clip.disabled {
+    opacity: 0.5;
+    background-color: var(--surface-color-dark);
+    border-color: var(--color-border);
+}
+
+.clip-header {
+    height: 18px;
+    flex-direction: row;
+    align-items: center;
+    padding-left: 4px;
+    padding-right: 4px;
+    padding-top: 2px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(0, 0, 0, 0.2);
+    margin-right: 10px;
+    margin-left: 10px;
+}
+
+.clip-icon {
+    width: 14px;
+    height: 14px;
+    justify-content: center;
+    align-items: center;
+    margin-right: 3px;
+}
+
+.clip-type-icon {
+    font-size: 10px;
+    color: var(--color-primary-light);
+    -unity-text-align: middle-center;
+}
+
+.clip-title {
+    flex-grow: 1;
+    color: var(--color-primary-light);
+    font-size: var(--font-size-sm);
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 2px;
+}
+
+.clip-status {
+    flex-direction: row;
+    height: 14px;
+    align-items: center;
+}
+
+.clip-status-icon {
+    width: 10px;
+    height: 10px;
+    margin-left: 1px;
+    border-radius: 2px;
+    background-color: rgba(255, 255, 255, 0.2);
+    display: none;
+}
+
+.clip-status-icon.active {
+    display: flex;
+}
+
+.clip-lock-icon.active {
+    background-color: var(--color-warning);
+}
+
+.clip-mute-icon.active {
+    background-color: var(--color-danger);
+}
+
+.clip-content {
+    flex-grow: 1;
+    position: relative;
+    overflow: hidden;
+    margin-right: 10px;
+    margin-left: 10px;
+}
+
+.clip-preview {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+}
+
+.clip-markers {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.clip-marker {
+    position: absolute;
+    width: 2px;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.clip-start-marker {
+    left: 0;
+}
+
+.clip-end-marker {
+    right: 0;
+}
+
+.clip-info {
+    position: absolute;
+    bottom: 2px;
+    left: 4px;
+    right: 4px;
+    height: 16px;
+    justify-content: space-between;
+    flex-direction: row;
+    align-items: center;
+}
+
+.clip-duration {
+    color: var(--color-text-light);
+    font-size: 9px;
+    -unity-text-align: middle-left;
+}
+
+.clip-details {
+    width: 6px;
+    height: 6px;
+}
+
+.clip-resize-handles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    margin-top: 0;
+}
+
+.clip-resize-handle {
+    position: absolute;
+    top: 0;
+    width: 10px;
+    height: 100%;
+    min-width: 10px;
+    min-height: 20px;
+    background-color: rgba(250, 204, 21, 0.7);
+}
+
+.clip-resize-left {
+    left: 0;
+}
+
+.clip-resize-right {
+    right: 0;
+}
+
+.clip-resize-handle:hover {
+    background-color: var(--color-warning);
+}
+
+.clip.selected .clip-resize-handle {
+    background-color: var(--color-warning);
+}
+
+.clip.selected .clip-resize-handle:hover {
+    background-color: var(--color-warning);
+}
+
+.clip-selection-border {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-width: 0;
+    border-color: transparent;
+    border-radius: 4px;
+}
+
+.clip.selected .clip-selection-border {
+    border-width: 2px;
+    border-color: var(--color-secondary);
+}
+
+.clip.anim {
+    background-color: rgba(34, 197, 94, 0.5);
+    border-color: var(--color-success);
+}
+
+.clip.anim:hover {
+    background-color: rgba(34, 197, 94, 0.65);
+    border-color: var(--color-success);
+}
+
+.clip.anim.selected {
+    background-color: rgba(34, 197, 94, 0.7);
+    border-color: var(--color-success);
+}
+
+.clip.anim .clip-type-icon {
+}
+
+.clip.audio {
+    background-color: rgba(239, 68, 68, 0.5);
+    border-color: var(--color-danger);
+}
+
+.clip.audio:hover {
+    background-color: rgba(239, 68, 68, 0.65);
+    border-color: var(--color-danger);
+}
+
+.clip.audio.selected {
+    background-color: rgba(239, 68, 68, 0.7);
+    border-color: var(--color-danger);
+}
+
+.clip.audio .clip-type-icon {
+}
+
+.clip.camera {
+    background-color: rgba(250, 204, 21, 0.5);
+    border-color: var(--color-warning);
+}
+
+.clip.camera:hover {
+    background-color: rgba(250, 204, 21, 0.65);
+    border-color: var(--color-warning);
+}
+
+.clip.camera.selected {
+    background-color: rgba(250, 204, 21, 0.7);
+    border-color: var(--color-warning);
+}
+
+.clip.camera .clip-type-icon {
+}
+
+.clip.custom {
+    background-color: rgba(236, 19, 91, 0.5);
+    border-color: var(--color-primary);
+}
+
+.clip.custom:hover {
+    background-color: rgba(236, 19, 91, 0.65);
+    border-color: var(--color-primary);
+}
+
+.clip.custom.selected {
+    background-color: rgba(236, 19, 91, 0.7);
+    border-color: var(--color-primary);
+}
+
+.clip.custom .clip-type-icon {
+}
+
+.track-movementtrack .clip {
+    background-color: rgba(59, 130, 246, 0.5);
+    border-color: var(--color-primary);
+}
+
+.track-movementtrack .clip:hover {
+    background-color: rgba(59, 130, 246, 0.65);
+    border-color: var(--color-primary);
+}
+
+.track-movementtrack .clip.selected {
+    background-color: rgba(59, 130, 246, 0.75);
+    border-color: var(--color-primary);
+}
+
+.track-signaltrack .clip {
+    background-color: rgba(139, 92, 246, 0.5);
+    border-color: var(--color-secondary);
+}
+
+.track-signaltrack .clip:hover {
+    background-color: rgba(139, 92, 246, 0.65);
+    border-color: var(--color-secondary);
+}
+
+.track-signaltrack .clip.selected {
+    background-color: rgba(139, 92, 246, 0.75);
+    border-color: var(--color-secondary);
+}
+
+.clip.locked {
+    opacity: 0.8;
+}
+
+.clip.locked .clip-resize-handle {
+    pointer-events: none;
+}
+
+.clip.muted {
+    opacity: 0.6;
+}
+
+.clip.solo {
+    border-width: 2px;
+    border-color: var(--color-warning);
+}
+
+.clip.playing {
+    border-width: 2px;
+    border-color: var(--color-success);
+}
+
+.clip.error {
+    background-color: rgba(239, 68, 68, 0.3);
+    border-color: var(--color-danger);
+}
+
+.clip.error .clip-title {
+    color: var(--color-danger);
+}
+
+.clip.dragging {
+    opacity: 0.8;
+}
+
+.clip.drag-target {
+    background-color: rgba(6, 182, 212, 0.2);
+    border-color: var(--color-secondary);
+}
+
+.clip.drop-preview {
+    opacity: 0.5;
+    background-color: rgba(6, 182, 212, 0.15);
+}
+
+.clip.small {
+    height: 30px;
+}
+
+.clip.small .clip-header {
+    height: 14px;
+}
+
+.clip.small .clip-title {
+    font-size: 10px;
+}
+
+.clip.small .clip-type-icon {
+    font-size: 8px;
+}
+
+.clip.large {
+    height: 60px;
+}
+
+.clip.large .clip-header {
+    height: 24px;
+}
+
+.clip.large .clip-title {
+    font-size: 12px;
+}
+
+.clip.large .clip-type-icon {
+    font-size: 12px;
+}
+
+.clip.audio .clip-preview {
+    opacity: 0.3;
+}
+
+.clip.anim .clip-preview {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.clip-keyframe-indicator {
+    position: absolute;
+    bottom: 1px;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    background-color: var(--color-warning);
+    border-radius: 2px;
+}
+
+.clip:focus {
+    border-width: 2px;
+    border-color: var(--color-secondary);
+}
+
+.clip {
+    transition-property: transform, background-color, border-color, opacity;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
+}
+
+.clip-header {
+    transition-property: background-color;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
+}
+
+.clip.blend-add {
+}
+
+.clip.blend-multiply {
+}
+
+.clip.blend-overlay {
+}

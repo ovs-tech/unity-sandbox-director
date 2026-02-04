@@ -1,11 +1,11 @@
 using System;
 using System.Linq;
 using Core.Behaviors.Command;
-using MiniTimeline.Core;
-using MiniTimeline.Tracks;
+using Systems.MiniTimeline.Core;
+using Systems.MiniTimeline.Tracks;
 using UnityEngine;
 
-namespace MiniTimeline.UI.Commands
+namespace Systems.MiniTimeline.UI.Commands
 {
     /// <summary>
     /// Command for adding a new track to the timeline.
