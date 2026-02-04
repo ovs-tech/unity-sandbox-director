@@ -2246,7 +2246,18 @@ namespace Systems.MiniTimeline.UI
         private void SoloTrack(TrackUIToolkit track)
         {
             Debug.Log($"Solo track: {track.Track?.GetType().Name}");
-            // TODO: Implement solo functionality
+            track.SoloTrack();
+        }
+
+        /// <summary>
+        /// Refresh the state of all track UIs
+        /// </summary>
+        public void RefreshTrackStates()
+        {
+            foreach (var trackUI in trackUIs)
+            {
+                trackUI.RefreshState();
+            }
         }
 
         private void DeleteTrack(TrackUIToolkit track)
