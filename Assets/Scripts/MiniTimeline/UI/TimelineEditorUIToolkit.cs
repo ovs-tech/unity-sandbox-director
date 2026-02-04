@@ -1742,15 +1742,42 @@ namespace Systems.MiniTimeline.UI
 
         private void CutClip(ClipUIToolkit clipUI)
         {
-            Debug.Log($"Cut clip: {clipUI?.Clip?.Id}");
-            // TODO: Implement cut functionality
-            // Could integrate with clipboard system
+            if (clipUI?.Clip == null) return;
+
+            Debug.Log($"Cut clip: {clipUI.Clip.Id}");
+
+            // Copy to clipboard first
+            CopyClip(clipUI);
+
+            // Then delete
+            DeleteClip(clipUI);
         }
 
         private void CopyClip(ClipUIToolkit clipUI)
         {
-            Debug.Log($"Copy clip: {clipUI?.Clip?.Id}");
-            // TODO: Implement copy functionality
+            if (clipUI?.Clip == null) return;
+
+            Debug.Log($"Copy clip: {clipUI.Clip.Id}");
+
+            try
+            {
+                // Create serialized wrapper to store type info + data
+                var wrapper = new SerializedWrapper
+                {
+                    type = clipUI.Clip.GetType().AssemblyQualifiedName,
+                    data = JsonUtility.ToJson(clipUI.Clip)
+                };
+
+                // Serialize wrapper to JSON and store in clipboard
+                string clipboardJson = JsonUtility.ToJson(wrapper);
+                GUIUtility.systemCopyBuffer = clipboardJson;
+
+                Debug.Log($"Copied clip to clipboard ({clipboardJson.Length} bytes)");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to copy clip: {ex.Message}");
+            }
         }
 
         private void DeleteClip(ClipUIToolkit clipUI)
@@ -1763,10 +1790,9 @@ namespace Systems.MiniTimeline.UI
 
             Debug.Log($"Delete clip: {clipUI.Clip.Id}");
             
-            // TODO: Implement DeleteClipCommand that works with TrackUIToolkit
-            // For now, just remove the clip directly
-            clipUI.ParentTrack.Track.RemoveClip(clipUI.Clip);
-            clipUI.ParentTrack.RebuildClipUIs();
+            // Use command for undo support
+            var deleteCommand = new DeleteClipCommand(clipUI.ParentTrack.Track, clipUI.Clip);
+            ExecuteCommand(deleteCommand);
         }
 
         private void DuplicateClip(ClipUIToolkit clipUI)

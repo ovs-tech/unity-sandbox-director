@@ -1187,10 +1187,34 @@ namespace Systems.MiniTimeline.UI
 
         public void UpdateLayout()
         {
-            // Update clip layouts
-            foreach (var clipUI in clipUIs)
+            // Check for structural changes (clips added/removed)
+            var currentClips = track.GetClips().ToList();
+            bool rebuildNeeded = currentClips.Count != clipUIs.Count;
+
+            if (!rebuildNeeded)
             {
-                clipUI.UpdatePosition();
+                // Deeper check: ensure all current clips have corresponding UIs
+                foreach (var clip in currentClips)
+                {
+                    if (!clipUILookup.ContainsKey(clip.Id))
+                    {
+                        rebuildNeeded = true;
+                        break;
+                    }
+                }
+            }
+
+            if (rebuildNeeded)
+            {
+                RebuildClipUIs();
+            }
+            else
+            {
+                // Update clip layouts
+                foreach (var clipUI in clipUIs)
+                {
+                    clipUI.UpdatePosition();
+                }
             }
         }
 
