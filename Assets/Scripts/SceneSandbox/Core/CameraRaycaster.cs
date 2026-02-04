@@ -22,6 +22,7 @@ namespace Systems.SceneSandbox.Core
         {
             get
             {
+                // Cache Camera.main to avoid expensive FindGameObjectsWithTag calls
                 if (_camera == null)
                 {
                     _camera = Camera.main;
