@@ -119,8 +119,6 @@ namespace Systems.MiniTimeline.UI
                 MorphTrack _ => MiniTimelineConstants.TRACK_MORPH,
                 MovementTrack _ => MiniTimelineConstants.TRACK_MOVEMENT,
                 SignalTrack _ => MiniTimelineConstants.TRACK_SIGNAL,
-                UMAExpressionTrack _ => MiniTimelineConstants.TRACK_EXPRESSION,
-                UmaWardrobeTrack _ => MiniTimelineConstants.TRACK_UMA_WARDROBE,
                 _ => "generic"
             };
         }

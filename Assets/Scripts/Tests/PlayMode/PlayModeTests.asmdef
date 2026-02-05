@@ -1,0 +1,16 @@
+{
+  "name": "PlayModeTests",
+  "references": [
+    "Assembly-CSharp",
+    "Systems.SceneSandbox",
+    "Core"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": []
+}
