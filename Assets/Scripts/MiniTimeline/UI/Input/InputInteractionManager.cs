@@ -131,10 +131,6 @@ namespace Systems.MiniTimeline.UI.Input
         public void OnPressUpdate(Vector2 screenPosition, float deltaTime)
         {
             if (!IsEnabled) return;
-            if (DebugMode)
-            {
-                Debug.Log($"[InputInteractionManager] OnPressUpdate called. screenPosition: {screenPosition}, deltaTime: {deltaTime}, _isPressed: {_isPressed}");
-            }
             if (!_isPressed) return;
             _currentPosition = screenPosition;
 
