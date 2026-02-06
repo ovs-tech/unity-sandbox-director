@@ -1,5 +1,9 @@
 ﻿<Solution>
+  <Project Path="Systems.SceneSandbox.csproj" />
+  <Project Path="Core.csproj" />
+  <Project Path="Systems.MiniTimeline.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="SimpleJSON.csproj" />
+  <Project Path="EditModeTests.csproj" />
 </Solution>

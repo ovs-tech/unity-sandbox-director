@@ -697,12 +697,6 @@ namespace Systems.MiniTimeline.UI.FormDefinitions
         {
             var poseNames = new List<string>();
             
-            // Convert the static array to a list
-            if (ExpressionPlayer.PoseNames != null)
-            {
-                poseNames.AddRange(ExpressionPlayer.PoseNames);
-            }
-            
             // Add a default empty option at the beginning
             poseNames.Insert(0, "");
             

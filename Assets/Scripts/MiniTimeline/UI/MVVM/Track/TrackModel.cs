@@ -263,24 +263,6 @@ namespace Systems.MiniTimeline.UI.MVVM.Track
                         };
                         break;
 
-                    case "UMAExpressionTrack":
-                        newClip = new MiniTimeline.Tracks.UMAExpressionClip
-                        {
-                            Id = clipId,
-                            Start = start,
-                            Duration = duration
-                        };
-                        break;
-
-                    case "UmaWardrobeTrack":
-                        newClip = new MiniTimeline.Tracks.UmaWardrobeClip
-                        {
-                            Id = clipId,
-                            Start = start,
-                            Duration = duration
-                        };
-                        break;
-
                     case "SignalTrack":
                         newClip = new MiniTimeline.Tracks.SignalClip
                         {
