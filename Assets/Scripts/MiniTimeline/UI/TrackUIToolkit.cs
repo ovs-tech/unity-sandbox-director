@@ -1187,11 +1187,29 @@ namespace Systems.MiniTimeline.UI
 
         public void UpdateLayout()
         {
-            // Check for structural changes (clips added/removed)
-            var currentClips = track.GetClips().ToList();
-            bool rebuildNeeded = currentClips.Count != clipUIs.Count;
+            // Check if clip count matches track clip count
+            var currentClips = track?.GetClips()?.ToList();
+            if (currentClips != null && currentClips.Count != clipUIs.Count)
+            {
+                RebuildClipUIs();
+                return;
+            }
 
-            if (!rebuildNeeded)
+            // Also check if any clip IDs don't match (in case of replacement)
+            if (currentClips != null)
+            {
+                foreach (var clip in currentClips)
+                {
+                    if (!clipUILookup.ContainsKey(clip.Id))
+                    {
+                        RebuildClipUIs();
+                        return;
+                    }
+                }
+            }
+
+            // Update clip layouts
+            foreach (var clipUI in clipUIs)
             {
                 // Deeper check: ensure all current clips have corresponding UIs
                 foreach (var clip in currentClips)
@@ -1215,6 +1233,45 @@ namespace Systems.MiniTimeline.UI
                 {
                     clipUI.UpdatePosition();
                 }
+            }
+        }
+
+        /// <summary>
+        /// Refresh clips to match data model (rebuild if structure changed, update layout if not)
+        /// </summary>
+        public void RefreshClips()
+        {
+            if (track == null) return;
+
+            var currentClips = track.GetClips().ToList();
+
+            // Check if rebuild is needed
+            bool rebuildNeeded = false;
+
+            if (currentClips.Count != clipUIs.Count)
+            {
+                rebuildNeeded = true;
+            }
+            else
+            {
+                // Check if any clip reference doesn't match
+                for (int i = 0; i < currentClips.Count; i++)
+                {
+                    if (clipUIs[i].Clip != currentClips[i])
+                    {
+                        rebuildNeeded = true;
+                        break;
+                    }
+                }
+            }
+
+            if (rebuildNeeded)
+            {
+                RebuildClipUIs();
+            }
+            else
+            {
+                UpdateLayout();
             }
         }
 

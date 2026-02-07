@@ -205,7 +205,7 @@ namespace Systems.MiniTimeline.UI
             // Refresh all track UIs to reflect command changes
             foreach (var trackUI in trackUIs)
             {
-                trackUI?.UpdateLayout();
+                trackUI?.RefreshClips();
             }
         }
 
@@ -1753,26 +1753,35 @@ namespace Systems.MiniTimeline.UI
             DeleteClip(clipUI);
         }
 
+        [Serializable]
+        private class ClipClipboardData
+        {
+            public string type;
+            public string data;
+        }
+
+        private static ClipClipboardData clipClipboard;
+
         private void CopyClip(ClipUIToolkit clipUI)
         {
-            if (clipUI?.Clip == null) return;
-
-            Debug.Log($"Copy clip: {clipUI.Clip.Id}");
+            if (clipUI?.Clip == null)
+            {
+                Debug.LogWarning("Cannot copy clip: clip is null");
+                return;
+            }
 
             try
             {
-                // Create serialized wrapper to store type info + data
-                var wrapper = new SerializedWrapper
+                string json = JsonUtility.ToJson(clipUI.Clip);
+                string typeName = clipUI.Clip.GetType().AssemblyQualifiedName;
+
+                clipClipboard = new ClipClipboardData
                 {
-                    type = clipUI.Clip.GetType().AssemblyQualifiedName,
-                    data = JsonUtility.ToJson(clipUI.Clip)
+                    type = typeName,
+                    data = json
                 };
 
-                // Serialize wrapper to JSON and store in clipboard
-                string clipboardJson = JsonUtility.ToJson(wrapper);
-                GUIUtility.systemCopyBuffer = clipboardJson;
-
-                Debug.Log($"Copied clip to clipboard ({clipboardJson.Length} bytes)");
+                Debug.Log($"Copied clip to clipboard: {clipUI.Clip.Id} ({clipUI.Clip.GetType().Name})");
             }
             catch (Exception ex)
             {
@@ -1790,7 +1799,7 @@ namespace Systems.MiniTimeline.UI
 
             Debug.Log($"Delete clip: {clipUI.Clip.Id}");
             
-            // Use command for undo support
+            // Execute delete command
             var deleteCommand = new DeleteClipCommand(clipUI.ParentTrack.Track, clipUI.Clip);
             ExecuteCommand(deleteCommand);
         }
@@ -1803,8 +1812,23 @@ namespace Systems.MiniTimeline.UI
 
         private void SplitClipAtPlayhead(ClipUIToolkit clipUI)
         {
-            Debug.Log($"Split clip at playhead: {clipUI?.Clip?.Id}");
-            // TODO: Implement split functionality
+            if (clipUI == null || clipUI.Clip == null || director == null) return;
+
+            float splitTime = director.Time;
+
+            // Check if playhead is within clip bounds
+            if (!clipUI.Clip.Contains(splitTime))
+            {
+                Debug.LogWarning($"Cannot split clip: Playhead at {splitTime:F2}s is outside clip bounds [{clipUI.Clip.Start:F2}s, {clipUI.Clip.End:F2}s]");
+                return;
+            }
+
+            // Create and execute split command
+            var splitCommand = new SplitClipCommand(clipUI.ParentTrack.Track, clipUI.Clip, splitTime);
+            ExecuteCommand(splitCommand);
+
+            // Note: UI update is handled by OnCommandExecuted -> RefreshTimelineUI -> TrackUIToolkit.UpdateLayout
+            // which now rebuilds clips if the count or IDs change.
         }
 
         private void ShowClipProperties(ClipUIToolkit clipUI)

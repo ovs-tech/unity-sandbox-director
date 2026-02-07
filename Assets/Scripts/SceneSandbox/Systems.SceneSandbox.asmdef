@@ -1,0 +1,19 @@
+{
+    "name": "Systems.SceneSandbox",
+    "rootNamespace": "Systems.SceneSandbox",
+    "references": [
+        "Unity.InputSystem",
+        "Systems.MiniTimeline",
+        "Unity.Cinemachine",
+        "Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

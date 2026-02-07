@@ -789,7 +789,17 @@ namespace Systems.MiniTimeline.UI
                 if (confirmation == "DELETE")
                 {
                     // Debug.Log("Clip deletion confirmed");
-                    // TODO: Execute clip deletion command
+
+                    if (editorUI != null && parentTrack != null && clip != null && parentTrack.Track != null)
+                    {
+                        var deleteCommand = new DeleteClipCommand(parentTrack.Track, clip);
+                        editorUI.ExecuteCommand(deleteCommand);
+                        // Debug.Log($"[ClipUI] Clip '{clip.Id}' deleted via command");
+                    }
+                    else
+                    {
+                        Debug.LogError("Cannot delete clip: missing required references (editorUI, parentTrack, or clip)");
+                    }
                 }
                 else
                 {

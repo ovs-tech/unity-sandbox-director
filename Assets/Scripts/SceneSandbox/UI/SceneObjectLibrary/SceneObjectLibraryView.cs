@@ -58,6 +58,9 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
         private VisualElement _objectGridContainer;
         private Label _emptyStateLabel;
         
+        // Cached grid container
+        private VisualElement _grid;
+
         private VisualTreeAsset _objectCardTemplate;
         
         // Card pooling
@@ -165,6 +168,21 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
                 _emptyStateLabel.name = "EmptyStateLabel";
                 _emptyStateLabel.style.display = DisplayStyle.None;
                 _objectGridContainer.Add(_emptyStateLabel);
+            }
+
+            // Initialize Grid
+            _grid = _objectGridContainer.Q<VisualElement>("Grid");
+            if (_grid == null)
+            {
+                _grid = new VisualElement();
+                _grid.name = "Grid";
+                _grid.style.display = DisplayStyle.Flex;
+                _grid.style.flexWrap = Wrap.Wrap;
+                _grid.style.paddingLeft = 5;
+                _grid.style.paddingRight = 5;
+                _grid.style.paddingTop = 5;
+                _grid.style.paddingBottom = 5;
+                _objectGridContainer.Add(_grid);
             }
         }
         
@@ -406,8 +424,13 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
         /// </summary>
         public void RenderObjectGrid(List<SceneObjectData> filteredObjects)
         {
-            // Clear previous cards
-            _objectGridContainer.Clear();
+            // Recycle all existing cards in the grid
+            while (_grid.childCount > 0)
+            {
+                var card = _grid.ElementAt(0);
+                card.RemoveFromHierarchy();
+                _cardPool.Enqueue(card);
+            }
             _visibleCards.Clear();
             
             if (filteredObjects == null || filteredObjects.Count == 0)
@@ -415,35 +438,45 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
                 // Show empty state
                 _emptyStateLabel.text = "No objects available";
                 _emptyStateLabel.style.display = DisplayStyle.Flex;
-                _objectGridContainer.Add(_emptyStateLabel);
+
+                // Ensure label is in container
+                if (!_objectGridContainer.Contains(_emptyStateLabel))
+                    _objectGridContainer.Add(_emptyStateLabel);
+
                 return;
             }
             
-            // Create a grid container
-            var grid = new VisualElement();
-            grid.name = "Grid";
-            grid.style.display = DisplayStyle.Flex;
-            grid.style.flexWrap = Wrap.Wrap;
-            grid.style.paddingLeft = 5;
-            grid.style.paddingRight = 5;
-            grid.style.paddingTop = 5;
-            grid.style.paddingBottom = 5;
+            _emptyStateLabel.style.display = DisplayStyle.None;
+
+            // Ensure grid is in container
+            if (!_objectGridContainer.Contains(_grid))
+            {
+                _objectGridContainer.Add(_grid);
+            }
             
             // Render cards
             foreach (var obj in filteredObjects)
             {
-                var card = CreateObjectCard(obj);
-                grid.Add(card);
+                VisualElement card;
+                if (_cardPool.Count > 0)
+                {
+                    card = _cardPool.Dequeue();
+                }
+                else
+                {
+                    card = CreateObjectCardView();
+                }
+
+                BindObjectCard(card, obj);
+                _grid.Add(card);
                 _visibleCards[obj] = card;
             }
-            
-            _objectGridContainer.Add(grid);
         }
         
         /// <summary>
-        /// Create a card for displaying an object.
+        /// Create the basic structure of a card for displaying an object.
         /// </summary>
-        private VisualElement CreateObjectCard(SceneObjectData obj)
+        private VisualElement CreateObjectCardView()
         {
             var card = new VisualElement();
             card.name = "ObjectCard";
@@ -478,22 +511,10 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
             icon.style.width = 64;
             icon.style.height = 64;
             icon.style.marginBottom = 5;
-            
-            // Use object's icon if available, otherwise use fallback color
-            if (obj.icon != null)
-            {
-                icon.image = obj.icon.texture;
-            }
-            else
-            {
-                // Use type-specific fallback color
-                var fallbackColor = ObjectIconFallback.GetTypeColor(obj.objectType);
-                icon.style.backgroundColor = fallbackColor;
-            }
             card.Add(icon);
             
             // Name label
-            var nameLabel = new Label(obj.displayName);
+            var nameLabel = new Label();
             nameLabel.name = "NameLabel";
             nameLabel.style.fontSize = 10;
             nameLabel.style.whiteSpace = WhiteSpace.NoWrap;
@@ -503,7 +524,7 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
             card.Add(nameLabel);
             
             // Category badge
-            var categoryLabel = new Label(obj.category ?? "Default");
+            var categoryLabel = new Label();
             categoryLabel.name = "CategoryLabel";
             categoryLabel.style.fontSize = 8;
             categoryLabel.style.backgroundColor = new Color(0.4f, 0.4f, 0.4f, 1f);
@@ -517,10 +538,13 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
             categoryLabel.style.borderTopRightRadius = 2;
             card.Add(categoryLabel);
             
-            // Click handler
+            // Click handler - uses stored user data
             card.RegisterCallback<ClickEvent>(evt =>
             {
-                OnCardClicked?.Invoke(obj);
+                if (card.userData is SceneObjectData data)
+                {
+                    OnCardClicked?.Invoke(data);
+                }
             });
             
             // Hover effect
@@ -534,6 +558,54 @@ namespace Systems.SceneSandbox.UI.SceneObjectLibrary
                 card.style.backgroundColor = new Color(0.25f, 0.25f, 0.25f, 1f);
             });
             
+            return card;
+        }
+
+        /// <summary>
+        /// Update an existing card with new object data.
+        /// </summary>
+        private void BindObjectCard(VisualElement card, SceneObjectData obj)
+        {
+            card.userData = obj;
+
+            // Icon
+            var icon = card.Q<Image>("Icon");
+            if (icon != null)
+            {
+                if (obj.icon != null)
+                {
+                    icon.image = obj.icon.texture;
+                    icon.style.backgroundColor = StyleKeyword.Null; // Clear background color
+                }
+                else
+                {
+                    icon.image = null;
+                    // Use type-specific fallback color
+                    var fallbackColor = ObjectIconFallback.GetTypeColor(obj.objectType);
+                    icon.style.backgroundColor = fallbackColor;
+                }
+            }
+
+            // Name label
+            var nameLabel = card.Q<Label>("NameLabel");
+            if (nameLabel != null)
+            {
+                nameLabel.text = obj.displayName;
+            }
+
+            // Category badge
+            var categoryLabel = card.Q<Label>("CategoryLabel");
+            if (categoryLabel != null)
+            {
+                categoryLabel.text = obj.category ?? "Default";
+            }
+        }
+
+        // Kept for compatibility if referenced elsewhere, but calls new methods
+        private VisualElement CreateObjectCard(SceneObjectData obj)
+        {
+            var card = CreateObjectCardView();
+            BindObjectCard(card, obj);
             return card;
         }
     }

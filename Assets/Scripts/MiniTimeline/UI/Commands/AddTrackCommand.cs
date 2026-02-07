@@ -108,8 +108,6 @@ namespace Systems.MiniTimeline.UI.Commands
                 MiniTimelineConstants.TRACK_MOVEMENT => new MovementTrack(),
                 MiniTimelineConstants.TRACK_ANIMATOR => new AnimatorTrack(),
                 MiniTimelineConstants.TRACK_SIGNAL => new SignalTrack(),
-                MiniTimelineConstants.TRACK_UMA_WARDROBE => new UmaWardrobeTrack(),
-                MiniTimelineConstants.TRACK_UMA_EXPRESSION => new UMAExpressionTrack(),
                 _ => null
             };
         }

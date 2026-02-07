@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using UnityEngine;
 
@@ -131,10 +130,6 @@ namespace Systems.MiniTimeline.UI.Input
         public void OnPressUpdate(Vector2 screenPosition, float deltaTime)
         {
             if (!IsEnabled) return;
-            if (DebugMode)
-            {
-                Debug.Log($"[InputInteractionManager] OnPressUpdate called. screenPosition: {screenPosition}, deltaTime: {deltaTime}, _isPressed: {_isPressed}");
-            }
             if (!_isPressed) return;
             _currentPosition = screenPosition;
 
@@ -323,7 +318,18 @@ namespace Systems.MiniTimeline.UI.Input
         /// <summary>
         /// Check if any interaction is currently active
         /// </summary>
-        public bool HasActiveInteraction => _interactions.Any(i => i.IsActive);
+        public bool HasActiveInteraction
+        {
+            get
+            {
+                var count = _interactions.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    if (_interactions[i].IsActive) return true;
+                }
+                return false;
+            }
+        }
         
         /// <summary>
         /// Check if currently in a pressed state

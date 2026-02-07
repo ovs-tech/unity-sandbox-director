@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-5976024780030677996
+--- !u!114 &-7170650171823830634
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
@@ -52,7 +52,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DiffuseMap:
-        m_Texture: {fileID: 2800000, guid: 9170e7e9addfd40348f2e320524deb85, type: 3}
+        m_Texture: {fileID: 2800000, guid: 877110d0dcfb04006b0f12bebcf03d9a, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissionMap:
@@ -84,7 +84,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: d8f9ae2807cc94dfeaa508edd20ee0c9, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _RoughnessMap:
@@ -100,7 +100,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SpecularLobe1RoughnessMap:
-        m_Texture: {fileID: 2800000, guid: 7fab261d74ffc424683d56953712103a, type: 3}
+        m_Texture: {fileID: 2800000, guid: 241254ec11d9f466a8cc447e5cf43893, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SpecularLobe2RoughnessMap:
@@ -124,7 +124,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _TranslucencyColorMap:
-        m_Texture: {fileID: 2800000, guid: 98675cf8a4afd49d9b624f06611644c4, type: 3}
+        m_Texture: {fileID: 2800000, guid: 7c835c7d7fabe41c8b52c4f9641cae83, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _UDTUSubDualLobeSpecular_a1880842a7097e8e9e5a33d253d94fb3_Texture2DA943A615_25987727_Texture2D:
@@ -155,7 +155,7 @@ Material:
     - _Alpha: 1
     - _AlphaClipThreshold: 0.5
     - _DualLobeSpecularRatio: 0.15
-    - _DualLobeSpecularWeight: 0.6
+    - _DualLobeSpecularWeight: 1
     - _EmissionExposureWeight: 1
     - _EmissionStrength: 0
     - _GlossyAnisotropy: 0

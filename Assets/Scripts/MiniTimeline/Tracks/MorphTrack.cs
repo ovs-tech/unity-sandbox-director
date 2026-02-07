@@ -73,7 +73,15 @@ namespace Systems.MiniTimeline.Tracks
             tempActiveClips.Clear();
             
             // Get all active clips
-            tempActiveClips.AddRange(GetActiveClips(time));
+            // tempActiveClips.AddRange(GetActiveClips(time));
+            for (int i = 0; i < clips.Count; i++)
+            {
+                var clip = clips[i];
+                if (clip.Contains(time))
+                {
+                    tempActiveClips.Add(clip);
+                }
+            }
             
             if (tempActiveClips.Count == 0)
             {
@@ -384,10 +392,13 @@ namespace Systems.MiniTimeline.Tracks
         
         public void GetAllMorphValues(float globalTime, Dictionary<string, float> result)
         {
-            var values = GetAllMorphValues(globalTime);
-            foreach (var kvp in values)
+            if (!Contains(globalTime)) return;
+
+            float normalizedTime = GetNormalizedTime(globalTime);
+
+            foreach (var key in keys)
             {
-                result[kvp.Key] = kvp.Value;
+                result[key.id] = key.GetValue(normalizedTime) * weight;
             }
         }
     }
@@ -400,10 +411,14 @@ namespace Systems.MiniTimeline.Tracks
         
         public void GetAllMorphValues(float globalTime, Dictionary<string, float> result)
         {
-            var values = GetAllMorphValues(globalTime);
-            foreach (var kvp in values)
+            if (!Contains(globalTime)) return;
+
+            float localTime = globalTime - Start;
+
+            foreach (var channel in channels)
             {
-                result[kvp.Key] = kvp.Value;
+                float curveValue = channel.curve?.Evaluate(localTime) ?? 0f;
+                result[channel.id] = curveValue * channel.multiplier * weight;
             }
         }
     }
