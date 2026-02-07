@@ -1747,10 +1747,40 @@ namespace Systems.MiniTimeline.UI
             // Could integrate with clipboard system
         }
 
+        [Serializable]
+        private class ClipClipboardData
+        {
+            public string type;
+            public string data;
+        }
+
+        private static ClipClipboardData clipClipboard;
+
         private void CopyClip(ClipUIToolkit clipUI)
         {
-            Debug.Log($"Copy clip: {clipUI?.Clip?.Id}");
-            // TODO: Implement copy functionality
+            if (clipUI?.Clip == null)
+            {
+                Debug.LogWarning("Cannot copy clip: clip is null");
+                return;
+            }
+
+            try
+            {
+                string json = JsonUtility.ToJson(clipUI.Clip);
+                string typeName = clipUI.Clip.GetType().AssemblyQualifiedName;
+
+                clipClipboard = new ClipClipboardData
+                {
+                    type = typeName,
+                    data = json
+                };
+
+                Debug.Log($"Copied clip to clipboard: {clipUI.Clip.Id} ({clipUI.Clip.GetType().Name})");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to copy clip: {ex.Message}");
+            }
         }
 
         private void DeleteClip(ClipUIToolkit clipUI)
