@@ -337,7 +337,30 @@ namespace Systems.MiniTimeline.Tracks
         
         public bool IsAssetLoading(string assetPath) => _assetLoader.IsLoading(assetPath);
         
-        public float GetLoadingProgress() => _assetLoader.GetProgress(clips.Select(c => c.animationAsset));
+        public float GetLoadingProgress()
+        {
+            if (clips == null || clips.Count == 0) return 1.0f;
+
+            int totalCount = 0;
+            int loadedCount = 0;
+
+            for (int i = 0; i < clips.Count; i++)
+            {
+                var assetPath = clips[i].animationAsset;
+                if (!string.IsNullOrEmpty(assetPath))
+                {
+                    totalCount++;
+                    if (_assetLoader.IsLoaded(assetPath))
+                    {
+                        loadedCount++;
+                    }
+                }
+            }
+
+            if (totalCount == 0) return 1.0f;
+
+            return (float)loadedCount / totalCount;
+        }
         
         public Task WaitForAllAssetsLoaded() => _assetLoader.WaitForAllLoaded();
         
@@ -573,29 +596,6 @@ namespace Systems.MiniTimeline.Tracks
         
         public bool IsLoading(string assetPath) => _loadingHandles.ContainsKey(assetPath);
         
-        public float GetProgress(IEnumerable<string> assetPaths)
-        {
-            if (assetPaths == null) return 1.0f;
-
-            int totalCount = 0;
-            int loadedCount = 0;
-
-            foreach (var path in assetPaths)
-            {
-                if (!string.IsNullOrEmpty(path))
-                {
-                    totalCount++;
-                    if (_loadedClips.ContainsKey(path))
-                    {
-                        loadedCount++;
-                    }
-                }
-            }
-
-            if (totalCount == 0) return 1.0f;
-            
-            return (float)loadedCount / totalCount;
-        }
         
         public async Task WaitForAllLoaded()
         {
