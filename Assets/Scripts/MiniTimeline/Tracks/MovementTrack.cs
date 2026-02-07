@@ -135,10 +135,86 @@ namespace Systems.MiniTimeline.Tracks
             // Sort clips by start time
             activeClips.Sort((a, b) => a.Start.CompareTo(b.Start));
             
-            // For now, use simple priority-based selection (latest clip wins)
-            // TODO: Implement proper multi-clip blending with weights
-            var primaryClip = activeClips[activeClips.Count - 1];
-            ApplySingleClip(primaryClip, time);
+            Vector3 finalPos = Vector3.zero;
+            Vector4 finalRot = Vector4.zero;
+            float totalPosWeight = 0f;
+            float totalRotWeight = 0f;
+
+            // Reference to current rotation to ensure continuity
+            Vector4 currentRotV = new Vector4(targetTransform.rotation.x, targetTransform.rotation.y, targetTransform.rotation.z, targetTransform.rotation.w);
+
+            MovementClip bestClip = null;
+            float maxWeight = -1f;
+
+            foreach (var clip in activeClips)
+            {
+                float weight = clip.GetFadeWeight(time);
+
+                // Track best clip (highest weight)
+                if (weight > maxWeight)
+                {
+                    maxWeight = weight;
+                    bestClip = clip;
+                }
+
+                float normalizedTime = Mathf.Clamp01((time - clip.Start) / clip.Duration);
+
+                if (clip.hasPosition)
+                {
+                    Vector3 pos = EvaluatePosition(clip, normalizedTime);
+                    finalPos += pos * weight;
+                    totalPosWeight += weight;
+                }
+
+                if (clip.hasRotation)
+                {
+                    Quaternion rot = EvaluateRotation(clip, normalizedTime);
+                    Vector4 rotV = new Vector4(rot.x, rot.y, rot.z, rot.w);
+
+                    // Ensure continuity with current rotation
+                    if (Vector4.Dot(currentRotV, rotV) < 0)
+                    {
+                        rotV = -rotV;
+                    }
+
+                    finalRot += rotV * weight;
+                    totalRotWeight += weight;
+                }
+            }
+
+            // Apply blended position
+            if (totalPosWeight > 0.001f)
+            {
+                Vector3 blendedPos = finalPos / totalPosWeight;
+
+                // If total weight is less than 1, blend with current position (handle fade in/out)
+                if (totalPosWeight < 1f)
+                {
+                    blendedPos = Vector3.Lerp(targetTransform.position, blendedPos, totalPosWeight);
+                }
+
+                targetTransform.position = blendedPos;
+            }
+
+            // Apply blended rotation
+            if (totalRotWeight > 0.001f)
+            {
+                Vector4 avgRot = finalRot / totalRotWeight;
+                Quaternion blendedRot = new Quaternion(avgRot.x, avgRot.y, avgRot.z, avgRot.w).normalized;
+
+                // If total weight is less than 1, blend with current rotation (handle fade in/out)
+                if (totalRotWeight < 1f)
+                {
+                    blendedRot = Quaternion.Lerp(targetTransform.rotation, blendedRot, totalRotWeight);
+                }
+
+                targetTransform.rotation = blendedRot;
+            }
+
+            if (bestClip != null)
+            {
+                currentClip = bestClip;
+            }
         }
         
         /// <summary>
