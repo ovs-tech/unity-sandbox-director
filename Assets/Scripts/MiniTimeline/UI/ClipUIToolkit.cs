@@ -110,7 +110,6 @@ namespace Systems.MiniTimeline.UI
         public event Action<ClipUIToolkit> OnClipDeselected;
         public event Action<ClipUIToolkit, Vector2> OnClipDragged;
         public event Action<ClipUIToolkit, float, float> OnClipResized;
-        public event Action<ClipUIToolkit> OnClipDoubleClicked;
         public event Action<ClipUIToolkit, Vector2> OnClipLongPressed;
         
         // Input blocking events
