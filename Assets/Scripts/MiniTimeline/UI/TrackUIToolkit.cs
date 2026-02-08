@@ -86,6 +86,9 @@ namespace Systems.MiniTimeline.UI
 
         #region Events
 
+        public event Action<TrackUIToolkit> OnTrackSelected;
+        public event Action<ClipUIToolkit> OnClipStartInteraction;
+        public event Action<ClipUIToolkit> OnClipEndInteraction;
 
         #endregion
 
