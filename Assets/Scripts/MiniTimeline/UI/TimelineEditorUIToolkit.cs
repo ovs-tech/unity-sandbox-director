@@ -1742,9 +1742,15 @@ namespace Systems.MiniTimeline.UI
 
         private void CutClip(ClipUIToolkit clipUI)
         {
-            Debug.Log($"Cut clip: {clipUI?.Clip?.Id}");
-            // TODO: Implement cut functionality
-            // Could integrate with clipboard system
+            if (clipUI?.Clip == null) return;
+
+            Debug.Log($"Cut clip: {clipUI.Clip.Id}");
+
+            // Copy to clipboard first
+            CopyClip(clipUI);
+
+            // Then delete
+            DeleteClip(clipUI);
         }
 
         [Serializable]
