@@ -97,33 +97,37 @@ namespace Systems.MiniTimeline.Tracks
             Vector3 desiredWorldPos = vcam.transform.position;
             Quaternion desiredWorldRot = vcam.transform.rotation;
 
-            // Calculate base direction from yaw
-            float angleRad = clip.yaw * Mathf.Deg2Rad;
-            Vector3 horizontalDir = new Vector3(Mathf.Sin(angleRad), 0, -Mathf.Cos(angleRad));
+            // Calculate base direction relative to target (so Yaw=0 is Front View)
+            Vector3 forward = target.forward;
+            Vector3 horizontalDir = Quaternion.Euler(0, clip.yaw, 0) * forward;
 
             // Use an effective distance for body components (allows per-shot tuning)
             float distanceForComponent = clip.distance;
             Vector3 calculatedWorldOffset = Vector3.zero;
 
+            // Adjust base height to approximate human head/eye level if target is at feet
+            float heightOffset = 1.6f;
+
             switch (clip.shotType)
             {
                 case CinemachineShotType.EyeLevel:
-                    calculatedWorldOffset = horizontalDir * distanceForComponent;
+                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.up * heightOffset;
                     break;
 
                 case CinemachineShotType.HighAngle:
                     distanceForComponent *= 0.9f;
-                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.up * (distanceForComponent * 0.7f);
+                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.up * (distanceForComponent * 0.7f + heightOffset);
                     break;
 
                 case CinemachineShotType.LowAngle:
                     distanceForComponent *= 0.9f;
-                    calculatedWorldOffset = horizontalDir * distanceForComponent - Vector3.up * (distanceForComponent * 0.3f);
+                    // Low angle: Camera near ground looking up.
+                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.up * 0.5f;
                     break;
 
                 case CinemachineShotType.Overhead:
                     distanceForComponent *= 1.2f;
-                    calculatedWorldOffset = Vector3.up * distanceForComponent;
+                    calculatedWorldOffset = Vector3.up * distanceForComponent + Vector3.up * heightOffset;
                     break;
 
                 case CinemachineShotType.BirdEye:
@@ -134,23 +138,23 @@ namespace Systems.MiniTimeline.Tracks
                 case CinemachineShotType.WormEye:
                     distanceForComponent *= 0.8f;
                     // Worm eye: very low, near-ground looking up
-                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.down * 0.5f;
+                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.up * 0.1f;
                     break;
 
                 case CinemachineShotType.SideView:
                     distanceForComponent *= 1f;
                     Vector3 sideDir = Vector3.Cross(Vector3.up, horizontalDir);
-                    calculatedWorldOffset = sideDir * distanceForComponent;
+                    calculatedWorldOffset = sideDir * distanceForComponent + Vector3.up * heightOffset;
                     break;
 
                 case CinemachineShotType.CloseUp:
                     distanceForComponent *= 0.3f;
-                    calculatedWorldOffset = horizontalDir * (distanceForComponent);
+                    calculatedWorldOffset = horizontalDir * (distanceForComponent) + Vector3.up * heightOffset;
                     break;
 
                 case CinemachineShotType.DutchAngle:
                     // Tilted shot: position similar to EyeLevel but apply roll
-                    calculatedWorldOffset = horizontalDir * distanceForComponent;
+                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.up * heightOffset;
                     break;
 
                 case CinemachineShotType.OverTheShoulder:
@@ -158,43 +162,47 @@ namespace Systems.MiniTimeline.Tracks
                     distanceForComponent *= 0.8f;
                     Vector3 back = -target.forward * (distanceForComponent * 0.6f);
                     Vector3 otsSide = Vector3.Cross(Vector3.up, target.forward).normalized * (distanceForComponent * 0.4f);
-                    calculatedWorldOffset = back + otsSide + Vector3.up * 0.2f;
+                    calculatedWorldOffset = back + otsSide + Vector3.up * (heightOffset - 0.1f);
                     break;
 
                 case CinemachineShotType.POV:
                     // Point-of-view: sit very close to target, adopt target rotation
                     distanceForComponent = 0.15f;
-                    calculatedWorldOffset = target.forward * distanceForComponent + Vector3.up * 0.15f;
+                    calculatedWorldOffset = target.forward * distanceForComponent + Vector3.up * heightOffset;
                     break;
 
                 case CinemachineShotType.ExtremeLongShot:
                     distanceForComponent *= 4f;
-                    calculatedWorldOffset = horizontalDir * (distanceForComponent);
+                    calculatedWorldOffset = horizontalDir * (distanceForComponent) + Vector3.up * heightOffset;
                     break;
 
                 case CinemachineShotType.LongShot:
                     distanceForComponent *= 2f;
-                    calculatedWorldOffset = horizontalDir * (distanceForComponent);
+                    calculatedWorldOffset = horizontalDir * (distanceForComponent) + Vector3.up * heightOffset;
                     break;
 
                 case CinemachineShotType.MediumShot:
                     distanceForComponent *= 1f;
-                    calculatedWorldOffset = horizontalDir * (distanceForComponent);
+                    calculatedWorldOffset = horizontalDir * (distanceForComponent) + Vector3.up * (heightOffset * 0.75f);
                     break;
 
                 case CinemachineShotType.ExtremeCloseUp:
                     distanceForComponent *= 0.05f;
-                    calculatedWorldOffset = horizontalDir * (distanceForComponent) + Vector3.up * 0.05f;
+                    calculatedWorldOffset = horizontalDir * (distanceForComponent) + Vector3.up * heightOffset;
                     break;
 
                 default:
-                    calculatedWorldOffset = horizontalDir * distanceForComponent;
+                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.up * heightOffset;
                     break;
             }
             
             // Apply pitch to rotation calc only (for fallback)
             desiredWorldPos = targetPos + calculatedWorldOffset;
-            desiredWorldRot = Quaternion.LookRotation(targetPos - desiredWorldPos);
+
+            // Calculate look target (approximate head position)
+            Vector3 lookAtPos = targetPos + Vector3.up * heightOffset;
+
+            desiredWorldRot = Quaternion.LookRotation(lookAtPos - desiredWorldPos);
             if (clip.pitch != 0) desiredWorldRot *= Quaternion.Euler(clip.pitch, 0, 0);
             if (clip.roll != 0) desiredWorldRot *= Quaternion.Euler(0, 0, clip.roll);
 
