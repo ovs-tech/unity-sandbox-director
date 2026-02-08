@@ -16,6 +16,7 @@ namespace Systems.MiniTimeline.Core
         public string Id { get => id; set => id = value; }
         public float Start { get => start; set => start = value; }
         public float Duration { get => duration; set => duration = value; }
+        public virtual float End => Start + Duration;
 
         public virtual bool Contains(float time)
         {
