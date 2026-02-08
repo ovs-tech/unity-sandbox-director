@@ -92,69 +92,142 @@ namespace Systems.MiniTimeline.Tracks
                 vcam.Lens = lens;
             }
 
+            // --- Determine Target Bone/Center Position ---
+            Vector3 targetCenter = target.position;
+            Vector3 forward = target.forward;
+            float defaultHeightOffset = 1.6f;
+            bool foundBone = false;
+
+            // Try to use Animator humanoid bones if available
+            var animator = target.GetComponent<Animator>();
+            if (animator != null && animator.isHuman)
+            {
+                Transform boneTransform = null;
+                switch (clip.shotType)
+                {
+                    case CinemachineShotType.OverTheShoulder:
+                        boneTransform = animator.GetBoneTransform(HumanBodyBones.RightShoulder);
+                        // If RightShoulder is missing (unlikely on humanoid), fallback to Chest or Head
+                        if (boneTransform == null) boneTransform = animator.GetBoneTransform(HumanBodyBones.Chest);
+                        break;
+
+                    case CinemachineShotType.LowAngle:
+                    case CinemachineShotType.WormEye:
+                        // Use average of feet or just one foot? Usually root is near feet but slightly above ground.
+                        // Let's target LeftFoot for a specific low angle perspective or Root if unavailable.
+                        // Actually, averaging feet is better for "Foot" level.
+                        var leftFoot = animator.GetBoneTransform(HumanBodyBones.LeftFoot);
+                        var rightFoot = animator.GetBoneTransform(HumanBodyBones.RightFoot);
+                        if (leftFoot != null && rightFoot != null)
+                        {
+                            targetCenter = (leftFoot.position + rightFoot.position) * 0.5f;
+                            foundBone = true;
+                            defaultHeightOffset = 0f; // Already at foot level
+                        }
+                        else if (leftFoot != null)
+                        {
+                            boneTransform = leftFoot;
+                            defaultHeightOffset = 0f;
+                        }
+                        break;
+
+                    case CinemachineShotType.EyeLevel:
+                    case CinemachineShotType.CloseUp:
+                    case CinemachineShotType.MediumShot:
+                    case CinemachineShotType.ExtremeCloseUp:
+                    case CinemachineShotType.POV:
+                    case CinemachineShotType.HighAngle:
+                    case CinemachineShotType.Overhead:
+                    case CinemachineShotType.SideView:
+                    case CinemachineShotType.DutchAngle:
+                    case CinemachineShotType.LongShot: // Long shot often targets center mass/chest, but head tracking is okay
+                    case CinemachineShotType.ExtremeLongShot:
+                    default:
+                        boneTransform = animator.GetBoneTransform(HumanBodyBones.Head);
+                        if (boneTransform == null) boneTransform = animator.GetBoneTransform(HumanBodyBones.Neck);
+                        break;
+                }
+
+                if (boneTransform != null)
+                {
+                    targetCenter = boneTransform.position;
+                    // For Head/Neck, we might want to look slightly *at* the eyes, which are usually right at Head bone position or slightly forward.
+                    // The bone transform is usually the base of the head/neck joint.
+                    // We can trust the bone position is roughly "Head" level.
+                    defaultHeightOffset = 0f; // We are targeting the bone directly
+                    foundBone = true;
+                }
+            }
+
+            // --- End Target Bone Logic ---
+
             // Calculate desired world position (for manual override or fallback)
-            Vector3 targetPos = target.position + clip.offset;
+            Vector3 targetPos = targetCenter + clip.offset;
             Vector3 desiredWorldPos = vcam.transform.position;
             Quaternion desiredWorldRot = vcam.transform.rotation;
 
             // Calculate base direction relative to target (so Yaw=0 is Front View)
-            Vector3 forward = target.forward;
             Vector3 horizontalDir = Quaternion.Euler(0, clip.yaw, 0) * forward;
 
             // Use an effective distance for body components (allows per-shot tuning)
             float distanceForComponent = clip.distance;
             Vector3 calculatedWorldOffset = Vector3.zero;
 
-            // Adjust base height to approximate human head/eye level if target is at feet
-            float heightOffset = 1.6f;
+            // Adjust base height if we didn't find a bone (fallback to 1.6m for head-level shots)
+            float effectiveHeightOffset = foundBone ? 0f : defaultHeightOffset;
 
             switch (clip.shotType)
             {
                 case CinemachineShotType.EyeLevel:
-                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.up * heightOffset;
+                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.up * effectiveHeightOffset;
                     break;
 
                 case CinemachineShotType.HighAngle:
                     distanceForComponent *= 0.9f;
-                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.up * (distanceForComponent * 0.7f + heightOffset);
+                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.up * (distanceForComponent * 0.7f + effectiveHeightOffset);
                     break;
 
                 case CinemachineShotType.LowAngle:
                     distanceForComponent *= 0.9f;
                     // Low angle: Camera near ground looking up.
-                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.up * 0.5f;
+                    // If bone found (feet), we are already low.
+                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.up * (foundBone ? 0.2f : 0.5f);
                     break;
 
                 case CinemachineShotType.Overhead:
                     distanceForComponent *= 1.2f;
-                    calculatedWorldOffset = Vector3.up * distanceForComponent + Vector3.up * heightOffset;
+                    calculatedWorldOffset = Vector3.up * distanceForComponent + Vector3.up * effectiveHeightOffset;
                     break;
 
                 case CinemachineShotType.BirdEye:
                     distanceForComponent *= 3f;
+                    // Bird Eye is very high up, usually looking down at the whole scene or character.
+                    // Targeting head or feet doesn't matter much, but let's stick to center mass (usually implicit via targetPos).
+                    // If targetPos is Head, it's fine.
                     calculatedWorldOffset = horizontalDir * (distanceForComponent * 2f) + Vector3.up * (distanceForComponent * 2f);
                     break;
 
                 case CinemachineShotType.WormEye:
                     distanceForComponent *= 0.8f;
-                    // Worm eye: very low, near-ground looking up
-                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.up * 0.1f;
+                    // Worm eye: very low, near-ground looking up.
+                    // If target is Feet, we are right there.
+                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.up * (foundBone ? 0.1f : 0.1f);
                     break;
 
                 case CinemachineShotType.SideView:
                     distanceForComponent *= 1f;
                     Vector3 sideDir = Vector3.Cross(Vector3.up, horizontalDir);
-                    calculatedWorldOffset = sideDir * distanceForComponent + Vector3.up * heightOffset;
+                    calculatedWorldOffset = sideDir * distanceForComponent + Vector3.up * effectiveHeightOffset;
                     break;
 
                 case CinemachineShotType.CloseUp:
                     distanceForComponent *= 0.3f;
-                    calculatedWorldOffset = horizontalDir * (distanceForComponent) + Vector3.up * heightOffset;
+                    calculatedWorldOffset = horizontalDir * (distanceForComponent) + Vector3.up * effectiveHeightOffset;
                     break;
 
                 case CinemachineShotType.DutchAngle:
                     // Tilted shot: position similar to EyeLevel but apply roll
-                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.up * heightOffset;
+                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.up * effectiveHeightOffset;
                     break;
 
                 case CinemachineShotType.OverTheShoulder:
@@ -162,45 +235,60 @@ namespace Systems.MiniTimeline.Tracks
                     distanceForComponent *= 0.8f;
                     Vector3 back = -target.forward * (distanceForComponent * 0.6f);
                     Vector3 otsSide = Vector3.Cross(Vector3.up, target.forward).normalized * (distanceForComponent * 0.4f);
-                    calculatedWorldOffset = back + otsSide + Vector3.up * (heightOffset - 0.1f);
+                    // If we targeted Shoulder bone, we are AT the shoulder. Offset slightly back/up/side relative to that bone?
+                    // But our logic calculates offset from targetPos (which is now Bone Pos).
+                    // So we just need slight local offset.
+                    if (foundBone)
+                    {
+                        // Already at shoulder position. Just move back and slightly up.
+                        calculatedWorldOffset = back + Vector3.up * 0.2f;
+                    }
+                    else
+                    {
+                        calculatedWorldOffset = back + otsSide + Vector3.up * (effectiveHeightOffset - 0.1f);
+                    }
                     break;
 
                 case CinemachineShotType.POV:
-                    // Point-of-view: sit very close to target, adopt target rotation
+                    // Point-of-view: sit very close to target (Head), adopt target rotation
                     distanceForComponent = 0.15f;
-                    calculatedWorldOffset = target.forward * distanceForComponent + Vector3.up * heightOffset;
+                    // If bone is Head, we are at Head. Move forward slightly.
+                    calculatedWorldOffset = target.forward * distanceForComponent + Vector3.up * (foundBone ? 0f : effectiveHeightOffset);
                     break;
 
                 case CinemachineShotType.ExtremeLongShot:
                     distanceForComponent *= 4f;
-                    calculatedWorldOffset = horizontalDir * (distanceForComponent) + Vector3.up * heightOffset;
+                    calculatedWorldOffset = horizontalDir * (distanceForComponent) + Vector3.up * effectiveHeightOffset;
                     break;
 
                 case CinemachineShotType.LongShot:
                     distanceForComponent *= 2f;
-                    calculatedWorldOffset = horizontalDir * (distanceForComponent) + Vector3.up * heightOffset;
+                    calculatedWorldOffset = horizontalDir * (distanceForComponent) + Vector3.up * effectiveHeightOffset;
                     break;
 
                 case CinemachineShotType.MediumShot:
                     distanceForComponent *= 1f;
-                    calculatedWorldOffset = horizontalDir * (distanceForComponent) + Vector3.up * (heightOffset * 0.75f);
+                    // Medium shot usually waist up. If targeting Head, move camera down or distance out?
+                    // Typically camera is at eye level or slightly lower.
+                    // If target is Head, we are fine.
+                    calculatedWorldOffset = horizontalDir * (distanceForComponent) + Vector3.up * (foundBone ? -0.3f : effectiveHeightOffset * 0.75f);
                     break;
 
                 case CinemachineShotType.ExtremeCloseUp:
                     distanceForComponent *= 0.05f;
-                    calculatedWorldOffset = horizontalDir * (distanceForComponent) + Vector3.up * heightOffset;
+                    calculatedWorldOffset = horizontalDir * (distanceForComponent) + Vector3.up * effectiveHeightOffset;
                     break;
 
                 default:
-                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.up * heightOffset;
+                    calculatedWorldOffset = horizontalDir * distanceForComponent + Vector3.up * effectiveHeightOffset;
                     break;
             }
             
             // Apply pitch to rotation calc only (for fallback)
             desiredWorldPos = targetPos + calculatedWorldOffset;
 
-            // Calculate look target (approximate head position)
-            Vector3 lookAtPos = targetPos + Vector3.up * heightOffset;
+            // Calculate look target (if bone found, look at bone; else approximate head)
+            Vector3 lookAtPos = foundBone ? targetPos : (target.position + Vector3.up * 1.6f);
 
             desiredWorldRot = Quaternion.LookRotation(lookAtPos - desiredWorldPos);
             if (clip.pitch != 0) desiredWorldRot *= Quaternion.Euler(clip.pitch, 0, 0);
