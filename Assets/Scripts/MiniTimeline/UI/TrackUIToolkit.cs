@@ -773,14 +773,59 @@ namespace Systems.MiniTimeline.UI
         }
 
         /// <summary>
+        /// Refresh the UI state based on track data
+        /// </summary>
+        public void RefreshState()
+        {
+            if (track == null) return;
+
+            // Update toggle without triggering event
+            if (trackEnabled != null)
+            {
+                trackEnabled.SetValueWithoutNotify(track.Enabled);
+            }
+
+            // Update visual state
+            if (track.Enabled)
+            {
+                trackElement?.RemoveFromClassList("disabled");
+            }
+            else
+            {
+                trackElement?.AddToClassList("disabled");
+            }
+        }
+
+        /// <summary>
         /// Solo this track (mute all others)
         /// </summary>
-        private void SoloTrack()
+        public void SoloTrack()
         {
             Debug.Log($"Solo track: {track?.GetType().Name}");
-            // TODO: Implement solo functionality - need access to all tracks through timeline editor
-            // For now, just log
-            Debug.LogWarning("Solo track functionality not yet implemented for UI Toolkit");
+
+            if (editorUI == null || editorUI.Director == null)
+            {
+                Debug.LogError("Cannot solo track: editorUI or Director is null");
+                return;
+            }
+
+            var tracks = editorUI.Director.Tracks;
+            bool anyChanged = false;
+
+            foreach (var t in tracks)
+            {
+                bool shouldEnable = (t == this.track);
+                if (t.Enabled != shouldEnable)
+                {
+                    t.Enabled = shouldEnable;
+                    anyChanged = true;
+                }
+            }
+
+            if (anyChanged)
+            {
+                editorUI.RefreshTrackStates();
+            }
         }
 
         /// <summary>
