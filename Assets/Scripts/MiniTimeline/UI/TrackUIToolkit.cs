@@ -86,10 +86,6 @@ namespace Systems.MiniTimeline.UI
 
         #region Events
 
-        public event Action<TrackUIToolkit, Vector2> OnTrackLongPressed; // Screen position where long press occurred
-        public event Action<TrackUIToolkit> OnTrackSelected;
-        public event Action<ClipUIToolkit> OnClipStartInteraction;
-        public event Action<ClipUIToolkit> OnClipEndInteraction;
 
         #endregion
 
@@ -1256,28 +1252,7 @@ namespace Systems.MiniTimeline.UI
             // Update clip layouts
             foreach (var clipUI in clipUIs)
             {
-                // Deeper check: ensure all current clips have corresponding UIs
-                foreach (var clip in currentClips)
-                {
-                    if (!clipUILookup.ContainsKey(clip.Id))
-                    {
-                        rebuildNeeded = true;
-                        break;
-                    }
-                }
-            }
-
-            if (rebuildNeeded)
-            {
-                RebuildClipUIs();
-            }
-            else
-            {
-                // Update clip layouts
-                foreach (var clipUI in clipUIs)
-                {
-                    clipUI.UpdatePosition();
-                }
+                clipUI.UpdatePosition();
             }
         }
 
