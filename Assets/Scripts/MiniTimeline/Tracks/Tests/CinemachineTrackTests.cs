@@ -32,7 +32,19 @@ namespace Systems.MiniTimeline.Tracks.Tests
 
             public void SetTargets(List<Transform> targetList)
             {
-                this.targets = targetList;
+                // Use reflection to set the protected 'targets' field in the base class (MultiTargetMiniTrackBase<T>)
+                // This ensures we bypass any potential access restrictions across assemblies when running tests
+                var baseType = typeof(MultiTargetMiniTrackBase<CinemachineClip>);
+                var field = baseType.GetField("targets", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                if (field != null)
+                {
+                    field.SetValue(this, targetList);
+                }
+                else
+                {
+                    // Fallback to direct assignment if reflection fails (should not happen if structure is correct)
+                    this.targets = targetList;
+                }
             }
 
             public CinemachineCamera GetVcam()
