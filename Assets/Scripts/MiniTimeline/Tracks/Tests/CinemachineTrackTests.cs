@@ -39,14 +39,26 @@ namespace Systems.MiniTimeline.Tracks.Tests
         private void PrepareTrack(CinemachineTrack track, GameObject target)
         {
             var baseType = typeof(MiniTrackBase<CinemachineClip>);
+            var multiTargetType = typeof(MultiTargetMiniTrackBase<CinemachineClip>);
 
-            // Set targetObject
+            // Set targetObject (The Camera itself)
             var targetField = baseType.GetField("targetObject", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             if (targetField != null) targetField.SetValue(track, target);
 
             // Set isBound
             var boundField = baseType.GetField("isBound", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             if (boundField != null) boundField.SetValue(track, true);
+
+            // Set targets list (The Target Object for shots)
+            // CinemachineTrack uses 'targets[clip.targetIndex]' to find the target Transform.
+            // We need to inject our target object into this list.
+            var targetsField = multiTargetType.GetField("targets", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            if (targetsField != null)
+            {
+                var list = new System.Collections.Generic.List<Transform>();
+                list.Add(target.transform); // targetIndex 0
+                targetsField.SetValue(track, list);
+            }
 
             track.Prepare();
         }
