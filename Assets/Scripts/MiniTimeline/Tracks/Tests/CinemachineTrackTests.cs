@@ -1,4 +1,5 @@
-using System.Collections;
+using System;
+using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
@@ -6,6 +7,7 @@ using UnityEngine.TestTools;
 using Unity.Cinemachine;
 using Systems.MiniTimeline.Tracks;
 using Systems.MiniTimeline.Core;
+using Object = UnityEngine.Object;
 
 namespace Systems.MiniTimeline.Tracks.Tests
 {
@@ -19,13 +21,12 @@ namespace Systems.MiniTimeline.Tracks.Tests
         [SetUp]
         public void Setup()
         {
-            // Setup target
+            // Setup target (the subject being filmed)
             targetObject = new GameObject("Target");
 
-            // Setup VCam (needs to be on target or we mock it)
-            // The code expects the VCam on the targetObject: vcamTransform.GetComponent<CinemachineCamera>()
-            vcam = targetObject.AddComponent<CinemachineCamera>();
-            vcamObject = targetObject; // Same object in this setup
+            // Setup VCam (the camera itself)
+            vcamObject = new GameObject("VCam");
+            vcam = vcamObject.AddComponent<CinemachineCamera>();
 
             track = new CinemachineTrack();
         }
@@ -34,30 +35,48 @@ namespace Systems.MiniTimeline.Tracks.Tests
         public void Teardown()
         {
             if (targetObject != null) Object.DestroyImmediate(targetObject);
+            if (vcamObject != null) Object.DestroyImmediate(vcamObject);
         }
 
-        private void PrepareTrack(CinemachineTrack track, GameObject target)
+        private void PrepareTrack(CinemachineTrack track, GameObject target, GameObject vcamObj)
         {
             var baseType = typeof(MiniTrackBase<CinemachineClip>);
             var multiTargetType = typeof(MultiTargetMiniTrackBase<CinemachineClip>);
 
             // Set targetObject (The Camera itself)
             var targetField = baseType.GetField("targetObject", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            if (targetField != null) targetField.SetValue(track, target);
+            if (targetField != null)
+            {
+                targetField.SetValue(track, vcamObj);
+            }
+            else
+            {
+                Assert.Fail("Could not find 'targetObject' field in MiniTrackBase.");
+            }
 
             // Set isBound
             var boundField = baseType.GetField("isBound", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            if (boundField != null) boundField.SetValue(track, true);
+            if (boundField != null)
+            {
+                boundField.SetValue(track, true);
+            }
+            else
+            {
+                Assert.Fail("Could not find 'isBound' field in MiniTrackBase.");
+            }
 
             // Set targets list (The Target Object for shots)
             // CinemachineTrack uses 'targets[clip.targetIndex]' to find the target Transform.
-            // We need to inject our target object into this list.
             var targetsField = multiTargetType.GetField("targets", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             if (targetsField != null)
             {
-                var list = new System.Collections.Generic.List<Transform>();
+                var list = new List<Transform>();
                 list.Add(target.transform); // targetIndex 0
                 targetsField.SetValue(track, list);
+            }
+            else
+            {
+                Assert.Fail("Could not find 'targets' field in MultiTargetMiniTrackBase.");
             }
 
             track.Prepare();
@@ -66,7 +85,7 @@ namespace Systems.MiniTimeline.Tracks.Tests
         [Test]
         public void Test_NoAnimator_DefaultsToHeadHeight()
         {
-            PrepareTrack(track, targetObject);
+            PrepareTrack(track, targetObject, vcamObject);
 
             // Add a clip: EyeLevel, Yaw=0, Dist=5
             var clip = track.AddShotClip(0, 10, CinemachineShotType.EyeLevel, 0, 5f);
@@ -95,7 +114,7 @@ namespace Systems.MiniTimeline.Tracks.Tests
         [Test]
         public void Test_NoAnimator_RelativeOrientation()
         {
-            PrepareTrack(track, targetObject);
+            PrepareTrack(track, targetObject, vcamObject);
 
             var clip = track.AddShotClip(0, 10, CinemachineShotType.EyeLevel, 0, 5f);
             clip.yaw = 0f;
@@ -118,19 +137,14 @@ namespace Systems.MiniTimeline.Tracks.Tests
             Assert.That(vcam.transform.position.z, Is.EqualTo(expectedPos.z).Within(0.01f));
         }
 
-        // Note: Testing Animator/Humanoid logic is difficult without a valid Humanoid Avatar asset.
-        // We can simulate the "Animator found but not humanoid" case easily.
-        // Simulating "IsHuman" requires an Avatar which is hard to create programmatically in a test without asset dependencies.
-        // We will skip explicit Humanoid Bone tests here to avoid asset dependency issues,
-        // relying on the manual verification we did and the structural correctness of the code.
-        // However, we can test the fallback logic which is crucial.
-
         [Test]
         public void Test_LowAngle_NoAnimator_DefaultsToLowHeight()
         {
-             PrepareTrack(track, targetObject);
+             PrepareTrack(track, targetObject, vcamObject);
 
             var clip = track.AddShotClip(0, 10, CinemachineShotType.LowAngle, 0, 5f);
+            // Ensure yaw is 0 for consistent direction
+            clip.yaw = 0f;
 
             targetObject.transform.position = Vector3.zero;
             targetObject.transform.rotation = Quaternion.identity;
