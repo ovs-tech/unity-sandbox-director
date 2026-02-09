@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.AI;
 using Systems.MiniTimeline.Core;
 
 namespace Systems.MiniTimeline.Tracks
@@ -14,6 +15,7 @@ namespace Systems.MiniTimeline.Tracks
     public class MovementTrack : MiniTrackBase<MovementClip>
     {   
         private Transform targetTransform;
+        private NavMeshAgent navMeshAgent;
         
         // Animation state
         private MovementClip currentClip;
@@ -31,6 +33,7 @@ namespace Systems.MiniTimeline.Tracks
             
             // Reset references
             targetTransform = null;
+            navMeshAgent = null;
             
             if (targetObject is Transform transform)
             {
@@ -58,6 +61,8 @@ namespace Systems.MiniTimeline.Tracks
                 Debug.LogError($"[MovementTrack] No Transform found for track '{Id}'");
                 return;
             }
+
+            navMeshAgent = targetTransform.GetComponent<NavMeshAgent>();
             
             Debug.Log($"[MovementTrack] Prepared track '{Id}' with {clips.Count} clips, target transform: {targetTransform.name}");
         }
@@ -86,13 +91,13 @@ namespace Systems.MiniTimeline.Tracks
             {
                 // Single clip - apply directly
                 Debug.Log($"[MovementTrack] Applying single clip: {tempActiveClips[0].Id} at time {time:F3}");
-                ApplySingleClip(tempActiveClips[0], time);
+                ApplySingleClip(tempActiveClips[0], time, scrub);
             }
             else
             {
                 // Multiple clips - blend them
                 Debug.Log($"[MovementTrack] Blending {tempActiveClips.Count} clips at time {time:F3}");
-                BlendMultipleClips(tempActiveClips, time);
+                BlendMultipleClips(tempActiveClips, time, scrub);
             }
             
             tempActiveClips.Clear();
@@ -112,8 +117,21 @@ namespace Systems.MiniTimeline.Tracks
         /// <summary>
         /// Apply a single movement clip
         /// </summary>
-        private void ApplySingleClip(MovementClip clip, float time)
-        {   
+        private void ApplySingleClip(MovementClip clip, float time, bool scrub)
+        {
+            if (clip.mode == MovementMode.NavMesh && !scrub && navMeshAgent != null)
+            {
+                ApplyNavMeshLogic(clip);
+                currentClip = clip;
+                return;
+            }
+
+            // Fallback to Direct logic
+            if (navMeshAgent != null && navMeshAgent.enabled)
+            {
+                navMeshAgent.enabled = false;
+            }
+
             // Calculate local time within the clip
             float localTime = time - clip.Start;
             float normalizedTime = Mathf.Clamp01(localTime / clip.Duration);
@@ -130,8 +148,30 @@ namespace Systems.MiniTimeline.Tracks
         /// <summary>
         /// Blend multiple overlapping clips
         /// </summary>
-        private void BlendMultipleClips(List<MovementClip> activeClips, float time)
+        private void BlendMultipleClips(List<MovementClip> activeClips, float time, bool scrub)
         {
+            // Determine best clip
+            MovementClip bestClip = null;
+            float maxWeight = -1f;
+            foreach (var c in activeClips)
+            {
+                float w = c.GetFadeWeight(time);
+                if (w > maxWeight) { maxWeight = w; bestClip = c; }
+            }
+
+            if (bestClip != null && bestClip.mode == MovementMode.NavMesh && !scrub && navMeshAgent != null)
+            {
+                ApplyNavMeshLogic(bestClip);
+                currentClip = bestClip;
+                return;
+            }
+
+            // Fallback to Direct blending
+            if (navMeshAgent != null && navMeshAgent.enabled)
+            {
+                navMeshAgent.enabled = false;
+            }
+
             // Sort clips by start time
             activeClips.Sort((a, b) => a.Start.CompareTo(b.Start));
             
@@ -143,19 +183,9 @@ namespace Systems.MiniTimeline.Tracks
             // Reference to current rotation to ensure continuity
             Vector4 currentRotV = new Vector4(targetTransform.rotation.x, targetTransform.rotation.y, targetTransform.rotation.z, targetTransform.rotation.w);
 
-            MovementClip bestClip = null;
-            float maxWeight = -1f;
-
             foreach (var clip in activeClips)
             {
                 float weight = clip.GetFadeWeight(time);
-
-                // Track best clip (highest weight)
-                if (weight > maxWeight)
-                {
-                    maxWeight = weight;
-                    bestClip = clip;
-                }
 
                 float normalizedTime = Mathf.Clamp01((time - clip.Start) / clip.Duration);
 
@@ -217,6 +247,61 @@ namespace Systems.MiniTimeline.Tracks
             }
         }
         
+        /// <summary>
+        /// Apply NavMesh agent logic for a clip
+        /// </summary>
+        private void ApplyNavMeshLogic(MovementClip clip)
+        {
+            if (navMeshAgent == null) return;
+
+            if (!navMeshAgent.enabled) navMeshAgent.enabled = true;
+
+            // Check if destination or speed needs update
+            // Using a threshold to avoid redundant recalculations
+            if (Vector3.Distance(navMeshAgent.destination, clip.endPosition) > 0.01f || navMeshAgent.isStopped)
+            {
+                navMeshAgent.SetDestination(clip.endPosition);
+                navMeshAgent.isStopped = false;
+
+                // Calculate path distance
+                float totalDistance = 0f;
+                NavMeshPath path = new NavMeshPath();
+
+                // Use agent's type settings for path calculation to ensure validity
+                NavMeshQueryFilter filter = new NavMeshQueryFilter
+                {
+                    agentTypeID = navMeshAgent.agentTypeID,
+                    areaMask = navMeshAgent.areaMask
+                };
+
+                // Try to calculate path on NavMesh
+                if (NavMesh.CalculatePath(clip.startPosition, clip.endPosition, filter, path) &&
+                    path.status == NavMeshPathStatus.PathComplete)
+                {
+                    // Sum corners distance
+                    if (path.corners.Length > 1)
+                    {
+                        for (int i = 0; i < path.corners.Length - 1; i++)
+                        {
+                            totalDistance += Vector3.Distance(path.corners[i], path.corners[i + 1]);
+                        }
+                    }
+                    else
+                    {
+                        totalDistance = Vector3.Distance(clip.startPosition, clip.endPosition);
+                    }
+                }
+                else
+                {
+                    // Fallback if path invalid or incomplete
+                    totalDistance = Vector3.Distance(clip.startPosition, clip.endPosition);
+                }
+
+                float duration = clip.Duration > 0 ? clip.Duration : 1f;
+                navMeshAgent.speed = totalDistance / duration;
+            }
+        }
+
         /// <summary>
         /// Apply transform properties with blending
         /// </summary>

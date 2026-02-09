@@ -13,6 +13,8 @@ namespace Systems.MiniTimeline.Tracks
     {
         // Camera transform properties
         [Header("Position")]
+
+        public MovementMode mode = MovementMode.Direct;
         
         public bool hasPosition = false;
         
@@ -228,5 +230,14 @@ namespace Systems.MiniTimeline.Tracks
         EaseOut,
         EaseInOut,
         Custom
+    }
+
+    /// <summary>
+    /// Movement mode types
+    /// </summary>
+    public enum MovementMode
+    {
+        Direct,
+        NavMesh
     }
 }
