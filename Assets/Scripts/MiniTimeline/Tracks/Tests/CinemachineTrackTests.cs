@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -15,8 +14,27 @@ namespace Systems.MiniTimeline.Tracks.Tests
     {
         private GameObject targetObject;
         private GameObject vcamObject;
-        private CinemachineTrack track;
+        private TestCinemachineTrack track;
         private CinemachineCamera vcam;
+
+        // Subclass to expose protected fields for testing without reflection
+        private class TestCinemachineTrack : CinemachineTrack
+        {
+            public void SetTargetObject(GameObject target)
+            {
+                this.targetObject = target;
+            }
+
+            public void SetIsBound(bool bound)
+            {
+                this.isBound = bound;
+            }
+
+            public void SetTargets(List<Transform> targetList)
+            {
+                this.targets = targetList;
+            }
+        }
 
         [SetUp]
         public void Setup()
@@ -28,7 +46,7 @@ namespace Systems.MiniTimeline.Tracks.Tests
             vcamObject = new GameObject("VCam");
             vcam = vcamObject.AddComponent<CinemachineCamera>();
 
-            track = new CinemachineTrack();
+            track = new TestCinemachineTrack();
         }
 
         [TearDown]
@@ -38,46 +56,18 @@ namespace Systems.MiniTimeline.Tracks.Tests
             if (vcamObject != null) Object.DestroyImmediate(vcamObject);
         }
 
-        private void PrepareTrack(CinemachineTrack track, GameObject target, GameObject vcamObj)
+        private void PrepareTrack(TestCinemachineTrack track, GameObject target, GameObject vcamObj)
         {
-            var baseType = typeof(MiniTrackBase<CinemachineClip>);
-            var multiTargetType = typeof(MultiTargetMiniTrackBase<CinemachineClip>);
-
             // Set targetObject (The Camera itself)
-            var targetField = baseType.GetField("targetObject", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            if (targetField != null)
-            {
-                targetField.SetValue(track, vcamObj);
-            }
-            else
-            {
-                Assert.Fail("Could not find 'targetObject' field in MiniTrackBase.");
-            }
+            track.SetTargetObject(vcamObj);
 
             // Set isBound
-            var boundField = baseType.GetField("isBound", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            if (boundField != null)
-            {
-                boundField.SetValue(track, true);
-            }
-            else
-            {
-                Assert.Fail("Could not find 'isBound' field in MiniTrackBase.");
-            }
+            track.SetIsBound(true);
 
             // Set targets list (The Target Object for shots)
-            // CinemachineTrack uses 'targets[clip.targetIndex]' to find the target Transform.
-            var targetsField = multiTargetType.GetField("targets", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            if (targetsField != null)
-            {
-                var list = new List<Transform>();
-                list.Add(target.transform); // targetIndex 0
-                targetsField.SetValue(track, list);
-            }
-            else
-            {
-                Assert.Fail("Could not find 'targets' field in MultiTargetMiniTrackBase.");
-            }
+            var list = new List<Transform>();
+            list.Add(target.transform); // targetIndex 0
+            track.SetTargets(list);
 
             track.Prepare();
         }
