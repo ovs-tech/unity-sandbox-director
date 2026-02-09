@@ -34,6 +34,12 @@ namespace Systems.MiniTimeline.Tracks.Tests
             {
                 this.targets = targetList;
             }
+
+            public CinemachineCamera GetVcam()
+            {
+                var field = typeof(CinemachineTrack).GetField("vcam", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                return (CinemachineCamera)field.GetValue(this);
+            }
         }
 
         [SetUp]
@@ -45,6 +51,7 @@ namespace Systems.MiniTimeline.Tracks.Tests
             // Setup VCam (the camera itself)
             vcamObject = new GameObject("VCam");
             vcam = vcamObject.AddComponent<CinemachineCamera>();
+            Assert.IsNotNull(vcam, "Failed to add CinemachineCamera component");
 
             track = new TestCinemachineTrack();
         }
@@ -70,6 +77,7 @@ namespace Systems.MiniTimeline.Tracks.Tests
             track.SetTargets(list);
 
             track.Prepare();
+            Assert.IsNotNull(track.GetVcam(), "VCam field should be populated in track after Prepare");
         }
 
         [Test]

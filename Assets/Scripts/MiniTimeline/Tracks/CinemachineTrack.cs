@@ -55,10 +55,14 @@ namespace Systems.MiniTimeline.Tracks
 
         protected override void OnEvaluate(float time, bool scrub)
         {
-            if (vcam == null) return;
-
             var activeClips = GetActiveClips(time);
             if (activeClips.Count == 0) return;
+
+            if (vcam == null)
+            {
+                Debug.LogError($"[CinemachineTrack] CinemachineCamera is null in OnEvaluate for track '{Id}', but there are active clips. Track was not initialized correctly.");
+                return;
+            }
 
             // Simple implementation: use the latest active clip
             var clip = activeClips.Last();
