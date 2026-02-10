@@ -679,12 +679,14 @@ namespace Systems.MiniTimeline.UI
 
         private void UpdateTimelineLayout()
         {
+            float minWidth = GetViewWidth();
+
             if (director?.Project != null)
             {
                 timelineWidth = director.Length * PixelsPerSecond;
                 
                 // Ensure minimum width for the timeline
-                timelineWidth = Mathf.Max(timelineWidth, 1000f);
+                timelineWidth = Mathf.Max(timelineWidth, minWidth);
 
                 // Update timeline container size using UI Toolkit layout
                 if (timelineContainer != null)
@@ -695,12 +697,31 @@ namespace Systems.MiniTimeline.UI
             else
             {
                 // Set a default width when no project is loaded
-                timelineWidth = 1000f;
+                timelineWidth = minWidth;
                 if (timelineContainer != null)
                 {
                     timelineContainer.style.width = timelineWidth;
                 }
             }
+        }
+
+        private float GetViewWidth()
+        {
+            if (timelineScrollView == null) return 1000f;
+
+            float width = timelineScrollView.resolvedStyle.width;
+            if (float.IsNaN(width) || width <= 0)
+            {
+                // Fallback to style width if set (useful for tests or init)
+                if (timelineScrollView.style.width.keyword == StyleKeyword.Undefined &&
+                    timelineScrollView.style.width.value.unit == LengthUnit.Pixel)
+                {
+                    width = timelineScrollView.style.width.value.value;
+                }
+            }
+
+            if (float.IsNaN(width) || width <= 0) width = 1000f; // Default fallback
+            return width;
         }
 
         #endregion
@@ -2669,8 +2690,29 @@ namespace Systems.MiniTimeline.UI
 
         private void ZoomToFit()
         {
-            Debug.Log("Zoom to fit");
-            SetZoom(1f); // TODO: Calculate proper zoom to fit
+            if (director == null || director.Length <= 0) return;
+
+            float availableWidth = GetViewWidth();
+
+            // Check for valid width to avoid division by zero or invalid zoom
+            if (availableWidth <= 0 || float.IsNaN(availableWidth))
+            {
+                Debug.LogWarning("Cannot zoom to fit: Invalid view width");
+                return;
+            }
+
+            // Calculate zoom
+            // Width = Length * (PixelsPerSecond * Zoom)
+            // Zoom = Width / (Length * PixelsPerSecond)
+
+            float targetZoom = availableWidth / (director.Length * pixelsPerSecond);
+
+            // Apply a small margin (e.g. 5%)
+            targetZoom *= 0.95f;
+
+            Debug.Log($"Zoom to fit: Width={availableWidth}, Length={director.Length}, TargetZoom={targetZoom}");
+
+            SetZoom(targetZoom);
         }
 
         private void ResetZoom()
