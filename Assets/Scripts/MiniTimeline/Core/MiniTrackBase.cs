@@ -40,22 +40,8 @@ namespace Systems.MiniTimeline.Core
         public void OnBeforeSerialize()
         {
             Debug.Log($"MiniTrackBase.OnBeforeSerialize: trackId={Id}, clips={(clips == null ? 0 : clips.Count)}");
-            _serializedClips.Clear();
-            if (clips == null) return;
-
-            int serialized = 0;
-            foreach (var clip in clips)
-            {
-                if (clip == null) continue;
-                _serializedClips.Add(new SerializedWrapper
-                {
-                    type = clip.GetType().AssemblyQualifiedName,
-                    data = JsonUtility.ToJson(clip)
-                });
-                serialized++;
-            }
-
-            Debug.Log($"MiniTrackBase.OnBeforeSerialize: trackId={Id}, serializedClips={serialized}");
+            _serializedClips = SerializationUtils.SerializeEnumerable(clips);
+            Debug.Log($"MiniTrackBase.OnBeforeSerialize: trackId={Id}, serializedClips={(_serializedClips == null ? 0 : _serializedClips.Count)}");
         }
 
         public void OnAfterDeserialize()
@@ -66,26 +52,18 @@ namespace Systems.MiniTimeline.Core
 
             if (_serializedClips == null) return;
 
+            var objs = SerializationUtils.DeserializeToObjects(_serializedClips, $"MiniTrackBase.OnAfterDeserialize (trackId={Id})");
             int added = 0;
-            foreach (var wrapped in _serializedClips)
+            foreach (var o in objs)
             {
-                Type type = TypeResolver.ResolveType(wrapped.type);
-                if (type != null)
+                if (o is TClip t)
                 {
-                    try
-                    {
-                        // normalize stored type name
-                        wrapped.type = type.AssemblyQualifiedName;
-                    }
-                    catch { }
-
-                    TClip clip = (TClip)JsonUtility.FromJson(wrapped.data, type);
-                    clips.Add(clip);
+                    clips.Add(t);
                     added++;
                 }
                 else
                 {
-                    Debug.LogWarning($"MiniTrackBase.OnAfterDeserialize: type not found: {wrapped.type}");
+                    Debug.LogWarning($"MiniTrackBase.OnAfterDeserialize: deserialized object not TClip (trackId={Id}, actual={o?.GetType()})");
                 }
             }
 

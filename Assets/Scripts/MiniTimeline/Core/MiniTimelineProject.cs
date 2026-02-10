@@ -49,22 +49,8 @@ namespace Systems.MiniTimeline.Core
         public void OnBeforeSerialize()
         {
             Debug.Log($"MiniTimelineProject.OnBeforeSerialize: tracks={(tracks == null ? 0 : tracks.Count)}");
-            _serializedTracks.Clear();
-            if (tracks == null) return;
-
-            int serializedCount = 0;
-            foreach (var track in tracks)
-            {
-                if (track == null) continue;
-                _serializedTracks.Add(new SerializedWrapper
-                {
-                    type = track.GetType().AssemblyQualifiedName,
-                    data = JsonUtility.ToJson(track)
-                });
-                serializedCount++;
-            }
-
-            Debug.Log($"MiniTimelineProject.OnBeforeSerialize: serializedTracks={serializedCount}");
+            _serializedTracks = SerializationUtils.SerializeEnumerable(tracks);
+            Debug.Log($"MiniTimelineProject.OnBeforeSerialize: serializedTracks={( _serializedTracks == null ? 0 : _serializedTracks.Count)}");
         }
 
         public void OnAfterDeserialize()
@@ -75,22 +61,18 @@ namespace Systems.MiniTimeline.Core
 
             if (_serializedTracks == null) return;
 
+            var objs = SerializationUtils.DeserializeToObjects(_serializedTracks, "MiniTimelineProject.OnAfterDeserialize");
             int added = 0;
-            foreach (var wrapped in _serializedTracks)
+            foreach (var o in objs)
             {
-                Type type = TypeResolver.ResolveType(wrapped.type);
-                if (type != null)
+                if (o is IMiniTrack t)
                 {
-                    // normalize stored type name for future deserialization
-                    try { wrapped.type = type.AssemblyQualifiedName; } catch { }
-
-                    IMiniTrack track = (IMiniTrack)JsonUtility.FromJson(wrapped.data, type);
-                    tracks.Add(track);
+                    tracks.Add(t);
                     added++;
                 }
                 else
                 {
-                    Debug.LogWarning($"MiniTimelineProject.OnAfterDeserialize: type not found: {wrapped.type}");
+                    Debug.LogWarning($"MiniTimelineProject.OnAfterDeserialize: deserialized object not IMiniTrack (actual={o?.GetType()})");
                 }
             }
 
