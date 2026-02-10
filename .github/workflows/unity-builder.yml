@@ -43,6 +43,14 @@ jobs:
             Library-
 
       # Test
+      - name: Patch manifest for CI
+        run: |
+          sed -i '/"com.unity.modules.adaptiveperformance":/d' Packages/manifest.json
+          sed -i '/"com.unity.modules.vectorgraphics":/d' Packages/manifest.json
+          sed -i '/"com.unity.ai.assistant":/d' Packages/manifest.json
+          sed -i '/"com.unity.ai.generators":/d' Packages/manifest.json
+          sed -i '/"com.unity.ai.toolkit":/d' Packages/manifest.json
+
       - name: Run tests
         uses: game-ci/unity-test-runner@v4
         env:
@@ -88,6 +96,14 @@ jobs:
             Library-
 
       # Build
+      - name: Patch manifest for CI
+        run: |
+          sed -i '/"com.unity.modules.adaptiveperformance":/d' Packages/manifest.json
+          sed -i '/"com.unity.modules.vectorgraphics":/d' Packages/manifest.json
+          sed -i '/"com.unity.ai.assistant":/d' Packages/manifest.json
+          sed -i '/"com.unity.ai.generators":/d' Packages/manifest.json
+          sed -i '/"com.unity.ai.toolkit":/d' Packages/manifest.json
+
       - name: Build project
         uses: game-ci/unity-builder@v4
         env:
