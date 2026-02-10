@@ -241,15 +241,18 @@ namespace Systems.MiniTimeline.UI
                 return;
             }
 
-            // Get root element
+            // Get root element. If a named root isn't found, fall back to the document root
             rootElement = uiDocument.rootVisualElement;
             if (!string.IsNullOrEmpty(rootElementName))
             {
-                rootElement = rootElement.Q(rootElementName);
-                if (rootElement == null)
+                var namedRoot = rootElement.Q(rootElementName);
+                if (namedRoot == null)
                 {
-                    Debug.LogError($"Root element '{rootElementName}' not found in UI Document.");
-                    return;
+                    Debug.LogWarning($"Root element '{rootElementName}' not found in UI Document. Falling back to document root.");
+                }
+                else
+                {
+                    rootElement = namedRoot;
                 }
             }
 
@@ -679,12 +682,14 @@ namespace Systems.MiniTimeline.UI
 
         private void UpdateTimelineLayout()
         {
+            float minWidth = GetViewWidth();
+
             if (director?.Project != null)
             {
                 timelineWidth = director.Length * PixelsPerSecond;
                 
                 // Ensure minimum width for the timeline
-                timelineWidth = Mathf.Max(timelineWidth, 1000f);
+                timelineWidth = Mathf.Max(timelineWidth, minWidth);
 
                 // Update timeline container size using UI Toolkit layout
                 if (timelineContainer != null)
@@ -695,12 +700,40 @@ namespace Systems.MiniTimeline.UI
             else
             {
                 // Set a default width when no project is loaded
-                timelineWidth = 1000f;
+                timelineWidth = minWidth;
                 if (timelineContainer != null)
                 {
                     timelineContainer.style.width = timelineWidth;
                 }
             }
+        }
+
+        private float GetViewWidth()
+        {
+            if (timelineScrollView == null) return 1000f;
+
+            // Prefer resolved style when available
+            float width = timelineScrollView.resolvedStyle.width;
+
+            if (float.IsNaN(width) || width <= 0f)
+            {
+                // Fallback to explicitly set style width (useful in tests)
+                try
+                {
+                    var styleWidth = timelineScrollView.style.width;
+                    if (styleWidth.value.unit == LengthUnit.Pixel && styleWidth.value.value > 0f)
+                    {
+                        width = styleWidth.value.value;
+                    }
+                }
+                catch
+                {
+                    // ignore and use default
+                }
+            }
+
+            if (float.IsNaN(width) || width <= 0f) width = 1000f; // Default fallback
+            return width;
         }
 
         #endregion
@@ -2669,8 +2702,29 @@ namespace Systems.MiniTimeline.UI
 
         private void ZoomToFit()
         {
-            Debug.Log("Zoom to fit");
-            SetZoom(1f); // TODO: Calculate proper zoom to fit
+            if (director == null || director.Length <= 0) return;
+
+            float availableWidth = GetViewWidth();
+
+            // Check for valid width to avoid division by zero or invalid zoom
+            if (availableWidth <= 0 || float.IsNaN(availableWidth))
+            {
+                Debug.LogWarning("Cannot zoom to fit: Invalid view width");
+                return;
+            }
+
+            // Calculate zoom
+            // Width = Length * (PixelsPerSecond * Zoom)
+            // Zoom = Width / (Length * PixelsPerSecond)
+
+            float targetZoom = availableWidth / (director.Length * pixelsPerSecond);
+
+            // Apply a small margin (e.g. 5%)
+            targetZoom *= 0.95f;
+
+            Debug.Log($"Zoom to fit: Width={availableWidth}, Length={director.Length}, TargetZoom={targetZoom}");
+
+            SetZoom(targetZoom);
         }
 
         private void ResetZoom()
