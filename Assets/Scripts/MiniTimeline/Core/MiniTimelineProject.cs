@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace Systems.MiniTimeline.Core
@@ -47,9 +48,11 @@ namespace Systems.MiniTimeline.Core
 
         public void OnBeforeSerialize()
         {
+            Debug.Log($"MiniTimelineProject.OnBeforeSerialize: tracks={(tracks == null ? 0 : tracks.Count)}");
             _serializedTracks.Clear();
             if (tracks == null) return;
 
+            int serializedCount = 0;
             foreach (var track in tracks)
             {
                 if (track == null) continue;
@@ -58,26 +61,43 @@ namespace Systems.MiniTimeline.Core
                     type = track.GetType().AssemblyQualifiedName,
                     data = JsonUtility.ToJson(track)
                 });
+                serializedCount++;
             }
+
+            Debug.Log($"MiniTimelineProject.OnBeforeSerialize: serializedTracks={serializedCount}");
         }
 
         public void OnAfterDeserialize()
         {
+            Debug.Log($"MiniTimelineProject.OnAfterDeserialize: _serializedTracks={( _serializedTracks == null ? 0 : _serializedTracks.Count)}");
             if (tracks == null) tracks = new List<IMiniTrack>();
             tracks.Clear();
-            
+
             if (_serializedTracks == null) return;
 
+            int added = 0;
             foreach (var wrapped in _serializedTracks)
             {
-                Type type = Type.GetType(wrapped.type);
+                Type type = TypeResolver.ResolveType(wrapped.type);
                 if (type != null)
                 {
+                    // normalize stored type name for future deserialization
+                    try { wrapped.type = type.AssemblyQualifiedName; } catch { }
+
                     IMiniTrack track = (IMiniTrack)JsonUtility.FromJson(wrapped.data, type);
                     tracks.Add(track);
+                    added++;
+                }
+                else
+                {
+                    Debug.LogWarning($"MiniTimelineProject.OnAfterDeserialize: type not found: {wrapped.type}");
                 }
             }
+
+            Debug.Log($"MiniTimelineProject.OnAfterDeserialize: tracks_added={added}, total_tracks={tracks.Count}");
         }
+
+        // Type resolution moved to TypeResolver helper.
     }
     
     /// <summary>
@@ -112,6 +132,7 @@ namespace Systems.MiniTimeline.Core
 
         public void OnBeforeSerialize()
         {
+            Debug.Log($"ProjectMetadata.OnBeforeSerialize: editorData={(editorData == null ? 0 : editorData.Count)}");
             _serializedEditorData = new SerializedMetadataMap
             {
                 keys = new List<string>(),
@@ -121,6 +142,7 @@ namespace Systems.MiniTimeline.Core
 
             if (editorData == null) return;
 
+            int serialized = 0;
             foreach (var kvp in editorData)
             {
                 if (kvp.Value == null) continue;
@@ -137,14 +159,20 @@ namespace Systems.MiniTimeline.Core
                 {
                     _serializedEditorData.values.Add(JsonUtility.ToJson(kvp.Value));
                 }
+
+                serialized++;
             }
+
+            Debug.Log($"ProjectMetadata.OnBeforeSerialize: serializedEntries={serialized}");
         }
 
         public void OnAfterDeserialize()
         {
+            Debug.Log($"ProjectMetadata.OnAfterDeserialize: serializedKeys={( _serializedEditorData == null || _serializedEditorData.keys == null ? 0 : _serializedEditorData.keys.Count)}");
             editorData = new Dictionary<string, object>();
             if (_serializedEditorData.keys == null) return;
 
+            int restored = 0;
             for (int i = 0; i < _serializedEditorData.keys.Count; i++)
             {
                 string key = _serializedEditorData.keys[i];
@@ -164,13 +192,20 @@ namespace Systems.MiniTimeline.Core
                         {
                             editorData[key] = JsonUtility.FromJson(valStr, type);
                         }
+                        restored++;
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        // Handle potential deserialization errors gracefully
+                        Debug.LogWarning($"ProjectMetadata.OnAfterDeserialize: failed to deserialize key={key}, type={typeName}, err={ex.Message}");
                     }
                 }
+                else
+                {
+                    Debug.LogWarning($"ProjectMetadata.OnAfterDeserialize: type not found: {typeName}");
+                }
             }
+
+            Debug.Log($"ProjectMetadata.OnAfterDeserialize: restoredEntries={restored}");
         }
     }
 

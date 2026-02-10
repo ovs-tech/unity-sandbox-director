@@ -39,9 +39,11 @@ namespace Systems.MiniTimeline.Core
 
         public void OnBeforeSerialize()
         {
+            Debug.Log($"MiniTrackBase.OnBeforeSerialize: trackId={Id}, clips={(clips == null ? 0 : clips.Count)}");
             _serializedClips.Clear();
             if (clips == null) return;
 
+            int serialized = 0;
             foreach (var clip in clips)
             {
                 if (clip == null) continue;
@@ -50,25 +52,44 @@ namespace Systems.MiniTimeline.Core
                     type = clip.GetType().AssemblyQualifiedName,
                     data = JsonUtility.ToJson(clip)
                 });
+                serialized++;
             }
+
+            Debug.Log($"MiniTrackBase.OnBeforeSerialize: trackId={Id}, serializedClips={serialized}");
         }
 
         public void OnAfterDeserialize()
         {
+            Debug.Log($"MiniTrackBase.OnAfterDeserialize: trackId={Id}, serializedClips={( _serializedClips == null ? 0 : _serializedClips.Count)}");
             if (clips == null) clips = new List<TClip>();
             clips.Clear();
 
             if (_serializedClips == null) return;
 
+            int added = 0;
             foreach (var wrapped in _serializedClips)
             {
-                Type type = Type.GetType(wrapped.type);
+                Type type = TypeResolver.ResolveType(wrapped.type);
                 if (type != null)
                 {
+                    try
+                    {
+                        // normalize stored type name
+                        wrapped.type = type.AssemblyQualifiedName;
+                    }
+                    catch { }
+
                     TClip clip = (TClip)JsonUtility.FromJson(wrapped.data, type);
                     clips.Add(clip);
+                    added++;
+                }
+                else
+                {
+                    Debug.LogWarning($"MiniTrackBase.OnAfterDeserialize: type not found: {wrapped.type}");
                 }
             }
+
+            Debug.Log($"MiniTrackBase.OnAfterDeserialize: trackId={Id}, clips_added={added}, total_clips={clips.Count}");
         }
         
         public virtual void Bind(BindableObjectManager context)
