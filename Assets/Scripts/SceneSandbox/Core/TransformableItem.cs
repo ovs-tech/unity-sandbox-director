@@ -86,6 +86,8 @@ namespace Systems.SceneSandbox.Core
         // State
         private bool _isSelected;
         private Camera _camera;
+        private float _lastCameraSearchTime;
+        private const float k_CameraSearchInterval = 0.5f;
 
         // Events
         public System.Action<TransformableItem, bool> OnSelectionChanged;
@@ -1052,7 +1054,12 @@ namespace Systems.SceneSandbox.Core
             // Find camera if not cached
             if (_camera == null)
             {
-                _camera = Camera.main ?? FindFirstObjectByType<Camera>();
+                if (Time.realtimeSinceStartup - _lastCameraSearchTime > k_CameraSearchInterval)
+                {
+                    _lastCameraSearchTime = Time.realtimeSinceStartup;
+                    _camera = Camera.main ?? FindFirstObjectByType<Camera>();
+                }
+
                 if (_camera == null)
                     return;
             }
