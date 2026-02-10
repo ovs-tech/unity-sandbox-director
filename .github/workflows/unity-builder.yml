@@ -50,6 +50,9 @@ jobs:
           sed -i '/"com.unity.ai.assistant":/d' Packages/manifest.json
           sed -i '/"com.unity.ai.generators":/d' Packages/manifest.json
           sed -i '/"com.unity.ai.toolkit":/d' Packages/manifest.json
+          sed -i '/"com.unity.2d.enhancers":/d' Packages/manifest.json
+          sed -i '/"com.unity.collab-proxy":/d' Packages/manifest.json
+          rm -f Packages/packages-lock.json
 
       - name: Run tests
         uses: game-ci/unity-test-runner@v4
@@ -103,6 +106,9 @@ jobs:
           sed -i '/"com.unity.ai.assistant":/d' Packages/manifest.json
           sed -i '/"com.unity.ai.generators":/d' Packages/manifest.json
           sed -i '/"com.unity.ai.toolkit":/d' Packages/manifest.json
+          sed -i '/"com.unity.2d.enhancers":/d' Packages/manifest.json
+          sed -i '/"com.unity.collab-proxy":/d' Packages/manifest.json
+          rm -f Packages/packages-lock.json
 
       - name: Build project
         uses: game-ci/unity-builder@v4
