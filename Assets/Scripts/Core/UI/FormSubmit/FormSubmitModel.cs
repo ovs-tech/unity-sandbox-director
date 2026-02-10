@@ -14,6 +14,7 @@ namespace Core.UI.FormSubmit.MVVM
     {
         private readonly List<FormFieldDefinition> _fieldConfigs;
         private readonly Dictionary<string, object> _fieldValues;
+        private readonly Dictionary<string, FormFieldDefinition> _fieldDefinitionMap;
 
         public event Action<string, object> OnFieldValueChanged;
         public event Action<IReadOnlyDictionary<string, object>> OnFormDataChanged;
@@ -27,6 +28,16 @@ namespace Core.UI.FormSubmit.MVVM
             Title = title ?? string.Empty;
             _fieldConfigs = fieldConfigs ?? new List<FormFieldDefinition>();
             _fieldValues = new Dictionary<string, object>();
+            _fieldDefinitionMap = new Dictionary<string, FormFieldDefinition>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var definition in _fieldConfigs)
+            {
+                if (!string.IsNullOrWhiteSpace(definition.name) && !_fieldDefinitionMap.ContainsKey(definition.name))
+                {
+                    _fieldDefinitionMap.Add(definition.name, definition);
+                }
+            }
+
             SeedDefaultValues();
         }
 
@@ -83,7 +94,11 @@ namespace Core.UI.FormSubmit.MVVM
 
         private FormFieldDefinition FindDefinition(string fieldName)
         {
-            return _fieldConfigs.FirstOrDefault(def => string.Equals(def.name, fieldName, StringComparison.OrdinalIgnoreCase));
+            if (_fieldDefinitionMap.TryGetValue(fieldName, out var definition))
+            {
+                return definition;
+            }
+            return null;
         }
 
         private bool TryCoerceValue(FormFieldDefinition definition, object value, out object coercedValue)
