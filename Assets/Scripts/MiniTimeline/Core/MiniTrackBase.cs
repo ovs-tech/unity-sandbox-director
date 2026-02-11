@@ -39,36 +39,35 @@ namespace Systems.MiniTimeline.Core
 
         public void OnBeforeSerialize()
         {
-            _serializedClips.Clear();
-            if (clips == null) return;
-
-            foreach (var clip in clips)
-            {
-                if (clip == null) continue;
-                _serializedClips.Add(new SerializedWrapper
-                {
-                    type = clip.GetType().AssemblyQualifiedName,
-                    data = JsonUtility.ToJson(clip)
-                });
-            }
+            Debug.Log($"MiniTrackBase.OnBeforeSerialize: trackId={Id}, clips={(clips == null ? 0 : clips.Count)}");
+            _serializedClips = SerializationUtils.SerializeEnumerable(clips);
+            Debug.Log($"MiniTrackBase.OnBeforeSerialize: trackId={Id}, serializedClips={(_serializedClips == null ? 0 : _serializedClips.Count)}");
         }
 
         public void OnAfterDeserialize()
         {
+            Debug.Log($"MiniTrackBase.OnAfterDeserialize: trackId={Id}, serializedClips={( _serializedClips == null ? 0 : _serializedClips.Count)}");
             if (clips == null) clips = new List<TClip>();
             clips.Clear();
 
             if (_serializedClips == null) return;
 
-            foreach (var wrapped in _serializedClips)
+            var objs = SerializationUtils.DeserializeToObjects(_serializedClips, $"MiniTrackBase.OnAfterDeserialize (trackId={Id})");
+            int added = 0;
+            foreach (var o in objs)
             {
-                Type type = Type.GetType(wrapped.type);
-                if (type != null)
+                if (o is TClip t)
                 {
-                    TClip clip = (TClip)JsonUtility.FromJson(wrapped.data, type);
-                    clips.Add(clip);
+                    clips.Add(t);
+                    added++;
+                }
+                else
+                {
+                    Debug.LogWarning($"MiniTrackBase.OnAfterDeserialize: deserialized object not TClip (trackId={Id}, actual={o?.GetType()})");
                 }
             }
+
+            Debug.Log($"MiniTrackBase.OnAfterDeserialize: trackId={Id}, clips_added={added}, total_clips={clips.Count}");
         }
         
         public virtual void Bind(BindableObjectManager context)
