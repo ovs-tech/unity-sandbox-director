@@ -1056,7 +1056,7 @@ namespace Systems.MiniTimeline.Core
         /// Evaluate all tracks at current time
         /// </summary>
         /// <param name="scrub">Whether this is a scrub operation</param>
-        private void Evaluate(bool scrub)
+        public void Evaluate(bool scrub)
         {
             // Randomly log (5% chance) to reduce spam
             bool shouldLog = debugMode && UnityEngine.Random.value < 0.05f;

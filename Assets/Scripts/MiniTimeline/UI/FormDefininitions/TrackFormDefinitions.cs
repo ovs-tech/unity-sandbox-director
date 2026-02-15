@@ -45,6 +45,12 @@ namespace Systems.MiniTimeline.UI.FormDefinitions
                     return "Signal Track";
                 case MiniTimelineConstants.TRACK_UMA_WARDROBE:
                     return "UMA Wardrobe Track";
+                case MiniTimelineConstants.TRACK_AUDIO:
+                    return "Audio Track";
+                case MiniTimelineConstants.TRACK_TIME_SCALE:
+                    return "Time Scale Track";
+                case MiniTimelineConstants.TRACK_SUB_TIMELINE:
+                    return "Sub-Timeline Track";
                 default:
                     return "Generic Track";
             }
@@ -63,7 +69,10 @@ namespace Systems.MiniTimeline.UI.FormDefinitions
                 MiniTimelineConstants.TRACK_MOVEMENT,
                 MiniTimelineConstants.TRACK_SIGNAL,
                 MiniTimelineConstants.TRACK_UMA_WARDROBE,
-                MiniTimelineConstants.TRACK_UMA_EXPRESSION
+                MiniTimelineConstants.TRACK_UMA_EXPRESSION,
+                MiniTimelineConstants.TRACK_AUDIO,
+                MiniTimelineConstants.TRACK_TIME_SCALE,
+                MiniTimelineConstants.TRACK_SUB_TIMELINE
             };
         }
         
@@ -555,7 +564,10 @@ namespace Systems.MiniTimeline.UI.FormDefinitions
                 new TrackTypeOption { value = MiniTimelineConstants.TRACK_MORPH, label = "Morph Track", description = "Animates blend shapes and morphs" },
                 new TrackTypeOption { value = MiniTimelineConstants.TRACK_MOVEMENT, label = "Movement Track", description = "Handles object movement and positioning" },
                 new TrackTypeOption { value = MiniTimelineConstants.TRACK_SIGNAL, label = "Signal Track", description = "Sends events and signals" },
-                new TrackTypeOption { value = MiniTimelineConstants.TRACK_UMA_WARDROBE, label = "UMA Wardrobe Track", description = "Manages UMA wardrobe changes" }
+                new TrackTypeOption { value = MiniTimelineConstants.TRACK_UMA_WARDROBE, label = "UMA Wardrobe Track", description = "Manages UMA wardrobe changes" },
+                new TrackTypeOption { value = MiniTimelineConstants.TRACK_AUDIO, label = "Audio Track", description = "Plays audio clips" },
+                new TrackTypeOption { value = MiniTimelineConstants.TRACK_TIME_SCALE, label = "Time Scale Track", description = "Controls global time scale" },
+                new TrackTypeOption { value = MiniTimelineConstants.TRACK_SUB_TIMELINE, label = "Sub-Timeline Track", description = "Plays nested timeline projects" }
             };
         }
         

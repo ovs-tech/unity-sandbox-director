@@ -33,6 +33,8 @@ namespace Systems.MiniTimeline.UI
                 "FxLightTrack" => "FX Light",
                 "SignalTrack" => "Events",
                 "UmaWardrobeTrack" => "UMA Wardrobe",
+                "TimeScaleTrack" => "Time Scale",
+                "SubTimelineTrack" => "Sub-Timeline",
                 _ => trackType.Replace("Track", "")
             };
 
@@ -60,6 +62,8 @@ namespace Systems.MiniTimeline.UI
                 MiniTimelineConstants.TRACK_IK => "IK Pose",
                 MiniTimelineConstants.TRACK_LIGHT_FX => "FX Light",
                 MiniTimelineConstants.TRACK_UMA_WARDROBE => "UMA Wardrobe",
+                MiniTimelineConstants.TRACK_TIME_SCALE => "Time Scale",
+                MiniTimelineConstants.TRACK_SUB_TIMELINE => "Sub-Timeline",
                 _ => trackType.Replace("Track", "")
             };
         }
@@ -99,6 +103,8 @@ namespace Systems.MiniTimeline.UI
                 "FxLightTrack" => "FX Light",
                 "SignalTrack" => "Events",
                 "UmaWardrobeTrack" => "UMA Wardrobe",
+                "TimeScaleTrack" => "Time Scale",
+                "SubTimelineTrack" => "Sub-Timeline",
                 _ => trackTypeName.Replace("Track", "")
             };
         }
@@ -119,6 +125,9 @@ namespace Systems.MiniTimeline.UI
                 MorphTrack _ => MiniTimelineConstants.TRACK_MORPH,
                 MovementTrack _ => MiniTimelineConstants.TRACK_MOVEMENT,
                 SignalTrack _ => MiniTimelineConstants.TRACK_SIGNAL,
+                AudioTrack _ => MiniTimelineConstants.TRACK_AUDIO,
+                TimeScaleTrack _ => MiniTimelineConstants.TRACK_TIME_SCALE,
+                SubTimelineTrack _ => MiniTimelineConstants.TRACK_SUB_TIMELINE,
                 _ => "generic"
             };
         }
@@ -141,6 +150,8 @@ namespace Systems.MiniTimeline.UI
                 "PoseIKTrack" => MiniTimelineConstants.TRACK_IK,
                 "FxLightTrack" => MiniTimelineConstants.TRACK_LIGHT_FX,
                 "UmaWardrobeTrack" => MiniTimelineConstants.TRACK_UMA_WARDROBE,
+                "TimeScaleTrack" => MiniTimelineConstants.TRACK_TIME_SCALE,
+                "SubTimelineTrack" => MiniTimelineConstants.TRACK_SUB_TIMELINE,
                 _ => "generic"
             };
         }
@@ -167,7 +178,9 @@ namespace Systems.MiniTimeline.UI
                 "ExpressionTrack" => "😊",
                 "PoseIKTrack" => "🦾",
                 "FxLightTrack" => "💡",
-                "UmaWardrobeTrack" => "�",
+                "UmaWardrobeTrack" => "👗",
+                "TimeScaleTrack" => "⏱️",
+                "SubTimelineTrack" => "📂",
                 _ => "📝"
             };
         }
@@ -195,6 +208,8 @@ namespace Systems.MiniTimeline.UI
                 "PoseIKTrack" => new Color(0.8f, 0.8f, 0.4f, 0.8f),   // Light Yellow
                 "FxLightTrack" => new Color(0.9f, 0.9f, 0.1f, 0.8f),  // Bright Yellow
                 "UmaWardrobeTrack" => new Color(0.8f, 0.5f, 0.9f, 0.8f), // Light Purple
+                "TimeScaleTrack" => new Color(0.6f, 0.6f, 0.6f, 0.8f), // Silver
+                "SubTimelineTrack" => new Color(0.4f, 0.4f, 0.8f, 0.8f), // Indigo
                 _ => Color.gray
             };
         }
@@ -215,8 +230,8 @@ namespace Systems.MiniTimeline.UI
             {
                 "fade" => trackType == "AnimTrack" || trackType == "AudioTrack",
                 "loop" => trackType == "AnimTrack" || trackType == "AudioTrack",
-                "easing" => trackType == "MovementTrack" || trackType == "MorphTrack",
-                "speed" => trackType == "AnimTrack" || trackType == "AnimatorTrack",
+                "easing" => trackType == "MovementTrack" || trackType == "MorphTrack" || trackType == "TimeScaleTrack",
+                "speed" => trackType == "AnimTrack" || trackType == "AnimatorTrack" || trackType == "SubTimelineTrack",
                 "weight" => trackType == "MorphTrack",
                 _ => false
             };

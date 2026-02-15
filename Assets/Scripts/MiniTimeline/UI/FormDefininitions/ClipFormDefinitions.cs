@@ -49,6 +49,18 @@ namespace Systems.MiniTimeline.UI.FormDefinitions
                     fields = GetUmaExpressionClipFields();
                     break;
                 
+                case MiniTimelineConstants.TRACK_AUDIO:
+                    fields = GetAudioClipFields();
+                    break;
+
+                case MiniTimelineConstants.TRACK_TIME_SCALE:
+                    fields = GetTimeScaleClipFields();
+                    break;
+
+                case MiniTimelineConstants.TRACK_SUB_TIMELINE:
+                    fields = GetSubTimelineClipFields();
+                    break;
+
                 default:
                     fields = GetGenericClipFields();
                     break;
@@ -84,6 +96,12 @@ namespace Systems.MiniTimeline.UI.FormDefinitions
                     return "UMA Wardrobe Clip";
                 case MiniTimelineConstants.TRACK_UMA_EXPRESSION:
                     return "UMA Expression Clip";
+                case MiniTimelineConstants.TRACK_AUDIO:
+                    return "Audio Clip";
+                case MiniTimelineConstants.TRACK_TIME_SCALE:
+                    return "Time Scale Clip";
+                case MiniTimelineConstants.TRACK_SUB_TIMELINE:
+                    return "Sub-Timeline Clip";
                 default:
                     return "Generic Clip";
             }
@@ -577,6 +595,112 @@ namespace Systems.MiniTimeline.UI.FormDefinitions
 
         #endregion
         
+        #region Audio Clip Fields
+
+        private static List<FormFieldDefinition> GetAudioClipFields()
+        {
+            return new List<FormFieldDefinition>
+            {
+                new FormFieldDefinition("name", "Clip Name", "text", "New Audio Clip")
+                {
+                    required = true,
+                    placeholder = "Enter clip name"
+                },
+                new FormFieldDefinition("start", "Start Time", "number", 0f)
+                {
+                    required = true,
+                    options = new Dictionary<string, object> { { "min", 0f } }
+                },
+                new FormFieldDefinition("duration", "Duration", "number", 2f)
+                {
+                    required = true,
+                    options = new Dictionary<string, object> { { "min", 0.1f } }
+                },
+                new FormFieldDefinition("audioAsset", "Audio Asset", "text", "")
+                {
+                    required = true,
+                    placeholder = "Path to audio clip in Resources"
+                },
+                new FormFieldDefinition("volume", "Volume", "slider", 1f)
+                {
+                    options = new Dictionary<string, object> { { "min", 0f }, { "max", 1f } }
+                },
+                new FormFieldDefinition("pitch", "Pitch", "slider", 1f)
+                {
+                    options = new Dictionary<string, object> { { "min", 0.1f }, { "max", 3f } }
+                },
+                new FormFieldDefinition("fadeIn", "Fade In", "number", 0f),
+                new FormFieldDefinition("fadeOut", "Fade Out", "number", 0f),
+                new FormFieldDefinition("loop", "Loop", "toggle", false)
+            };
+        }
+
+        #endregion
+
+        #region Time Scale Clip Fields
+
+        private static List<FormFieldDefinition> GetTimeScaleClipFields()
+        {
+            return new List<FormFieldDefinition>
+            {
+                new FormFieldDefinition("name", "Clip Name", "text", "New Time Scale Clip")
+                {
+                    required = true
+                },
+                new FormFieldDefinition("start", "Start Time", "number", 0f)
+                {
+                    required = true,
+                    options = new Dictionary<string, object> { { "min", 0f } }
+                },
+                new FormFieldDefinition("duration", "Duration", "number", 1f)
+                {
+                    required = true,
+                    options = new Dictionary<string, object> { { "min", 0.1f } }
+                },
+                new FormFieldDefinition("timeScale", "Time Scale", "slider", 1f)
+                {
+                    tooltip = "Target time scale (1.0 = normal)",
+                    options = new Dictionary<string, object> { { "min", 0.01f }, { "max", 5f } }
+                }
+            };
+        }
+
+        #endregion
+
+        #region Sub Timeline Clip Fields
+
+        private static List<FormFieldDefinition> GetSubTimelineClipFields()
+        {
+            return new List<FormFieldDefinition>
+            {
+                new FormFieldDefinition("name", "Clip Name", "text", "New Sub-Timeline")
+                {
+                    required = true
+                },
+                new FormFieldDefinition("start", "Start Time", "number", 0f)
+                {
+                    required = true,
+                    options = new Dictionary<string, object> { { "min", 0f } }
+                },
+                new FormFieldDefinition("duration", "Duration", "number", 5f)
+                {
+                    required = true,
+                    options = new Dictionary<string, object> { { "min", 0.1f } }
+                },
+                new FormFieldDefinition("projectPath", "Project Name", "text", "")
+                {
+                    required = true,
+                    placeholder = "Project name (in TimelineProjects)"
+                },
+                new FormFieldDefinition("speed", "Playback Speed", "slider", 1f)
+                {
+                    options = new Dictionary<string, object> { { "min", 0.1f }, { "max", 3f } }
+                }
+            };
+        }
+
+        #endregion
+
         #region Generic Clip Fields
         
         private static List<FormFieldDefinition> GetGenericClipFields()

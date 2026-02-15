@@ -108,6 +108,9 @@ namespace Systems.MiniTimeline.UI.Commands
                 MiniTimelineConstants.TRACK_MOVEMENT => new MovementTrack(),
                 MiniTimelineConstants.TRACK_ANIMATOR => new AnimatorTrack(),
                 MiniTimelineConstants.TRACK_SIGNAL => new SignalTrack(),
+                MiniTimelineConstants.TRACK_AUDIO => new AudioTrack(),
+                MiniTimelineConstants.TRACK_TIME_SCALE => new TimeScaleTrack(),
+                MiniTimelineConstants.TRACK_SUB_TIMELINE => new SubTimelineTrack(),
                 _ => null
             };
         }
