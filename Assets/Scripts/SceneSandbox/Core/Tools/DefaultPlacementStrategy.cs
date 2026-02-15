@@ -5,7 +5,6 @@ namespace Systems.SceneSandbox.Core.Tools
 {
     /// <summary>
     /// Standard placement: Raycast to placement layers or ground plane, with grid snapping.
-    /// Default rotation is identity (or prefab's rotation).
     /// </summary>
     public class DefaultPlacementStrategy : IPlacementStrategy
     {
@@ -14,7 +13,6 @@ namespace Systems.SceneSandbox.Core.Tools
         private float _gridSize = 1f;
         private bool _snapToGrid = true;
 
-        // Configuration if needed
         public DefaultPlacementStrategy(float maxDistance, LayerMask layers, bool snapToGrid, float gridSize)
         {
             _maxDistance = maxDistance;
@@ -43,7 +41,6 @@ namespace Systems.SceneSandbox.Core.Tools
                 }
                 else
                 {
-                    // Ray parallel to ground? Just project forward
                     position = ray.GetPoint(10f);
                 }
             }
@@ -51,10 +48,6 @@ namespace Systems.SceneSandbox.Core.Tools
             // 2. Snap
             if (_snapToGrid && context.GridManager != null)
             {
-                // Ensure grid manager settings are synced if necessary, or just use its calculation
-                // The GridManager usually holds the authoritative grid settings.
-                // If we want strategy-specific grid, we'd pass it in or configure the manager.
-                // For now, let's assume the manager has the correct global settings.
                 position = context.GridManager.GetSnappedPosition(position);
             }
 

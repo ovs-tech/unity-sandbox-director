@@ -4,7 +4,6 @@ namespace Systems.SceneSandbox.Core.Tools
 {
     /// <summary>
     /// Surface Normal placement: Aligns the object's up vector to the surface normal.
-    /// Useful for placing objects on walls, slopes, or spheres.
     /// </summary>
     public class SurfaceNormalStrategy : IPlacementStrategy
     {

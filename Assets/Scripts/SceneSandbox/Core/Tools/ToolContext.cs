@@ -15,9 +15,6 @@ namespace Systems.SceneSandbox.Core.Tools
         public GridManager GridManager { get; private set; }
         public CameraRaycaster CameraRaycaster { get; private set; }
         public Transform StageArea { get; private set; }
-
-        // You might add a reference to the Builder itself if needed for high-level commands,
-        // but prefer specific managers to keep coupling low.
         public SceneSandboxBuilder Builder { get; private set; }
 
         public ToolContext(
