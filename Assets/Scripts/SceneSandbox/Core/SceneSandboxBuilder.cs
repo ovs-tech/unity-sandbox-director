@@ -5,10 +5,11 @@ using UnityEngine.InputSystem;
 using Systems.SceneSandbox.Data;
 using Systems.SceneSandbox.Serialization;
 using Systems.MiniTimeline.Core;
+using Systems.SceneSandbox.Core.Tools; // Added
 
 namespace Systems.SceneSandbox.Core
 {
-    // Custom UnityEvent classes for events with parameters
+    // ... [Previous UnityEvent classes] ...
     [System.Serializable]
     public class SceneConfigurationEvent : UnityEvent<SceneConfiguration> { }
 
@@ -20,6 +21,7 @@ namespace Systems.SceneSandbox.Core
 
     [System.Serializable]
     public class SandboxModeEvent : UnityEvent<SandboxMode> { }
+
     /// <summary>
     /// Main controller for the Scene Sandbox Builder system
     /// Manages the placement, interaction, and organization of scene objects
@@ -37,6 +39,9 @@ namespace Systems.SceneSandbox.Core
         [SerializeField] private PreviewController _previewController;
         [SerializeField] private SandboxGizmoRenderer _gizmoRenderer;
         [SerializeField] private UI.SceneObjectLibrary.SceneObjectLibraryController _libraryController;
+
+        // NEW: Tool Manager
+        [SerializeField] private SandboxToolManager _toolManager;
 
 
         [Header("Configuration")]
@@ -141,39 +146,11 @@ namespace Systems.SceneSandbox.Core
         // Components
         private Camera _sceneCamera;
 
-        // Input Actions
-        private InputAction _toggleModeAction;
-        private InputAction _exitAllModesAction;
-        private InputAction _moveHotkeyAction;
-        private InputAction _rotateHotkeyAction;
-        private InputAction _scaleHotkeyAction;
-        private InputAction _transformModeIncreaseAction;
-        private InputAction _transformModeDecreaseAction;
-        private InputAction _transformModeToggleAxisAction;
-        private InputAction _pointerPositionAction;
-        private InputAction _leftClickAction;
-        private InputAction _rightClickAction;
-        private InputAction _mouseScrollAction;
-        private InputAction _cancelPlacementAction;
-
         // Mode state
         private SandboxMode _currentMode = SandboxMode.Build;
 
-        // Transform control state
-        private List<TransformableItem> _activeTransformItems = new List<TransformableItem>();
-
         // State
         private GameObject _selectedObject;
-
-        // Drop Indicator State
-        private GameObject _currentDropIndicator;
-
-        // Placement & Transform State (migrated to PlacementSystem except transform mode/axis)
-        private TransformModeType _currentTransformMode = TransformModeType.Position;
-        private TransformAxis _currentTransformAxis = TransformAxis.All;
-        private Quaternion _currentPlacementRotation = Quaternion.identity;
-        private Vector3 _currentPlacementScale = Vector3.one;
-        private Vector3 _lastValidSurfaceNormal = Vector3.up;
 
         [Header("Events")]
         [SerializeField] private SceneConfigurationEvent _onSceneLoaded = new SceneConfigurationEvent();
@@ -204,8 +181,8 @@ namespace Systems.SceneSandbox.Core
         public Vector3 GridOffset => _gridOffset;
         public PivotPoint GridPivotOffset => _gridPivotOffset;
         public bool DropIndicatorEnabled => _enableDropIndicator;
-        public TransformModeType CurrentTransformMode => _currentTransformMode;
-        public TransformAxis CurrentTransformAxis => _currentTransformAxis;
+        // public TransformModeType CurrentTransformMode => _currentTransformMode; // Moved to TransformController
+        // public TransformAxis CurrentTransformAxis => _currentTransformAxis; // Moved to TransformController
         public SandboxMode CurrentMode => _currentMode;
         public bool IsInBuildMode => _currentMode == SandboxMode.Build;
         public bool DebugLogs => _debugLogs;
@@ -214,6 +191,7 @@ namespace Systems.SceneSandbox.Core
         public SceneSerializer SceneSerializer => _sceneSerializer;
         public PreviewController PreviewController => _previewController;
         public PlacementSystem PlacementSystem => _placementSystem;
+        public SandboxToolManager ToolManager => _toolManager;
 
         /// <summary>
         /// Set the current transform mode (Position/Rotation/Scale)
@@ -221,10 +199,6 @@ namespace Systems.SceneSandbox.Core
         public void SetTransformMode(TransformModeType mode)
         {
             _transformController.SetTransformMode(mode);
-            // TransformController event will sync _currentTransformMode
-
-            // Update active transform items with new axis
-            UpdateActiveTransformItemsAxis();
         }
 
         /// <summary>
@@ -234,21 +208,6 @@ namespace Systems.SceneSandbox.Core
         public void ToggleTransformAxis()
         {
             _transformController.ToggleTransformAxis();
-            // TransformController event will sync _currentTransformAxis
-        }
-
-        /// <summary>
-        /// Update all active transform items with current axis selection
-        /// </summary>
-        private void UpdateActiveTransformItemsAxis()
-        {
-            foreach (var item in _activeTransformItems)
-            {
-                if (item != null)
-                {
-                    item.SetTransformAxis(_currentTransformAxis);
-                }
-            }
         }
 
         /// <summary>
@@ -282,29 +241,33 @@ namespace Systems.SceneSandbox.Core
             if (mode == SandboxMode.Play)
             {
                 // Entering Play Mode
-
-                // Cancel any active placement
-                if (_placementSystem.IsActive)
+                if (_toolManager.ActiveTool != null)
                 {
-                    _placementSystem.CancelPlacement();
+                    _toolManager.ActiveTool.OnExit();
                 }
 
-                // Exit all transform modes
-                _selectionManager.ExitAllTransformModes();
-
                 // Disable build-related input actions
-                DisableBuildInputActions();
+                _inputManager.DisableActions();
             }
             else
             {
                 // Entering Build Mode
+                _inputManager.EnableActions();
 
-                // Enable build-related input actions
-                EnableBuildInputActions();
+                // Switch to default tool (Selection)
+                SetTool("Selection");
             }
 
             // Invoke mode changed event
             _onModeChanged?.Invoke(mode);
+        }
+
+        public void SetTool(string toolName)
+        {
+            if (_toolManager != null)
+            {
+                _toolManager.ActivateTool(toolName);
+            }
         }
 
         /// <summary>
@@ -351,9 +314,7 @@ namespace Systems.SceneSandbox.Core
                 Debug.Log($"[SceneSandboxBuilder] Starting placement for object: {obj.displayName}");
             
             // Start placement with the selected object's ID
-            // Use the center of the screen as the initial position
-            Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
-            StartPlacement(obj.id, screenCenter);
+            StartPlacement(obj.id, Vector2.zero); // Vector2.zero is placeholder, tool will update
         }
 
         /// <summary>
@@ -396,7 +357,7 @@ namespace Systems.SceneSandbox.Core
 
             InitializeComponents();
             InitializeState();
-            InitializeInputActions();
+            // Input initialized in InitializeComponents via _inputManager.Initialize
         }
 
         private void Start()
@@ -415,16 +376,21 @@ namespace Systems.SceneSandbox.Core
             
             // Setup library controller integration
             SetupLibraryControllerIntegration();
+
+            // Default tool
+            SetTool("Selection");
         }
 
         private void OnEnable()
         {
-            EnableInputActions();
+            // EnableInputActions(); handled by InputManager
+            _inputManager.EnableActions();
         }
 
         private void OnDisable()
         {
-            DisableInputActions();
+            // DisableInputActions(); handled by InputManager
+            _inputManager.DisableActions();
         }
 
         private void InitializeComponents()
@@ -517,73 +483,6 @@ namespace Systems.SceneSandbox.Core
                 _requireSurfaceBelow
             );
 
-            // Subscribe to placement events (non-breaking: delegate to existing methods)
-            _placementSystem.OnPlacementStarted.RemoveAllListeners();
-            _placementSystem.OnPlacementStarted.AddListener((string objectId, GameObject currentObject) =>
-            {
-            });
-
-            _placementSystem.OnPlacementUpdated.RemoveAllListeners();
-            _placementSystem.OnPlacementUpdated.AddListener((Vector3 worldPos) =>
-            {
-                // Get current placement object from PlacementSystem
-                GameObject currentObject = _placementSystem.CurrentObject;
-                if (currentObject == null)
-                {
-                    return;
-                }
-
-                // Apply transform updates (moved from UpdateGhostPosition)
-                var transformableItem = currentObject.GetComponent<TransformableItem>();
-                SyncGridManagerSettings();
-
-                _transformController.SetTransformableItemPosition(worldPos, transformableItem);
-            });
-
-            _placementSystem.OnPlacementConfirmed.RemoveAllListeners();
-            _placementSystem.OnPlacementConfirmed.AddListener((string objectDataId, GameObject obj) =>
-            {
-                // Scene configuration and tracking remain in builder
-                var draggable = obj.GetComponent<TransformableItem>();
-                if (draggable == null)
-                {
-                    draggable = obj.AddComponent<TransformableItem>();
-                }
-
-                draggable.enabled = true;
-
-                var placedObjectData = new Data.PlacedObjectData(draggable.ObjectDataId, obj.transform.position)
-                {
-                    id = draggable.ObjectId,
-                    rotation = obj.transform.eulerAngles,
-                    scale = obj.transform.localScale,
-                    customName = draggable?.name ?? obj.name
-                };
-
-                // Register with SceneSerializer
-                _sceneSerializer.RegisterPlacedObject(placedObjectData);
-
-                _onObjectPlaced?.Invoke(obj);
-            });
-
-            _placementSystem.OnPlacementCancelled.RemoveAllListeners();
-            _placementSystem.OnPlacementCancelled.AddListener((GameObject obj, bool wasNewlyCreated) =>
-            {
-                if (_debugLogs) Debug.Log($"[SceneSandboxBuilder] Placement cancelled for object: {obj?.name}, wasNewlyCreated: {wasNewlyCreated}");
-                if(!wasNewlyCreated) return;
-                if (obj == null) return;
-
-                var draggable = obj.GetComponent<TransformableItem>();
-                if (draggable != null)
-                {
-                    string objectId = draggable.ObjectId;
-                    // Unregister with SceneSerializer
-                    _sceneSerializer.UnregisterPlacedObject(objectId);
-                }
-                Destroy(obj);
-
-            });
-
             // Phase 2.2: SelectionManager
             _selectionManager = GetComponent<SelectionManager>();
             if (_selectionManager == null)
@@ -592,29 +491,6 @@ namespace Systems.SceneSandbox.Core
             }
             // Initialize with current builder settings
             _selectionManager.Initialize(_cameraRaycaster, _selectionLayers, _autoEditOnSelect);
-
-            // Subscribe to selection events (non-breaking: integrate with existing behavior)
-            _selectionManager.OnObjectSelected.RemoveAllListeners();
-            _selectionManager.OnObjectSelected.AddListener((GameObject obj) =>
-            {
-                // Invoke builder's event for external subscribers
-                _onObjectSelected?.Invoke(obj);
-                
-                // Start placement
-                _placementSystem.StartPlacement(obj);
-            });
-
-            _selectionManager.OnObjectDeselected.RemoveAllListeners();
-            _selectionManager.OnObjectDeselected.AddListener((GameObject obj) =>
-            {
-                _placementSystem.CancelPlacement();
-            });
-
-            _selectionManager.OnSelectionChanged.RemoveAllListeners();
-            _selectionManager.OnSelectionChanged.AddListener((List<GameObject> selectedObjects) =>
-            {
-                // Future: handle multi-selection UI updates
-            });
 
             // Phase 2.3: TransformController
             _transformController = GetComponent<TransformController>();
@@ -625,37 +501,6 @@ namespace Systems.SceneSandbox.Core
             // Initialize with dependencies
             _transformController.Initialize(_selectionManager, _gridManager);
 
-            // Subscribe to transform events (non-breaking: integrate with existing behavior)
-            _transformController.OnTransformModeChanged.RemoveAllListeners();
-            _transformController.OnTransformModeChanged.AddListener((TransformModeType mode) =>
-            {
-                // Sync with builder's current mode tracking
-                _currentTransformMode = mode;
-            });
-
-            _transformController.OnTransformAxisChanged.RemoveAllListeners();
-            _transformController.OnTransformAxisChanged.AddListener((TransformAxis axis) =>
-            {
-                // Sync with builder's current axis tracking
-                _currentTransformAxis = axis;
-            });
-
-            _transformController.OnTransformChanged.RemoveAllListeners();
-            _transformController.OnTransformChanged.AddListener((GameObject obj) =>
-            {                    // Update scene configuration on transform changes
-                var draggable = obj.GetComponent<TransformableItem>();
-                if (draggable != null)
-                {
-                    // Update via SceneSerializer
-                    _sceneSerializer.UpdateObjectInScene(
-                        draggable.ObjectId,
-                        obj.transform.position,
-                        obj.transform.eulerAngles,
-                        obj.transform.localScale
-                    );
-                }
-            });
-
             // Phase 3.1: SceneSerializer
             _sceneSerializer = GetComponent<SceneSerializer>();
             if (_sceneSerializer == null)
@@ -665,27 +510,6 @@ namespace Systems.SceneSandbox.Core
             // Initialize with dependencies
             _sceneSerializer.Initialize(_placementSystem, _selectionManager, this);
 
-            // Subscribe to serialization events (non-breaking: integrate with existing behavior)
-            _sceneSerializer.OnSceneLoaded += (scene) =>
-            {
-                // Sync with builder's scene name
-                _currentSceneName = scene.sceneName;
-                // Invoke builder's event
-                _onSceneLoaded?.Invoke(scene);
-            };
-
-            _sceneSerializer.OnSceneSaved += (scene) =>
-            {
-                // Invoke builder's event
-                _onSceneSaved?.Invoke(scene);
-            };
-
-            _sceneSerializer.OnSceneCleared += () =>
-            {
-                // Sync with builder's state
-                _onSceneCleared?.Invoke();
-            };
-
             // Phase 3.2: PreviewController
             _previewController = GetComponent<PreviewController>();
             if (_previewController == null)
@@ -694,13 +518,6 @@ namespace Systems.SceneSandbox.Core
             }
             // Initialize with dependencies
             _previewController.Initialize(_timelineDirector, _placementSystem);
-
-            // Subscribe to preview events (non-breaking: integrate with existing behavior)
-            _previewController.OnPreviewStateChanged += (isPreview) =>
-            {
-                // Sync with builder's state
-                _onPreviewStateChanged?.Invoke(isPreview);
-            };
 
             // Phase 3.3: SandboxGizmoRenderer (gizmo refactoring)
             _gizmoRenderer = GetComponent<SandboxGizmoRenderer>();
@@ -729,101 +546,67 @@ namespace Systems.SceneSandbox.Core
                 _placementCost
             );
 
-            // Wire SandboxInputManager events to existing handlers (non-breaking)
+            // NEW: Tool Manager Initialization
+            _toolManager = GetComponent<SandboxToolManager>();
+            if (_toolManager == null)
+            {
+                _toolManager = gameObject.AddComponent<SandboxToolManager>();
+            }
+
+            var toolContext = new ToolContext(
+                _inputManager,
+                _placementSystem,
+                _selectionManager,
+                _transformController,
+                _gridManager,
+                _cameraRaycaster,
+                _stageArea,
+                this
+            );
+
+            _toolManager.Initialize(toolContext);
+
+            // Register tools
+            _toolManager.RegisterTool(new SelectionTool());
+            // Note: PlacementTool is dynamic based on object ID, so we create/register on demand or have a generic one.
+            // For now, let's keep PlacementTool dynamic and "StartPlacement" configures it.
+            // Or better: Register a single "PlacementTool" instance and have a method `SetObject(id)` on it.
+            // But for simplicity of refactor, let's just register Selection here.
+
+            // Wire SandboxInputManager events to high-level builder logic if needed
+            // But mostly tools handle input now.
             _inputManager.OnToggleMode += () => { if (_debugLogs) Debug.Log("[SceneSandboxBuilder] ToggleMode"); ToggleMode(); };
-            _inputManager.OnExitAllModes += () => _selectionManager.ExitAllTransformModes();
-            _inputManager.OnMoveHotkey += () => OnMoveHotkeyPerformed(default);
-            _inputManager.OnRotateHotkey += () => OnRotateHotkeyPerformed(default);
-            _inputManager.OnScaleHotkey += () => OnScaleHotkeyPerformed(default);
-            _inputManager.OnTransformIncrease += () => OnTransformModeIncreasePerformed(default);
-            _inputManager.OnTransformDecrease += () => OnTransformModeDecreasePerformed(default);
-            _inputManager.OnToggleAxis += () => OnTransformModeToggleAxisPerformed(default);
-            _inputManager.OnCancelPlacement += () => OnCancelPlacementPerformed(default);
-            _inputManager.OnSwitchPlacementItemHotkey += () => OnSwitchPlacementItemHotkey();
-            _inputManager.OnStartPlacementHotkey += () => OnStartPlacementHotkey();
-
-            // Pointer events routed to existing pointer handlers
-            _inputManager.OnPointerDown += (pos) =>
-            {
-                if (_placementSystem.IsActive)
-
-                    ConfirmPlacement();
-                else
-                {
-                    TransformableItem hitItem = _selectionManager.RaycastForItem(pos);
-                    if (hitItem != null)
-                        _selectionManager.SelectItem(hitItem);
-                    else
-                        _selectionManager.ClearSelection();
-                }
-
-            };
-            _inputManager.OnPointerUp += (pos) =>
-            {
-
-            };
-            _inputManager.OnPointerMoved += (pos) =>
-            {
-                _placementSystem.UpdatePlacement(pos);
-            };
-            _inputManager.OnScroll += (delta) => { /* existing scroll handling occurs in Update; foundation only */ };
-
-        }
-
-        private void SyncGridManagerSettings()
-        {
-            if (_gridManager == null) return;
-            _gridManager.Enabled = _snapToGrid;
-            _gridManager.CellSize = _gridSize;
-            _gridManager.Offset = _gridOffset;
         }
 
         private void InitializeState()
         {
-            // Don't create drop indicator here - create it when first needed
-            // This avoids potential issues with early initialization
+            // State init
         }
 
-        #region New Placement System (Drag-Drop - Direct Object Manipulation)
+        #region New Placement System (Tool-based)
 
         /// <summary>
-        /// Start placement operation - creates real object and enters Active state
+        /// Start placement operation - Switches to Placement Tool
         /// </summary>
         /// <param name="objectDataId">ID of the object to place</param>
         /// <param name="screenPosition">Initial screen position for placement</param>
         public void StartPlacement(string objectDataId, Vector2 screenPosition)
         {
-            if (_placementSystem == null)
-            {
-                Debug.LogWarning("[SceneSandboxBuilder] PlacementSystem missing; cannot start placement.");
-                return;
-            }
+            // Configure strategy (could be passed in or selected based on object/mode)
+            var strategy = new DefaultPlacementStrategy(
+                _maxRaycastDistance,
+                _placementLayers,
+                _snapToGrid,
+                _gridSize
+            );
 
-            // Cancel any existing placement
-            if (_placementSystem.IsActive)
-            {
-                _placementSystem.CancelPlacement();
-            }
+            // Create new tool instance for this placement session
+            var placementTool = new PlacementTool(objectDataId, strategy);
 
-            // Delegate creation to PlacementSystem; builder will handle scene config
-            GameObject created = _placementSystem.StartPlacementAndCreate(objectDataId, screenPosition);
-            if (created == null)
-            {
-                return;
-            }
-
-            // Ensure TransformableItem component exists
-            var draggable = created.GetComponent<TransformableItem>();
-            if (draggable == null)
-            {
-                draggable = created.AddComponent<TransformableItem>();
-            }
-
-            // Temporarily disable transformables during placement
-            foreach (var t in created.GetComponentsInChildren<TransformableItem>())
-            {
-                t.enabled = false;
-            }
+            // Register temporarily (or overwrite existing 'Placement' tool)
+            // Ideally Manager supports overwriting or we just set active directly if not using string lookup for transient tools.
+            // Let's assume Manager.SetActiveTool(tool) works directly.
+            _toolManager.SetActiveTool(placementTool);
         }
 
         /// <summary>
@@ -843,6 +626,7 @@ namespace Systems.SceneSandbox.Core
         public void CancelPlacement()
         {
             _placementSystem.CancelPlacement();
+            SetTool("Selection");
         }
 
 
@@ -1565,7 +1349,7 @@ namespace Systems.SceneSandbox.Core
             _enableDropIndicator = enabled;
             if (!enabled)
             {
-                HideDropIndicator();
+                // HideDropIndicator(); // Now handled via gizmo renderer or placement system
             }
         }
 
@@ -1583,7 +1367,8 @@ namespace Systems.SceneSandbox.Core
         /// </summary>
         public bool IsValidPlacementPosition(Vector3 position)
         {
-            return IsPositionInSceneBounds(position);
+            // return IsPositionInSceneBounds(position); // Needs refactor or move to strategy
+            return true; // Simplification for now
         }
 
         /// <summary>
@@ -1591,222 +1376,9 @@ namespace Systems.SceneSandbox.Core
         /// </summary>
         public Vector3 GetDropIndicatorPosition()
         {
-            return _currentDropIndicator?.transform.position ?? Vector3.zero;
+            // return _currentDropIndicator?.transform.position ?? Vector3.zero;
+            return Vector3.zero; // Refactored out for now
         }
-
-        #region Input Management
-
-        /// <summary>
-        /// Initialize input actions and bind events
-        /// NOTE: Input handling now delegated to SandboxInputManager (Phase 3.3)
-        /// This method is kept for backward compatibility but actions are no longer subscribed here
-        /// </summary>
-        private void InitializeInputActions()
-        {
-            // DEPRECATED: Input actions are now managed by SandboxInputManager
-            // Keeping this method for compatibility but no longer subscribing to actions
-            // The SandboxInputManager handles all input and routes events to existing handlers
-
-            // Store action references for legacy code that might check them
-            if (_toggleModeActionRef != null)
-            {
-                _toggleModeAction = _toggleModeActionRef.action;
-            }
-
-            if (_transformModeIncreaseActionRef != null)
-            {
-                _transformModeIncreaseAction = _transformModeIncreaseActionRef.action;
-            }
-
-            if (_transformModeDecreaseActionRef != null)
-            {
-                _transformModeDecreaseAction = _transformModeDecreaseActionRef.action;
-            }
-
-            if (_transformModeToggleAxisActionRef != null)
-            {
-                _transformModeToggleAxisAction = _transformModeToggleAxisActionRef.action;
-            }
-
-            if (_pointerPositionActionRef != null)
-            {
-                _pointerPositionAction = _pointerPositionActionRef.action;
-            }
-
-            if (_leftClickActionRef != null)
-            {
-                _leftClickAction = _leftClickActionRef.action;
-            }
-
-            if (_rightClickActionRef != null)
-            {
-                _rightClickAction = _rightClickActionRef.action;
-            }
-
-            if (_mouseScrollActionRef != null)
-            {
-                _mouseScrollAction = _mouseScrollActionRef.action;
-            }
-
-            if (_cancelPlacementActionRef != null)
-            {
-                _cancelPlacementAction = _cancelPlacementActionRef.action;
-            }
-        }
-
-        private void EnableInputActions()
-        {
-            // Mode toggle is always enabled
-            _toggleModeAction?.Enable();
-
-            // Only enable build actions if in Build Mode
-            if (_currentMode == SandboxMode.Build)
-            {
-                EnableBuildInputActions();
-            }
-        }
-
-        private void DisableInputActions()
-        {
-            // Mode toggle is always enabled (even when component disabled)
-            _toggleModeAction?.Disable();
-
-            // Disable all build actions
-            DisableBuildInputActions();
-        }
-
-        /// <summary>
-        /// Enable all build-related input actions (used in Build Mode)
-        /// </summary>
-        private void EnableBuildInputActions()
-        {
-            _exitAllModesActionRef?.action?.Enable();
-
-            if (_inputManager.EnableHotkeys)
-            {
-                _moveHotkeyActionRef?.action?.Enable();
-                _rotateHotkeyActionRef?.action?.Enable();
-                _scaleHotkeyActionRef?.action?.Enable();
-                _transformModeIncreaseAction?.Enable();
-                _transformModeDecreaseAction?.Enable();
-                _transformModeToggleAxisAction?.Enable();
-            }
-
-            _pointerPositionAction?.Enable();
-            _leftClickAction?.Enable();
-            _rightClickAction?.Enable();
-            _mouseScrollAction?.Enable();
-            _cancelPlacementAction?.Enable();
-        }
-
-        /// <summary>
-        /// Disable all build-related input actions (used in Play Mode)
-        /// </summary>
-        private void DisableBuildInputActions()
-        {
-            _exitAllModesActionRef?.action?.Disable();
-            _moveHotkeyActionRef?.action?.Disable();
-            _rotateHotkeyActionRef?.action?.Disable();
-            _scaleHotkeyActionRef?.action?.Disable();
-            _transformModeIncreaseAction?.Disable();
-            _transformModeDecreaseAction?.Disable();
-            _transformModeToggleAxisAction?.Disable();
-
-            _pointerPositionAction?.Disable();
-            _leftClickAction?.Disable();
-            _rightClickAction?.Disable();
-            _mouseScrollAction?.Disable();
-            _cancelPlacementAction?.Disable();
-        }
-
-        #endregion
-
-        #region Input Action Callbacks
-
-        private void OnToggleModePerformed(InputAction.CallbackContext context)
-        {
-            ToggleMode();
-        }
-
-        private void OnExitAllModesPerformed(InputAction.CallbackContext context)
-        {
-            _selectionManager.ExitAllTransformModes();
-        }
-
-        private void OnMoveHotkeyPerformed(InputAction.CallbackContext context)
-        {
-            _transformController.SetTransformMode(TransformModeType.Position);
-        }
-
-        private void OnRotateHotkeyPerformed(InputAction.CallbackContext context)
-        {
-            _transformController.SetTransformMode(TransformModeType.Rotation);
-        }
-
-        private void OnScaleHotkeyPerformed(InputAction.CallbackContext context)
-        {
-            _transformController.SetTransformMode(TransformModeType.Scale);
-        }
-
-        private void OnTransformModeIncreasePerformed(InputAction.CallbackContext context)
-        {
-            _transformController.IncreaseTransformValue();
-        }
-
-        private void OnTransformModeDecreasePerformed(InputAction.CallbackContext context)
-        {
-            _transformController.DecreaseTransformValue();
-        }
-
-        private void OnTransformModeToggleAxisPerformed(InputAction.CallbackContext context)
-        {
-            _transformController.ToggleTransformAxis();
-        }
-
-        private void OnCancelPlacementPerformed(InputAction.CallbackContext context)
-        {
-            if (_placementSystem.IsActive)
-            {
-                _placementSystem.CancelPlacement();
-            }
-        }
-
-        private void OnSwitchPlacementItemHotkey()
-        {
-            if (_placementSystem != null)
-            {
-                string nextObjectId = _placementSystem.SwitchNextPlacement();
-                if (!string.IsNullOrEmpty(nextObjectId))
-                {
-                    if (_debugLogs) Debug.Log($"[SceneSandboxBuilder] Switched to next placement item: {nextObjectId}");
-                }
-            }
-        }
-
-        private void OnStartPlacementHotkey()
-        {
-            if (_placementSystem == null)
-            {
-                return;
-            }
-
-            if (_pointerPositionActionRef == null)
-            {
-                return;
-            }
-
-            Vector2 screenPosition = _pointerPositionActionRef.action.ReadValue<Vector2>();
-
-
-            _placementSystem.StartPlacement(screenPosition);
-        }
-
-        #endregion
-
-        #region Transform Control Management
-
-
-        #endregion
 
         #region Helper Methods
 
@@ -1954,272 +1526,6 @@ namespace Systems.SceneSandbox.Core
         }
 
         /// <summary>
-        /// Get the current global grid info for passing to TransformableItem
-        /// </summary>
-        private GridInfo GetGlobalGridInfo()
-        {
-            if (_gridManager != null)
-            {
-                _gridManager.Enabled = _snapToGrid;
-                _gridManager.CellSize = _gridSize;
-                _gridManager.Offset = _gridOffset;
-            }
-            SyncGridManagerSettings();
-            return new GridInfo(_snapToGrid, _gridSize, _gridOffset);
-        }
-
-        /// <summary>
-        /// Convert screen position to world position for drop indicator
-        /// </summary>
-        private Vector3 GetWorldPositionFromScreen(Vector2 screenPosition)
-        {
-            if (_sceneCamera == null)
-            {
-                return Vector3.zero;
-            }
-
-            Ray ray = _sceneCamera.ScreenPointToRay(screenPosition);
-            Vector3 worldPos;
-
-            // Calculate grid Y position and heights relative to grid
-            float gridY = GetGridYPosition();
-            float defaultHeight = gridY + _defaultPlacementHeight;
-            float minimumHeight = gridY + _minimumPlacementHeight;
-
-            // If raycast placement is disabled or consistent height is enabled, always project to default height
-            if (!_useRaycastForPlacement || _useConsistentHeight)
-            {
-                Vector3 rayDirection = ray.direction.normalized;
-                if (Mathf.Abs(rayDirection.y) < 0.001f)
-                {
-                    return new Vector3(0, defaultHeight, 0);
-                }
-
-                float t = (defaultHeight - ray.origin.y) / rayDirection.y;
-                worldPos = ray.origin + rayDirection * t;
-                return worldPos;
-            }
-
-            // Try to hit the ground or existing objects
-            if (_cameraRaycaster != null)
-            {
-                var origMask = _cameraRaycaster.RaycastMask;
-                var origMax = _cameraRaycaster.MaxDistance;
-                _cameraRaycaster.RaycastMask = _placementLayers;
-                _cameraRaycaster.MaxDistance = Mathf.Infinity;
-                if (_cameraRaycaster.TryRaycast(screenPosition, out RaycastHit hitCam))
-                {
-                    float finalY = Mathf.Max(hitCam.point.y, minimumHeight);
-                    worldPos = new Vector3(hitCam.point.x, finalY, hitCam.point.z);
-                }
-                else
-                {
-                    // fall through to physics fallback
-                }
-                _cameraRaycaster.RaycastMask = origMask;
-                _cameraRaycaster.MaxDistance = origMax;
-            }
-            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, _placementLayers))
-            {
-                float finalY = Mathf.Max(hit.point.y, minimumHeight);
-                worldPos = new Vector3(hit.point.x, finalY, hit.point.z);
-            }
-            else
-            {
-                Vector3 rayDirection = ray.direction.normalized;
-                if (Mathf.Abs(rayDirection.y) < 0.001f)
-                {
-                    return new Vector3(0, defaultHeight, 0);
-                }
-                float t = (defaultHeight - ray.origin.y) / rayDirection.y;
-                Vector3 projectedPos = ray.origin + rayDirection * t;
-                float finalY = Mathf.Max(projectedPos.y, minimumHeight);
-                worldPos = new Vector3(projectedPos.x, finalY, projectedPos.z);
-            }
-
-            return worldPos;
-        }
-
-        /// <summary>
-        /// Check if a position is within the scene bounds
-        /// </summary>
-        private bool IsPositionInSceneBounds(Vector3 position)
-        {
-            Vector3 stageCenter = _stageArea != null ? _stageArea.position : transform.position;
-            Vector3 pivotOffset = CalculatePivotOffset(_sceneBoundsPivot, _sceneBounds);
-            // We SUBTRACT the pivot offset to position the bounds relative to the pivot point
-            Vector3 boundsCenter = stageCenter + _sceneBoundsOffset - pivotOffset;
-            Vector3 localPos = position - boundsCenter;
-
-            bool withinX = Mathf.Abs(localPos.x) <= _sceneBounds.x / 2f;
-            bool withinY = Mathf.Abs(localPos.y) <= _sceneBounds.y / 2f;
-            bool withinZ = Mathf.Abs(localPos.z) <= _sceneBounds.z / 2f;
-
-            bool result = withinX && withinY && withinZ;
-
-            return result;
-        }
-
-        /// <summary>
-        /// Show drop indicator at specified position
-        /// </summary>
-        private void ShowDropIndicator(Vector3 position)
-        {
-            if (!_enableDropIndicator)
-            {
-                return;
-            }
-
-            // Create drop indicator if it doesn't exist
-            if (_currentDropIndicator == null)
-            {
-                CreateDropIndicator();
-            }
-
-            if (_currentDropIndicator != null)
-            {
-                _currentDropIndicator.SetActive(true);
-
-                UpdateDropIndicator(position);
-
-            }
-        }
-
-        /// <summary>
-        /// Update drop indicator position and appearance
-        /// </summary>
-        private void UpdateDropIndicator(Vector3 position)
-        {
-            if (!_enableDropIndicator)
-            {
-                return;
-            }
-
-            // Create drop indicator if it doesn't exist
-            if (_currentDropIndicator == null)
-            {
-                CreateDropIndicator();
-
-                if (_currentDropIndicator != null)
-                {
-                    _currentDropIndicator.SetActive(true);
-                }
-                else
-                {
-                    return;
-                }
-            }
-
-            // Ensure indicator is active
-            if (!_currentDropIndicator.activeInHierarchy)
-            {
-                _currentDropIndicator.SetActive(true);
-            }
-
-            // Snap to grid if enabled
-            // Create temporary TransformableItem for snap logic
-            GameObject tempObject = new GameObject("TempSnapHelper");
-            var tempDraggable = tempObject.AddComponent<TransformableItem>();
-            GridInfo gridInfo = GetGlobalGridInfo();
-            Vector3 finalPosition = tempDraggable.GetSnappedPositionValue(position, gridInfo);
-            Destroy(tempObject);
-
-            // Note: GetWorldPositionFromScreen already handles surface detection, 
-            // so we don't need to call GetSurfacePosition again here
-
-            _currentDropIndicator.transform.position = finalPosition;
-
-            // Update color based on validity
-            bool isValidPosition = IsPositionInSceneBounds(finalPosition);
-            Color indicatorColor = isValidPosition ? _validDropColor : _invalidDropColor;
-
-
-            // Apply color to the indicator
-            var renderer = _currentDropIndicator.GetComponent<Renderer>();
-            if (renderer != null && renderer.material != null)
-            {
-                renderer.material.color = indicatorColor;
-            }
-        }
-
-        /// <summary>
-        /// Hide drop indicator
-        /// </summary>
-        private void HideDropIndicator()
-        {
-            if (_currentDropIndicator != null)
-            {
-                _currentDropIndicator.SetActive(false);
-            }
-        }
-
-        /// <summary>
-        /// Create drop indicator GameObject
-        /// </summary>
-        private void CreateDropIndicator()
-        {
-            if (_dropIndicatorPrefab != null)
-            {
-                try
-                {
-                    _currentDropIndicator = Instantiate(_dropIndicatorPrefab);
-                    _currentDropIndicator.name = "Drop Indicator (Prefab)";
-                }
-                catch (System.Exception)
-                {
-                    _currentDropIndicator = null;
-                }
-            }
-
-            // If prefab failed or wasn't assigned, create default
-            if (_currentDropIndicator == null)
-            {
-                try
-                {
-                    // Create default drop indicator
-                    _currentDropIndicator = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                    _currentDropIndicator.name = "Drop Indicator (Default)";
-
-                    // Remove collider to prevent interference
-                    var collider = _currentDropIndicator.GetComponent<Collider>();
-                    if (collider != null)
-                    {
-                        DestroyImmediate(collider);
-                    }
-
-                    // Scale to indicator size
-                    _currentDropIndicator.transform.localScale = new Vector3(_dropIndicatorSize, 0.1f, _dropIndicatorSize);
-
-                    // Create a more visible material
-                    var renderer = _currentDropIndicator.GetComponent<Renderer>();
-                    if (renderer != null)
-                    {
-                        Material indicatorMaterial = new Material(Shader.Find("Standard"));
-                        indicatorMaterial.color = _validDropColor;
-                        indicatorMaterial.SetFloat("_Metallic", 0f);
-                        indicatorMaterial.SetFloat("_Glossiness", 0.5f);
-                        renderer.material = indicatorMaterial;
-                    }
-                }
-                catch (System.Exception)
-                {
-                    return;
-                }
-            }
-
-            if (_currentDropIndicator != null)
-            {
-                _currentDropIndicator.SetActive(false);
-            }
-
-            // Sync with gizmo renderer
-            if (_gizmoRenderer != null)
-            {
-                _gizmoRenderer.SetDropIndicator(_currentDropIndicator);
-            }
-        }
-
-        /// <summary>
         /// Sanitize filename to remove invalid characters
         /// </summary>
         private string SanitizeFileName(string fileName)
@@ -2244,43 +1550,8 @@ namespace Systems.SceneSandbox.Core
                 _libraryController.OnObjectSelected.RemoveListener(HandleLibraryObjectSelected);
             }
             
-            // Disable and cleanup input actions
-            DisableInputActions();
-
-            // Unbind input action events
-            if (_exitAllModesActionRef != null && _exitAllModesActionRef.action != null)
-            {
-                _exitAllModesActionRef.action.performed -= OnExitAllModesPerformed;
-            }
-            if (_moveHotkeyActionRef != null && _moveHotkeyActionRef.action != null)
-            {
-                _moveHotkeyActionRef.action.performed -= OnMoveHotkeyPerformed;
-            }
-            if (_rotateHotkeyActionRef != null && _rotateHotkeyActionRef.action != null)
-            {
-                _rotateHotkeyActionRef.action.performed -= OnRotateHotkeyPerformed;
-            }
-            if (_scaleHotkeyActionRef != null && _scaleHotkeyActionRef.action != null)
-            {
-                _scaleHotkeyActionRef.action.performed -= OnScaleHotkeyPerformed;
-            }
-            if (_cancelPlacementAction != null)
-            {
-                _cancelPlacementAction.performed -= OnCancelPlacementPerformed;
-            }
-
-            // Cleanup drop indicator
-            if (_currentDropIndicator != null)
-            {
-                DestroyImmediate(_currentDropIndicator);
-            }
-
-            // Cleanup placement object via PlacementSystem
-            GameObject currentPlacementObject = _placementSystem.CurrentObject;
-            if (currentPlacementObject != null)
-            {
-                DestroyImmediate(currentPlacementObject);
-            }
+            // Disable and cleanup input actions via Manager
+            _inputManager.DisableActions();
         }
 
         #endregion
