@@ -34,6 +34,18 @@ jobs:
         with:
           lfs: true
 
+      # Fix Package Manifest
+      - name: Fix Package Manifest
+        run: |
+          rm -f Packages/packages-lock.json
+          sed -i '/com.unity.modules.adaptiveperformance/d' Packages/manifest.json
+          sed -i '/com.unity.modules.vectorgraphics/d' Packages/manifest.json
+          sed -i '/com.unity.2d.enhancers/d' Packages/manifest.json
+          sed -i '/com.unity.ai.generators/d' Packages/manifest.json
+          sed -i '/com.unity.collab-proxy/d' Packages/manifest.json
+          sed -i '/com.unity.xr.openxr/d' Packages/manifest.json
+          sed -i '/com.unity.ai.toolkit/d' Packages/manifest.json
+
       # Cache
       - uses: actions/cache@v3
         with:
@@ -78,6 +90,18 @@ jobs:
         uses: actions/checkout@v4
         with:
           lfs: true
+
+      # Fix Package Manifest
+      - name: Fix Package Manifest
+        run: |
+          rm -f Packages/packages-lock.json
+          sed -i '/com.unity.modules.adaptiveperformance/d' Packages/manifest.json
+          sed -i '/com.unity.modules.vectorgraphics/d' Packages/manifest.json
+          sed -i '/com.unity.2d.enhancers/d' Packages/manifest.json
+          sed -i '/com.unity.ai.generators/d' Packages/manifest.json
+          sed -i '/com.unity.collab-proxy/d' Packages/manifest.json
+          sed -i '/com.unity.xr.openxr/d' Packages/manifest.json
+          sed -i '/com.unity.ai.toolkit/d' Packages/manifest.json
 
       # Cache
       - uses: actions/cache@v3
