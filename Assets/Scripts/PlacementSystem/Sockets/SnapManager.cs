@@ -23,13 +23,19 @@ namespace Systems.PlacementSystem.Sockets
         [SerializeField, Tooltip("Maximum number of sockets to check per frame")]
         private int _maxSocketChecksPerFrame = 50;
 
+        [SerializeField, Tooltip("Enable socket caching for better performance. Disable to always search all sockets dynamically.")]
+        private bool _enableSocketCaching = true;
+
         // Cache all sockets in the scene for quick access
         private List<Socket> _registeredSockets = new List<Socket>();
         private bool _socketsCached = false;
 
         private void Start()
         {
-            RefreshSocketCache();
+            if (_enableSocketCaching)
+            {
+                RefreshSocketCache();
+            }
         }
 
         /// <summary>
@@ -42,7 +48,7 @@ namespace Systems.PlacementSystem.Sockets
                 return null;
 
             // Ensure socket cache is up to date
-            if (!_socketsCached)
+            if (_enableSocketCaching && !_socketsCached)
                 RefreshSocketCache();
 
             Socket nearestSocket = null;
@@ -51,7 +57,11 @@ namespace Systems.PlacementSystem.Sockets
             // Use Physics.OverlapSphere for efficient spatial query
             Collider[] nearbyColliders = Physics.OverlapSphere(position, maxDistance, _socketLayer);
 
+            Debug.Log($"[SnapManager] Searching for {requiredType.name} sockets at {position}, range: {maxDistance}, found {nearbyColliders.Length} colliders with layer mask {_socketLayer.value}");
+
             int checkedCount = 0;
+            int socketsFound = 0;
+            int socketsChecked = 0;
             foreach (var collider in nearbyColliders)
             {
                 // Performance limit
@@ -60,25 +70,41 @@ namespace Systems.PlacementSystem.Sockets
 
                 // Optional tag check
                 if (_useTagDetection && !collider.CompareTag(_socketTag))
+                {
+                    Debug.Log($"[SnapManager] Skipping {collider.name} - wrong tag");
                     continue;
+                }
 
                 Socket socket = collider.GetComponent<Socket>();
                 if (socket == null)
                     socket = collider.GetComponentInParent<Socket>();
 
-                if (socket != null && socket.CanAccept(requiredType))
+                if (socket != null)
                 {
+                    socketsChecked++;
                     float distance = Vector3.Distance(position, socket.transform.position);
-                    if (distance < nearestDistance)
+                    bool canAccept = socket.CanAccept(requiredType);
+                    Debug.Log($"[SnapManager] Socket {socket.name} - Type: {socket.SocketType?.name ?? "null"}, CanAccept({requiredType.name}): {canAccept}, Distance: {distance:F2}, Occupied: {socket.IsOccupied}");
+                    
+                    if (canAccept)
                     {
-                        nearestDistance = distance;
-                        nearestSocket = socket;
+                        socketsFound++;
+                        if (distance < nearestDistance)
+                        {
+                            nearestDistance = distance;
+                            nearestSocket = socket;
+                        }
                     }
+                }
+                else
+                {
+                    Debug.Log($"[SnapManager] Collider {collider.name} has no Socket component");
                 }
 
                 checkedCount++;
             }
 
+            Debug.Log($"[SnapManager] Result: Checked {socketsChecked} sockets, {socketsFound} can accept, nearest: {nearestSocket?.name ?? "null"} at distance {nearestDistance:F2}");
             return nearestSocket;
         }
 
@@ -100,9 +126,13 @@ namespace Systems.PlacementSystem.Sockets
 
         /// <summary>
         /// Manually registers a socket (useful for dynamically spawned sockets).
+        /// Only works when socket caching is enabled.
         /// </summary>
         public void RegisterSocket(Socket socket)
         {
+            if (!_enableSocketCaching)
+                return;
+
             if (socket != null && !_registeredSockets.Contains(socket))
             {
                 _registeredSockets.Add(socket);
@@ -111,9 +141,13 @@ namespace Systems.PlacementSystem.Sockets
 
         /// <summary>
         /// Manually unregisters a socket (useful when sockets are destroyed).
+        /// Only works when socket caching is enabled.
         /// </summary>
         public void UnregisterSocket(Socket socket)
         {
+            if (!_enableSocketCaching)
+                return;
+
             _registeredSockets.Remove(socket);
         }
 

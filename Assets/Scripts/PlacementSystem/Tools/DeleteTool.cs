@@ -32,7 +32,19 @@ namespace Systems.PlacementSystem.Tools
             {
                 var obj = selectedObjects[i];
                 if (obj != null)
+                {
+                    // Unregister any sockets before destroying
+                    if (_context.SnapManager != null)
+                    {
+                        var sockets = obj.GetComponentsInChildren<Sockets.Socket>();
+                        foreach (var socket in sockets)
+                        {
+                            _context.SnapManager.UnregisterSocket(socket);
+                        }
+                    }
+                    
                     Object.Destroy(obj);
+                }
             }
 
             _context.SelectionState.Clear();

@@ -26,6 +26,8 @@ namespace Systems.PlacementSystem.Tools
         public LayerMask SelectionLayer { get; }
         public LayerMask SelectionMovementSurface { get; }
         public PlacementSelectionState SelectionState { get; }
+        public SelectionTool SelectionTool { get; }
+        public ToolStateRegistry ToolStates { get; }
 
         public PlacementToolContext(
             IInputProvider inputProvider,
@@ -54,7 +56,9 @@ namespace Systems.PlacementSystem.Tools
                 placementSurface: -1,
                 selectionLayer: -1,
                 selectionMovementSurface: -1,
-                selectionState: null)
+                selectionState: null,
+                selectionTool: null,
+                toolStates: null)
         {
         }
 
@@ -74,7 +78,9 @@ namespace Systems.PlacementSystem.Tools
             LayerMask placementSurface,
             LayerMask selectionLayer,
             LayerMask selectionMovementSurface,
-            PlacementSelectionState selectionState)
+            PlacementSelectionState selectionState,
+            SelectionTool selectionTool,
+            ToolStateRegistry toolStates)
         {
             InputProvider = inputProvider;
             PlacementStrategy = placementStrategy;
@@ -92,6 +98,8 @@ namespace Systems.PlacementSystem.Tools
             SelectionLayer = selectionLayer;
             SelectionMovementSurface = selectionMovementSurface;
             SelectionState = selectionState ?? new PlacementSelectionState();
+            SelectionTool = selectionTool;
+            ToolStates = toolStates ?? new ToolStateRegistry();
         }
     }
 
@@ -146,6 +154,42 @@ namespace Systems.PlacementSystem.Tools
 
             if (PrimarySelection == obj)
                 PrimarySelection = _selectedObjects.Count > 0 ? _selectedObjects[0] : null;
+        }
+    }
+
+    /// <summary>
+    /// Shared registry for tool-specific state across the tool pipeline.
+    /// </summary>
+    public class ToolStateRegistry
+    {
+        private readonly Dictionary<System.Type, object> _states = new Dictionary<System.Type, object>();
+
+        public T GetOrCreate<T>() where T : new()
+        {
+            var type = typeof(T);
+            if (_states.TryGetValue(type, out var state))
+                return (T)state;
+
+            var newState = new T();
+            _states[type] = newState;
+            return newState;
+        }
+
+        public bool TryGet<T>(out T state) where T : class
+        {
+            if (_states.TryGetValue(typeof(T), out var value))
+            {
+                state = value as T;
+                return state != null;
+            }
+
+            state = null;
+            return false;
+        }
+
+        public void Clear()
+        {
+            _states.Clear();
         }
     }
 }

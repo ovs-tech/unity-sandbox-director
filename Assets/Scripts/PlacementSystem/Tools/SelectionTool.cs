@@ -13,7 +13,7 @@ namespace Systems.PlacementSystem.Tools
 
         public void OnEnter(PlacementToolContext context)
         {
-            _context = context;
+            SetContext(context);
         }
 
         public void OnExit()
@@ -21,15 +21,36 @@ namespace Systems.PlacementSystem.Tools
             _context = null;
         }
 
+        public void SetContext(PlacementToolContext context)
+        {
+            _context = context;
+        }
+
         public void HandleInput()
         {
-            if (_context?.InputProvider == null || _context.PlacementCamera == null)
+            if (_context == null)
+                return;
+
+            var selectionState = _context.ToolStates.GetOrCreate<SelectionToolState>();
+            selectionState.Clear();
+
+            if (_context.InputProvider == null || _context.PlacementCamera == null)
+                return;
+
+            _context.ToolStates.TryGet(out MoveToolState moveState);
+            if (moveState != null && moveState.IsMoveActive)
                 return;
 
             if (!_context.InputProvider.IsPlaceActionTriggered())
                 return;
 
             GameObject selected = TrySelectObject();
+            bool wasPrimarySelection = _context.SelectionState.PrimarySelection == selected;
+            selectionState.RecordSelectionInput(selected, wasPrimarySelection);
+
+            if (moveState != null && moveState.IsMoveToolEnabled && wasPrimarySelection && !IsMultiSelectModifierHeld())
+                return;
+
             HandleSelection(selected);
         }
 
@@ -61,7 +82,7 @@ namespace Systems.PlacementSystem.Tools
                 SelectObject(selected);
         }
 
-        private GameObject TrySelectObject()
+        public GameObject TrySelectObject()
         {
             if (_context?.PlacementCamera == null)
                 return null;
@@ -78,7 +99,7 @@ namespace Systems.PlacementSystem.Tools
             return null;
         }
 
-        private void SelectObject(GameObject obj)
+        public void SelectObject(GameObject obj)
         {
             if (obj == null || _context.SelectionState.Contains(obj))
                 return;
@@ -111,7 +132,7 @@ namespace Systems.PlacementSystem.Tools
             }
         }
 
-        private void ClearSelection()
+        public void ClearSelection()
         {
             var selectedObjects = _context.SelectionState.SelectedObjects;
             for (int i = selectedObjects.Count - 1; i >= 0; i--)

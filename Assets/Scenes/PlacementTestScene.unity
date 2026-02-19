@@ -311,31 +311,6 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
---- !u!1 &547706145 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1443516544727990350, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
-  m_PrefabInstance: {fileID: 1043612671569015473}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &547706151
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 547706145}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 39420cfaf2ef84397a75492e75e84289, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Selection.Selectable
-  _isSelectable: 1
-  _selectionPriority: 0
-  _onSelected:
-    m_PersistentCalls:
-      m_Calls: []
-  _onDeselected:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!1 &884071954
 GameObject:
   m_ObjectHideFlags: 0
@@ -428,7 +403,6 @@ GameObject:
   - component: {fileID: 1008020064}
   - component: {fileID: 1008020063}
   - component: {fileID: 1008020067}
-  - component: {fileID: 1008020068}
   m_Layer: 0
   m_Name: PlacementSystem
   m_TagString: Untagged
@@ -491,14 +465,16 @@ MonoBehaviour:
   _placementValidatorComponent: {fileID: 1008020065}
   _placementVisualizerComponent: {fileID: 1008020064}
   _snapManager: {fileID: 1008020063}
-  _selectionManager: {fileID: 1008020068}
   _maxRaycastDistance: 100
-  _currentRotationAngle: 0
+  _rotationSnapDegrees: 90
   _rotationIncrement: 90
   _makeObjectsSelectable: 1
+  _selectionLayer:
+    serializedVersion: 2
+    m_Bits: 1
   _selectionMovementSurface:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 64
   _allowMultiSelection: 0
   _requireModifierForMultiSelect: 1
   _moveSelectedWithPointer: 1
@@ -520,6 +496,7 @@ MonoBehaviour:
   _socketTag: Socket
   _useTagDetection: 0
   _maxSocketChecksPerFrame: 50
+  _enableSocketCaching: 0
 --- !u!114 &1008020064
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -582,24 +559,8 @@ MonoBehaviour:
   _placeKey: 323
   _cancelKey: 324
   _rotateKey: 114
+  _deleteKey: 127
   _alternativeCancelKey: 27
---- !u!114 &1008020068
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1008020058}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c9d37f4aa64734110a0fe2acee5eadbf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Selection.SelectionManager
-  _selectableLayer:
-    serializedVersion: 2
-    m_Bits: 1
-  _maxRaycastDistance: 100
-  _selectionEnabled: 1
 --- !u!1 &1045504573
 GameObject:
   m_ObjectHideFlags: 19
@@ -1187,10 +1148,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 1443516544727990350, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 547706151}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
 --- !u!4 &1048914390530758430
 Transform:

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using Systems.PlacementSystem.Sockets;
 using Systems.PlacementSystem.Tools;
@@ -14,6 +15,7 @@ namespace Systems.PlacementSystem.Core
         {
             Placement,
             Selection,
+            Snap,
             Move,
             Rotate,
             Delete
@@ -84,10 +86,12 @@ namespace Systems.PlacementSystem.Core
 
         private PlacementTool _placementTool;
         private SelectionTool _selectionTool;
+        private SnapTool _snapTool;
         private MoveTool _moveTool;
         private RotateTool _rotateTool;
         private DeleteTool _deleteTool;
-        private IPlacementTool _activeTool;
+        private readonly List<IPlacementTool> _activeTools = new List<IPlacementTool>();
+        private ToolStateRegistry _toolStates;
 
         private GameObject _currentGhost;
         private bool _isPlacementActive;
@@ -112,13 +116,15 @@ namespace Systems.PlacementSystem.Core
                 _placementCamera = Camera.main;
 
             _selectionState = new PlacementSelectionState();
-            RebuildToolContext();
-
+            _toolStates = new ToolStateRegistry();
             _placementTool = new PlacementTool();
             _selectionTool = new SelectionTool();
+            _snapTool = new SnapTool();
             _moveTool = new MoveTool();
             _rotateTool = new RotateTool();
             _deleteTool = new DeleteTool();
+
+            RebuildToolContext();
 
             _placementTool.OnPlacementConfirmed = HandlePlacementConfirmed;
             _placementTool.OnPlacementCancelled = HandlePlacementCancelled;
@@ -128,11 +134,18 @@ namespace Systems.PlacementSystem.Core
 
         private void Update()
         {
-            if (_activeTool == null)
+            if (_activeTools.Count == 0)
                 return;
 
-            _activeTool.HandleInput();
-            _activeTool.Tick();
+            for (int i = 0; i < _activeTools.Count; i++)
+            {
+                _activeTools[i].HandleInput();
+            }
+
+            for (int i = 0; i < _activeTools.Count; i++)
+            {
+                _activeTools[i].Tick();
+            }
         }
 
         /// <summary>
@@ -189,13 +202,51 @@ namespace Systems.PlacementSystem.Core
 
         public void SetActiveTool(PlacementToolType toolType)
         {
-            IPlacementTool nextTool = GetTool(toolType);
-            if (nextTool == _activeTool)
+            switch (toolType)
+            {
+                case PlacementToolType.Placement:
+                    SetToolStack(PlacementToolType.Snap, PlacementToolType.Placement);
+                    break;
+                case PlacementToolType.Selection:
+                    SetToolStack(PlacementToolType.Selection);
+                    break;
+                case PlacementToolType.Snap:
+                    SetToolStack(PlacementToolType.Snap);
+                    break;
+                case PlacementToolType.Move:
+                    SetToolStack(PlacementToolType.Selection, PlacementToolType.Snap, PlacementToolType.Move);
+                    break;
+                case PlacementToolType.Rotate:
+                    SetToolStack(PlacementToolType.Selection, PlacementToolType.Rotate);
+                    break;
+                case PlacementToolType.Delete:
+                    SetToolStack(PlacementToolType.Selection, PlacementToolType.Delete);
+                    break;
+                default:
+                    SetToolStack(PlacementToolType.Selection);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Sets the tool pipeline order for the current update loop.
+        /// </summary>
+        public void SetToolStack(params PlacementToolType[] toolTypes)
+        {
+            if (toolTypes == null || toolTypes.Length == 0)
                 return;
 
-            _activeTool?.OnExit();
-            _activeTool = nextTool;
-            _activeTool?.OnEnter(_toolContext);
+            var nextTools = new List<IPlacementTool>(toolTypes.Length);
+            var seen = new HashSet<IPlacementTool>();
+
+            for (int i = 0; i < toolTypes.Length; i++)
+            {
+                var tool = GetTool(toolTypes[i]);
+                if (tool != null && seen.Add(tool))
+                    nextTools.Add(tool);
+            }
+
+            ApplyToolStack(nextTools);
         }
 
         private IPlacementTool GetTool(PlacementToolType toolType)
@@ -206,6 +257,8 @@ namespace Systems.PlacementSystem.Core
                     return _placementTool;
                 case PlacementToolType.Selection:
                     return _selectionTool;
+                case PlacementToolType.Snap:
+                    return _snapTool;
                 case PlacementToolType.Move:
                     return _moveTool;
                 case PlacementToolType.Rotate:
@@ -235,8 +288,12 @@ namespace Systems.PlacementSystem.Core
                 _placementSurface,
                 _selectionLayer,
                 _selectionMovementSurface,
-                _selectionState
+                _selectionState,
+                _selectionTool,
+                _toolStates
             );
+
+            _selectionTool?.SetContext(_toolContext);
         }
 
         /// <summary>
@@ -246,7 +303,37 @@ namespace Systems.PlacementSystem.Core
         {
             _placementStrategy = newStrategy;
             RebuildToolContext();
-            _activeTool?.OnEnter(_toolContext);
+            RefreshActiveToolContexts();
+        }
+
+        private void ApplyToolStack(IReadOnlyList<IPlacementTool> nextTools)
+        {
+            var nextSet = new HashSet<IPlacementTool>(nextTools);
+            for (int i = 0; i < _activeTools.Count; i++)
+            {
+                var tool = _activeTools[i];
+                if (!nextSet.Contains(tool))
+                    tool.OnExit();
+            }
+
+            var previousSet = new HashSet<IPlacementTool>(_activeTools);
+            _activeTools.Clear();
+            _activeTools.AddRange(nextTools);
+
+            for (int i = 0; i < _activeTools.Count; i++)
+            {
+                var tool = _activeTools[i];
+                if (!previousSet.Contains(tool))
+                    tool.OnEnter(_toolContext);
+            }
+        }
+
+        private void RefreshActiveToolContexts()
+        {
+            for (int i = 0; i < _activeTools.Count; i++)
+            {
+                _activeTools[i].OnEnter(_toolContext);
+            }
         }
 
         /// <summary>

@@ -81,6 +81,13 @@ namespace Systems.PlacementSystem.Tools
                 _context.PlacementVisualizer.Cleanup();
             }
 
+            if (_context != null)
+            {
+                var snapState = _context.ToolStates.GetOrCreate<SnapToolState>();
+                snapState.ClearRequest();
+                snapState.ClearSnap();
+            }
+
             _context = null;
             _ghostObject = null;
             _nearestSocket = null;
@@ -88,8 +95,15 @@ namespace Systems.PlacementSystem.Tools
 
         public void HandleInput()
         {
-            if (_context?.InputProvider == null || _ghostObject == null)
+            if (_context == null)
                 return;
+
+            var snapState = _context.ToolStates.GetOrCreate<SnapToolState>();
+            if (_context.InputProvider == null || _ghostObject == null)
+            {
+                snapState.ClearRequest();
+                return;
+            }
 
             // Handle confirm placement
             if (_context.InputProvider.IsPlaceActionTriggered())
@@ -112,6 +126,8 @@ namespace Systems.PlacementSystem.Tools
                 if (_currentRotationAngle >= 360f)
                     _currentRotationAngle -= 360f;
             }
+
+            UpdateSnapRequest();
         }
 
         public void Tick()
@@ -162,6 +178,16 @@ namespace Systems.PlacementSystem.Tools
             if (_makeObjectsSelectable && placedObject.GetComponent<Selectable>() == null)
             {
                 placedObject.AddComponent<Selectable>();
+            }
+
+            // Register any sockets on the placed object with SnapManager
+            if (_context.SnapManager != null)
+            {
+                var sockets = placedObject.GetComponentsInChildren<Socket>();
+                foreach (var socket in sockets)
+                {
+                    _context.SnapManager.RegisterSocket(socket);
+                }
             }
 
             // Mark socket as occupied if we snapped to one
@@ -217,56 +243,72 @@ namespace Systems.PlacementSystem.Tools
             if (_context?.PlacementCamera == null)
                 return;
 
+            var snapState = _context.ToolStates.GetOrCreate<SnapToolState>();
+            if (!snapState.HasRequest)
+                return;
+
+            Vector3 targetPosition = snapState.RequestPosition;
+            Quaternion targetRotation = snapState.RequestRotation;
+
+            _nearestSocket = null;
+            if (snapState.HasSnap)
+            {
+                _nearestSocket = snapState.SnappedSocket;
+                targetPosition = snapState.SnappedPosition;
+                targetRotation = snapState.SnappedRotation;
+            }
+            else if (_context.PlacementStrategy != null)
+            {
+                targetPosition = _context.PlacementStrategy.CalculatePosition(targetPosition, _ghostObject);
+                targetRotation = _context.PlacementStrategy.CalculateRotation(targetRotation);
+            }
+
+            _ghostObject.transform.position = targetPosition;
+            _ghostObject.transform.rotation = targetRotation;
+
+            bool isValid = _context.PlacementValidator.IsPlacementValid(
+                targetPosition,
+                targetRotation,
+                _ghostObject
+            );
+
+            _context.PlacementVisualizer?.UpdateVisual(isValid);
+
+            if (isValid)
+            {
+                _lastValidPosition = targetPosition;
+                _lastValidRotation = targetRotation;
+            }
+        }
+
+        private void UpdateSnapRequest()
+        {
+            if (_context == null)
+                return;
+
+            var snapState = _context.ToolStates.GetOrCreate<SnapToolState>();
+
+            if (_ghostObject == null || _context.PlacementCamera == null)
+            {
+                snapState.ClearRequest();
+                return;
+            }
+
             Vector2 pointerPos = _context.InputProvider.GetPointerPosition();
             Ray ray = _context.PlacementCamera.ScreenPointToRay(pointerPos);
 
-            if (Physics.Raycast(ray, out RaycastHit hit, _context.MaxRaycastDistance, _placementSurface))
+            if (!Physics.Raycast(ray, out RaycastHit hit, _context.MaxRaycastDistance, _placementSurface))
             {
-                Vector3 targetPosition = hit.point;
-                Quaternion targetRotation = Quaternion.Euler(0, _currentRotationAngle, 0);
-
-                _nearestSocket = null;
-                if (_context.SnapManager != null)
-                {
-                    var placeableObject = _ghostObject.GetComponent<PlaceableObject>();
-                    if (placeableObject != null && placeableObject.RequiredSocketType != null)
-                    {
-                        _nearestSocket = _context.SnapManager.FindNearestSocket(
-                            hit.point,
-                            placeableObject.RequiredSocketType,
-                            placeableObject.SnapRange
-                        );
-                    }
-                }
-
-                if (_nearestSocket != null)
-                {
-                    targetPosition = _nearestSocket.transform.position;
-                    targetRotation = _nearestSocket.transform.rotation;
-                }
-                else if (_context.PlacementStrategy != null)
-                {
-                    targetPosition = _context.PlacementStrategy.CalculatePosition(hit.point, _ghostObject);
-                    targetRotation = _context.PlacementStrategy.CalculateRotation(targetRotation);
-                }
-
-                _ghostObject.transform.position = targetPosition;
-                _ghostObject.transform.rotation = targetRotation;
-
-                bool isValid = _context.PlacementValidator.IsPlacementValid(
-                    targetPosition,
-                    targetRotation,
-                    _ghostObject
-                );
-
-                _context.PlacementVisualizer?.UpdateVisual(isValid);
-
-                if (isValid)
-                {
-                    _lastValidPosition = targetPosition;
-                    _lastValidRotation = targetRotation;
-                }
+                snapState.ClearRequest();
+                return;
             }
+
+            Quaternion baseRotation = Quaternion.Euler(0, _currentRotationAngle, 0);
+            var placeableObject = _ghostObject.GetComponent<PlaceableObject>();
+            var socketType = placeableObject != null ? placeableObject.RequiredSocketType : null;
+            float snapRange = placeableObject != null ? placeableObject.SnapRange : 0f;
+
+            snapState.SetRequest(_ghostObject, hit.point, baseRotation, socketType, snapRange);
         }
 
         /// <summary>

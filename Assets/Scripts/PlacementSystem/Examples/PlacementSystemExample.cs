@@ -6,6 +6,7 @@ using Systems.PlacementSystem.Validation;
 using Systems.PlacementSystem.Visualization;
 using Systems.PlacementSystem.Sockets;
 using System.Linq;
+using System;
 
 namespace Systems.PlacementSystem.Examples
 {
@@ -71,6 +72,10 @@ namespace Systems.PlacementSystem.Examples
             {
                 StartHexPlacement();
             }
+            else if (UnityEngine.Input.GetKeyDown(KeyCode.P))
+            {
+                SetPlacementTool();
+            }
             else if (UnityEngine.Input.GetKeyDown(KeyCode.S))
             {
                 SetSelectionTool();
@@ -89,6 +94,14 @@ namespace Systems.PlacementSystem.Examples
             }
         }
 
+        private void SetPlacementTool()
+        {
+            _placementController.SetActiveTool(PlacementController.PlacementToolType.Placement);
+            _placementController.SetObjectToPlace(_placeablePrefabs[_selectedPrefabIndex]);
+            _placementController.StartPlacement();
+            Debug.Log("Switched to Placement tool");
+        }
+
         /// <summary>
         /// Example: Start placement with free positioning.
         /// </summary>
@@ -105,8 +118,6 @@ namespace Systems.PlacementSystem.Examples
 
             var freeStrategy = GetOrAddComponent<FreePositionStrategy>();
             _placementController.SetPlacementStrategy(freeStrategy);
-            _placementController.SetObjectToPlace(_placeablePrefabs[_selectedPrefabIndex]);
-            _placementController.StartPlacement();
 
             Debug.Log("Started FREE placement mode");
         }
@@ -127,8 +138,6 @@ namespace Systems.PlacementSystem.Examples
 
             var gridStrategy = GetOrAddComponent<GridPlacementStrategy>();
             _placementController.SetPlacementStrategy(gridStrategy);
-            _placementController.SetObjectToPlace(_placeablePrefabs[_selectedPrefabIndex]);
-            _placementController.StartPlacement();
 
             Debug.Log("Started GRID placement mode");
         }
@@ -149,8 +158,6 @@ namespace Systems.PlacementSystem.Examples
 
             var hexStrategy = GetOrAddComponent<HexPlacementStrategy>();
             _placementController.SetPlacementStrategy(hexStrategy);
-            _placementController.SetObjectToPlace(_placeablePrefabs[_selectedPrefabIndex]);
-            _placementController.StartPlacement();
 
             Debug.Log("Started HEX placement mode");
         }

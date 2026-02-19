@@ -6,6 +6,7 @@ TagManager:
   tags:
   - UMAKeepChain
   - UMAIgnore
+  - Socket
   layers:
   - Default
   - TransparentFX

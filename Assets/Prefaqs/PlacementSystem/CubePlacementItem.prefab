@@ -13,9 +13,10 @@ GameObject:
   - component: {fileID: 1362076522437427743}
   - component: {fileID: 1623641943607576460}
   - component: {fileID: 7053177496473666825}
+  - component: {fileID: 7404986253707761315}
   m_Layer: 0
   m_Name: CubePlacementItem
-  m_TagString: Untagged
+  m_TagString: Socket
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -131,6 +132,26 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f721b1ecd52b04ae2a80dd15f97ee72b, type: 2}
   _requiredSocketType: {fileID: 11400000, guid: ff3b3e1f6c6094e5f9725d1dacb86bf9, type: 2}
   _snapRange: 2
+--- !u!114 &7404986253707761315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1443516544727990350}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39420cfaf2ef84397a75492e75e84289, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Selection.Selectable
+  _isSelectable: 1
+  _selectionPriority: 0
+  _onSelected:
+    m_PersistentCalls:
+      m_Calls: []
+  _onDeselected:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &2010308510411842535
 GameObject:
   m_ObjectHideFlags: 0
@@ -143,7 +164,7 @@ GameObject:
   - component: {fileID: 6503155377735015463}
   m_Layer: 0
   m_Name: S
-  m_TagString: Untagged
+  m_TagString: Socket
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -191,7 +212,7 @@ GameObject:
   - component: {fileID: 3183197089392790969}
   m_Layer: 0
   m_Name: S (1)
-  m_TagString: Untagged
+  m_TagString: Socket
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
