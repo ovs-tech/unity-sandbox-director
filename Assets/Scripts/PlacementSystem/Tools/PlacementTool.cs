@@ -26,11 +26,14 @@ namespace Systems.PlacementSystem.Tools
         /// <summary>
         /// Fired when placement is confirmed and object is instantiated.
         /// Passes the placed object as a parameter.
+        /// Fired after: object instantiation, Selectable component addition (if enabled), socket occupation marking, and ghost cleanup.
+        /// The passed object is fully initialized and ready for use.
         /// </summary>
         public System.Action<GameObject> OnPlacementConfirmed { get; set; }
 
         /// <summary>
         /// Fired when placement is cancelled.
+        /// Carries no object since nothing was placed; only confirmation needs the reference.
         /// </summary>
         public System.Action OnPlacementCancelled { get; set; }
 
