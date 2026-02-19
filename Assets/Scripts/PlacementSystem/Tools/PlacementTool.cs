@@ -1,4 +1,6 @@
 using UnityEngine;
+using Systems.PlacementSystem.Core;
+using Systems.PlacementSystem.Selection;
 using Systems.PlacementSystem.Sockets;
 using Systems.PlacementSystem.Validation;
 
@@ -18,6 +20,18 @@ namespace Systems.PlacementSystem.Tools
         private LayerMask _placementSurface;
         private Vector3 _lastValidPosition;
         private Quaternion _lastValidRotation;
+        private GameObject _objectToPrefab;
+        private bool _makeObjectsSelectable = true;
+
+        /// <summary>
+        /// Fired when placement is confirmed and object is instantiated.
+        /// </summary>
+        public System.Action OnPlacementConfirmed { get; set; }
+
+        /// <summary>
+        /// Fired when placement is cancelled.
+        /// </summary>
+        public System.Action OnPlacementCancelled { get; set; }
 
         public PlacementTool()
         {
@@ -35,19 +49,36 @@ namespace Systems.PlacementSystem.Tools
             _lastValidRotation = Quaternion.identity;
         }
 
+        /// <summary>
+        /// Initializes placement with a ghost object and optional prefab for instantiation on confirm.
+        /// Initializes the visualizer and disables physics on the ghost.
+        /// </summary>
+        public void SetupPlacement(GameObject ghostObject, GameObject objectToPrefab, bool makeSelectable = true)
+        {
+            _ghostObject = ghostObject;
+            _objectToPrefab = objectToPrefab ?? ghostObject;
+            _makeObjectsSelectable = makeSelectable;
+
+            // Initialize visualizer on ghost
+            if (_context?.PlacementVisualizer != null)
+            {
+                _context.PlacementVisualizer.Initialize(_ghostObject);
+            }
+
+            // Disable physics components on ghost
+            DisablePhysicsOnGhost(_ghostObject);
+        }
+
         public void OnExit()
         {
+            if (_context?.PlacementVisualizer != null)
+            {
+                _context.PlacementVisualizer.Cleanup();
+            }
+
             _context = null;
             _ghostObject = null;
             _nearestSocket = null;
-        }
-
-        /// <summary>
-        /// Sets the ghost object for this placement session.
-        /// </summary>
-        public void SetGhostObject(GameObject ghostObject)
-        {
-            _ghostObject = ghostObject;
         }
 
         public void HandleInput()
@@ -55,6 +86,21 @@ namespace Systems.PlacementSystem.Tools
             if (_context?.InputProvider == null || _ghostObject == null)
                 return;
 
+            // Handle confirm placement
+            if (_context.InputProvider.IsPlaceActionTriggered())
+            {
+                ConfirmPlacement();
+                return;
+            }
+
+            // Handle cancel placement
+            if (_context.InputProvider.IsCancelActionTriggered())
+            {
+                CancelPlacement();
+                return;
+            }
+
+            // Handle rotation
             if (_context.InputProvider.IsRotateActionTriggered())
             {
                 _currentRotationAngle += _context.RotationIncrementDegrees;
@@ -74,6 +120,88 @@ namespace Systems.PlacementSystem.Tools
         public void HandleSelection(GameObject selected)
         {
             // Not used in placement tool
+        }
+
+        /// <summary>
+        /// Confirms the placement and instantiates the real object.
+        /// Validates final placement, instantiates real object, marks socket as occupied,
+        /// cleans up ghost, and fires OnPlacementConfirmed callback.
+        /// </summary>
+        public void ConfirmPlacement()
+        {
+            if (_ghostObject == null || _context == null)
+                return;
+
+            // Validate final placement
+            bool isValid = _context.PlacementValidator.IsPlacementValid(
+                _ghostObject.transform.position,
+                _ghostObject.transform.rotation,
+                _ghostObject
+            );
+
+            if (!isValid)
+            {
+                Debug.LogWarning("Cannot place object - validation failed");
+                return;
+            }
+
+            // Instantiate real object at ghost position
+            GameObject placedObject = Object.Instantiate(
+                _objectToPrefab,
+                _ghostObject.transform.position,
+                _ghostObject.transform.rotation
+            );
+            placedObject.name = _objectToPrefab.name;
+
+            // Add Selectable component if enabled
+            if (_makeObjectsSelectable && placedObject.GetComponent<Selectable>() == null)
+            {
+                placedObject.AddComponent<Selectable>();
+            }
+
+            // Mark socket as occupied if we snapped to one
+            if (_nearestSocket != null)
+            {
+                _nearestSocket.IsOccupied = true;
+            }
+
+            // Clean up ghost
+            CleanupGhost();
+
+            // Fire callback
+            OnPlacementConfirmed?.Invoke();
+        }
+
+        /// <summary>
+        /// Cancels the placement and cleans up the ghost object.
+        /// Fires OnPlacementCancelled callback.
+        /// </summary>
+        public void CancelPlacement()
+        {
+            if (_ghostObject == null)
+                return;
+
+            CleanupGhost();
+            OnPlacementCancelled?.Invoke();
+        }
+
+        /// <summary>
+        /// Cleans up the ghost object and visualizer.
+        /// </summary>
+        private void CleanupGhost()
+        {
+            if (_context?.PlacementVisualizer != null)
+            {
+                _context.PlacementVisualizer.Cleanup();
+            }
+
+            if (_ghostObject != null)
+            {
+                Object.Destroy(_ghostObject);
+                _ghostObject = null;
+            }
+
+            _nearestSocket = null;
         }
 
         /// <summary>
@@ -133,6 +261,26 @@ namespace Systems.PlacementSystem.Tools
                     _lastValidPosition = targetPosition;
                     _lastValidRotation = targetRotation;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Disables physics components on the ghost object to prevent interference.
+        /// </summary>
+        private void DisablePhysicsOnGhost(GameObject ghost)
+        {
+            // Disable all rigidbodies
+            var rigidbodies = ghost.GetComponentsInChildren<Rigidbody>();
+            foreach (var rb in rigidbodies)
+            {
+                rb.isKinematic = true;
+            }
+
+            // Disable all colliders (make them triggers so they can still be used for validation)
+            var colliders = ghost.GetComponentsInChildren<Collider>();
+            foreach (var col in colliders)
+            {
+                col.isTrigger = true;
             }
         }
     }
