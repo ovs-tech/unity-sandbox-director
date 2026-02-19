@@ -19,6 +19,9 @@ namespace Systems.PlacementSystem.Input
         [SerializeField, Tooltip("Key code for rotate action")]
         private KeyCode _rotateKey = KeyCode.R;
 
+        [SerializeField, Tooltip("Key code for delete action")]
+        private KeyCode _deleteKey = KeyCode.Delete;
+
         [SerializeField, Tooltip("Alternative cancel key")]
         private KeyCode _alternativeCancelKey = KeyCode.Escape;
 
@@ -41,6 +44,11 @@ namespace Systems.PlacementSystem.Input
         public bool IsRotateActionTriggered()
         {
             return UnityEngine.Input.GetKeyDown(_rotateKey);
+        }
+
+        public bool IsDeleteActionTriggered()
+        {
+            return UnityEngine.Input.GetKeyDown(_deleteKey);
         }
     }
 }

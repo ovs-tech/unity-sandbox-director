@@ -27,5 +27,10 @@ namespace Systems.PlacementSystem.Core
         /// Checks if the rotate action was triggered this frame (e.g., R key).
         /// </summary>
         bool IsRotateActionTriggered();
+
+        /// <summary>
+        /// Checks if the delete action was triggered this frame (e.g., Delete key).
+        /// </summary>
+        bool IsDeleteActionTriggered();
     }
 }

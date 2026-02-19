@@ -28,6 +28,9 @@ namespace Systems.PlacementSystem.Input
         [SerializeField, Tooltip("Input action for rotate action")]
         private InputActionReference _rotateAction;
 
+        [SerializeField, Tooltip("Input action for delete action")]
+        private InputActionReference _deleteAction;
+
         private void OnEnable()
         {
             // Enable all input actions
@@ -35,6 +38,7 @@ namespace Systems.PlacementSystem.Input
             _placeAction?.action.Enable();
             _cancelAction?.action.Enable();
             _rotateAction?.action.Enable();
+            _deleteAction?.action.Enable();
         }
 
         private void OnDisable()
@@ -44,6 +48,7 @@ namespace Systems.PlacementSystem.Input
             _placeAction?.action.Disable();
             _cancelAction?.action.Disable();
             _rotateAction?.action.Disable();
+            _deleteAction?.action.Disable();
         }
 
         public Vector2 GetPointerPosition()
@@ -71,6 +76,11 @@ namespace Systems.PlacementSystem.Input
         {
             return _rotateAction != null && _rotateAction.action.WasPressedThisFrame();
         }
+
+        public bool IsDeleteActionTriggered()
+        {
+            return _deleteAction != null && _deleteAction.action.WasPressedThisFrame();
+        }
 #else
         // Fallback implementation if Input System package is not installed
         public Vector2 GetPointerPosition()
@@ -92,6 +102,11 @@ namespace Systems.PlacementSystem.Input
         public bool IsRotateActionTriggered()
         {
             return UnityEngine.Input.GetKeyDown(KeyCode.R);
+        }
+
+        public bool IsDeleteActionTriggered()
+        {
+            return UnityEngine.Input.GetKeyDown(KeyCode.Delete);
         }
 #endif
     }
