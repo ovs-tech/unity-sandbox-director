@@ -1,16 +1,24 @@
 using UnityEngine;
 using Systems.PlacementSystem.Sockets;
-using Systems.PlacementSystem.Selection;
+using Systems.PlacementSystem.Tools;
 
 namespace Systems.PlacementSystem.Core
 {
     /// <summary>
     /// Main orchestrator for the placement system.
-    /// Coordinates input, strategy, validation, visualization, and socket snapping.
-    /// Follows the Dependency Injection pattern - all dependencies are injected via inspector or constructor.
+    /// Coordinates input, strategy, validation, visualization, snapping, and tool lifecycle.
     /// </summary>
     public class PlacementController : MonoBehaviour
     {
+        public enum PlacementToolType
+        {
+            Placement,
+            Selection,
+            Move,
+            Rotate,
+            Delete
+        }
+
         [Header("Dependencies")]
         [SerializeField, Tooltip("The camera used for raycasting")]
         private Camera _placementCamera;
@@ -37,15 +45,12 @@ namespace Systems.PlacementSystem.Core
         [SerializeField, Tooltip("Reference to the snap manager (optional)")]
         private SnapManager _snapManager;
 
-        [SerializeField, Tooltip("Reference to the selection manager (optional)")]
-        private SelectionManager _selectionManager;
-
         [Header("Placement Settings")]
         [SerializeField, Tooltip("Maximum raycast distance")]
         private float _maxRaycastDistance = 100f;
 
-        [SerializeField, Tooltip("Current rotation angle (in degrees, increments of 90)")]
-        private float _currentRotationAngle = 0f;
+        [SerializeField, Tooltip("Rotation snap increment for tools")]
+        private float _rotationSnapDegrees = 90f;
 
         [SerializeField, Tooltip("Rotation increment per rotation input")]
         private float _rotationIncrement = 90f;
@@ -54,6 +59,9 @@ namespace Systems.PlacementSystem.Core
         private bool _makeObjectsSelectable = true;
 
         [Header("Selection Settings")]
+        [SerializeField, Tooltip("Layer mask for selectable objects")]
+        private LayerMask _selectionLayer = -1;
+
         [SerializeField, Tooltip("Layer mask for selection movement surfaces")]
         private LayerMask _selectionMovementSurface = -1;
 
@@ -66,32 +74,31 @@ namespace Systems.PlacementSystem.Core
         [SerializeField, Tooltip("Move selected object to pointer each frame")]
         private bool _moveSelectedWithPointer = true;
 
-        // Dependency interfaces resolved from components
         private IInputProvider _inputProvider;
         private IPlacementStrategy _placementStrategy;
         private IPlacementValidator _placementValidator;
         private IPlacementVisualizer _placementVisualizer;
 
-        // Runtime state
-        private GameObject _ghostObject;
+        private PlacementToolContext _toolContext;
+        private PlacementSelectionState _selectionState;
+
+        private PlacementTool _placementTool;
+        private SelectionTool _selectionTool;
+        private MoveTool _moveTool;
+        private RotateTool _rotateTool;
+        private DeleteTool _deleteTool;
+        private IPlacementTool _activeTool;
+
+        private GameObject _currentGhost;
         private bool _isPlacementActive;
-        private Vector3 _lastValidPosition;
-        private Quaternion _lastValidRotation;
-        private Socket _nearestSocket;
-        [SerializeField, Tooltip("Currently selected object (for selection manager)")]
-        private GameObject _selectedObject;
-        private readonly System.Collections.Generic.List<GameObject> _selectedObjects = new System.Collections.Generic.List<GameObject>();
 
         private void Awake()
         {
-            // Resolve interface dependencies from serialized MonoBehaviour components
-            // This allows flexible assignment in the inspector while maintaining loose coupling
             _inputProvider = _inputProviderComponent as IInputProvider;
             _placementStrategy = _placementStrategyComponent as IPlacementStrategy;
             _placementValidator = _placementValidatorComponent as IPlacementValidator;
             _placementVisualizer = _placementVisualizerComponent as IPlacementVisualizer;
 
-            // Validate dependencies
             if (_inputProvider == null)
                 Debug.LogError("PlacementController: Input provider must implement IInputProvider");
             if (_placementStrategy == null)
@@ -101,11 +108,31 @@ namespace Systems.PlacementSystem.Core
             if (_placementVisualizer == null)
                 Debug.LogError("PlacementController: Placement visualizer must implement IPlacementVisualizer");
 
-            if (_selectionManager != null)
-                _selectionManager.SetPlacementController(this);
-
             if (_placementCamera == null)
                 _placementCamera = Camera.main;
+
+            _selectionState = new PlacementSelectionState();
+            RebuildToolContext();
+
+            _placementTool = new PlacementTool();
+            _selectionTool = new SelectionTool();
+            _moveTool = new MoveTool();
+            _rotateTool = new RotateTool();
+            _deleteTool = new DeleteTool();
+
+            _placementTool.OnPlacementConfirmed = HandlePlacementConfirmed;
+            _placementTool.OnPlacementCancelled = HandlePlacementCancelled;
+
+            SetActiveTool(PlacementToolType.Selection);
+        }
+
+        private void Update()
+        {
+            if (_activeTool == null)
+                return;
+
+            _activeTool.HandleInput();
+            _activeTool.Tick();
         }
 
         /// <summary>
@@ -113,21 +140,16 @@ namespace Systems.PlacementSystem.Core
         /// </summary>
         public void StartPlacement()
         {
-            if (_isPlacementActive || _objectToPlace == null)
+            if (_objectToPlace == null || _currentGhost != null)
                 return;
 
-            // Create ghost preview
-            _ghostObject = Instantiate(_objectToPlace);
-            _ghostObject.name = $"{_objectToPlace.name}_Ghost";
+            SetActiveTool(PlacementToolType.Placement);
 
-            // Disable physics and collisions on ghost
-            DisablePhysicsOnGhost(_ghostObject);
+            _currentGhost = Instantiate(_objectToPlace);
+            _currentGhost.name = $"{_objectToPlace.name}_Ghost";
 
-            // Initialize visualizer
-            _placementVisualizer?.Initialize(_ghostObject);
-
+            _placementTool.SetupPlacement(_currentGhost, _objectToPlace, _makeObjectsSelectable);
             _isPlacementActive = true;
-            _currentRotationAngle = 0f;
         }
 
         /// <summary>
@@ -135,16 +157,12 @@ namespace Systems.PlacementSystem.Core
         /// </summary>
         public void CancelPlacement()
         {
-            if (!_isPlacementActive)
+            if (_currentGhost == null)
                 return;
 
-            _placementVisualizer?.Cleanup();
-
-            if (_ghostObject != null)
-                Destroy(_ghostObject);
-
+            _placementTool.CancelPlacement();
+            _currentGhost = null;
             _isPlacementActive = false;
-            _nearestSocket = null;
         }
 
         /// <summary>
@@ -152,257 +170,83 @@ namespace Systems.PlacementSystem.Core
         /// </summary>
         public void ConfirmPlacement()
         {
-            if (!_isPlacementActive || _ghostObject == null)
-                return;
+            _placementTool.ConfirmPlacement();
+        }
 
-            // Validate final placement
-            bool isValid = _placementValidator.IsPlacementValid(
-                _ghostObject.transform.position,
-                _ghostObject.transform.rotation,
-                _ghostObject
-            );
+        private void HandlePlacementConfirmed(GameObject placedObject)
+        {
+            _currentGhost = null;
+            _isPlacementActive = false;
 
-            if (!isValid)
-            {
-                Debug.LogWarning("Cannot place object - validation failed");
-                return;
-            }
-
-            // Instantiate real object
-            GameObject placedObject = Instantiate(
-                _objectToPlace,
-                _ghostObject.transform.position,
-                _ghostObject.transform.rotation
-            );
-            placedObject.name = _objectToPlace.name;
-
-            // Make object selectable if enabled
-            if (_makeObjectsSelectable)
-            {
-                if (placedObject.GetComponent<Selectable>() == null)
-                {
-                    placedObject.AddComponent<Selectable>();
-                }
-            }
-
-            // Mark socket as occupied if we snapped to one
-            if (_nearestSocket != null)
-            {
-                _nearestSocket.IsOccupied = true;
-            }
-
-            // Clean up and prepare for next placement
-            _placementVisualizer?.Cleanup();
-            Destroy(_ghostObject);
-
-            // Automatically start a new placement for quick successive placements
             StartPlacement();
         }
 
-        private void Update()
+        private void HandlePlacementCancelled()
         {
-            if (!_isPlacementActive || _ghostObject == null)
-                return;
-
-            if (_moveSelectedWithPointer && _selectedObject != null)
-            {
-                UpdateSelectedObjectTransform();
-            }
-
-            // Handle rotation input
-            if (_inputProvider.IsRotateActionTriggered())
-            {
-                _currentRotationAngle += _rotationIncrement;
-                if (_currentRotationAngle >= 360f)
-                    _currentRotationAngle -= 360f;
-            }
-
-            // Handle cancel input
-            if (_inputProvider.IsCancelActionTriggered())
-            {
-                CancelPlacement();
-                return;
-            }
-
-            // Handle place input
-            if (_inputProvider.IsPlaceActionTriggered())
-            {
-                ConfirmPlacement();
-                return;
-            }
-
-            // Update ghost position and rotation
-            UpdateGhostPosition();
+            _currentGhost = null;
+            _isPlacementActive = false;
         }
 
-        /// <summary>
-        /// Handles selection click from SelectionManager.
-        /// </summary>
-        public void HandleSelectionClick(GameObject selected)
+        public void SetActiveTool(PlacementToolType toolType)
         {
-            if (selected == null)
-            {
-                DeselectAll();
-                return;
-            }
-
-            var selectable = selected.GetComponent<Selectable>();
-            if (selectable != null && !selectable.IsSelectable)
+            IPlacementTool nextTool = GetTool(toolType);
+            if (nextTool == _activeTool)
                 return;
 
-            bool multiSelect = _allowMultiSelection &&
-                (!_requireModifierForMultiSelect || IsMultiSelectModifierHeld());
-
-            if (multiSelect)
-                ToggleSelection(selected);
-            else
-                SelectObject(selected);
+            _activeTool?.OnExit();
+            _activeTool = nextTool;
+            _activeTool?.OnEnter(_toolContext);
         }
 
-        private void UpdateSelectedObjectTransform()
+        private IPlacementTool GetTool(PlacementToolType toolType)
         {
-            if (_inputProvider == null || _selectedObject == null)
-                return;
-
-            Vector2 pointerPosition = _inputProvider.GetPointerPosition();
-            Ray ray = _placementCamera.ScreenPointToRay(pointerPosition);
-
-            if (!Physics.Raycast(ray, out RaycastHit hit, _maxRaycastDistance, _selectionMovementSurface))
-                return;
-
-            Vector3 targetPosition = hit.point;
-            Quaternion targetRotation = _selectedObject.transform.rotation;
-
-            if (_snapManager != null)
+            switch (toolType)
             {
-                var placeable = _selectedObject.GetComponent<Validation.PlaceableObject>();
-                if (placeable != null && placeable.RequiredSocketType != null)
-                {
-                    var nearest = _snapManager.FindNearestSocket(
-                        hit.point,
-                        placeable.RequiredSocketType,
-                        placeable.SnapRange
-                    );
-
-                    if (nearest != null)
-                    {
-                        targetPosition = nearest.transform.position;
-                        targetRotation = nearest.transform.rotation;
-                    }
-                }
-            }
-
-            if (_placementStrategy != null)
-            {
-                targetPosition = _placementStrategy.CalculatePosition(targetPosition, _selectedObject);
-                targetRotation = _placementStrategy.CalculateRotation(targetRotation);
-            }
-
-            _selectedObject.transform.position = targetPosition;
-            _selectedObject.transform.rotation = targetRotation;
-
-            _placementVisualizer?.UpdateVisual(true);
-        }
-
-        /// <summary>
-        /// Updates the ghost object position and rotation based on input and strategy.
-        /// </summary>
-        private void UpdateGhostPosition()
-        {
-            // Raycast from pointer to find placement surface
-            Vector2 pointerPos = _inputProvider.GetPointerPosition();
-            Ray ray = _placementCamera.ScreenPointToRay(pointerPos);
-
-            if (Physics.Raycast(ray, out RaycastHit hit, _maxRaycastDistance, _placementSurface))
-            {
-                Vector3 targetPosition = hit.point;
-                Quaternion targetRotation = Quaternion.Euler(0, _currentRotationAngle, 0);
-
-                // Check for socket snapping first (overrides strategy if available)
-                _nearestSocket = null;
-                if (_snapManager != null)
-                {
-                    var placeableObject = _ghostObject.GetComponent<Validation.PlaceableObject>();
-                    if (placeableObject != null && placeableObject.RequiredSocketType != null)
-                    {
-                        _nearestSocket = _snapManager.FindNearestSocket(
-                            hit.point,
-                            placeableObject.RequiredSocketType,
-                            placeableObject.SnapRange
-                        );
-                    }
-                }
-
-                // If socket found, snap to it; otherwise use strategy
-                if (_nearestSocket != null)
-                {
-                    targetPosition = _nearestSocket.transform.position;
-                    targetRotation = _nearestSocket.transform.rotation;
-                }
-                else
-                {
-                    // Apply placement strategy
-                    targetPosition = _placementStrategy.CalculatePosition(hit.point, _ghostObject);
-                    targetRotation = _placementStrategy.CalculateRotation(targetRotation);
-                }
-
-                // Update ghost transform
-                _ghostObject.transform.position = targetPosition;
-                _ghostObject.transform.rotation = targetRotation;
-
-                // Validate placement
-                bool isValid = _placementValidator.IsPlacementValid(
-                    targetPosition,
-                    targetRotation,
-                    _ghostObject
-                );
-
-                // Update visual feedback
-                _placementVisualizer?.UpdateVisual(isValid);
-
-                if (isValid)
-                {
-                    _lastValidPosition = targetPosition;
-                    _lastValidRotation = targetRotation;
-                }
+                case PlacementToolType.Placement:
+                    return _placementTool;
+                case PlacementToolType.Selection:
+                    return _selectionTool;
+                case PlacementToolType.Move:
+                    return _moveTool;
+                case PlacementToolType.Rotate:
+                    return _rotateTool;
+                case PlacementToolType.Delete:
+                    return _deleteTool;
+                default:
+                    return _selectionTool;
             }
         }
 
-        /// <summary>
-        /// Disables physics components on the ghost object to prevent interference.
-        /// </summary>
-        private void DisablePhysicsOnGhost(GameObject ghost)
+        private void RebuildToolContext()
         {
-            // Disable all rigidbodies
-            var rigidbodies = ghost.GetComponentsInChildren<Rigidbody>();
-            foreach (var rb in rigidbodies)
-            {
-                rb.isKinematic = true;
-            }
-
-            // Disable all colliders (make them triggers so they can still be used for validation)
-            var colliders = ghost.GetComponentsInChildren<Collider>();
-            foreach (var col in colliders)
-            {
-                col.isTrigger = true;
-            }
-        }
-
-        /// <summary>
-        /// Sets the object to be placed.
-        /// </summary>
-        public void SetObjectToPlace(GameObject prefab)
-        {
-            _objectToPlace = prefab;
+            _toolContext = new PlacementToolContext(
+                _inputProvider,
+                _placementStrategy,
+                _placementValidator,
+                _placementVisualizer,
+                _snapManager,
+                _placementCamera,
+                _maxRaycastDistance,
+                _rotationIncrement,
+                _rotationSnapDegrees,
+                _allowMultiSelection,
+                _requireModifierForMultiSelect,
+                _moveSelectedWithPointer,
+                _placementSurface,
+                _selectionLayer,
+                _selectionMovementSurface,
+                _selectionState
+            );
         }
 
         /// <summary>
         /// Changes the placement strategy at runtime.
-        /// Demonstrates Open-Closed Principle: new strategies can be added without modifying this controller.
         /// </summary>
         public void SetPlacementStrategy(IPlacementStrategy newStrategy)
         {
             _placementStrategy = newStrategy;
+            RebuildToolContext();
+            _activeTool?.OnEnter(_toolContext);
         }
 
         /// <summary>
@@ -416,104 +260,43 @@ namespace Systems.PlacementSystem.Core
         public Camera PlacementCamera => _placementCamera;
 
         /// <summary>
-        /// Selects an object (single selection by default).
+        /// Handles selection click input routed from external systems.
         /// </summary>
-        public void SelectObject(GameObject obj)
+        public void HandleSelectionClick(GameObject selected)
         {
-            if (obj == null)
+            if (_selectionTool == null)
                 return;
 
-            if (!_allowMultiSelection)
-                DeselectAll();
-
-            if (!_selectedObjects.Contains(obj))
-                _selectedObjects.Add(obj);
-
-            _selectedObject = obj;
-            obj.GetComponent<Selectable>()?.NotifySelected();
-
-            _placementVisualizer?.Cleanup();
-            _placementVisualizer?.Initialize(obj);
-            _placementVisualizer?.UpdateVisual(true);
+            _selectionTool.OnEnter(_toolContext);
+            _selectionTool.HandleSelection(selected);
         }
 
         /// <summary>
-        /// Deselects a specific object.
-        /// </summary>
-        public void DeselectObject(GameObject obj)
-        {
-            if (obj == null || !_selectedObjects.Contains(obj))
-                return;
-
-            _selectedObjects.Remove(obj);
-            obj.GetComponent<Selectable>()?.NotifyDeselected();
-
-            if (_selectedObject == obj)
-            {
-                _selectedObject = _selectedObjects.Count > 0 ? _selectedObjects[0] : null;
-                if (_selectedObject != null)
-                {
-                    _placementVisualizer?.Cleanup();
-                    _placementVisualizer?.Initialize(_selectedObject);
-                    _placementVisualizer?.UpdateVisual(true);
-                }
-                else
-                {
-                    _placementVisualizer?.Cleanup();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Deselects all currently selected objects.
+        /// Clears selection state.
         /// </summary>
         public void DeselectAll()
         {
-            foreach (var obj in _selectedObjects)
-            {
-                if (obj != null)
-                    obj.GetComponent<Selectable>()?.NotifyDeselected();
-            }
+            if (_selectionTool == null)
+                return;
 
-            _selectedObjects.Clear();
-            _selectedObject = null;
-            _placementVisualizer?.Cleanup();
+            _selectionTool.OnEnter(_toolContext);
+            _selectionTool.HandleSelection(null);
         }
 
         /// <summary>
-        /// Toggles selection state of an object.
+        /// Sets the object to be placed.
         /// </summary>
-        public void ToggleSelection(GameObject obj)
+        public void SetObjectToPlace(GameObject prefab)
         {
-            if (obj == null)
-                return;
-
-            if (_selectedObjects.Contains(obj))
-                DeselectObject(obj);
-            else
-                SelectObject(obj);
-        }
-
-        private bool IsMultiSelectModifierHeld()
-        {
-            return UnityEngine.Input.GetKey(KeyCode.LeftControl) ||
-                   UnityEngine.Input.GetKey(KeyCode.RightControl) ||
-                   UnityEngine.Input.GetKey(KeyCode.LeftCommand) ||
-                   UnityEngine.Input.GetKey(KeyCode.RightCommand);
+            _objectToPlace = prefab;
         }
 
         private void OnDrawGizmos()
         {
-            if (_isPlacementActive && _ghostObject != null)
+            if (_isPlacementActive && _currentGhost != null)
             {
                 Gizmos.color = Color.yellow;
-                Gizmos.DrawWireSphere(_ghostObject.transform.position, 0.3f);
-
-                if (_nearestSocket != null)
-                {
-                    Gizmos.color = Color.cyan;
-                    Gizmos.DrawLine(_ghostObject.transform.position, _nearestSocket.transform.position);
-                }
+                Gizmos.DrawWireSphere(_currentGhost.transform.position, 0.3f);
             }
         }
     }

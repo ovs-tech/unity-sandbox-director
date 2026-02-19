@@ -50,6 +50,10 @@ namespace Systems.PlacementSystem.Examples
             Debug.Log("Press '1' to start free placement");
             Debug.Log("Press '2' to start grid placement");
             Debug.Log("Press '3' to start hex placement");
+            Debug.Log("Press 'S' to switch to selection tool");
+            Debug.Log("Press 'M' to switch to move tool");
+            Debug.Log("Press 'R' to switch to rotate tool");
+            Debug.Log("Press 'Delete' to switch to delete tool");
         }
 
         private void Update()
@@ -66,6 +70,22 @@ namespace Systems.PlacementSystem.Examples
             else if (UnityEngine.Input.GetKeyDown(KeyCode.Alpha3))
             {
                 StartHexPlacement();
+            }
+            else if (UnityEngine.Input.GetKeyDown(KeyCode.S))
+            {
+                SetSelectionTool();
+            }
+            else if (UnityEngine.Input.GetKeyDown(KeyCode.M))
+            {
+                SetMoveTool();
+            }
+            else if (UnityEngine.Input.GetKeyDown(KeyCode.R))
+            {
+                SetRotateTool();
+            }
+            else if (UnityEngine.Input.GetKeyDown(KeyCode.Delete))
+            {
+                SetDeleteTool();
             }
         }
 
@@ -142,6 +162,30 @@ namespace Systems.PlacementSystem.Examples
         {
             _placementController.CancelPlacement();
             Debug.Log("Placement cancelled");
+        }
+
+        public void SetSelectionTool()
+        {
+            _placementController.SetActiveTool(PlacementController.PlacementToolType.Selection);
+            Debug.Log("Switched to Selection tool");
+        }
+
+        public void SetMoveTool()
+        {
+            _placementController.SetActiveTool(PlacementController.PlacementToolType.Move);
+            Debug.Log("Switched to Move tool");
+        }
+
+        public void SetRotateTool()
+        {
+            _placementController.SetActiveTool(PlacementController.PlacementToolType.Rotate);
+            Debug.Log("Switched to Rotate tool");
+        }
+
+        public void SetDeleteTool()
+        {
+            _placementController.SetActiveTool(PlacementController.PlacementToolType.Delete);
+            Debug.Log("Switched to Delete tool");
         }
 
         /// <summary>

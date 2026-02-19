@@ -9,6 +9,7 @@ The system follows **SOLID principles** with heavy use of:
 - **Dependency Injection** for loose coupling
 - **Open-Closed Principle** via ScriptableObject-based rules
 - **Interface abstraction** for all major components
+- **Tool Pattern** for runtime interaction modes
 
 ## Core Components
 
@@ -24,20 +25,30 @@ All major systems are defined via interfaces for maximum flexibility:
 ### 2. PlacementController
 
 The main orchestrator that:
-- Raycasts from camera to find placement surface
-- Uses strategy to calculate position/rotation
-- Validates placement via rules
-- Updates visual feedback
+- Builds a shared tool context
+- Owns all placement tools and routes input/tick to the active tool
+- Creates ghost objects for placement
+- Manages selection state shared by tools
 - Handles socket snapping (if available)
-- Confirms placement and instantiates objects
 
 **Key Features:**
 - Dependencies injected via inspector (MonoBehaviour references that implement interfaces)
 - Runtime strategy switching with `SetPlacementStrategy()`
+- Tool switching with `SetActiveTool()`
 - Automatic ghost object creation with disabled physics
 - Socket override for magnetic snapping
 
-### 3. Validation System (Validation/)
+### 3. Tools (Tools/)
+
+Tools are plain C# classes that implement `IPlacementTool`:
+
+- **PlacementTool**: Ghost placement workflow (raycast, validate, confirm/cancel)
+- **SelectionTool**: Selection input + shared selection state
+- **MoveTool**: Move primary selection with pointer
+- **RotateTool**: Rotate primary selection
+- **DeleteTool**: Delete selection on input
+
+### 4. Validation System (Validation/)
 
 **ScriptableObject-driven rules** - no hardcoded validation!
 
@@ -51,7 +62,7 @@ Override `CheckRule()` to create custom validation logic.
 #### PlaceableObject Component
 Attach to prefabs with a list of `PlacementRule` assets. All rules must pass for valid placement.
 
-### 4. Socket System (Sockets/)
+### 5. Socket System (Sockets/)
 
 **Modular magnetic snapping:**
 
@@ -72,7 +83,7 @@ Efficiently finds nearest unoccupied socket using:
 
 When a `PlaceableObject` with `RequiredSocketType` is near a matching socket, placement snaps exactly to the socket's transform.
 
-### 5. Input Providers (Input/)
+### 6. Input Providers (Input/)
 
 Two implementations provided:
 
@@ -84,7 +95,7 @@ Uses `InputActionReference` for New Input System (requires package)
 
 Both implement `IInputProvider` - swap easily in inspector!
 
-### 6. Placement Strategies (Strategies/)
+### 7. Placement Strategies (Strategies/)
 
 Three implementations provided:
 
@@ -101,7 +112,7 @@ Full hex coordinate math included.
 
 **Extensibility:** Create new strategies by implementing `IPlacementStrategy` - no controller changes needed!
 
-### 7. Visualizers (Visualization/)
+### 8. Visualizers (Visualization/)
 
 #### StandardPlacementVisualizer
 Changes ghost material colors (green = valid, red = invalid).
@@ -118,6 +129,7 @@ Advanced visualizer with outline effects and optional pulse animation.
 2. Assign dependencies in inspector:
    - Camera (defaults to Main Camera)
    - Placement Surface LayerMask
+   - Selection Layer (for selection raycasts)
    - Object To Place (prefab reference)
 3. Create and assign components:
    - Input Provider (LegacyInputProvider or NewInputSystemProvider)
@@ -171,6 +183,15 @@ placementController.SetPlacementStrategy(gridStrategy);
 // Switch to free mode
 var freeStrategy = gameObject.AddComponent<FreePositionStrategy>();
 placementController.SetPlacementStrategy(freeStrategy);
+```
+
+### Switching Tools at Runtime
+
+```csharp
+placementController.SetActiveTool(PlacementController.PlacementToolType.Selection);
+placementController.SetActiveTool(PlacementController.PlacementToolType.Move);
+placementController.SetActiveTool(PlacementController.PlacementToolType.Rotate);
+placementController.SetActiveTool(PlacementController.PlacementToolType.Delete);
 ```
 
 ### Creating Custom Rules
