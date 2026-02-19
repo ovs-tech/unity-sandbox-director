@@ -1,5 +1,6 @@
 {
     "name": "Tests",
+    "testAssemblies": true,
     "rootNamespace": "",
     "references": [
         "UnityEngine.TestRunner",
@@ -8,7 +9,9 @@
         "Systems.SceneSandbox",
         "Systems.PlacementSystem"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,

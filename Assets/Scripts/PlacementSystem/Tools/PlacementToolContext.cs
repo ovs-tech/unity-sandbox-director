@@ -20,6 +20,11 @@ namespace Systems.PlacementSystem.Tools
         public float RotationIncrementDegrees { get; }
         public float RotationSnapDegrees { get; }
         public bool AllowMultiSelection { get; }
+        public bool RequireModifierForMultiSelect { get; }
+        public bool MoveSelectedWithPointer { get; }
+        public LayerMask PlacementSurface { get; }
+        public LayerMask SelectionLayer { get; }
+        public LayerMask SelectionMovementSurface { get; }
         public PlacementSelectionState SelectionState { get; }
 
         public PlacementToolContext(
@@ -33,6 +38,43 @@ namespace Systems.PlacementSystem.Tools
             float rotationIncrementDegrees,
             float rotationSnapDegrees,
             bool allowMultiSelection)
+            : this(
+                inputProvider,
+                placementStrategy,
+                placementValidator,
+                placementVisualizer,
+                snapManager,
+                placementCamera,
+                maxRaycastDistance,
+                rotationIncrementDegrees,
+                rotationSnapDegrees,
+                allowMultiSelection,
+                requireModifierForMultiSelect: false,
+                moveSelectedWithPointer: true,
+                placementSurface: -1,
+                selectionLayer: -1,
+                selectionMovementSurface: -1,
+                selectionState: null)
+        {
+        }
+
+        public PlacementToolContext(
+            IInputProvider inputProvider,
+            IPlacementStrategy placementStrategy,
+            IPlacementValidator placementValidator,
+            IPlacementVisualizer placementVisualizer,
+            SnapManager snapManager,
+            Camera placementCamera,
+            float maxRaycastDistance,
+            float rotationIncrementDegrees,
+            float rotationSnapDegrees,
+            bool allowMultiSelection,
+            bool requireModifierForMultiSelect,
+            bool moveSelectedWithPointer,
+            LayerMask placementSurface,
+            LayerMask selectionLayer,
+            LayerMask selectionMovementSurface,
+            PlacementSelectionState selectionState)
         {
             InputProvider = inputProvider;
             PlacementStrategy = placementStrategy;
@@ -44,7 +86,12 @@ namespace Systems.PlacementSystem.Tools
             RotationIncrementDegrees = rotationIncrementDegrees;
             RotationSnapDegrees = rotationSnapDegrees;
             AllowMultiSelection = allowMultiSelection;
-            SelectionState = new PlacementSelectionState();
+            RequireModifierForMultiSelect = requireModifierForMultiSelect;
+            MoveSelectedWithPointer = moveSelectedWithPointer;
+            PlacementSurface = placementSurface;
+            SelectionLayer = selectionLayer;
+            SelectionMovementSurface = selectionMovementSurface;
+            SelectionState = selectionState ?? new PlacementSelectionState();
         }
     }
 
@@ -58,6 +105,7 @@ namespace Systems.PlacementSystem.Tools
         public IReadOnlyList<GameObject> SelectedObjects => _selectedObjects;
         public GameObject PrimarySelection { get; set; }
         public bool HasSelection => _selectedObjects.Count > 0;
+        public bool Contains(GameObject obj) => obj != null && _selectedObjects.Contains(obj);
 
         public void Clear()
         {
@@ -75,6 +123,29 @@ namespace Systems.PlacementSystem.Tools
             }
 
             PrimarySelection = primarySelection;
+        }
+
+        public void AddSelection(GameObject obj, bool makePrimary)
+        {
+            if (obj == null)
+                return;
+
+            if (!_selectedObjects.Contains(obj))
+                _selectedObjects.Add(obj);
+
+            if (makePrimary)
+                PrimarySelection = obj;
+        }
+
+        public void RemoveSelection(GameObject obj)
+        {
+            if (obj == null)
+                return;
+
+            _selectedObjects.Remove(obj);
+
+            if (PrimarySelection == obj)
+                PrimarySelection = _selectedObjects.Count > 0 ? _selectedObjects[0] : null;
         }
     }
 }

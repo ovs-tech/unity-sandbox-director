@@ -51,6 +51,7 @@ namespace Systems.PlacementSystem.Tools
             _nearestSocket = null;
             _lastValidPosition = Vector3.zero;
             _lastValidRotation = Quaternion.identity;
+            _placementSurface = _context != null ? _context.PlacementSurface : -1;
         }
 
         /// <summary>
