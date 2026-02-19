@@ -25,8 +25,9 @@ namespace Systems.PlacementSystem.Tools
 
         /// <summary>
         /// Fired when placement is confirmed and object is instantiated.
+        /// Passes the placed object as a parameter.
         /// </summary>
-        public System.Action OnPlacementConfirmed { get; set; }
+        public System.Action<GameObject> OnPlacementConfirmed { get; set; }
 
         /// <summary>
         /// Fired when placement is cancelled.
@@ -168,8 +169,8 @@ namespace Systems.PlacementSystem.Tools
             // Clean up ghost
             CleanupGhost();
 
-            // Fire callback
-            OnPlacementConfirmed?.Invoke();
+            // Fire callback with placed object
+            OnPlacementConfirmed?.Invoke(placedObject);
         }
 
         /// <summary>
