@@ -79,7 +79,6 @@ namespace Systems.PlacementSystem.Core
         private PlacementSelectionState _selectionState;
 
         public ToolManager ToolManager { get; private set; }
-        private ToolStateRegistry _toolStates;
 
         private GameObject _currentGhost;
         private bool _isPlacementActive;
@@ -106,7 +105,6 @@ namespace Systems.PlacementSystem.Core
                 _placementCamera = Camera.main;
 
             _selectionState = new PlacementSelectionState();
-            _toolStates = new ToolStateRegistry();
             ToolManager = new ToolManager();
 
             var placementTool = new PlacementTool();
@@ -245,7 +243,7 @@ namespace Systems.PlacementSystem.Core
                 _selectionMovementSurface,
                 _selectionState,
                 ToolManager.GetTool(PlacementToolType.Selection) as SelectionTool,
-                _toolStates
+                ToolManager.ToolStates
             );
 
             ToolManager.InitializeContext(_toolContext);

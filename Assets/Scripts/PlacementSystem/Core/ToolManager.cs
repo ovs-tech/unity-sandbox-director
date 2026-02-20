@@ -16,6 +16,8 @@ namespace Systems.PlacementSystem.Core
         private readonly List<IPlacementTool> _activeTools = new List<IPlacementTool>();
         private PlacementToolContext _context;
 
+        public ToolStateRegistry ToolStates { get; } = new ToolStateRegistry();
+
         public void InitializeContext(PlacementToolContext context)
         {
             _context = context;
@@ -117,6 +119,7 @@ namespace Systems.PlacementSystem.Core
                 _activeTools[i].OnExit();
             }
             _activeTools.Clear();
+            ToolStates.Clear();
         }
     }
 }
