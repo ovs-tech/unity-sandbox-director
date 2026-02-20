@@ -9,5 +9,4 @@
   <Project Path="Systems.SceneSandbox.Editor.csproj" />
   <Project Path="Systems.MiniTimeline.Editor.csproj" />
   <Project Path="SimpleJSON.csproj" />
-  <Project Path="EditModeTests.csproj" />
 </Solution>

@@ -2722,6 +2722,9 @@ namespace Systems.MiniTimeline.UI
             // Apply a small margin (e.g. 5%)
             targetZoom *= 0.95f;
 
+            // Clamp zoom to Min and Max Zoom definitions
+            targetZoom = Mathf.Clamp(targetZoom, minZoom, maxZoom);
+
             Debug.Log($"Zoom to fit: Width={availableWidth}, Length={director.Length}, TargetZoom={targetZoom}");
 
             SetZoom(targetZoom);

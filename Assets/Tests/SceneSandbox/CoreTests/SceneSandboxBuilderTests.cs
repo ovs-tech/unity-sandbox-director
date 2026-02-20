@@ -11,27 +11,21 @@ namespace Systems.SceneSandbox.Core.Tests
         [SetUp]
         public void SetUp()
         {
-            _gameObject = new GameObject("SceneSandboxBuilderTest");
-            _builder = _gameObject.AddComponent<SceneSandboxBuilder>();
-
-            // Add required components that might not be auto-added or need configuration
-            _gameObject.AddComponent<SandboxInputManager>();
-            _gameObject.AddComponent<CameraRaycaster>();
-            _gameObject.AddComponent<GridManager>();
-            _gameObject.AddComponent<PlacementSystem>();
-            _gameObject.AddComponent<SelectionManager>();
-            _gameObject.AddComponent<TransformController>();
-            _gameObject.AddComponent<SceneSerializer>();
-            _gameObject.AddComponent<PreviewController>();
-            _gameObject.AddComponent<SandboxGizmoRenderer>();
-
-            // Ensure camera exists for raycasting
+            // Ensure camera exists for raycasting BEFORE builder initializes
             if (Camera.main == null)
             {
                 var cameraGO = new GameObject("MainCamera");
                 cameraGO.AddComponent<Camera>();
                 cameraGO.tag = "MainCamera";
             }
+
+            _gameObject = new GameObject("SceneSandboxBuilderTest");
+            _builder = _gameObject.AddComponent<SceneSandboxBuilder>();
+
+            // In EditMode, Awake is not automatically called by AddComponent unless marked with [ExecuteAlways].
+            // We must simulate it so InitializeComponents() runs and dependencies are generated.
+            _gameObject.SendMessage("Awake", SendMessageOptions.DontRequireReceiver);
+            _gameObject.SendMessage("Start", SendMessageOptions.DontRequireReceiver);
         }
 
         [TearDown]

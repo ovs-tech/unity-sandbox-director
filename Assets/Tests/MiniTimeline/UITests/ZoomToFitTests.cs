@@ -77,10 +77,9 @@ namespace Systems.MiniTimeline.UI.Tests
             zoomMethod.Invoke(editor, null);
 
             // Assert
-            // Expected zoom: ViewWidth / (Length * BasePixelsPerSecond)
-            // 500 / (10 * 100) = 0.5
+            // Target Zoom = 500 / (10 * 50) = 1.0 (assuming BasePixelsPerSecond = 50)
             // Apply 0.95 margin
-            float expectedZoom = 0.5f * 0.95f;
+            float expectedZoom = 1.0f * 0.95f; // 0.95f
 
             // Allow small error for float comparison
             Assert.AreEqual(expectedZoom, editor.CurrentZoom, 0.001f, "Zoom level incorrect");

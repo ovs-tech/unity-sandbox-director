@@ -7,7 +7,13 @@
         "UnityEditor.TestRunner",
         "Systems.MiniTimeline",
         "Systems.SceneSandbox",
-        "Systems.PlacementSystem"
+        "Systems.PlacementSystem",
+        "Unity.Cinemachine",
+        "Unity.InputSystem",
+        "Unity.Localization",
+        "Unity.Addressables",
+        "Unity.ResourceManager",
+        "Core"
     ],
     "includePlatforms": [
         "Editor"
