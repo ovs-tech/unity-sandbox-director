@@ -227,7 +227,10 @@ namespace Systems.PlacementSystem.Tools
 
             if (_ghostObject != null)
             {
-                Object.Destroy(_ghostObject);
+                if (Application.isPlaying)
+                    Object.Destroy(_ghostObject);
+                else
+                    Object.DestroyImmediate(_ghostObject);
                 _ghostObject = null;
             }
 

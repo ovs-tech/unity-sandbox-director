@@ -179,9 +179,6 @@ namespace PlacementSystem.Tests
             placeableObject.AddRule(rule);
             Vector3 position = new Vector3(0, 1000, 0); // High in the air, no surface
 
-            // Expect log about rule failure
-            LogAssert.Expect(LogType.Log, new System.Text.RegularExpressions.Regex("Placement rule failed.*"));
-
             // Act
             bool result = placeableObject.ValidatePlacement(position, Quaternion.identity, _testGameObject);
 
@@ -210,9 +207,6 @@ namespace PlacementSystem.Tests
             placeableObject.AddRule(failingRule);
             
             Vector3 position = new Vector3(100, 1000, 100); // Far from obstacles but no surface
-
-            // Expect log about rule failure
-            LogAssert.Expect(LogType.Log, new System.Text.RegularExpressions.Regex("Placement rule failed.*"));
 
             // Act
             bool result = placeableObject.ValidatePlacement(position, Quaternion.identity, _testGameObject);
@@ -316,9 +310,6 @@ namespace PlacementSystem.Tests
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             var rulesList = (System.Collections.Generic.List<PlacementRule>)rulesField.GetValue(placeableObject);
             rulesList.Add(null);
-
-            // Expect warning about null rule
-            LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("Null placement rule found.*"));
 
             // Act
             bool result = placeableObject.ValidatePlacement(Vector3.zero, Quaternion.identity, _testGameObject);

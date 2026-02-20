@@ -79,6 +79,11 @@ namespace Systems.SceneSandbox.Core
             _requireSurfaceBelow = requireSurfaceBelow;
         }
 
+        public void SetObjectLibrary(Data.SceneObjectLibrary library)
+        {
+            _objectLibrary = library;
+        }
+
         public void StartPlacement(string objectDataId, Vector2 screenPosition)
         {
             _currentObjectId = objectDataId;

@@ -234,10 +234,6 @@ namespace Systems.SceneSandbox.Core
             _currentProject = new SandboxProjectData(name);
             _currentSceneName = name;
 
-            var newScene = new SceneConfiguration(name);
-            _currentProject.scenes.Add(newScene);
-            _currentProject.activeSceneId = newScene.sceneId;
-
             _currentScene = _currentProject.GetActiveScene();
 
             _onSceneLoaded?.Invoke(_currentScene);

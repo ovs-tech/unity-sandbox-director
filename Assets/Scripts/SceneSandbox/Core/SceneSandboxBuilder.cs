@@ -313,6 +313,10 @@ namespace Systems.SceneSandbox.Core
         public void SetObjectLibrary(SceneObjectLibrary library)
         {
             _objectLibrary = library;
+            if (_placementSystem != null)
+            {
+                _placementSystem.SetObjectLibrary(library);
+            }
         }
         
         /// <summary>

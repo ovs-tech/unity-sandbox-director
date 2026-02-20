@@ -49,11 +49,6 @@ namespace PlacementSystem.Tests
         [Test]
         public void PlacementController_CanBeCreated()
         {
-            // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement validator must implement IPlacementValidator");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
-
             // Act
             var controller = _controllerGameObject.AddComponent<PlacementController>();
 
@@ -64,10 +59,6 @@ namespace PlacementSystem.Tests
         [Test]
         public void PlacementController_SetObjectToPlace_Works()
         {
-            // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
-
             // Arrange
             var controller = _controllerGameObject.AddComponent<PlacementController>();
 
@@ -78,10 +69,6 @@ namespace PlacementSystem.Tests
         [Test]
         public void PlacementController_StartPlacement_WithoutDependencies_DoesNotThrow()
         {
-            // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
-
             // Arrange
             var controller = _controllerGameObject.AddComponent<PlacementController>();
             SetupControllerDependencies(controller);
@@ -94,10 +81,6 @@ namespace PlacementSystem.Tests
         [Test]
         public void PlacementController_CancelPlacement_DoesNotThrow()
         {
-            // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
-
             // Arrange
             var controller = _controllerGameObject.AddComponent<PlacementController>();
 
@@ -125,12 +108,12 @@ namespace PlacementSystem.Tests
         public void PlacementController_SetPlacementStrategy_Works()
         {
             // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
 
             // Arrange
             var controller = _controllerGameObject.AddComponent<PlacementController>();
             var strategy = ScriptableObject.CreateInstance<FreePositionStrategy>();
+
+            SetupControllerDependencies(controller);
 
             // Act & Assert
             Assert.DoesNotThrow(() => controller.SetPlacementStrategy(strategy));
@@ -140,13 +123,13 @@ namespace PlacementSystem.Tests
         public void PlacementController_SetPlacementStrategy_CanSwitchStrategies()
         {
             // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
 
             // Arrange
             var controller = _controllerGameObject.AddComponent<PlacementController>();
             var freeStrategy = ScriptableObject.CreateInstance<FreePositionStrategy>();
             var gridStrategy = ScriptableObject.CreateInstance<GridPlacementStrategy>();
+
+            SetupControllerDependencies(controller);
 
             // Act
             controller.SetPlacementStrategy(freeStrategy);
@@ -161,11 +144,11 @@ namespace PlacementSystem.Tests
         public void PlacementController_ConfirmPlacement_WithoutStarting_DoesNotThrow()
         {
             // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
 
             // Arrange
             var controller = _controllerGameObject.AddComponent<PlacementController>();
+
+            SetupControllerDependencies(controller);
         
             // Act & Assert
             Assert.DoesNotThrow(() => controller.ConfirmPlacement());
@@ -174,12 +157,11 @@ namespace PlacementSystem.Tests
         [Test]
         public void PlacementController_MultipleStartCalls_OnlyCreatesOneGhost()
         {
-            // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
-
             // Arrange
             var controller = _controllerGameObject.AddComponent<PlacementController>();
+
+            SetupControllerDependencies(controller);
+
             controller.SetObjectToPlace(_prefab);
 
             // Act
@@ -199,10 +181,6 @@ namespace PlacementSystem.Tests
         [Test]
         public void PlacementController_WithNullPrefab_StartPlacementDoesNothing()
         {
-            // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
-
             // Arrange
             var controller = _controllerGameObject.AddComponent<PlacementController>();
             controller.SetObjectToPlace(null);
@@ -238,13 +216,8 @@ namespace PlacementSystem.Tests
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             visualizerField.SetValue(controller, visualizer);
 
-            // Trigger Awake manually
-            var awakeMethod = typeof(PlacementController).GetMethod("Awake", 
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (awakeMethod != null)
-            {
-                awakeMethod.Invoke(controller, null);
-            }
+            // Initialize for testing instead of Awake
+            controller.InitializeForTesting();
         }
     }
 }

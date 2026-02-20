@@ -47,6 +47,9 @@ namespace Systems.PlacementSystem.Visualization
         {
             if (ghostObject == null) return;
             
+            if (_currentGhost != null || _ghostMaterials.Count > 0)
+                Cleanup();
+
             _currentGhost = ghostObject;
 
             if (_currentGhost == null)
@@ -62,7 +65,7 @@ namespace Systems.PlacementSystem.Visualization
 
             foreach (var renderer in _ghostRenderers)
             {
-                foreach (var originalMaterial in renderer.materials)
+                foreach (var originalMaterial in renderer.sharedMaterials)
                 {
                     _originalMaterials.Add(originalMaterial);
 
@@ -70,7 +73,7 @@ namespace Systems.PlacementSystem.Visualization
                     Material ghostMaterial = new Material(_ghostShader);
                     
                     // Try to preserve texture from original material
-                    if (originalMaterial.HasProperty("_MainTex"))
+                    if (originalMaterial != null && originalMaterial.HasProperty("_MainTex"))
                     {
                         ghostMaterial.mainTexture = originalMaterial.mainTexture;
                     }
@@ -90,7 +93,7 @@ namespace Systems.PlacementSystem.Visualization
                 }
 
                 // Apply ghost materials
-                renderer.materials = _ghostMaterials.ToArray();
+                renderer.sharedMaterials = _ghostMaterials.ToArray();
             }
         }
 
@@ -119,7 +122,10 @@ namespace Systems.PlacementSystem.Visualization
             {
                 if (material != null)
                 {
-                    Destroy(material);
+                    if (Application.isPlaying)
+                        Destroy(material);
+                    else
+                        DestroyImmediate(material);
                 }
             }
 

@@ -135,6 +135,33 @@ namespace Systems.PlacementSystem.Core
             ToolManager.Tick();
         }
 
+        public void InitializeForTesting()
+        {
+            _selectionState = new PlacementSelectionState();
+            ToolManager = new ToolManager();
+
+            var placementTool = new PlacementTool();
+            var selectionTool = new SelectionTool();
+            var snapTool = new SnapTool();
+            var moveTool = new MoveTool();
+            var rotateTool = new RotateTool();
+            var deleteTool = new DeleteTool();
+
+            ToolManager.RegisterTool(PlacementToolType.Placement, placementTool);
+            ToolManager.RegisterTool(PlacementToolType.Selection, selectionTool);
+            ToolManager.RegisterTool(PlacementToolType.Snap, snapTool);
+            ToolManager.RegisterTool(PlacementToolType.Move, moveTool);
+            ToolManager.RegisterTool(PlacementToolType.Rotate, rotateTool);
+            ToolManager.RegisterTool(PlacementToolType.Delete, deleteTool);
+
+            placementTool.OnPlacementConfirmed = HandlePlacementConfirmed;
+            placementTool.OnPlacementCancelled = HandlePlacementCancelled;
+
+            SetActiveTool(PlacementToolType.Selection);
+            
+            RebuildToolContext();
+        }
+
         /// <summary>
         /// Starts the placement process with a ghost object.
         /// </summary>

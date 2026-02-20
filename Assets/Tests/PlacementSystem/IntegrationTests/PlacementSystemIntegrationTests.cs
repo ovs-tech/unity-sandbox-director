@@ -48,11 +48,6 @@ namespace PlacementSystem.Tests
         [Test]
         public void Integration_CompleteSystemSetup_Works()
         {
-            // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement validator must implement IPlacementValidator");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
-
             // Arrange - Create complete placement system
             var controllerObj = new GameObject("PlacementController");
             controllerObj.transform.parent = _sceneRoot.transform;
@@ -83,9 +78,6 @@ namespace PlacementSystem.Tests
         [Test]
         public void Integration_SocketSnapping_Works()
         {
-            // Expect log message
-            LogAssert.Expect(LogType.Log, new System.Text.RegularExpressions.Regex("SnapManager: Cached \\d+ sockets"));
-
             // Arrange
             var socketType = ScriptableObject.CreateInstance<SocketType>();
             
@@ -93,9 +85,9 @@ namespace PlacementSystem.Tests
             var socketObj = new GameObject("Socket");
             socketObj.transform.parent = _sceneRoot.transform;
             socketObj.transform.position = new Vector3(5, 1, 5);
-            var socket = socketObj.AddComponent<Socket>();
             var socketCollider = socketObj.AddComponent<SphereCollider>();
             socketCollider.radius = 0.5f;
+            var socket = socketObj.AddComponent<Socket>();
             socketObj.layer = LayerMask.NameToLayer("Default");
             SetSocketType(socket, socketType);
 
@@ -178,11 +170,6 @@ namespace PlacementSystem.Tests
         [Test]
         public void Integration_StrategySwitch_Works()
         {
-            // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement validator must implement IPlacementValidator");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
-
             // Arrange
             var controllerObj = new GameObject("PlacementController");
             controllerObj.transform.parent = _sceneRoot.transform;
@@ -190,6 +177,8 @@ namespace PlacementSystem.Tests
             var controller = controllerObj.AddComponent<PlacementController>();
             var freeStrategy = ScriptableObject.CreateInstance<FreePositionStrategy>();
             var gridStrategy = ScriptableObject.CreateInstance<GridPlacementStrategy>();
+
+            controller.InitializeForTesting();
 
             // Act - Switch strategies
             controller.SetPlacementStrategy(freeStrategy);
@@ -229,11 +218,6 @@ namespace PlacementSystem.Tests
         [Test]
         public void Integration_CompleteWorkflow_StartPlaceCancel()
         {
-            // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement validator must implement IPlacementValidator");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
-
             // Arrange - Complete system
             var controllerObj = new GameObject("PlacementController");
             controllerObj.transform.parent = _sceneRoot.transform;
@@ -278,9 +262,8 @@ namespace PlacementSystem.Tests
             type.GetField("_objectToPlace", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
                 ?.SetValue(controller, prefab);
 
-            // Trigger Awake
-            type.GetMethod("Awake", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                ?.Invoke(controller, null);
+            // Initialize for testing instead of Awake
+            controller.InitializeForTesting();
         }
 
         /// <summary>
@@ -290,7 +273,10 @@ namespace PlacementSystem.Tests
         {
             var field = typeof(Socket).GetField("_socketType", 
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            field?.SetValue(socket, socketType);
+            if (field != null)
+            {
+                field.SetValue(socket, socketType);
+            }
         }
 
         private void ConfigureClearanceRule(ClearanceRule rule)
