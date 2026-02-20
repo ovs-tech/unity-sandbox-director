@@ -162,7 +162,6 @@ namespace Systems.PlacementSystem.Tools
 
             if (!isValid)
             {
-                Debug.LogWarning("Cannot place object - validation failed");
                 return;
             }
 

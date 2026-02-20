@@ -109,33 +109,22 @@ namespace Systems.PlacementSystem.Tools
             var snapState = _context.ToolStates.GetOrCreate<SnapToolState>();
             if (!snapState.HasRequest)
             {
-                Debug.Log($"[MoveTool.Tick] No snap request");
                 return;
             }
-
-            Debug.Log($"[MoveTool.Tick] Has request, HasSnap: {snapState.HasSnap}, Request position: {snapState.RequestPosition}");
 
             Vector3 targetPosition = snapState.RequestPosition;
             Quaternion targetRotation = snapState.RequestRotation;
 
             if (snapState.HasSnap)
             {
-                Debug.Log($"[MoveTool] Using snap position: {snapState.SnappedPosition}, socket: {snapState.SnappedSocket.name}");
                 targetPosition = snapState.SnappedPosition;
                 targetRotation = snapState.SnappedRotation;
             }
             else if (_context.PlacementStrategy != null)
             {
-                Debug.Log($"[MoveTool] Using placement strategy, no snap");
                 targetPosition = _context.PlacementStrategy.CalculatePosition(targetPosition, selected);
                 targetRotation = _context.PlacementStrategy.CalculateRotation(targetRotation);
             }
-            else
-            {
-                Debug.Log($"[MoveTool] No snap and no placement strategy - using raw request position");
-            }
-
-            Debug.Log($"[MoveTool.Tick] Final position: {targetPosition}");
             selected.transform.position = targetPosition;
             selected.transform.rotation = targetRotation;
             _context.PlacementVisualizer?.UpdateVisual(true);
@@ -161,7 +150,6 @@ namespace Systems.PlacementSystem.Tools
             _startRotation = selected.transform.rotation;
             _isMoveActive = true;
             UpdateMoveState();
-            Debug.Log($"Started moving object: {_movingObject.name}");
         }
 
         /// <summary>
@@ -176,8 +164,6 @@ namespace Systems.PlacementSystem.Tools
             _movingObject = null;
             _isMoveActive = false;
             UpdateMoveState();
-
-            Debug.Log($"Confirmed move for object: {movedObject.name}");
             _context?.SelectionTool?.ClearSelection();
             OnMoveConfirmed?.Invoke(movedObject);
         }
@@ -195,8 +181,6 @@ namespace Systems.PlacementSystem.Tools
                 _movingObject.transform.position = _startPosition;
                 _movingObject.transform.rotation = _startRotation;
             }
-
-            Debug.Log($"Cancelled move for object: {_movingObject.name}");
 
             _movingObject = null;
             _isMoveActive = false;

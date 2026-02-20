@@ -43,18 +43,8 @@ namespace Systems.PlacementSystem.Examples
         {
             if (_placementController == null)
             {
-                Debug.LogError("PlacementController not assigned!");
                 return;
             }
-
-            Debug.Log("PlacementSystem Example: Ready!");
-            Debug.Log("Press '1' to start free placement");
-            Debug.Log("Press '2' to start grid placement");
-            Debug.Log("Press '3' to start hex placement");
-            Debug.Log("Press 'S' to switch to selection tool");
-            Debug.Log("Press 'M' to switch to move tool");
-            Debug.Log("Press 'R' to switch to rotate tool");
-            Debug.Log("Press 'Delete' to switch to delete tool");
         }
 
         private void Update()
@@ -99,7 +89,6 @@ namespace Systems.PlacementSystem.Examples
             _placementController.SetActiveTool(PlacementController.PlacementToolType.Placement);
             _placementController.SetObjectToPlace(_placeablePrefabs[_selectedPrefabIndex]);
             _placementController.StartPlacement();
-            Debug.Log("Switched to Placement tool");
         }
 
         /// <summary>
@@ -109,7 +98,6 @@ namespace Systems.PlacementSystem.Examples
         {
             if (_placeablePrefabs.Length == 0)
             {
-                Debug.LogWarning("No placeable prefabs assigned!");
                 return;
             }
 
@@ -119,7 +107,7 @@ namespace Systems.PlacementSystem.Examples
             var freeStrategy = GetOrAddComponent<FreePositionStrategy>();
             _placementController.SetPlacementStrategy(freeStrategy);
 
-            Debug.Log("Started FREE placement mode");
+            
         }
 
         /// <summary>
@@ -129,7 +117,6 @@ namespace Systems.PlacementSystem.Examples
         {
             if (_placeablePrefabs.Length == 0)
             {
-                Debug.LogWarning("No placeable prefabs assigned!");
                 return;
             }
 
@@ -139,7 +126,7 @@ namespace Systems.PlacementSystem.Examples
             var gridStrategy = GetOrAddComponent<GridPlacementStrategy>();
             _placementController.SetPlacementStrategy(gridStrategy);
 
-            Debug.Log("Started GRID placement mode");
+            
         }
 
         /// <summary>
@@ -149,7 +136,6 @@ namespace Systems.PlacementSystem.Examples
         {
             if (_placeablePrefabs.Length == 0)
             {
-                Debug.LogWarning("No placeable prefabs assigned!");
                 return;
             }
 
@@ -159,7 +145,7 @@ namespace Systems.PlacementSystem.Examples
             var hexStrategy = GetOrAddComponent<HexPlacementStrategy>();
             _placementController.SetPlacementStrategy(hexStrategy);
 
-            Debug.Log("Started HEX placement mode");
+            
         }
 
         /// <summary>
@@ -168,31 +154,26 @@ namespace Systems.PlacementSystem.Examples
         public void CancelPlacement()
         {
             _placementController.CancelPlacement();
-            Debug.Log("Placement cancelled");
         }
 
         public void SetSelectionTool()
         {
             _placementController.SetActiveTool(PlacementController.PlacementToolType.Selection);
-            Debug.Log("Switched to Selection tool");
         }
 
         public void SetMoveTool()
         {
             _placementController.SetActiveTool(PlacementController.PlacementToolType.Move);
-            Debug.Log("Switched to Move tool");
         }
 
         public void SetRotateTool()
         {
             _placementController.SetActiveTool(PlacementController.PlacementToolType.Rotate);
-            Debug.Log("Switched to Rotate tool");
         }
 
         public void SetDeleteTool()
         {
             _placementController.SetActiveTool(PlacementController.PlacementToolType.Delete);
-            Debug.Log("Switched to Delete tool");
         }
 
         /// <summary>
@@ -204,7 +185,6 @@ namespace Systems.PlacementSystem.Examples
                 return;
 
             _selectedPrefabIndex = (_selectedPrefabIndex + 1) % _placeablePrefabs.Length;
-            Debug.Log($"Selected prefab: {_placeablePrefabs[_selectedPrefabIndex].name}");
 
             // If placement is active, switch to new prefab
             _placementController.SetObjectToPlace(_placeablePrefabs[_selectedPrefabIndex]);
@@ -278,7 +258,7 @@ namespace Systems.PlacementSystem.Examples
             placeableObject.AddRule(clearance);
             placeableObject.AddRule(surface);
 
-            Debug.Log($"PlaceableObject setup on {prefab.name} with demo rules");
+            
         }
 
         /// <summary>
@@ -331,10 +311,6 @@ namespace Systems.PlacementSystem.Examples
                 {
                     field.SetValue(target, value);
                 }
-            }
-            else
-            {
-                Debug.LogWarning($"Field '{fieldName}' not found on type {type.FullName}");
             }
         }
 

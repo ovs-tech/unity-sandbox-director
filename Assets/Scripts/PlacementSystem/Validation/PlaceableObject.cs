@@ -50,13 +50,11 @@ namespace Systems.PlacementSystem.Validation
             {
                 if (rule == null)
                 {
-                    Debug.LogWarning($"Null placement rule found on {gameObject.name}");
                     continue;
                 }
 
                 if (!rule.CheckRule(position, rotation, ghostObject))
                 {
-                    Debug.Log($"Placement rule failed: {rule.GetDebugInfo()}");
                     return false;
                 }
             }

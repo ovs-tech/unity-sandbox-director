@@ -104,13 +104,21 @@ namespace Systems.PlacementSystem.Core
             _placementVisualizer = _placementVisualizerComponent as IPlacementVisualizer;
 
             if (_inputProvider == null)
-                Debug.LogError("PlacementController: Input provider must implement IInputProvider");
+            {
+                // Missing input provider; caller should assign a valid implementation
+            }
             if (_placementStrategy == null)
-                Debug.LogError("PlacementController: Placement strategy must implement IPlacementStrategy");
+            {
+                // Missing placement strategy; caller should assign a valid implementation
+            }
             if (_placementValidator == null)
-                Debug.LogError("PlacementController: Placement validator must implement IPlacementValidator");
+            {
+                // Missing placement validator; caller should assign a valid implementation
+            }
             if (_placementVisualizer == null)
-                Debug.LogError("PlacementController: Placement visualizer must implement IPlacementVisualizer");
+            {
+                // Missing placement visualizer; caller should assign a valid implementation
+            }
 
             if (_placementCamera == null)
                 _placementCamera = Camera.main;

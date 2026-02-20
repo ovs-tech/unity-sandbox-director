@@ -85,7 +85,6 @@ namespace Systems.PlacementSystem.Input
         // Fallback implementation if Input System package is not installed
         public Vector2 GetPointerPosition()
         {
-            Debug.LogWarning("New Input System not installed. Using legacy input fallback.");
             return UnityEngine.Input.mousePosition;
         }
 
