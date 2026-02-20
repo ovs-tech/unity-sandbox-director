@@ -8,7 +8,8 @@ namespace Systems.PlacementSystem.Visualization
     /// Advanced visualizer with outline effects and additional visual feedback.
     /// Can be used as an alternative to StandardPlacementVisualizer.
     /// </summary>
-    public class OutlinePlacementVisualizer : MonoBehaviour, IPlacementVisualizer
+    [CreateAssetMenu(fileName = "OutlinePlacementVisualizer", menuName = "Placement System/Visualizers/Outline Visualizer")]
+    public class OutlinePlacementVisualizer : BasePlacementVisualizer
     {
         [Header("Outline Settings")]
         [SerializeField, Tooltip("Outline width")]
@@ -55,7 +56,7 @@ namespace Systems.PlacementSystem.Visualization
         private Renderer[] _renderers;
         private Dictionary<Renderer, Material[]> _originalMaterials = new Dictionary<Renderer, Material[]>();
 
-        public void Initialize(GameObject ghostObject)
+        public override void Initialize(GameObject ghostObject)
         {
             _ghostObject = ghostObject;
 
@@ -97,7 +98,7 @@ namespace Systems.PlacementSystem.Visualization
             UpdateVisual(true);
         }
 
-        public void UpdateVisual(bool isValid)
+        public override void UpdateVisual(bool isValid)
         {
             _isValid = isValid;
 
@@ -144,7 +145,7 @@ namespace Systems.PlacementSystem.Visualization
             }
         }
 
-        public void Cleanup()
+        public override void Cleanup()
         {
             // Restore original materials
             if (_renderers != null && _originalMaterials != null)
@@ -168,21 +169,6 @@ namespace Systems.PlacementSystem.Visualization
             }
 
             _ghostObject = null;
-        }
-
-        private void Update()
-        {
-            // Continuously update visual for pulse effect
-            if (_enablePulse && _ghostObject != null)
-            {
-                UpdateVisual(_isValid);
-            }
-        }
-
-        private void OnDestroy()
-        {
-            
-            Cleanup();
         }
     }
 }

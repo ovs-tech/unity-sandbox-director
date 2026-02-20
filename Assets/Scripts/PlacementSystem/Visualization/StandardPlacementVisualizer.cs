@@ -7,8 +7,11 @@ namespace Systems.PlacementSystem.Visualization
     /// <summary>
     /// Standard visualizer that changes material colors to indicate placement validity.
     /// Green = valid placement, Red = invalid placement.
+    /// Note: As a ScriptableObject, it maintains temporary state for the current ghost.
+    /// Assumes only one placement operation occurs at a time.
     /// </summary>
-    public class StandardPlacementVisualizer : MonoBehaviour, IPlacementVisualizer
+    [CreateAssetMenu(fileName = "StandardPlacementVisualizer", menuName = "Placement System/Visualizers/Standard Visualizer")]
+    public class StandardPlacementVisualizer : BasePlacementVisualizer
     {
         [Header("Visual Feedback Colors")]
         [SerializeField, Tooltip("Color when placement is valid")]
@@ -26,12 +29,12 @@ namespace Systems.PlacementSystem.Visualization
         private float _transparency = 0.5f;
 
         // Runtime state
-        private GameObject _ghostObject;
+        private GameObject _currentGhost;
         private List<Renderer> _ghostRenderers = new List<Renderer>();
         private List<Material> _originalMaterials = new List<Material>();
         private List<Material> _ghostMaterials = new List<Material>();
 
-        private void Awake()
+        private void OnEnable()
         {
             // Use default shader if none specified
             if (_ghostShader == null)
@@ -40,16 +43,18 @@ namespace Systems.PlacementSystem.Visualization
             }
         }
 
-        public void Initialize(GameObject ghostObject)
+        public override void Initialize(GameObject ghostObject)
         {
-            _ghostObject = ghostObject;
+            if (ghostObject == null) return;
+            
+            _currentGhost = ghostObject;
 
-            if (_ghostObject == null)
+            if (_currentGhost == null)
                 return;
 
             // Get all renderers in the ghost object
             _ghostRenderers.Clear();
-            _ghostRenderers.AddRange(_ghostObject.GetComponentsInChildren<Renderer>());
+            _ghostRenderers.AddRange(_currentGhost.GetComponentsInChildren<Renderer>());
 
             // Store original materials and create ghost materials
             _originalMaterials.Clear();
@@ -89,9 +94,9 @@ namespace Systems.PlacementSystem.Visualization
             }
         }
 
-        public void UpdateVisual(bool isValid)
+        public override void UpdateVisual(bool isValid)
         {
-            if (_ghostObject == null || _ghostMaterials.Count == 0)
+            if (_currentGhost == null || _ghostMaterials.Count == 0)
                 return;
 
             // Update material colors based on validity
@@ -107,7 +112,7 @@ namespace Systems.PlacementSystem.Visualization
             }
         }
 
-        public void Cleanup()
+        public override void Cleanup()
         {
             // Destroy ghost materials to prevent memory leaks
             foreach (var material in _ghostMaterials)
@@ -121,7 +126,7 @@ namespace Systems.PlacementSystem.Visualization
             _ghostMaterials.Clear();
             _ghostRenderers.Clear();
             _originalMaterials.Clear();
-            _ghostObject = null;
+            _currentGhost = null;
         }
 
         /// <summary>

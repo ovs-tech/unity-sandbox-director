@@ -35,17 +35,17 @@ namespace PlacementSystem.Tests
         public void StandardPlacementVisualizer_ImplementsInterface()
         {
             // Arrange
-            var visualizer = _visualizerGameObject.AddComponent<StandardPlacementVisualizer>();
+            var visualizer = ScriptableObject.CreateInstance<StandardPlacementVisualizer>();
 
             // Assert
-            Assert.IsNotNull(visualizer as IPlacementVisualizer);
+            Assert.IsNotNull(visualizer as BasePlacementVisualizer);
         }
 
         [Test]
         public void StandardPlacementVisualizer_Initialize_DoesNotThrow()
         {
             // Arrange
-            var visualizer = _visualizerGameObject.AddComponent<StandardPlacementVisualizer>();
+            var visualizer = ScriptableObject.CreateInstance<StandardPlacementVisualizer>();
 
             // Act & Assert
             Assert.DoesNotThrow(() => visualizer.Initialize(_ghostObject));
@@ -55,7 +55,7 @@ namespace PlacementSystem.Tests
         public void StandardPlacementVisualizer_UpdateVisual_DoesNotThrow()
         {
             // Arrange
-            var visualizer = _visualizerGameObject.AddComponent<StandardPlacementVisualizer>();
+            var visualizer = ScriptableObject.CreateInstance<StandardPlacementVisualizer>();
             visualizer.Initialize(_ghostObject);
 
             // Act & Assert
@@ -67,7 +67,7 @@ namespace PlacementSystem.Tests
         public void StandardPlacementVisualizer_Cleanup_DoesNotThrow()
         {
             // Arrange
-            var visualizer = _visualizerGameObject.AddComponent<StandardPlacementVisualizer>();
+            var visualizer = ScriptableObject.CreateInstance<StandardPlacementVisualizer>();
             visualizer.Initialize(_ghostObject);
 
             // Act & Assert
@@ -78,7 +78,7 @@ namespace PlacementSystem.Tests
         public void StandardPlacementVisualizer_InitializeWithNull_DoesNotThrow()
         {
             // Arrange
-            var visualizer = _visualizerGameObject.AddComponent<StandardPlacementVisualizer>();
+            var visualizer = ScriptableObject.CreateInstance<StandardPlacementVisualizer>();
 
             // Act & Assert
             Assert.DoesNotThrow(() => visualizer.Initialize(null));
@@ -88,7 +88,7 @@ namespace PlacementSystem.Tests
         public void StandardPlacementVisualizer_UpdateBeforeInitialize_DoesNotThrow()
         {
             // Arrange
-            var visualizer = _visualizerGameObject.AddComponent<StandardPlacementVisualizer>();
+            var visualizer = ScriptableObject.CreateInstance<StandardPlacementVisualizer>();
 
             // Act & Assert
             Assert.DoesNotThrow(() => visualizer.UpdateVisual(true));
@@ -98,17 +98,17 @@ namespace PlacementSystem.Tests
         public void OutlinePlacementVisualizer_ImplementsInterface()
         {
             // Arrange
-            var visualizer = _visualizerGameObject.AddComponent<OutlinePlacementVisualizer>();
+            var visualizer = ScriptableObject.CreateInstance<OutlinePlacementVisualizer>();
 
             // Assert
-            Assert.IsNotNull(visualizer as IPlacementVisualizer);
+            Assert.IsNotNull(visualizer as BasePlacementVisualizer);
         }
 
         [Test]
         public void OutlinePlacementVisualizer_Initialize_DoesNotThrow()
         {
             // Arrange
-            var visualizer = _visualizerGameObject.AddComponent<OutlinePlacementVisualizer>();
+            var visualizer = ScriptableObject.CreateInstance<OutlinePlacementVisualizer>();
 
             // Act & Assert
             Assert.DoesNotThrow(() => visualizer.Initialize(_ghostObject));
@@ -118,7 +118,7 @@ namespace PlacementSystem.Tests
         public void OutlinePlacementVisualizer_UpdateVisual_DoesNotThrow()
         {
             // Arrange
-            var visualizer = _visualizerGameObject.AddComponent<OutlinePlacementVisualizer>();
+            var visualizer = ScriptableObject.CreateInstance<OutlinePlacementVisualizer>();
             visualizer.Initialize(_ghostObject);
 
             // Act & Assert
@@ -130,7 +130,7 @@ namespace PlacementSystem.Tests
         public void OutlinePlacementVisualizer_Cleanup_DoesNotThrow()
         {
             // Arrange
-            var visualizer = _visualizerGameObject.AddComponent<OutlinePlacementVisualizer>();
+            var visualizer = ScriptableObject.CreateInstance<OutlinePlacementVisualizer>();
             visualizer.Initialize(_ghostObject);
 
             // Act & Assert
@@ -141,12 +141,12 @@ namespace PlacementSystem.Tests
         public void Visualizers_CanBeUsedInterchangeably()
         {
             // Arrange
-            var standardVisualizer = _visualizerGameObject.AddComponent<StandardPlacementVisualizer>();
-            var outlineVisualizer = _visualizerGameObject.AddComponent<OutlinePlacementVisualizer>();
+            var standardVisualizer = ScriptableObject.CreateInstance<StandardPlacementVisualizer>();
+            var outlineVisualizer = ScriptableObject.CreateInstance<OutlinePlacementVisualizer>();
 
-            // Act - Cast to interface
-            IPlacementVisualizer visualizer1 = standardVisualizer;
-            IPlacementVisualizer visualizer2 = outlineVisualizer;
+            // Act - Cast to base class
+            BasePlacementVisualizer visualizer1 = standardVisualizer;
+            BasePlacementVisualizer visualizer2 = outlineVisualizer;
 
             // Assert
             Assert.IsNotNull(visualizer1);
@@ -159,7 +159,7 @@ namespace PlacementSystem.Tests
         public void StandardPlacementVisualizer_MultipleInitializeCalls_DoesNotLeak()
         {
             // Arrange
-            var visualizer = _visualizerGameObject.AddComponent<StandardPlacementVisualizer>();
+            var visualizer = ScriptableObject.CreateInstance<StandardPlacementVisualizer>();
 
             // Act
             visualizer.Initialize(_ghostObject);

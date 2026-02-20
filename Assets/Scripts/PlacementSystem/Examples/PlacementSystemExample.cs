@@ -31,6 +31,8 @@ namespace Systems.PlacementSystem.Examples
         [SerializeField, Tooltip("Index of prefab to place (for testing)")]
         private int _selectedPrefabIndex = 0;
 
+        private ScriptableObject _currentStrategy;
+
         private void Start()
         {
             SetupPlacementSystemExample();
@@ -104,10 +106,9 @@ namespace Systems.PlacementSystem.Examples
             // Remove any previously active placement mode
             RemovePreviousPlacementMode();
 
-            var freeStrategy = GetOrAddComponent<FreePositionStrategy>();
+            var freeStrategy = ScriptableObject.CreateInstance<FreePositionStrategy>();
+            _currentStrategy = freeStrategy;
             _placementController.SetPlacementStrategy(freeStrategy);
-
-            
         }
 
         /// <summary>
@@ -123,10 +124,9 @@ namespace Systems.PlacementSystem.Examples
             // Remove any previously active placement mode
             RemovePreviousPlacementMode();
 
-            var gridStrategy = GetOrAddComponent<GridPlacementStrategy>();
+            var gridStrategy = ScriptableObject.CreateInstance<GridPlacementStrategy>();
+            _currentStrategy = gridStrategy;
             _placementController.SetPlacementStrategy(gridStrategy);
-
-            
         }
 
         /// <summary>
@@ -142,10 +142,9 @@ namespace Systems.PlacementSystem.Examples
             // Remove any previously active placement mode
             RemovePreviousPlacementMode();
 
-            var hexStrategy = GetOrAddComponent<HexPlacementStrategy>();
+            var hexStrategy = ScriptableObject.CreateInstance<HexPlacementStrategy>();
+            _currentStrategy = hexStrategy;
             _placementController.SetPlacementStrategy(hexStrategy);
-
-            
         }
 
         /// <summary>
@@ -262,19 +261,6 @@ namespace Systems.PlacementSystem.Examples
         }
 
         /// <summary>
-        /// Helper: Get or add a component.
-        /// </summary>
-        private T GetOrAddComponent<T>() where T : Component
-        {
-            T component = _placementController.GetComponent<T>();
-            if (component == null)
-            {
-                component = _placementController.gameObject.AddComponent<T>();
-            }
-            return component;
-        }
-
-        /// <summary>
         /// Reflection helper: sets a private serialized field on a target object.
         /// Works for MonoBehaviour and ScriptableObject targets.
         /// </summary>
@@ -325,20 +311,15 @@ namespace Systems.PlacementSystem.Examples
             // Cancel any active placement (destroys ghost, etc.)
             _placementController.CancelPlacement();
 
-            // Remove any existing strategy components that implement IPlacementStrategy
-            var strategies = _placementController.GetComponents<MonoBehaviour>()
-                .Where(mb => mb is IPlacementStrategy)
-                .ToArray();
-
-            foreach (var s in strategies)
+            // Destroy the runtime generated ScriptableObject strategy
+            if (_currentStrategy != null)
             {
-                if (s == null)
-                    continue;
-
                 if (Application.isPlaying)
-                    Destroy(s);
+                    Destroy(_currentStrategy);
                 else
-                    DestroyImmediate(s);
+                    DestroyImmediate(_currentStrategy);
+                
+                _currentStrategy = null;
             }
         }
 

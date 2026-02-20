@@ -398,11 +398,8 @@ GameObject:
   - component: {fileID: 1008020061}
   - component: {fileID: 1008020060}
   - component: {fileID: 1008020062}
-  - component: {fileID: 1008020065}
-  - component: {fileID: 1008020064}
   - component: {fileID: 1008020063}
   - component: {fileID: 1008020067}
-  - component: {fileID: 1008020068}
   m_Layer: 0
   m_Name: PlacementSystem
   m_TagString: Untagged
@@ -461,9 +458,8 @@ MonoBehaviour:
     m_Bits: 64
   _objectToPlace: {fileID: 0}
   _inputProviderComponent: {fileID: 1008020067}
-  _placementStrategyComponent: {fileID: 1008020068}
-  _placementValidatorComponent: {fileID: 1008020065}
-  _placementVisualizerComponent: {fileID: 1008020064}
+  _placementStrategy: {fileID: 11400000, guid: 9c403f9ad35dfec45bc1d37cc826e8e2, type: 2}
+  _placementVisualizer: {fileID: 11400000, guid: 167bf68618432c248a1b05370ca449ce, type: 2}
   _snapManager: {fileID: 1008020063}
   _maxRaycastDistance: 100
   _rotationSnapDegrees: 90
@@ -497,37 +493,6 @@ MonoBehaviour:
   _useTagDetection: 1
   _maxSocketChecksPerFrame: 50
   _enableSocketCaching: 0
---- !u!114 &1008020064
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1008020058}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0c3a500e311fc4272bfbf385cb4007ba, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Visualization.OutlinePlacementVisualizer
-  _outlineWidth: 0.03
-  _validOutlineColor: {r: 0, g: 1, b: 0, a: 1}
-  _invalidOutlineColor: {r: 1, g: 0, b: 0, a: 1}
-  _enablePulse: 1
-  _pulseSpeed: 2
-  _pulseIntensity: 1
-  _outlineShader: {fileID: -6465566751694194690, guid: c2f2cfc7d9d288a4da94e84f5d869e18, type: 3}
---- !u!114 &1008020065
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1008020058}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2536580ecd4204746abebb33b2e97574, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Validation.PlacementValidation
 --- !u!114 &1008020067
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -545,20 +510,6 @@ MonoBehaviour:
   _rotateKey: 114
   _deleteKey: 127
   _alternativeCancelKey: 27
---- !u!114 &1008020068
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1008020058}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8903bae2baaf74f42b3b0ce271dce48f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Strategies.FreePositionStrategy
-  _surfaceOffset: 0.05
-  _alignToSurface: 1
 --- !u!1 &1045504573
 GameObject:
   m_ObjectHideFlags: 19
@@ -1099,18 +1050,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 126435016010618024, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
-      propertyPath: _gizmoSize
-      value: 0.07
-      objectReference: {fileID: 0}
-    - target: {fileID: 126435016010618024, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
-      propertyPath: _showGizmo
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1362076522437427743, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
-      propertyPath: m_Materials.Array.size
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 1443516544727990350, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
       propertyPath: m_Name
       value: CubePlacementItem
@@ -1119,10 +1058,6 @@ PrefabInstance:
       propertyPath: _placementRules.Array.size
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 7053177496473666825, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
-      propertyPath: '_placementRules.Array.data[0]'
-      value: 
-      objectReference: {fileID: 11400000, guid: 003468ee0cd024144acff3457ba60eea, type: 2}
     - target: {fileID: 7053177496473666825, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
       propertyPath: '_placementRules.Array.data[1]'
       value: 
@@ -1166,10 +1101,6 @@ PrefabInstance:
     - target: {fileID: 7494065892650909874, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7682797361963145623, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
-      propertyPath: m_Enabled
-      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -8,7 +8,8 @@ namespace Systems.PlacementSystem.Strategies
     /// Snaps objects to a regular 2D grid on the XZ plane.
     /// Useful for building games with tile-based layouts (like The Sims).
     /// </summary>
-    public class GridPlacementStrategy : MonoBehaviour, IPlacementStrategy
+    [CreateAssetMenu(fileName = "GridPlacementStrategy", menuName = "Placement System/Strategies/Grid Strategy")]
+    public class GridPlacementStrategy : BasePlacementStrategy
     {
         [Header("Grid Settings")]
         [SerializeField, Tooltip("Size of each grid cell")]
@@ -27,7 +28,7 @@ namespace Systems.PlacementSystem.Strategies
         [SerializeField, Tooltip("Grid visualization size")]
         private int _gridVisualizationSize = 10;
 
-        public Vector3 CalculatePosition(Vector3 rawWorldPos, GameObject ghostObject)
+        public override Vector3 CalculatePosition(Vector3 rawWorldPos, GameObject ghostObject)
         {
             // Convert to grid space
             Vector3 relativePos = rawWorldPos - _gridOrigin;
@@ -40,7 +41,7 @@ namespace Systems.PlacementSystem.Strategies
             return new Vector3(snappedX, rawWorldPos.y, snappedZ) + _gridOrigin;
         }
 
-        public Quaternion CalculateRotation(Quaternion currentRotation)
+        public override Quaternion CalculateRotation(Quaternion currentRotation)
         {
             if (_rotationSnap <= 0f)
                 return currentRotation;
@@ -52,7 +53,7 @@ namespace Systems.PlacementSystem.Strategies
             return Quaternion.Euler(0, snappedY, 0);
         }
 
-        private void OnDrawGizmos()
+        public override void OnDrawGizmos()
         {
             if (!_showGridGizmo)
                 return;

@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 7404986253707761315}
   m_Layer: 0
   m_Name: CubePlacementItem
-  m_TagString: Socket
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -37,7 +37,6 @@ Transform:
   - {fileID: 205257509027826178}
   - {fileID: 5876217946444225316}
   - {fileID: 5675518158400258168}
-  - {fileID: 2678781309286365531}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &702104799883344593
@@ -74,7 +73,6 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
-  - {fileID: 2100000, guid: 50a5107e50cc61640a2e11f94fa09c9a, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -132,7 +130,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Validation.PlaceableObject
   _placementRules:
-  - {fileID: 11400000, guid: f721b1ecd52b04ae2a80dd15f97ee72b, type: 2}
+  - {fileID: 11400000, guid: 003468ee0cd024144acff3457ba60eea, type: 2}
   _requiredSocketType: {fileID: 11400000, guid: ff3b3e1f6c6094e5f9725d1dacb86bf9, type: 2}
   _snapRange: 1
 --- !u!114 &7404986253707761315
@@ -203,7 +201,6 @@ MonoBehaviour:
   _socketType: {fileID: 11400000, guid: ff3b3e1f6c6094e5f9725d1dacb86bf9, type: 2}
   _isOccupied: 0
   _showGizmo: 1
-  _gizmoSize: 0.2
 --- !u!135 &5970986415617033654
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -273,7 +270,6 @@ MonoBehaviour:
   _socketType: {fileID: 11400000, guid: ff3b3e1f6c6094e5f9725d1dacb86bf9, type: 2}
   _isOccupied: 0
   _showGizmo: 1
-  _gizmoSize: 0.2
 --- !u!135 &4049831633085894614
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -281,76 +277,6 @@ SphereCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3082675775390701512}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!1 &3340459450981378194
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2678781309286365531}
-  - component: {fileID: 126435016010618024}
-  - component: {fileID: 7682797361963145623}
-  m_Layer: 0
-  m_Name: SB
-  m_TagString: Socket
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2678781309286365531
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3340459450981378194}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.8, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 7494065892650909874}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &126435016010618024
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3340459450981378194}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 98918788448714106a9a6262f8c28b32, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Sockets.Socket
-  _socketType: {fileID: 11400000, guid: ff3b3e1f6c6094e5f9725d1dacb86bf9, type: 2}
-  _isOccupied: 0
-  _showGizmo: 1
-  _gizmoSize: 0.2
---- !u!135 &7682797361963145623
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3340459450981378194}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -413,7 +339,6 @@ MonoBehaviour:
   _socketType: {fileID: 11400000, guid: ff3b3e1f6c6094e5f9725d1dacb86bf9, type: 2}
   _isOccupied: 0
   _showGizmo: 1
-  _gizmoSize: 0.2
 --- !u!135 &592205104832939993
 SphereCollider:
   m_ObjectHideFlags: 0

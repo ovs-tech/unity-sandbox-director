@@ -49,10 +49,9 @@ namespace PlacementSystem.Tests
         public void Integration_CompleteSystemSetup_Works()
         {
             // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Input provider must implement IInputProvider");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must implement IPlacementStrategy");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
             LogAssert.Expect(LogType.Error, "PlacementController: Placement validator must implement IPlacementValidator");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must implement IPlacementVisualizer");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
 
             // Arrange - Create complete placement system
             var controllerObj = new GameObject("PlacementController");
@@ -60,16 +59,15 @@ namespace PlacementSystem.Tests
 
             var controller = controllerObj.AddComponent<PlacementController>();
             var inputProvider = controllerObj.AddComponent<LegacyInputProvider>();
-            var strategy = controllerObj.AddComponent<GridPlacementStrategy>();
-            var validator = controllerObj.AddComponent<PlacementValidation>();
-            var visualizer = controllerObj.AddComponent<StandardPlacementVisualizer>();
+            var strategy = ScriptableObject.CreateInstance<GridPlacementStrategy>();
+            var visualizer = ScriptableObject.CreateInstance<StandardPlacementVisualizer>();
 
             // Create prefab with validation
             var prefab = GameObject.CreatePrimitive(PrimitiveType.Cube);
             var placeableObject = prefab.AddComponent<PlaceableObject>();
 
             // Setup controller via reflection
-            SetupController(controller, _camera, inputProvider, strategy, validator, visualizer, prefab);
+            SetupController(controller, _camera, inputProvider, strategy, visualizer, prefab);
 
             // Act - Start placement
             controller.StartPlacement();
@@ -181,18 +179,17 @@ namespace PlacementSystem.Tests
         public void Integration_StrategySwitch_Works()
         {
             // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Input provider must implement IInputProvider");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must implement IPlacementStrategy");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
             LogAssert.Expect(LogType.Error, "PlacementController: Placement validator must implement IPlacementValidator");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must implement IPlacementVisualizer");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
 
             // Arrange
             var controllerObj = new GameObject("PlacementController");
             controllerObj.transform.parent = _sceneRoot.transform;
 
             var controller = controllerObj.AddComponent<PlacementController>();
-            var freeStrategy = controllerObj.AddComponent<FreePositionStrategy>();
-            var gridStrategy = controllerObj.AddComponent<GridPlacementStrategy>();
+            var freeStrategy = ScriptableObject.CreateInstance<FreePositionStrategy>();
+            var gridStrategy = ScriptableObject.CreateInstance<GridPlacementStrategy>();
 
             // Act - Switch strategies
             controller.SetPlacementStrategy(freeStrategy);
@@ -211,7 +208,7 @@ namespace PlacementSystem.Tests
             // Arrange
             var visualizerObj = new GameObject("Visualizer");
             visualizerObj.transform.parent = _sceneRoot.transform;
-            var visualizer = visualizerObj.AddComponent<StandardPlacementVisualizer>();
+            var visualizer = ScriptableObject.CreateInstance<StandardPlacementVisualizer>();
 
             var ghostObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
             ghostObject.transform.parent = _sceneRoot.transform;
@@ -233,10 +230,9 @@ namespace PlacementSystem.Tests
         public void Integration_CompleteWorkflow_StartPlaceCancel()
         {
             // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Input provider must implement IInputProvider");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must implement IPlacementStrategy");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
             LogAssert.Expect(LogType.Error, "PlacementController: Placement validator must implement IPlacementValidator");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must implement IPlacementVisualizer");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
 
             // Arrange - Complete system
             var controllerObj = new GameObject("PlacementController");
@@ -244,13 +240,12 @@ namespace PlacementSystem.Tests
 
             var controller = controllerObj.AddComponent<PlacementController>();
             var inputProvider = controllerObj.AddComponent<LegacyInputProvider>();
-            var strategy = controllerObj.AddComponent<FreePositionStrategy>();
-            var validator = controllerObj.AddComponent<PlacementValidation>();
-            var visualizer = controllerObj.AddComponent<StandardPlacementVisualizer>();
+            var strategy = ScriptableObject.CreateInstance<FreePositionStrategy>();
+            var visualizer = ScriptableObject.CreateInstance<StandardPlacementVisualizer>();
 
             var prefab = GameObject.CreatePrimitive(PrimitiveType.Cube);
             
-            SetupController(controller, _camera, inputProvider, strategy, validator, visualizer, prefab);
+            SetupController(controller, _camera, inputProvider, strategy, visualizer, prefab);
 
             // Act - Full workflow
             Assert.DoesNotThrow(() => controller.StartPlacement());
@@ -268,7 +263,7 @@ namespace PlacementSystem.Tests
         /// </summary>
         private void SetupController(PlacementController controller, Camera cam, 
             LegacyInputProvider input, IPlacementStrategy strat, 
-            PlacementValidation valid, StandardPlacementVisualizer vis, GameObject prefab)
+            StandardPlacementVisualizer vis, GameObject prefab)
         {
             var type = typeof(PlacementController);
             
@@ -276,11 +271,9 @@ namespace PlacementSystem.Tests
                 ?.SetValue(controller, cam);
             type.GetField("_inputProviderComponent", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
                 ?.SetValue(controller, input);
-            type.GetField("_placementStrategyComponent", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                ?.SetValue(controller, strat as MonoBehaviour);
-            type.GetField("_placementValidatorComponent", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                ?.SetValue(controller, valid);
-            type.GetField("_placementVisualizerComponent", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            type.GetField("_placementStrategy", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                ?.SetValue(controller, strat as ScriptableObject);
+            type.GetField("_placementVisualizer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
                 ?.SetValue(controller, vis);
             type.GetField("_objectToPlace", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
                 ?.SetValue(controller, prefab);

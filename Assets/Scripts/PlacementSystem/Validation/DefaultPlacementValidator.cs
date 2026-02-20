@@ -6,11 +6,15 @@ namespace Systems.PlacementSystem.Validation
     /// <summary>
     /// Concrete implementation of IPlacementValidator that uses PlaceableObject rules.
     /// This bridges the interface-based architecture with the ScriptableObject rule system.
+    /// It is a pure C# class that can be instantiated by the pipeline.
     /// </summary>
-    public class PlacementValidation : MonoBehaviour, IPlacementValidator
+    public class DefaultPlacementValidator : IPlacementValidator
     {
         public bool IsPlacementValid(Vector3 position, Quaternion rotation, GameObject ghostObject)
         {
+            if (ghostObject == null)
+                return false;
+
             // Get the PlaceableObject component from the ghost
             var placeableObject = ghostObject.GetComponent<PlaceableObject>();
 

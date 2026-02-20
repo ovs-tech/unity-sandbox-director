@@ -50,10 +50,9 @@ namespace PlacementSystem.Tests
         public void PlacementController_CanBeCreated()
         {
             // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Input provider must implement IInputProvider");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must implement IPlacementStrategy");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
             LogAssert.Expect(LogType.Error, "PlacementController: Placement validator must implement IPlacementValidator");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must implement IPlacementVisualizer");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
 
             // Act
             var controller = _controllerGameObject.AddComponent<PlacementController>();
@@ -66,10 +65,8 @@ namespace PlacementSystem.Tests
         public void PlacementController_SetObjectToPlace_Works()
         {
             // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Input provider must implement IInputProvider");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must implement IPlacementStrategy");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement validator must implement IPlacementValidator");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must implement IPlacementVisualizer");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
 
             // Arrange
             var controller = _controllerGameObject.AddComponent<PlacementController>();
@@ -82,10 +79,8 @@ namespace PlacementSystem.Tests
         public void PlacementController_StartPlacement_WithoutDependencies_DoesNotThrow()
         {
             // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Input provider must implement IInputProvider");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must implement IPlacementStrategy");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement validator must implement IPlacementValidator");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must implement IPlacementVisualizer");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
 
             // Arrange
             var controller = _controllerGameObject.AddComponent<PlacementController>();
@@ -100,10 +95,8 @@ namespace PlacementSystem.Tests
         public void PlacementController_CancelPlacement_DoesNotThrow()
         {
             // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Input provider must implement IInputProvider");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must implement IPlacementStrategy");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement validator must implement IPlacementValidator");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must implement IPlacementVisualizer");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
 
             // Arrange
             var controller = _controllerGameObject.AddComponent<PlacementController>();
@@ -132,14 +125,12 @@ namespace PlacementSystem.Tests
         public void PlacementController_SetPlacementStrategy_Works()
         {
             // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Input provider must implement IInputProvider");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must implement IPlacementStrategy");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement validator must implement IPlacementValidator");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must implement IPlacementVisualizer");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
 
             // Arrange
             var controller = _controllerGameObject.AddComponent<PlacementController>();
-            var strategy = _controllerGameObject.AddComponent<FreePositionStrategy>();
+            var strategy = ScriptableObject.CreateInstance<FreePositionStrategy>();
 
             // Act & Assert
             Assert.DoesNotThrow(() => controller.SetPlacementStrategy(strategy));
@@ -149,15 +140,13 @@ namespace PlacementSystem.Tests
         public void PlacementController_SetPlacementStrategy_CanSwitchStrategies()
         {
             // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Input provider must implement IInputProvider");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must implement IPlacementStrategy");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement validator must implement IPlacementValidator");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must implement IPlacementVisualizer");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
 
             // Arrange
             var controller = _controllerGameObject.AddComponent<PlacementController>();
-            var freeStrategy = _controllerGameObject.AddComponent<FreePositionStrategy>();
-            var gridStrategy = _controllerGameObject.AddComponent<GridPlacementStrategy>();
+            var freeStrategy = ScriptableObject.CreateInstance<FreePositionStrategy>();
+            var gridStrategy = ScriptableObject.CreateInstance<GridPlacementStrategy>();
 
             // Act
             controller.SetPlacementStrategy(freeStrategy);
@@ -172,10 +161,8 @@ namespace PlacementSystem.Tests
         public void PlacementController_ConfirmPlacement_WithoutStarting_DoesNotThrow()
         {
             // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Input provider must implement IInputProvider");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must implement IPlacementStrategy");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement validator must implement IPlacementValidator");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must implement IPlacementVisualizer");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
 
             // Arrange
             var controller = _controllerGameObject.AddComponent<PlacementController>();
@@ -188,10 +175,8 @@ namespace PlacementSystem.Tests
         public void PlacementController_MultipleStartCalls_OnlyCreatesOneGhost()
         {
             // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Input provider must implement IInputProvider");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must implement IPlacementStrategy");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement validator must implement IPlacementValidator");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must implement IPlacementVisualizer");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
 
             // Arrange
             var controller = _controllerGameObject.AddComponent<PlacementController>();
@@ -215,10 +200,8 @@ namespace PlacementSystem.Tests
         public void PlacementController_WithNullPrefab_StartPlacementDoesNothing()
         {
             // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Input provider must implement IInputProvider");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must implement IPlacementStrategy");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement validator must implement IPlacementValidator");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must implement IPlacementVisualizer");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must be assigned");
+            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must be assigned");
 
             // Arrange
             var controller = _controllerGameObject.AddComponent<PlacementController>();
@@ -235,9 +218,8 @@ namespace PlacementSystem.Tests
         {
             // Add required components
             var inputProvider = _controllerGameObject.AddComponent<LegacyInputProvider>();
-            var strategy = _controllerGameObject.AddComponent<FreePositionStrategy>();
-            var validator = _controllerGameObject.AddComponent<PlacementValidation>();
-            var visualizer = _controllerGameObject.AddComponent<StandardPlacementVisualizer>();
+            var strategy = ScriptableObject.CreateInstance<FreePositionStrategy>();
+            var visualizer = ScriptableObject.CreateInstance<StandardPlacementVisualizer>();
 
             // Use reflection to set private fields
             var cameraField = typeof(PlacementController).GetField("_placementCamera", 
@@ -248,15 +230,11 @@ namespace PlacementSystem.Tests
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             inputField.SetValue(controller, inputProvider);
 
-            var strategyField = typeof(PlacementController).GetField("_placementStrategyComponent", 
+            var strategyField = typeof(PlacementController).GetField("_placementStrategy", 
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             strategyField.SetValue(controller, strategy);
 
-            var validatorField = typeof(PlacementController).GetField("_placementValidatorComponent", 
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            validatorField.SetValue(controller, validator);
-
-            var visualizerField = typeof(PlacementController).GetField("_placementVisualizerComponent", 
+            var visualizerField = typeof(PlacementController).GetField("_placementVisualizer", 
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             visualizerField.SetValue(controller, visualizer);
 
