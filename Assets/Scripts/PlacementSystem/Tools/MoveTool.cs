@@ -108,7 +108,12 @@ namespace Systems.PlacementSystem.Tools
 
             var snapState = _context.ToolStates.GetOrCreate<SnapToolState>();
             if (!snapState.HasRequest)
+            {
+                Debug.Log($"[MoveTool.Tick] No snap request");
                 return;
+            }
+
+            Debug.Log($"[MoveTool.Tick] Has request, HasSnap: {snapState.HasSnap}, Request position: {snapState.RequestPosition}");
 
             Vector3 targetPosition = snapState.RequestPosition;
             Quaternion targetRotation = snapState.RequestRotation;
@@ -125,7 +130,12 @@ namespace Systems.PlacementSystem.Tools
                 targetPosition = _context.PlacementStrategy.CalculatePosition(targetPosition, selected);
                 targetRotation = _context.PlacementStrategy.CalculateRotation(targetRotation);
             }
+            else
+            {
+                Debug.Log($"[MoveTool] No snap and no placement strategy - using raw request position");
+            }
 
+            Debug.Log($"[MoveTool.Tick] Final position: {targetPosition}");
             selected.transform.position = targetPosition;
             selected.transform.rotation = targetRotation;
             _context.PlacementVisualizer?.UpdateVisual(true);
@@ -230,7 +240,7 @@ namespace Systems.PlacementSystem.Tools
             var socketType = placeable != null ? placeable.RequiredSocketType : null;
             float snapRange = placeable != null ? placeable.SnapRange : 0f;
 
-            Debug.Log($"[MoveTool] Snap request - Object: {_movingObject.name}, SocketType: {socketType?.name ?? "null"}, Range: {snapRange}, Position: {hit.point}");
+            // Always set request with current mouse position - SnapTool handles sticky snap logic
             snapState.SetRequest(_movingObject, hit.point, _movingObject.transform.rotation, socketType, snapRange);
         }
 

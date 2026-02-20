@@ -47,7 +47,7 @@ namespace Systems.PlacementSystem.Visualization
             // Create outline material
             // Note: This requires a custom outline shader or post-processing effect
             // For production use, you would implement a proper outline shader
-            _outlineMaterial = new Material(Shader.Find("Standard"));
+            _outlineMaterial = new Material(Shader.Find("Outline"));
             
             // Apply initial state
             UpdateVisual(true);
@@ -74,7 +74,7 @@ namespace Systems.PlacementSystem.Visualization
             // Apply to material (this is a simplified example)
             if (_outlineMaterial != null && _outlineMaterial.HasProperty("_Color"))
             {
-                _outlineMaterial.color = outlineColor;
+                _outlineMaterial.SetColor("_Color", outlineColor);
             }
         }
 

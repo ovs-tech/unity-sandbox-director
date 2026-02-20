@@ -59,25 +59,43 @@ namespace Systems.PlacementSystem.Sockets
 
             Debug.Log($"[SnapManager] Searching for {requiredType.name} sockets at {position}, range: {maxDistance}, found {nearbyColliders.Length} colliders with layer mask {_socketLayer.value}");
 
+            if (nearbyColliders == null || nearbyColliders.Length == 0)
+            {
+                Debug.Log("[SnapManager] No colliders found or array is null");
+                return null;
+            }
+
             int checkedCount = 0;
             int socketsFound = 0;
             int socketsChecked = 0;
+            
+            Debug.Log($"[SnapManager] Starting collider check loop, arrayLength: {nearbyColliders.Length}, _useTagDetection: {_useTagDetection}, _socketTag: '{_socketTag}'");
+            
             foreach (var collider in nearbyColliders)
             {
+                Debug.Log($"[SnapManager] Checking collider: {collider.name}, layer: {collider.gameObject.layer}, tag: {collider.tag}");
+                
                 // Performance limit
                 if (checkedCount >= _maxSocketChecksPerFrame)
+                {
+                    Debug.Log($"[SnapManager] Hit performance limit of {_maxSocketChecksPerFrame} checks");
                     break;
+                }
 
                 // Optional tag check
                 if (_useTagDetection && !collider.CompareTag(_socketTag))
                 {
-                    Debug.Log($"[SnapManager] Skipping {collider.name} - wrong tag");
+                    Debug.Log($"[SnapManager] Skipping {collider.name} - wrong tag (expected: {_socketTag}, got: {collider.tag})");
+                    checkedCount++;
                     continue;
                 }
 
                 Socket socket = collider.GetComponent<Socket>();
                 if (socket == null)
+                {
+                    Debug.Log($"[SnapManager] No Socket on {collider.name}, checking parent...");
                     socket = collider.GetComponentInParent<Socket>();
+                }
 
                 if (socket != null)
                 {
@@ -93,12 +111,13 @@ namespace Systems.PlacementSystem.Sockets
                         {
                             nearestDistance = distance;
                             nearestSocket = socket;
+                            Debug.Log($"[SnapManager] New nearest socket: {socket.name} at {nearestDistance:F2}");
                         }
                     }
                 }
                 else
                 {
-                    Debug.Log($"[SnapManager] Collider {collider.name} has no Socket component");
+                    Debug.Log($"[SnapManager] Collider {collider.name} has no Socket component (checked parent too)");
                 }
 
                 checkedCount++;
