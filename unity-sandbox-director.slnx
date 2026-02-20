@@ -2,6 +2,8 @@
   <Project Path="Systems.SceneSandbox.csproj" />
   <Project Path="Core.csproj" />
   <Project Path="Systems.MiniTimeline.csproj" />
+  <Project Path="Systems.PlacementSystem.csproj" />
+  <Project Path="Tests.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="Systems.SceneSandbox.Editor.csproj" />

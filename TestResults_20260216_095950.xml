@@ -1,0 +1,1161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="120" result="Failed(Child)" total="120" passed="115" failed="5" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:41Z" duration="1.8488083">
+  <test-suite type="TestSuite" id="1175" name="unity-sandbox-director" fullname="unity-sandbox-director" runstate="Runnable" testcasecount="120" result="Failed" site="Child" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:41Z" duration="1.848808" total="120" passed="115" failed="5" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1011" name="EditModeTests.dll" fullname="/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Library/ScriptAssemblies/EditModeTests.dll" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.037746" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="1522" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1012" name="Systems" fullname="Systems" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.033318" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1013" name="SceneSandbox" fullname="Systems.SceneSandbox" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.031843" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1014" name="UI" fullname="Systems.SceneSandbox.UI" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.030445" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1015" name="SceneObjectLibrary" fullname="Systems.SceneSandbox.UI.SceneObjectLibrary" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.028959" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestSuite" id="1016" name="Tests" fullname="Systems.SceneSandbox.UI.SceneObjectLibrary.Tests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.027305" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-suite type="TestFixture" id="1001" name="SceneObjectLibraryViewModelTests" fullname="Systems.SceneSandbox.UI.SceneObjectLibrary.Tests.SceneObjectLibraryViewModelTests" classname="Systems.SceneSandbox.UI.SceneObjectLibrary.Tests.SceneObjectLibraryViewModelTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.025053" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1010" name="AvailableCategories_SortedCorrectly" fullname="Systems.SceneSandbox.UI.SceneObjectLibrary.Tests.SceneObjectLibraryViewModelTests.AvailableCategories_SortedCorrectly" methodname="AvailableCategories_SortedCorrectly" classname="Systems.SceneSandbox.UI.SceneObjectLibrary.Tests.SceneObjectLibraryViewModelTests" runstate="Runnable" seed="931244804" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.009658" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1009" name="ClearFilter_ReturnsAllObjects" fullname="Systems.SceneSandbox.UI.SceneObjectLibrary.Tests.SceneObjectLibraryViewModelTests.ClearFilter_ReturnsAllObjects" methodname="ClearFilter_ReturnsAllObjects" classname="Systems.SceneSandbox.UI.SceneObjectLibrary.Tests.SceneObjectLibraryViewModelTests" runstate="Runnable" seed="2130490457" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000610" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1006" name="CombinedFilters_TypeAndCategory" fullname="Systems.SceneSandbox.UI.SceneObjectLibrary.Tests.SceneObjectLibraryViewModelTests.CombinedFilters_TypeAndCategory" methodname="CombinedFilters_TypeAndCategory" classname="Systems.SceneSandbox.UI.SceneObjectLibrary.Tests.SceneObjectLibraryViewModelTests" runstate="Runnable" seed="1849729286" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000701" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1007" name="CombinedFilters_TypeCategoryAndSearch" fullname="Systems.SceneSandbox.UI.SceneObjectLibrary.Tests.SceneObjectLibraryViewModelTests.CombinedFilters_TypeCategoryAndSearch" methodname="CombinedFilters_TypeCategoryAndSearch" classname="Systems.SceneSandbox.UI.SceneObjectLibrary.Tests.SceneObjectLibraryViewModelTests" runstate="Runnable" seed="1653487776" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000187" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1004" name="FilterByCategory_ReturnsOnlyFurniture" fullname="Systems.SceneSandbox.UI.SceneObjectLibrary.Tests.SceneObjectLibraryViewModelTests.FilterByCategory_ReturnsOnlyFurniture" methodname="FilterByCategory_ReturnsOnlyFurniture" classname="Systems.SceneSandbox.UI.SceneObjectLibrary.Tests.SceneObjectLibraryViewModelTests" runstate="Runnable" seed="1927298493" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000122" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1002" name="FilterByType_ReturnsOnlyActors" fullname="Systems.SceneSandbox.UI.SceneObjectLibrary.Tests.SceneObjectLibraryViewModelTests.FilterByType_ReturnsOnlyActors" methodname="FilterByType_ReturnsOnlyActors" classname="Systems.SceneSandbox.UI.SceneObjectLibrary.Tests.SceneObjectLibraryViewModelTests" runstate="Runnable" seed="603728441" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000142" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1003" name="FilterByType_ReturnsOnlyProps" fullname="Systems.SceneSandbox.UI.SceneObjectLibrary.Tests.SceneObjectLibraryViewModelTests.FilterByType_ReturnsOnlyProps" methodname="FilterByType_ReturnsOnlyProps" classname="Systems.SceneSandbox.UI.SceneObjectLibrary.Tests.SceneObjectLibraryViewModelTests" runstate="Runnable" seed="2122417380" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000105" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1008" name="NoResults_ReturnsEmptyList" fullname="Systems.SceneSandbox.UI.SceneObjectLibrary.Tests.SceneObjectLibraryViewModelTests.NoResults_ReturnsEmptyList" methodname="NoResults_ReturnsEmptyList" classname="Systems.SceneSandbox.UI.SceneObjectLibrary.Tests.SceneObjectLibraryViewModelTests" runstate="Runnable" seed="1841048654" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000069" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1005" name="Search_CaseInsensitive_PartialMatch" fullname="Systems.SceneSandbox.UI.SceneObjectLibrary.Tests.SceneObjectLibraryViewModelTests.Search_CaseInsensitive_PartialMatch" methodname="Search_CaseInsensitive_PartialMatch" classname="Systems.SceneSandbox.UI.SceneObjectLibrary.Tests.SceneObjectLibraryViewModelTests" runstate="Runnable" seed="1513369693" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000474" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+    <test-suite type="Assembly" id="1058" name="Systems.MiniTimeline.dll" fullname="/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Library/ScriptAssemblies/Systems.MiniTimeline.dll" runstate="Runnable" testcasecount="31" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:40Z" duration="1.678607" total="31" passed="31" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="1522" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1059" name="MiniTimeline" fullname="MiniTimeline" runstate="Runnable" testcasecount="13" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.094021" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1062" name="Core" fullname="MiniTimeline.Core" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.023155" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1063" name="Tests" fullname="MiniTimeline.Core.Tests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.020431" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1019" name="MiniTimelineDirectorTests" fullname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests" classname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.017298" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1023" name="AddClip_AddsClipToTrack" fullname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests.AddClip_AddsClipToTrack" methodname="AddClip_AddsClipToTrack" classname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests" runstate="Runnable" seed="1788377851" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.004136" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1021" name="AddTrack_AddsTrackToProject" fullname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests.AddTrack_AddsTrackToProject" methodname="AddTrack_AddsTrackToProject" classname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests" runstate="Runnable" seed="1441121616" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000526" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1020" name="CreateNewProject_CreatesProjectWithDefaults" fullname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests.CreateNewProject_CreatesProjectWithDefaults" methodname="CreateNewProject_CreatesProjectWithDefaults" classname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests" runstate="Runnable" seed="1123586769" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.001672" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1031" name="FrameToTime_ConvertsCorrectly" fullname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests.FrameToTime_ConvertsCorrectly" methodname="FrameToTime_ConvertsCorrectly" classname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests" runstate="Runnable" seed="1772721390" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000206" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1027" name="Pause_PausesPlayback" fullname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests.Pause_PausesPlayback" methodname="Pause_PausesPlayback" classname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests" runstate="Runnable" seed="1561596882" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000352" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1026" name="Play_StartsPlayback" fullname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests.Play_StartsPlayback" methodname="Play_StartsPlayback" classname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests" runstate="Runnable" seed="780072269" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000161" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1024" name="RemoveClip_RemovesClipFromTrack" fullname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests.RemoveClip_RemovesClipFromTrack" methodname="RemoveClip_RemovesClipFromTrack" classname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests" runstate="Runnable" seed="1272046664" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000534" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1022" name="RemoveTrack_RemovesTrackFromProject" fullname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests.RemoveTrack_RemovesTrackFromProject" methodname="RemoveTrack_RemovesTrackFromProject" classname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests" runstate="Runnable" seed="19281117" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000702" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1028" name="Stop_StopsPlaybackAndResetsTime" fullname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests.Stop_StopsPlaybackAndResetsTime" methodname="Stop_StopsPlaybackAndResetsTime" classname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests" runstate="Runnable" seed="644352135" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000254" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1030" name="TimeToFrame_ConvertsCorrectly" fullname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests.TimeToFrame_ConvertsCorrectly" methodname="TimeToFrame_ConvertsCorrectly" classname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests" runstate="Runnable" seed="1652479959" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000151" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1029" name="Update_AdvancesTime_WhenPlaying" fullname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests.Update_AdvancesTime_WhenPlaying" methodname="Update_AdvancesTime_WhenPlaying" classname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests" runstate="Runnable" seed="93042350" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.002556" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1025" name="UpdateClip_UpdatesClipProperties" fullname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests.UpdateClip_UpdatesClipProperties" methodname="UpdateClip_UpdatesClipProperties" classname="MiniTimeline.Core.Tests.MiniTimelineDirectorTests" runstate="Runnable" seed="524769401" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000552" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+        <test-suite type="TestSuite" id="1060" name="Tracks" fullname="MiniTimeline.Tracks" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.068400" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1061" name="Tests" fullname="MiniTimeline.Tracks.Tests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.062557" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1017" name="MorphTrackPerformanceTest" fullname="MiniTimeline.Tracks.Tests.MorphTrackPerformanceTest" classname="MiniTimeline.Tracks.Tests.MorphTrackPerformanceTest" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.059581" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1018" name="BenchmarkProcessOverrideClips_Allocations" fullname="MiniTimeline.Tracks.Tests.MorphTrackPerformanceTest.BenchmarkProcessOverrideClips_Allocations" methodname="BenchmarkProcessOverrideClips_Allocations" classname="MiniTimeline.Tracks.Tests.MorphTrackPerformanceTest" runstate="Runnable" seed="584090862" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.057642" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Total allocated bytes for 1000 iterations: 0
+Average bytes per call: 0
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+      <test-suite type="TestSuite" id="1064" name="Systems" fullname="Systems" runstate="Runnable" testcasecount="18" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:40Z" duration="1.578609" total="18" passed="18" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1065" name="MiniTimeline" fullname="Systems.MiniTimeline" runstate="Runnable" testcasecount="18" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:40Z" duration="1.573311" total="18" passed="18" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1074" name="Core" fullname="Systems.MiniTimeline.Core" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.031192" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1075" name="Tests" fullname="Systems.MiniTimeline.Core.Tests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.025574" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1055" name="ClipDuplicationLogicTest" fullname="Systems.MiniTimeline.Core.Tests.ClipDuplicationLogicTest" classname="Systems.MiniTimeline.Core.Tests.ClipDuplicationLogicTest" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.012797" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1056" name="CloneClip_WithJsonUtility_PreservesData" fullname="Systems.MiniTimeline.Core.Tests.ClipDuplicationLogicTest.CloneClip_WithJsonUtility_PreservesData" methodname="CloneClip_WithJsonUtility_PreservesData" classname="Systems.MiniTimeline.Core.Tests.ClipDuplicationLogicTest" runstate="Runnable" seed="1261609225" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000343" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1057" name="DuplicateAndAddClip_AddsNewClipToTrack" fullname="Systems.MiniTimeline.Core.Tests.ClipDuplicationLogicTest.DuplicateAndAddClip_AddsNewClipToTrack" methodname="DuplicateAndAddClip_AddsNewClipToTrack" classname="Systems.MiniTimeline.Core.Tests.ClipDuplicationLogicTest" runstate="Runnable" seed="677138774" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.001619" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestSuite" id="1072" name="Tracks" fullname="Systems.MiniTimeline.Tracks" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.045400" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1073" name="Tests" fullname="Systems.MiniTimeline.Tracks.Tests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.043032" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1044" name="CinemachineTrackTests" fullname="Systems.MiniTimeline.Tracks.Tests.CinemachineTrackTests" classname="Systems.MiniTimeline.Tracks.Tests.CinemachineTrackTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.007698" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1047" name="Test_LowAngle_NoAnimator_DefaultsToLowHeight" fullname="Systems.MiniTimeline.Tracks.Tests.CinemachineTrackTests.Test_LowAngle_NoAnimator_DefaultsToLowHeight" methodname="Test_LowAngle_NoAnimator_DefaultsToLowHeight" classname="Systems.MiniTimeline.Tracks.Tests.CinemachineTrackTests" runstate="Runnable" seed="117458239" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.005026" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[MiniTrack] Track '' entered active state at time 5.00s (mode: Continuous)
+[MiniTrack] OnEnter triggered for track '' at 5.00s
+]]></output>
+                </test-case>
+                <test-case id="1045" name="Test_NoAnimator_DefaultsToHeadHeight" fullname="Systems.MiniTimeline.Tracks.Tests.CinemachineTrackTests.Test_NoAnimator_DefaultsToHeadHeight" methodname="Test_NoAnimator_DefaultsToHeadHeight" classname="Systems.MiniTimeline.Tracks.Tests.CinemachineTrackTests" runstate="Runnable" seed="1525064281" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000744" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[MiniTrack] Track '' entered active state at time 5.00s (mode: Continuous)
+[MiniTrack] OnEnter triggered for track '' at 5.00s
+]]></output>
+                </test-case>
+                <test-case id="1046" name="Test_NoAnimator_RelativeOrientation" fullname="Systems.MiniTimeline.Tracks.Tests.CinemachineTrackTests.Test_NoAnimator_RelativeOrientation" methodname="Test_NoAnimator_RelativeOrientation" classname="Systems.MiniTimeline.Tracks.Tests.CinemachineTrackTests" runstate="Runnable" seed="1519055463" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000687" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[MiniTrack] Track '' entered active state at time 5.00s (mode: Continuous)
+[MiniTrack] OnEnter triggered for track '' at 5.00s
+]]></output>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1048" name="MovementTrackNavMeshTests" fullname="Systems.MiniTimeline.Tracks.Tests.MovementTrackNavMeshTests" classname="Systems.MiniTimeline.Tracks.Tests.MovementTrackNavMeshTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.024103" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1049" name="Test_NavMeshMode_EnablesAgent" fullname="Systems.MiniTimeline.Tracks.Tests.MovementTrackNavMeshTests.Test_NavMeshMode_EnablesAgent" methodname="Test_NavMeshMode_EnablesAgent" classname="Systems.MiniTimeline.Tracks.Tests.MovementTrackNavMeshTests" runstate="Runnable" seed="1187922420" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.011254" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Failed to create agent because there is no valid NavMesh
+[MovementTrack] OnPrepare called for track '', bind key: '', target object: MovementTarget (UnityEngine.GameObject)
+[MovementTrack] Target is GameObject: MovementTarget
+[MovementTrack] Prepared track '' with 0 clips, target transform: MovementTarget
+[MovementTrack] Added position clip 'a4a3359a-ccf8-4b82-872d-8c944e9af83c' to track '': start=0.00, duration=10.00, from=(0.00, 0.00, 0.00) to=(10.00, 0.00, 0.00)
+[MiniTrack] Track '' entered active state at time 5.00s (mode: Continuous)
+[MiniTrack] OnEnter triggered for track '' at 5.00s
+[MovementTrack] Evaluating at time 5.000, found 1 active clips, scrub: False
+[MovementTrack] Applying single clip: a4a3359a-ccf8-4b82-872d-8c944e9af83c at time 5.000
+]]></output>
+                </test-case>
+                <test-case id="1050" name="Test_NavMeshMode_SpeedCalculation_Fallback" fullname="Systems.MiniTimeline.Tracks.Tests.MovementTrackNavMeshTests.Test_NavMeshMode_SpeedCalculation_Fallback" methodname="Test_NavMeshMode_SpeedCalculation_Fallback" classname="Systems.MiniTimeline.Tracks.Tests.MovementTrackNavMeshTests" runstate="Runnable" seed="774851134" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.004154" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Failed to create agent because there is no valid NavMesh
+[MovementTrack] OnPrepare called for track '', bind key: '', target object: MovementTarget (UnityEngine.GameObject)
+[MovementTrack] Target is GameObject: MovementTarget
+[MovementTrack] Prepared track '' with 0 clips, target transform: MovementTarget
+[MovementTrack] Added position clip 'dcdf82be-5be9-4a9f-9ee2-ce7ed9251f26' to track '': start=0.00, duration=5.00, from=(0.00, 0.00, 0.00) to=(10.00, 0.00, 0.00)
+[MiniTrack] Track '' entered active state at time 1.00s (mode: Continuous)
+[MiniTrack] OnEnter triggered for track '' at 1.00s
+[MovementTrack] Evaluating at time 1.000, found 1 active clips, scrub: False
+[MovementTrack] Applying single clip: dcdf82be-5be9-4a9f-9ee2-ce7ed9251f26 at time 1.000
+]]></output>
+                </test-case>
+                <test-case id="1051" name="Test_SwitchToDirect_DisablesAgent" fullname="Systems.MiniTimeline.Tracks.Tests.MovementTrackNavMeshTests.Test_SwitchToDirect_DisablesAgent" methodname="Test_SwitchToDirect_DisablesAgent" classname="Systems.MiniTimeline.Tracks.Tests.MovementTrackNavMeshTests" runstate="Runnable" seed="40462349" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.005294" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Failed to create agent because there is no valid NavMesh
+[MovementTrack] OnPrepare called for track '', bind key: '', target object: MovementTarget (UnityEngine.GameObject)
+[MovementTrack] Target is GameObject: MovementTarget
+[MovementTrack] Prepared track '' with 0 clips, target transform: MovementTarget
+[MovementTrack] Added position clip '39c5b2d6-7d95-4e53-b96a-6fe9e2a53678' to track '': start=0.00, duration=5.00, from=(0.00, 0.00, 0.00) to=(10.00, 0.00, 0.00)
+[MovementTrack] Added position clip 'fe299f74-ff76-4888-8f2e-8abcb6bb0470' to track '': start=5.00, duration=5.00, from=(10.00, 0.00, 0.00) to=(20.00, 0.00, 0.00)
+[MiniTrack] Track '' entered active state at time 2.50s (mode: Continuous)
+[MiniTrack] OnEnter triggered for track '' at 2.50s
+[MovementTrack] Evaluating at time 2.500, found 1 active clips, scrub: False
+[MovementTrack] Applying single clip: 39c5b2d6-7d95-4e53-b96a-6fe9e2a53678 at time 2.500
+[MovementTrack] Evaluating at time 7.500, found 1 active clips, scrub: False
+[MovementTrack] Applying single clip: fe299f74-ff76-4888-8f2e-8abcb6bb0470 at time 7.500
+[MovementTrack] Applying clip 'fe299f74-ff76-4888-8f2e-8abcb6bb0470': localTime=2.500, normalizedTime=0.500, hasPosition=True, hasRotation=False
+[MovementTrack] Setting position: (15.00, 0.00, 0.00) (weight: 1.00)
+]]></output>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1052" name="MovementTrackTests" fullname="Systems.MiniTimeline.Tracks.Tests.MovementTrackTests" classname="Systems.MiniTimeline.Tracks.Tests.MovementTrackTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.010054" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1053" name="Test_MultiClipBlending_Position_EqualWeights" fullname="Systems.MiniTimeline.Tracks.Tests.MovementTrackTests.Test_MultiClipBlending_Position_EqualWeights" methodname="Test_MultiClipBlending_Position_EqualWeights" classname="Systems.MiniTimeline.Tracks.Tests.MovementTrackTests" runstate="Runnable" seed="234470314" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.003783" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[MovementTrack] OnPrepare called for track '', bind key: '', target object: MovementTarget (UnityEngine.GameObject)
+[MovementTrack] Target is GameObject: MovementTarget
+[MovementTrack] Prepared track '' with 0 clips, target transform: MovementTarget
+[MovementTrack] Added position clip 'e578f177-4426-4080-9fa9-ee2b5393f091' to track '': start=0.00, duration=10.00, from=(0.00, 0.00, 0.00) to=(10.00, 0.00, 0.00)
+[MovementTrack] Added position clip '20e4621c-e458-4c9f-9a45-3c0e0ec421c6' to track '': start=5.00, duration=10.00, from=(0.00, 10.00, 0.00) to=(0.00, 20.00, 0.00)
+[MiniTrack] Track '' entered active state at time 7.50s (mode: Continuous)
+[MiniTrack] OnEnter triggered for track '' at 7.50s
+[MovementTrack] Evaluating at time 7.500, found 2 active clips, scrub: False
+[MovementTrack] Blending 2 clips at time 7.500
+]]></output>
+                </test-case>
+                <test-case id="1054" name="Test_MultiClipBlending_Position_Weighted" fullname="Systems.MiniTimeline.Tracks.Tests.MovementTrackTests.Test_MultiClipBlending_Position_Weighted" methodname="Test_MultiClipBlending_Position_Weighted" classname="Systems.MiniTimeline.Tracks.Tests.MovementTrackTests" runstate="Runnable" seed="636206486" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.002697" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[[MovementTrack] OnPrepare called for track '', bind key: '', target object: MovementTarget (UnityEngine.GameObject)
+[MovementTrack] Target is GameObject: MovementTarget
+[MovementTrack] Prepared track '' with 0 clips, target transform: MovementTarget
+[MovementTrack] Added position clip '20756464-dfbf-4859-8dac-f850343260df' to track '': start=0.00, duration=10.00, from=(0.00, 0.00, 0.00) to=(10.00, 0.00, 0.00)
+[MovementTrack] Added position clip '894b9993-a89a-4884-bbe6-b08cae7eaee3' to track '': start=5.00, duration=10.00, from=(0.00, 10.00, 0.00) to=(0.00, 20.00, 0.00)
+[MiniTrack] Track '' entered active state at time 7.50s (mode: Continuous)
+[MiniTrack] OnEnter triggered for track '' at 7.50s
+[MovementTrack] Evaluating at time 7.500, found 2 active clips, scrub: False
+[MovementTrack] Blending 2 clips at time 7.500
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestSuite" id="1066" name="UI" fullname="Systems.MiniTimeline.UI" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:40Z" duration="1.494909" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1070" name="Commands" fullname="Systems.MiniTimeline.UI.Commands" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.004581" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestSuite" id="1071" name="Tests" fullname="Systems.MiniTimeline.UI.Commands.Tests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.003638" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-suite type="TestFixture" id="1041" name="DeleteClipCommandTests" fullname="Systems.MiniTimeline.UI.Commands.Tests.DeleteClipCommandTests" classname="Systems.MiniTimeline.UI.Commands.Tests.DeleteClipCommandTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.002674" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1042" name="Execute_DeletesClipFromTrack" fullname="Systems.MiniTimeline.UI.Commands.Tests.DeleteClipCommandTests.Execute_DeletesClipFromTrack" methodname="Execute_DeletesClipFromTrack" classname="Systems.MiniTimeline.UI.Commands.Tests.DeleteClipCommandTests" runstate="Runnable" seed="800903790" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000791" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                    <output><![CDATA[Successfully deleted clip 941c566c-2795-4276-a6f6-66d5754d1e1d
+]]></output>
+                  </test-case>
+                  <test-case id="1043" name="Undo_RestoresClipToTrack" fullname="Systems.MiniTimeline.UI.Commands.Tests.DeleteClipCommandTests.Undo_RestoresClipToTrack" methodname="Undo_RestoresClipToTrack" classname="Systems.MiniTimeline.UI.Commands.Tests.DeleteClipCommandTests" runstate="Runnable" seed="827873492" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:39Z" duration="0.000738" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                    <output><![CDATA[Successfully deleted clip 9c3a90f5-8035-4fc2-9452-cb21fb2151fd
+Restored clip 9c3a90f5-8035-4fc2-9452-cb21fb2151fd
+]]></output>
+                  </test-case>
+                </test-suite>
+              </test-suite>
+            </test-suite>
+            <test-suite type="TestSuite" id="1068" name="Input" fullname="Systems.MiniTimeline.UI.Input" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:40Z" duration="1.428216" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestSuite" id="1069" name="Tests" fullname="Systems.MiniTimeline.UI.Input.Tests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:40Z" duration="1.425566" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-suite type="TestFixture" id="1038" name="InputInteractionManagerPerformanceTests" fullname="Systems.MiniTimeline.UI.Input.Tests.InputInteractionManagerPerformanceTests" classname="Systems.MiniTimeline.UI.Input.Tests.InputInteractionManagerPerformanceTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:40Z" duration="1.424484" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1039" name="HasActiveInteraction_DoesNotAllocate" fullname="Systems.MiniTimeline.UI.Input.Tests.InputInteractionManagerPerformanceTests.HasActiveInteraction_DoesNotAllocate" methodname="HasActiveInteraction_DoesNotAllocate" classname="Systems.MiniTimeline.UI.Input.Tests.InputInteractionManagerPerformanceTests" runstate="Runnable" seed="2135557804" result="Passed" start-time="2026-02-16 02:59:39Z" end-time="2026-02-16 02:59:40Z" duration="0.835864" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1040" name="OnPressUpdate_DoesNotAllocate" fullname="Systems.MiniTimeline.UI.Input.Tests.InputInteractionManagerPerformanceTests.OnPressUpdate_DoesNotAllocate" methodname="OnPressUpdate_DoesNotAllocate" classname="Systems.MiniTimeline.UI.Input.Tests.InputInteractionManagerPerformanceTests" runstate="Runnable" seed="1494445863" result="Passed" start-time="2026-02-16 02:59:40Z" end-time="2026-02-16 02:59:40Z" duration="0.586212" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+              </test-suite>
+            </test-suite>
+            <test-suite type="TestSuite" id="1067" name="Tests" fullname="Systems.MiniTimeline.UI.Tests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-02-16 02:59:40Z" end-time="2026-02-16 02:59:40Z" duration="0.057149" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1032" name="CopyClipTests" fullname="Systems.MiniTimeline.UI.Tests.CopyClipTests" classname="Systems.MiniTimeline.UI.Tests.CopyClipTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-02-16 02:59:40Z" end-time="2026-02-16 02:59:40Z" duration="0.016806" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1033" name="CopyClip_StoresSerializedClipInClipboard" fullname="Systems.MiniTimeline.UI.Tests.CopyClipTests.CopyClip_StoresSerializedClipInClipboard" methodname="CopyClip_StoresSerializedClipInClipboard" classname="Systems.MiniTimeline.UI.Tests.CopyClipTests" runstate="Runnable" seed="1130937245" result="Passed" start-time="2026-02-16 02:59:40Z" end-time="2026-02-16 02:59:40Z" duration="0.009805" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[You are trying to create a MonoBehaviour using the 'new' keyword.  This is not allowed.  MonoBehaviours can only be added using AddComponent(). Alternatively, your script can inherit from ScriptableObject or no base class at all
+Copied clip to clipboard: TestClip1 (TestClip)
+]]></output>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1034" name="ZoomToFitTests" fullname="Systems.MiniTimeline.UI.Tests.ZoomToFitTests" classname="Systems.MiniTimeline.UI.Tests.ZoomToFitTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-02-16 02:59:40Z" end-time="2026-02-16 02:59:40Z" duration="0.014400" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1035" name="ZoomToFit_CalculatesCorrectZoom" fullname="Systems.MiniTimeline.UI.Tests.ZoomToFitTests.ZoomToFit_CalculatesCorrectZoom" methodname="ZoomToFit_CalculatesCorrectZoom" classname="Systems.MiniTimeline.UI.Tests.ZoomToFitTests" runstate="Runnable" seed="149865666" result="Passed" start-time="2026-02-16 02:59:40Z" end-time="2026-02-16 02:59:40Z" duration="0.004058" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[You are trying to create a MonoBehaviour using the 'new' keyword.  This is not allowed.  MonoBehaviours can only be added using AddComponent(). Alternatively, your script can inherit from ScriptableObject or no base class at all
+Root element 'timeline-editor' not found in UI Document. Falling back to document root.
+Zoom to fit: Width=500, Length=10, TargetZoom=0.475
+]]></output>
+                </test-case>
+                <test-case id="1037" name="ZoomToFit_ClampsToMaxZoom" fullname="Systems.MiniTimeline.UI.Tests.ZoomToFitTests.ZoomToFit_ClampsToMaxZoom" methodname="ZoomToFit_ClampsToMaxZoom" classname="Systems.MiniTimeline.UI.Tests.ZoomToFitTests" runstate="Runnable" seed="450140058" result="Passed" start-time="2026-02-16 02:59:40Z" end-time="2026-02-16 02:59:40Z" duration="0.002859" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[You are trying to create a MonoBehaviour using the 'new' keyword.  This is not allowed.  MonoBehaviours can only be added using AddComponent(). Alternatively, your script can inherit from ScriptableObject or no base class at all
+Root element 'timeline-editor' not found in UI Document. Falling back to document root.
+Zoom to fit: Width=10000, Length=10, TargetZoom=9.5
+]]></output>
+                </test-case>
+                <test-case id="1036" name="ZoomToFit_ClampsToMinZoom" fullname="Systems.MiniTimeline.UI.Tests.ZoomToFitTests.ZoomToFit_ClampsToMinZoom" methodname="ZoomToFit_ClampsToMinZoom" classname="Systems.MiniTimeline.UI.Tests.ZoomToFitTests" runstate="Runnable" seed="1057081264" result="Passed" start-time="2026-02-16 02:59:40Z" end-time="2026-02-16 02:59:40Z" duration="0.002151" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[You are trying to create a MonoBehaviour using the 'new' keyword.  This is not allowed.  MonoBehaviours can only be added using AddComponent(). Alternatively, your script can inherit from ScriptableObject or no base class at all
+Root element 'timeline-editor' not found in UI Document. Falling back to document root.
+Zoom to fit: Width=50, Length=10, TargetZoom=0.0475
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+    <test-suite type="Assembly" id="1094" name="Systems.SceneSandbox.dll" fullname="/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Library/ScriptAssemblies/Systems.SceneSandbox.dll" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-02-16 02:59:40Z" end-time="2026-02-16 02:59:41Z" duration="0.034659" total="17" passed="13" failed="4" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="1522" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1095" name="Systems" fullname="Systems" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-02-16 02:59:40Z" end-time="2026-02-16 02:59:41Z" duration="0.030578" total="17" passed="13" failed="4" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1096" name="SceneSandbox" fullname="Systems.SceneSandbox" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-02-16 02:59:40Z" end-time="2026-02-16 02:59:41Z" duration="0.028968" total="17" passed="13" failed="4" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1097" name="Core" fullname="Systems.SceneSandbox.Core" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-02-16 02:59:40Z" end-time="2026-02-16 02:59:41Z" duration="0.027946" total="17" passed="13" failed="4" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestSuite" id="1098" name="Tests" fullname="Systems.SceneSandbox.Core.Tests" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-02-16 02:59:40Z" end-time="2026-02-16 02:59:41Z" duration="0.026853" total="17" passed="13" failed="4" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-suite type="TestFixture" id="1076" name="SceneSandboxBuilderTests" fullname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests" classname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-02-16 02:59:40Z" end-time="2026-02-16 02:59:41Z" duration="0.025776" total="17" passed="13" failed="4" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <failure>
+                  <message><![CDATA[One or more child tests had errors]]></message>
+                </failure>
+                <test-case id="1091" name="CancelPlacement_DestroysNewlyCreatedObject" fullname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests.CancelPlacement_DestroysNewlyCreatedObject" methodname="CancelPlacement_DestroysNewlyCreatedObject" classname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests" runstate="Runnable" seed="1232713897" result="Failed" start-time="2026-02-16 02:59:40Z" end-time="2026-02-16 02:59:41Z" duration="0.012844" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Expected: not null
+  But was:  null
+]]></message>
+                    <stack-trace><![CDATA[at Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests.CancelPlacement_DestroysNewlyCreatedObject () [0x00080] in /Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Scripts/SceneSandbox/Core/Tests/SceneSandboxBuilderTests.cs:277
+]]></stack-trace>
+                  </failure>
+                  <output><![CDATA[[PlacementSystem] ObjectLibrary or StageArea is not set.
+]]></output>
+                </test-case>
+                <test-case id="1082" name="ClearScene_RemovesAllObjects" fullname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests.ClearScene_RemovesAllObjects" methodname="ClearScene_RemovesAllObjects" classname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests" runstate="Runnable" seed="155626822" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000914" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1081" name="CreateNewProject_CreatesProject" fullname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests.CreateNewProject_CreatesProject" methodname="CreateNewProject_CreatesProject" classname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests" runstate="Runnable" seed="460394676" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000486" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1080" name="CreateNewScene_ResetsSceneState" fullname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests.CreateNewScene_ResetsSceneState" methodname="CreateNewScene_ResetsSceneState" classname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests" runstate="Runnable" seed="120550563" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000324" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1087" name="DropIndicator_DefaultPosition_WhenNotCreated_ReturnsZero" fullname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests.DropIndicator_DefaultPosition_WhenNotCreated_ReturnsZero" methodname="DropIndicator_DefaultPosition_WhenNotCreated_ReturnsZero" classname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests" runstate="Runnable" seed="1388514859" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000617" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1077" name="Initialization_SetsDefaultValues" fullname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests.Initialization_SetsDefaultValues" methodname="Initialization_SetsDefaultValues" classname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests" runstate="Runnable" seed="1109127986" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000380" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1089" name="IsValidPlacementPosition_RespectsSceneBounds" fullname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests.IsValidPlacementPosition_RespectsSceneBounds" methodname="IsValidPlacementPosition_RespectsSceneBounds" classname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests" runstate="Runnable" seed="1489426951" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000616" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1092" name="ProjectAndSceneManagement_CreateDuplicateRenameCount" fullname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests.ProjectAndSceneManagement_CreateDuplicateRenameCount" methodname="ProjectAndSceneManagement_CreateDuplicateRenameCount" classname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests" runstate="Runnable" seed="1365875445" result="Failed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.001039" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Expected: 2
+  But was:  3
+]]></message>
+                    <stack-trace><![CDATA[at Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests.ProjectAndSceneManagement_CreateDuplicateRenameCount () [0x00060] in /Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Scripts/SceneSandbox/Core/Tests/SceneSandboxBuilderTests.cs:300
+]]></stack-trace>
+                  </failure>
+                </test-case>
+                <test-case id="1093" name="RemoveObject_AfterPlacement_RemovesFromScene" fullname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests.RemoveObject_AfterPlacement_RemovesFromScene" methodname="RemoveObject_AfterPlacement_RemovesFromScene" classname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests" runstate="Runnable" seed="414624485" result="Failed" label="Error" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.001746" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[System.NullReferenceException : Object reference not set to an instance of an object]]></message>
+                    <stack-trace><![CDATA[  at Systems.SceneSandbox.Core.SceneSandboxBuilder.<InitializeComponents>b__167_2 (System.String objectDataId, UnityEngine.GameObject obj) [0x00001] in /Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Scripts/SceneSandbox/Core/SceneSandboxBuilder.cs:547 
+  at UnityEngine.Events.InvokableCall`2[T1,T2].Invoke (T1 args0, T2 args1) [0x00010] in /Users/bokken/build/output/unity/unity/Runtime/Export/UnityEvent/UnityEvent.cs:257 
+  at UnityEngine.Events.UnityEvent`2[T0,T1].Invoke (T0 arg0, T1 arg1) [0x00025] in /Users/bokken/build/output/unity/unity/artifacts/generated/UnityEvent/UnityEvent_2.cs:57 
+  at Systems.SceneSandbox.Core.PlacementSystem.ConfirmPlacement () [0x0002e] in /Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Scripts/SceneSandbox/Core/PlacementSystem.cs:211 
+  at Systems.SceneSandbox.Core.SceneSandboxBuilder.ConfirmPlacement () [0x00001] in /Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Scripts/SceneSandbox/Core/SceneSandboxBuilder.cs:836 
+  at Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests.RemoveObject_AfterPlacement_RemovesFromScene () [0x00075] in /Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Scripts/SceneSandbox/Core/Tests/SceneSandboxBuilderTests.cs:331 
+  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)
+  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <032c206a1674455bacfc3546f1de5ef3>:0 ]]></stack-trace>
+                  </failure>
+                  <output><![CDATA[[PlacementSystem] ObjectLibrary or StageArea is not set.
+]]></output>
+                </test-case>
+                <test-case id="1085" name="RemoveObject_ById_NotFound_ReturnsFalse" fullname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests.RemoveObject_ById_NotFound_ReturnsFalse" methodname="RemoveObject_ById_NotFound_ReturnsFalse" classname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests" runstate="Runnable" seed="1447724914" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000369" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1084" name="RemoveObject_WhenNullOrWithoutTransformable_ReturnsFalse" fullname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests.RemoveObject_WhenNullOrWithoutTransformable_ReturnsFalse" methodname="RemoveObject_WhenNullOrWithoutTransformable_ReturnsFalse" classname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests" runstate="Runnable" seed="921177668" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000370" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1088" name="SetDropIndicatorEnabled_TogglesFlag" fullname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests.SetDropIndicatorEnabled_TogglesFlag" methodname="SetDropIndicatorEnabled_TogglesFlag" classname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests" runstate="Runnable" seed="1756831176" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000340" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1079" name="SetMode_SetsSpecificMode" fullname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests.SetMode_SetsSpecificMode" methodname="SetMode_SetsSpecificMode" classname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests" runstate="Runnable" seed="2057821868" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000652" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1086" name="SetSceneBounds_And_Offset_UpdateProperties" fullname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests.SetSceneBounds_And_Offset_UpdateProperties" methodname="SetSceneBounds_And_Offset_UpdateProperties" classname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests" runstate="Runnable" seed="184518176" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000368" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1083" name="SetTransformMode_UpdatesMode" fullname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests.SetTransformMode_UpdatesMode" methodname="SetTransformMode_UpdatesMode" classname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests" runstate="Runnable" seed="1831066896" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000764" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1090" name="StartPlacement_And_ConfirmRegistersPlacedObject" fullname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests.StartPlacement_And_ConfirmRegistersPlacedObject" methodname="StartPlacement_And_ConfirmRegistersPlacedObject" classname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests" runstate="Runnable" seed="1940705341" result="Failed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000842" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <failure>
+                    <message><![CDATA[  Expected: not null
+  But was:  null
+]]></message>
+                    <stack-trace><![CDATA[at Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests.StartPlacement_And_ConfirmRegistersPlacedObject () [0x00084] in /Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Scripts/SceneSandbox/Core/Tests/SceneSandboxBuilderTests.cs:246
+]]></stack-trace>
+                  </failure>
+                  <output><![CDATA[[PlacementSystem] ObjectLibrary or StageArea is not set.
+]]></output>
+                </test-case>
+                <test-case id="1078" name="ToggleMode_SwitchesBetweenBuildAndPlay" fullname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests.ToggleMode_SwitchesBetweenBuildAndPlay" methodname="ToggleMode_SwitchesBetweenBuildAndPlay" classname="Systems.SceneSandbox.Core.Tests.SceneSandboxBuilderTests" runstate="Runnable" seed="178580382" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000347" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+    <test-suite type="Assembly" id="1169" name="Tests.dll" fullname="/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Library/ScriptAssemblies/Tests.dll" runstate="Runnable" testcasecount="63" result="Failed" site="Child" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.085447" total="63" passed="62" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="1522" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1170" name="PlacementSystem" fullname="PlacementSystem" runstate="Runnable" testcasecount="63" result="Failed" site="Child" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.081747" total="63" passed="62" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1171" name="Tests" fullname="PlacementSystem.Tests" runstate="Runnable" testcasecount="63" result="Failed" site="Child" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.080353" total="63" passed="62" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestFixture" id="1110" name="InputProviderTests" fullname="PlacementSystem.Tests.InputProviderTests" classname="PlacementSystem.Tests.InputProviderTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.009265" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1119" name="InputProviders_CanBeUsedInterchangeably" fullname="PlacementSystem.Tests.InputProviderTests.InputProviders_CanBeUsedInterchangeably" methodname="InputProviders_CanBeUsedInterchangeably" classname="PlacementSystem.Tests.InputProviderTests" runstate="Runnable" seed="1086137527" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.005641" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1112" name="LegacyInputProvider_GetPointerPosition_ReturnsValidVector" fullname="PlacementSystem.Tests.InputProviderTests.LegacyInputProvider_GetPointerPosition_ReturnsValidVector" methodname="LegacyInputProvider_GetPointerPosition_ReturnsValidVector" classname="PlacementSystem.Tests.InputProviderTests" runstate="Runnable" seed="146208163" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000165" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1111" name="LegacyInputProvider_ImplementsInterface" fullname="PlacementSystem.Tests.InputProviderTests.LegacyInputProvider_ImplementsInterface" methodname="LegacyInputProvider_ImplementsInterface" classname="PlacementSystem.Tests.InputProviderTests" runstate="Runnable" seed="210953201" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000096" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1114" name="LegacyInputProvider_IsCancelActionTriggered_ReturnsBool" fullname="PlacementSystem.Tests.InputProviderTests.LegacyInputProvider_IsCancelActionTriggered_ReturnsBool" methodname="LegacyInputProvider_IsCancelActionTriggered_ReturnsBool" classname="PlacementSystem.Tests.InputProviderTests" runstate="Runnable" seed="1456124577" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000430" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1113" name="LegacyInputProvider_IsPlaceActionTriggered_ReturnsBool" fullname="PlacementSystem.Tests.InputProviderTests.LegacyInputProvider_IsPlaceActionTriggered_ReturnsBool" methodname="LegacyInputProvider_IsPlaceActionTriggered_ReturnsBool" classname="PlacementSystem.Tests.InputProviderTests" runstate="Runnable" seed="1990051528" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000092" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1115" name="LegacyInputProvider_IsRotateActionTriggered_ReturnsBool" fullname="PlacementSystem.Tests.InputProviderTests.LegacyInputProvider_IsRotateActionTriggered_ReturnsBool" methodname="LegacyInputProvider_IsRotateActionTriggered_ReturnsBool" classname="PlacementSystem.Tests.InputProviderTests" runstate="Runnable" seed="683779878" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000068" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1118" name="NewInputSystemProvider_AllMethodsReturnBool" fullname="PlacementSystem.Tests.InputProviderTests.NewInputSystemProvider_AllMethodsReturnBool" methodname="NewInputSystemProvider_AllMethodsReturnBool" classname="PlacementSystem.Tests.InputProviderTests" runstate="Runnable" seed="1783443856" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000222" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1117" name="NewInputSystemProvider_GetPointerPosition_ReturnsValidVector" fullname="PlacementSystem.Tests.InputProviderTests.NewInputSystemProvider_GetPointerPosition_ReturnsValidVector" methodname="NewInputSystemProvider_GetPointerPosition_ReturnsValidVector" classname="PlacementSystem.Tests.InputProviderTests" runstate="Runnable" seed="782939378" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000085" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1116" name="NewInputSystemProvider_ImplementsInterface" fullname="PlacementSystem.Tests.InputProviderTests.NewInputSystemProvider_ImplementsInterface" methodname="NewInputSystemProvider_ImplementsInterface" classname="PlacementSystem.Tests.InputProviderTests" runstate="Runnable" seed="330192988" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000127" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1099" name="PlacementControllerTests" fullname="PlacementSystem.Tests.PlacementControllerTests" classname="PlacementSystem.Tests.PlacementControllerTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.030555" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1100" name="PlacementController_CanBeCreated" fullname="PlacementSystem.Tests.PlacementControllerTests.PlacementController_CanBeCreated" methodname="PlacementController_CanBeCreated" classname="PlacementSystem.Tests.PlacementControllerTests" runstate="Runnable" seed="1583589877" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.004498" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[PlacementController: Input provider must implement IInputProvider
+PlacementController: Placement strategy must implement IPlacementStrategy
+PlacementController: Placement validator must implement IPlacementValidator
+PlacementController: Placement visualizer must implement IPlacementVisualizer
+]]></output>
+            </test-case>
+            <test-case id="1103" name="PlacementController_CancelPlacement_DoesNotThrow" fullname="PlacementSystem.Tests.PlacementControllerTests.PlacementController_CancelPlacement_DoesNotThrow" methodname="PlacementController_CancelPlacement_DoesNotThrow" classname="PlacementSystem.Tests.PlacementControllerTests" runstate="Runnable" seed="209492680" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.001419" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[PlacementController: Input provider must implement IInputProvider
+PlacementController: Placement strategy must implement IPlacementStrategy
+PlacementController: Placement validator must implement IPlacementValidator
+PlacementController: Placement visualizer must implement IPlacementVisualizer
+]]></output>
+            </test-case>
+            <test-case id="1107" name="PlacementController_ConfirmPlacement_WithoutStarting_DoesNotThrow" fullname="PlacementSystem.Tests.PlacementControllerTests.PlacementController_ConfirmPlacement_WithoutStarting_DoesNotThrow" methodname="PlacementController_ConfirmPlacement_WithoutStarting_DoesNotThrow" classname="PlacementSystem.Tests.PlacementControllerTests" runstate="Runnable" seed="229069748" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.001373" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[PlacementController: Input provider must implement IInputProvider
+PlacementController: Placement strategy must implement IPlacementStrategy
+PlacementController: Placement validator must implement IPlacementValidator
+PlacementController: Placement visualizer must implement IPlacementVisualizer
+]]></output>
+            </test-case>
+            <test-case id="1108" name="PlacementController_MultipleStartCalls_OnlyCreatesOneGhost" fullname="PlacementSystem.Tests.PlacementControllerTests.PlacementController_MultipleStartCalls_OnlyCreatesOneGhost" methodname="PlacementController_MultipleStartCalls_OnlyCreatesOneGhost" classname="PlacementSystem.Tests.PlacementControllerTests" runstate="Runnable" seed="1719790157" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.002515" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[PlacementController: Input provider must implement IInputProvider
+PlacementController: Placement strategy must implement IPlacementStrategy
+PlacementController: Placement validator must implement IPlacementValidator
+PlacementController: Placement visualizer must implement IPlacementVisualizer
+]]></output>
+            </test-case>
+            <test-case id="1101" name="PlacementController_SetObjectToPlace_Works" fullname="PlacementSystem.Tests.PlacementControllerTests.PlacementController_SetObjectToPlace_Works" methodname="PlacementController_SetObjectToPlace_Works" classname="PlacementSystem.Tests.PlacementControllerTests" runstate="Runnable" seed="968486851" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.001398" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[PlacementController: Input provider must implement IInputProvider
+PlacementController: Placement strategy must implement IPlacementStrategy
+PlacementController: Placement validator must implement IPlacementValidator
+PlacementController: Placement visualizer must implement IPlacementVisualizer
+]]></output>
+            </test-case>
+            <test-case id="1106" name="PlacementController_SetPlacementStrategy_CanSwitchStrategies" fullname="PlacementSystem.Tests.PlacementControllerTests.PlacementController_SetPlacementStrategy_CanSwitchStrategies" methodname="PlacementController_SetPlacementStrategy_CanSwitchStrategies" classname="PlacementSystem.Tests.PlacementControllerTests" runstate="Runnable" seed="319024643" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.001549" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <reason>
+                <message><![CDATA[]]></message>
+              </reason>
+              <output><![CDATA[PlacementController: Input provider must implement IInputProvider
+PlacementController: Placement strategy must implement IPlacementStrategy
+PlacementController: Placement validator must implement IPlacementValidator
+PlacementController: Placement visualizer must implement IPlacementVisualizer
+]]></output>
+            </test-case>
+            <test-case id="1105" name="PlacementController_SetPlacementStrategy_Works" fullname="PlacementSystem.Tests.PlacementControllerTests.PlacementController_SetPlacementStrategy_Works" methodname="PlacementController_SetPlacementStrategy_Works" classname="PlacementSystem.Tests.PlacementControllerTests" runstate="Runnable" seed="2072363027" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.001258" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[PlacementController: Input provider must implement IInputProvider
+PlacementController: Placement strategy must implement IPlacementStrategy
+PlacementController: Placement validator must implement IPlacementValidator
+PlacementController: Placement visualizer must implement IPlacementVisualizer
+]]></output>
+            </test-case>
+            <test-case id="1104" name="PlacementController_StartAndCancelPlacement_Works" fullname="PlacementSystem.Tests.PlacementControllerTests.PlacementController_StartAndCancelPlacement_Works" methodname="PlacementController_StartAndCancelPlacement_Works" classname="PlacementSystem.Tests.PlacementControllerTests" runstate="Runnable" seed="1998134902" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.008562" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <reason>
+                <message><![CDATA[]]></message>
+              </reason>
+              <output><![CDATA[PlacementController: Input provider must implement IInputProvider
+PlacementController: Placement strategy must implement IPlacementStrategy
+PlacementController: Placement validator must implement IPlacementValidator
+PlacementController: Placement visualizer must implement IPlacementVisualizer
+]]></output>
+            </test-case>
+            <test-case id="1102" name="PlacementController_StartPlacement_WithoutDependencies_DoesNotThrow" fullname="PlacementSystem.Tests.PlacementControllerTests.PlacementController_StartPlacement_WithoutDependencies_DoesNotThrow" methodname="PlacementController_StartPlacement_WithoutDependencies_DoesNotThrow" classname="PlacementSystem.Tests.PlacementControllerTests" runstate="Runnable" seed="1004622350" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.001916" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[PlacementController: Input provider must implement IInputProvider
+PlacementController: Placement strategy must implement IPlacementStrategy
+PlacementController: Placement validator must implement IPlacementValidator
+PlacementController: Placement visualizer must implement IPlacementVisualizer
+]]></output>
+            </test-case>
+            <test-case id="1109" name="PlacementController_WithNullPrefab_StartPlacementDoesNothing" fullname="PlacementSystem.Tests.PlacementControllerTests.PlacementController_WithNullPrefab_StartPlacementDoesNothing" methodname="PlacementController_WithNullPrefab_StartPlacementDoesNothing" classname="PlacementSystem.Tests.PlacementControllerTests" runstate="Runnable" seed="271229243" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.001210" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[PlacementController: Input provider must implement IInputProvider
+PlacementController: Placement strategy must implement IPlacementStrategy
+PlacementController: Placement validator must implement IPlacementValidator
+PlacementController: Placement visualizer must implement IPlacementVisualizer
+]]></output>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1149" name="PlacementRuleTests" fullname="PlacementSystem.Tests.PlacementRuleTests" classname="PlacementSystem.Tests.PlacementRuleTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.006708" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1150" name="ClearanceRule_NoObstacles_ReturnsTrue" fullname="PlacementSystem.Tests.PlacementRuleTests.ClearanceRule_NoObstacles_ReturnsTrue" methodname="ClearanceRule_NoObstacles_ReturnsTrue" classname="PlacementSystem.Tests.PlacementRuleTests" runstate="Runnable" seed="1634147666" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000978" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1154" name="PlaceableObject_AddAndRemoveRule_Works" fullname="PlacementSystem.Tests.PlacementRuleTests.PlaceableObject_AddAndRemoveRule_Works" methodname="PlaceableObject_AddAndRemoveRule_Works" classname="PlacementSystem.Tests.PlacementRuleTests" runstate="Runnable" seed="694031337" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000451" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1153" name="PlaceableObject_NoRules_ReturnsTrue" fullname="PlacementSystem.Tests.PlacementRuleTests.PlaceableObject_NoRules_ReturnsTrue" methodname="PlaceableObject_NoRules_ReturnsTrue" classname="PlacementSystem.Tests.PlacementRuleTests" runstate="Runnable" seed="1805977027" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000224" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1155" name="PlaceableObject_NullRule_DoesNotThrow" fullname="PlacementSystem.Tests.PlacementRuleTests.PlaceableObject_NullRule_DoesNotThrow" methodname="PlaceableObject_NullRule_DoesNotThrow" classname="PlacementSystem.Tests.PlacementRuleTests" runstate="Runnable" seed="234482745" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000144" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1151" name="RequireSurfaceRule_NoSurface_ReturnsFalse" fullname="PlacementSystem.Tests.PlacementRuleTests.RequireSurfaceRule_NoSurface_ReturnsFalse" methodname="RequireSurfaceRule_NoSurface_ReturnsFalse" classname="PlacementSystem.Tests.PlacementRuleTests" runstate="Runnable" seed="971630172" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000255" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1152" name="RequireSurfaceRule_WithValidSurface_ReturnsTrue" fullname="PlacementSystem.Tests.PlacementRuleTests.RequireSurfaceRule_WithValidSurface_ReturnsTrue" methodname="RequireSurfaceRule_WithValidSurface_ReturnsTrue" classname="PlacementSystem.Tests.PlacementRuleTests" runstate="Runnable" seed="303275557" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000453" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1140" name="PlacementStrategyTests" fullname="PlacementSystem.Tests.PlacementStrategyTests" classname="PlacementSystem.Tests.PlacementStrategyTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.006893" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1148" name="AllStrategies_ImplementIPlacementStrategy" fullname="PlacementSystem.Tests.PlacementStrategyTests.AllStrategies_ImplementIPlacementStrategy" methodname="AllStrategies_ImplementIPlacementStrategy" classname="PlacementSystem.Tests.PlacementStrategyTests" runstate="Runnable" seed="1213011033" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000364" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1141" name="FreePositionStrategy_CalculatePosition_ReturnsOffsetPosition" fullname="PlacementSystem.Tests.PlacementStrategyTests.FreePositionStrategy_CalculatePosition_ReturnsOffsetPosition" methodname="FreePositionStrategy_CalculatePosition_ReturnsOffsetPosition" classname="PlacementSystem.Tests.PlacementStrategyTests" runstate="Runnable" seed="1322741397" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000266" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1142" name="FreePositionStrategy_CalculateRotation_ReturnsInputRotation" fullname="PlacementSystem.Tests.PlacementStrategyTests.FreePositionStrategy_CalculateRotation_ReturnsInputRotation" methodname="FreePositionStrategy_CalculateRotation_ReturnsInputRotation" classname="PlacementSystem.Tests.PlacementStrategyTests" runstate="Runnable" seed="37770242" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000224" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1143" name="GridPlacementStrategy_CalculatePosition_SnapsToGrid" fullname="PlacementSystem.Tests.PlacementStrategyTests.GridPlacementStrategy_CalculatePosition_SnapsToGrid" methodname="GridPlacementStrategy_CalculatePosition_SnapsToGrid" classname="PlacementSystem.Tests.PlacementStrategyTests" runstate="Runnable" seed="1105210214" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000240" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1144" name="GridPlacementStrategy_CalculateRotation_SnapsRotation" fullname="PlacementSystem.Tests.PlacementStrategyTests.GridPlacementStrategy_CalculateRotation_SnapsRotation" methodname="GridPlacementStrategy_CalculateRotation_SnapsRotation" classname="PlacementSystem.Tests.PlacementStrategyTests" runstate="Runnable" seed="466221372" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000742" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1147" name="GridPlacementStrategy_WithZeroGridSize_DoesNotThrow" fullname="PlacementSystem.Tests.PlacementStrategyTests.GridPlacementStrategy_WithZeroGridSize_DoesNotThrow" methodname="GridPlacementStrategy_WithZeroGridSize_DoesNotThrow" classname="PlacementSystem.Tests.PlacementStrategyTests" runstate="Runnable" seed="1510294416" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000147" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1145" name="HexPlacementStrategy_CalculatePosition_SnapsToHexGrid" fullname="PlacementSystem.Tests.PlacementStrategyTests.HexPlacementStrategy_CalculatePosition_SnapsToHexGrid" methodname="HexPlacementStrategy_CalculatePosition_SnapsToHexGrid" classname="PlacementSystem.Tests.PlacementStrategyTests" runstate="Runnable" seed="1295962368" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000382" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1146" name="HexPlacementStrategy_CalculateRotation_SnapsTo60Degrees" fullname="PlacementSystem.Tests.PlacementStrategyTests.HexPlacementStrategy_CalculateRotation_SnapsTo60Degrees" methodname="HexPlacementStrategy_CalculateRotation_SnapsTo60Degrees" classname="PlacementSystem.Tests.PlacementStrategyTests" runstate="Runnable" seed="1677449572" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000179" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1120" name="PlacementSystemIntegrationTests" fullname="PlacementSystem.Tests.PlacementSystemIntegrationTests" classname="PlacementSystem.Tests.PlacementSystemIntegrationTests" runstate="Runnable" testcasecount="6" result="Failed" site="Child" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.012102" total="6" passed="5" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-case id="1121" name="Integration_CompleteSystemSetup_Works" fullname="PlacementSystem.Tests.PlacementSystemIntegrationTests.Integration_CompleteSystemSetup_Works" methodname="Integration_CompleteSystemSetup_Works" classname="PlacementSystem.Tests.PlacementSystemIntegrationTests" runstate="Runnable" seed="1966418916" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.001905" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[PlacementController: Input provider must implement IInputProvider
+PlacementController: Placement strategy must implement IPlacementStrategy
+PlacementController: Placement validator must implement IPlacementValidator
+PlacementController: Placement visualizer must implement IPlacementVisualizer
+]]></output>
+            </test-case>
+            <test-case id="1126" name="Integration_CompleteWorkflow_StartPlaceCancel" fullname="PlacementSystem.Tests.PlacementSystemIntegrationTests.Integration_CompleteWorkflow_StartPlaceCancel" methodname="Integration_CompleteWorkflow_StartPlaceCancel" classname="PlacementSystem.Tests.PlacementSystemIntegrationTests" runstate="Runnable" seed="1433831688" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.001431" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <reason>
+                <message><![CDATA[]]></message>
+              </reason>
+              <output><![CDATA[PlacementController: Input provider must implement IInputProvider
+PlacementController: Placement strategy must implement IPlacementStrategy
+PlacementController: Placement validator must implement IPlacementValidator
+PlacementController: Placement visualizer must implement IPlacementVisualizer
+]]></output>
+            </test-case>
+            <test-case id="1122" name="Integration_SocketSnapping_Works" fullname="PlacementSystem.Tests.PlacementSystemIntegrationTests.Integration_SocketSnapping_Works" methodname="Integration_SocketSnapping_Works" classname="PlacementSystem.Tests.PlacementSystemIntegrationTests" runstate="Runnable" seed="1098869858" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.001828" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[SnapManager: Cached 1 sockets
+]]></output>
+            </test-case>
+            <test-case id="1124" name="Integration_StrategySwitch_Works" fullname="PlacementSystem.Tests.PlacementSystemIntegrationTests.Integration_StrategySwitch_Works" methodname="Integration_StrategySwitch_Works" classname="PlacementSystem.Tests.PlacementSystemIntegrationTests" runstate="Runnable" seed="652830294" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.001283" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[PlacementController: Input provider must implement IInputProvider
+PlacementController: Placement strategy must implement IPlacementStrategy
+PlacementController: Placement validator must implement IPlacementValidator
+PlacementController: Placement visualizer must implement IPlacementVisualizer
+]]></output>
+            </test-case>
+            <test-case id="1123" name="Integration_ValidationWithMultipleRules_Works" fullname="PlacementSystem.Tests.PlacementSystemIntegrationTests.Integration_ValidationWithMultipleRules_Works" methodname="Integration_ValidationWithMultipleRules_Works" classname="PlacementSystem.Tests.PlacementSystemIntegrationTests" runstate="Runnable" seed="133239960" result="Failed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.001637" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[  Should be valid near ground
+  Expected: True
+  But was:  False
+]]></message>
+                <stack-trace><![CDATA[at PlacementSystem.Tests.PlacementSystemIntegrationTests.Integration_ValidationWithMultipleRules_Works () [0x000ab] in /Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/Assets/Tests/PlacementSystem/IntegrationTests/PlacementSystemIntegrationTests.cs:162
+]]></stack-trace>
+              </failure>
+              <output><![CDATA[Placement rule failed: Clearance check: Box size (1.00, 2.00, 1.00), max overlaps: 0
+Placement rule failed: Surface check: Layer mask 1, max angle: 30°
+]]></output>
+            </test-case>
+            <test-case id="1125" name="Integration_VisualizerFeedback_Works" fullname="PlacementSystem.Tests.PlacementSystemIntegrationTests.Integration_VisualizerFeedback_Works" methodname="Integration_VisualizerFeedback_Works" classname="PlacementSystem.Tests.PlacementSystemIntegrationTests" runstate="Runnable" seed="2094330382" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000369" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <reason>
+                <message><![CDATA[]]></message>
+              </reason>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1127" name="SocketSystemTests" fullname="PlacementSystem.Tests.SocketSystemTests" classname="PlacementSystem.Tests.SocketSystemTests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.006529" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1138" name="SnapManager_ClearAllSockets_ClearsOccupiedStatus" fullname="PlacementSystem.Tests.SocketSystemTests.SnapManager_ClearAllSockets_ClearsOccupiedStatus" methodname="SnapManager_ClearAllSockets_ClearsOccupiedStatus" classname="PlacementSystem.Tests.SocketSystemTests" runstate="Runnable" seed="565316093" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000415" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1136" name="SnapManager_FindNearestSocket_NoSockets_ReturnsNull" fullname="PlacementSystem.Tests.SocketSystemTests.SnapManager_FindNearestSocket_NoSockets_ReturnsNull" methodname="SnapManager_FindNearestSocket_NoSockets_ReturnsNull" classname="PlacementSystem.Tests.SocketSystemTests" runstate="Runnable" seed="939647670" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000540" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[SnapManager: Cached 0 sockets
+]]></output>
+            </test-case>
+            <test-case id="1137" name="SnapManager_GetSocketsOfType_FiltersCorrectly" fullname="PlacementSystem.Tests.SocketSystemTests.SnapManager_GetSocketsOfType_FiltersCorrectly" methodname="SnapManager_GetSocketsOfType_FiltersCorrectly" classname="PlacementSystem.Tests.SocketSystemTests" runstate="Runnable" seed="1433053007" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000234" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1139" name="SnapManager_RefreshSocketCache_DoesNotThrow" fullname="PlacementSystem.Tests.SocketSystemTests.SnapManager_RefreshSocketCache_DoesNotThrow" methodname="SnapManager_RefreshSocketCache_DoesNotThrow" classname="PlacementSystem.Tests.SocketSystemTests" runstate="Runnable" seed="386768190" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000529" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[SnapManager: Cached 0 sockets
+]]></output>
+            </test-case>
+            <test-case id="1134" name="SnapManager_RegisterSocket_Succeeds" fullname="PlacementSystem.Tests.SocketSystemTests.SnapManager_RegisterSocket_Succeeds" methodname="SnapManager_RegisterSocket_Succeeds" classname="PlacementSystem.Tests.SocketSystemTests" runstate="Runnable" seed="43847113" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000132" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1135" name="SnapManager_UnregisterSocket_Succeeds" fullname="PlacementSystem.Tests.SocketSystemTests.SnapManager_UnregisterSocket_Succeeds" methodname="SnapManager_UnregisterSocket_Succeeds" classname="PlacementSystem.Tests.SocketSystemTests" runstate="Runnable" seed="1280294233" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000153" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1132" name="Socket_CanAccept_WhenOccupied_ReturnsFalse" fullname="PlacementSystem.Tests.SocketSystemTests.Socket_CanAccept_WhenOccupied_ReturnsFalse" methodname="Socket_CanAccept_WhenOccupied_ReturnsFalse" classname="PlacementSystem.Tests.SocketSystemTests" runstate="Runnable" seed="986975123" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000084" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1131" name="Socket_CanAccept_WithMatchingType_ReturnsTrue" fullname="PlacementSystem.Tests.SocketSystemTests.Socket_CanAccept_WithMatchingType_ReturnsTrue" methodname="Socket_CanAccept_WithMatchingType_ReturnsTrue" classname="PlacementSystem.Tests.SocketSystemTests" runstate="Runnable" seed="1853879718" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000069" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1130" name="Socket_CanSetOccupied" fullname="PlacementSystem.Tests.SocketSystemTests.Socket_CanSetOccupied" methodname="Socket_CanSetOccupied" classname="PlacementSystem.Tests.SocketSystemTests" runstate="Runnable" seed="896635664" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000066" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1133" name="Socket_Clear_ResetsOccupiedStatus" fullname="PlacementSystem.Tests.SocketSystemTests.Socket_Clear_ResetsOccupiedStatus" methodname="Socket_Clear_ResetsOccupiedStatus" classname="PlacementSystem.Tests.SocketSystemTests" runstate="Runnable" seed="887947633" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000065" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1129" name="Socket_InitialState_IsNotOccupied" fullname="PlacementSystem.Tests.SocketSystemTests.Socket_InitialState_IsNotOccupied" methodname="Socket_InitialState_IsNotOccupied" classname="PlacementSystem.Tests.SocketSystemTests" runstate="Runnable" seed="5436419" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000081" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1128" name="SocketType_CreatesSuccessfully" fullname="PlacementSystem.Tests.SocketSystemTests.SocketType_CreatesSuccessfully" methodname="SocketType_CreatesSuccessfully" classname="PlacementSystem.Tests.SocketSystemTests" runstate="Runnable" seed="840820317" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000071" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+          </test-suite>
+          <test-suite type="TestFixture" id="1156" name="VisualizerTests" fullname="PlacementSystem.Tests.VisualizerTests" classname="PlacementSystem.Tests.VisualizerTests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.006021" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1166" name="OutlinePlacementVisualizer_Cleanup_DoesNotThrow" fullname="PlacementSystem.Tests.VisualizerTests.OutlinePlacementVisualizer_Cleanup_DoesNotThrow" methodname="OutlinePlacementVisualizer_Cleanup_DoesNotThrow" classname="PlacementSystem.Tests.VisualizerTests" runstate="Runnable" seed="1883491679" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000759" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1163" name="OutlinePlacementVisualizer_ImplementsInterface" fullname="PlacementSystem.Tests.VisualizerTests.OutlinePlacementVisualizer_ImplementsInterface" methodname="OutlinePlacementVisualizer_ImplementsInterface" classname="PlacementSystem.Tests.VisualizerTests" runstate="Runnable" seed="1841077863" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000097" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1164" name="OutlinePlacementVisualizer_Initialize_DoesNotThrow" fullname="PlacementSystem.Tests.VisualizerTests.OutlinePlacementVisualizer_Initialize_DoesNotThrow" methodname="OutlinePlacementVisualizer_Initialize_DoesNotThrow" classname="PlacementSystem.Tests.VisualizerTests" runstate="Runnable" seed="1287567543" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000169" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1165" name="OutlinePlacementVisualizer_UpdateVisual_DoesNotThrow" fullname="PlacementSystem.Tests.VisualizerTests.OutlinePlacementVisualizer_UpdateVisual_DoesNotThrow" methodname="OutlinePlacementVisualizer_UpdateVisual_DoesNotThrow" classname="PlacementSystem.Tests.VisualizerTests" runstate="Runnable" seed="813678839" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000185" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1160" name="StandardPlacementVisualizer_Cleanup_DoesNotThrow" fullname="PlacementSystem.Tests.VisualizerTests.StandardPlacementVisualizer_Cleanup_DoesNotThrow" methodname="StandardPlacementVisualizer_Cleanup_DoesNotThrow" classname="PlacementSystem.Tests.VisualizerTests" runstate="Runnable" seed="147990304" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000197" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1157" name="StandardPlacementVisualizer_ImplementsInterface" fullname="PlacementSystem.Tests.VisualizerTests.StandardPlacementVisualizer_ImplementsInterface" methodname="StandardPlacementVisualizer_ImplementsInterface" classname="PlacementSystem.Tests.VisualizerTests" runstate="Runnable" seed="2086414891" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000073" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1158" name="StandardPlacementVisualizer_Initialize_DoesNotThrow" fullname="PlacementSystem.Tests.VisualizerTests.StandardPlacementVisualizer_Initialize_DoesNotThrow" methodname="StandardPlacementVisualizer_Initialize_DoesNotThrow" classname="PlacementSystem.Tests.VisualizerTests" runstate="Runnable" seed="676754035" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000158" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1161" name="StandardPlacementVisualizer_InitializeWithNull_DoesNotThrow" fullname="PlacementSystem.Tests.VisualizerTests.StandardPlacementVisualizer_InitializeWithNull_DoesNotThrow" methodname="StandardPlacementVisualizer_InitializeWithNull_DoesNotThrow" classname="PlacementSystem.Tests.VisualizerTests" runstate="Runnable" seed="486485022" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000109" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1168" name="StandardPlacementVisualizer_MultipleInitializeCalls_DoesNotLeak" fullname="PlacementSystem.Tests.VisualizerTests.StandardPlacementVisualizer_MultipleInitializeCalls_DoesNotLeak" methodname="StandardPlacementVisualizer_MultipleInitializeCalls_DoesNotLeak" classname="PlacementSystem.Tests.VisualizerTests" runstate="Runnable" seed="2005559030" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000278" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1162" name="StandardPlacementVisualizer_UpdateBeforeInitialize_DoesNotThrow" fullname="PlacementSystem.Tests.VisualizerTests.StandardPlacementVisualizer_UpdateBeforeInitialize_DoesNotThrow" methodname="StandardPlacementVisualizer_UpdateBeforeInitialize_DoesNotThrow" classname="PlacementSystem.Tests.VisualizerTests" runstate="Runnable" seed="661900544" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000107" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1159" name="StandardPlacementVisualizer_UpdateVisual_DoesNotThrow" fullname="PlacementSystem.Tests.VisualizerTests.StandardPlacementVisualizer_UpdateVisual_DoesNotThrow" methodname="StandardPlacementVisualizer_UpdateVisual_DoesNotThrow" classname="PlacementSystem.Tests.VisualizerTests" runstate="Runnable" seed="2012971417" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000182" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1167" name="Visualizers_CanBeUsedInterchangeably" fullname="PlacementSystem.Tests.VisualizerTests.Visualizers_CanBeUsedInterchangeably" methodname="Visualizers_CanBeUsedInterchangeably" classname="PlacementSystem.Tests.VisualizerTests" runstate="Runnable" seed="1016432768" result="Passed" start-time="2026-02-16 02:59:41Z" end-time="2026-02-16 02:59:41Z" duration="0.000253" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[Code Coverage] Code Coverage results for visited sequence points were saved in /Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/CodeCoverage/unity-sandbox-director-opencov/PlayMode/TestCoverageResults_0001.xml
+[Code Coverage] Code Coverage Report was generated in /Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/CodeCoverage/Report
+Included Assemblies: Core,Systems.MiniTimeline,Systems.MiniTimeline.Editor,Systems.PlacementSystem,Systems.SceneSandbox,Systems.SceneSandbox.Editor
+Excluded Assemblies: <Not specified>
+Included Paths: <Not specified>
+Excluded Paths: <Not specified>
+Saving results to: /Users/er-lap-mpm4-023/Library/Application Support/DefaultCompany/unity-sandbox-director/TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

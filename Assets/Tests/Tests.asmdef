@@ -1,13 +1,17 @@
 {
     "name": "Tests",
+    "testAssemblies": true,
     "rootNamespace": "",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Systems.MiniTimeline",
-        "Systems.SceneSandbox"
+        "Systems.SceneSandbox",
+        "Systems.PlacementSystem"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,

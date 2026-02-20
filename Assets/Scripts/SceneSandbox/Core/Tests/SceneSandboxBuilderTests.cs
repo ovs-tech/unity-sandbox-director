@@ -1,10 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.TestTools;
-using Systems.SceneSandbox.Core;
-using Systems.SceneSandbox.Data;
 
 namespace Systems.SceneSandbox.Core.Tests
 {
@@ -157,6 +152,199 @@ namespace Systems.SceneSandbox.Core.Tests
             // We check if the controller updated
             var controller = _gameObject.GetComponent<TransformController>();
             Assert.AreEqual(TransformModeType.Rotation, controller.CurrentMode);
+        }
+
+        [Test]
+        public void RemoveObject_WhenNullOrWithoutTransformable_ReturnsFalse()
+        {
+            // Null object
+            Assert.IsFalse(_builder.RemoveObject((GameObject)null));
+
+            // Object without TransformableItem
+            var temp = new GameObject("Temp_NoDraggable");
+            try
+            {
+                Assert.IsFalse(_builder.RemoveObject(temp));
+            }
+            finally
+            {
+                Object.DestroyImmediate(temp);
+            }
+        }
+
+        [Test]
+        public void RemoveObject_ById_NotFound_ReturnsFalse()
+        {
+            Assert.IsFalse(_builder.RemoveObject("this-id-does-not-exist-123"));
+        }
+
+        [Test]
+        public void SetSceneBounds_And_Offset_UpdateProperties()
+        {
+            var bounds = new Vector3(10f, 8f, 6f);
+            var offset = new Vector3(1f, 2f, 3f);
+
+            _builder.SetSceneBounds(bounds);
+            _builder.SetSceneBoundsOffset(offset);
+
+            Assert.AreEqual(bounds, _builder.SceneBounds);
+            Assert.AreEqual(offset, _builder.SceneBoundsOffset);
+        }
+
+        [Test]
+        public void DropIndicator_DefaultPosition_WhenNotCreated_ReturnsZero()
+        {
+            // When no drop indicator exists, method should return Vector3.zero
+            Assert.AreEqual(Vector3.zero, _builder.GetDropIndicatorPosition());
+        }
+
+        [Test]
+        public void SetDropIndicatorEnabled_TogglesFlag()
+        {
+            _builder.SetDropIndicatorEnabled(false);
+            Assert.IsFalse(_builder.DropIndicatorEnabled);
+
+            _builder.SetDropIndicatorEnabled(true);
+            Assert.IsTrue(_builder.DropIndicatorEnabled);
+        }
+
+        [Test]
+        public void IsValidPlacementPosition_RespectsSceneBounds()
+        {
+            // Make bounds small around origin
+            _builder.SetSceneBounds(new Vector3(2f, 2f, 2f));
+            _builder.SetSceneBoundsOffset(Vector3.zero);
+
+            // Position inside bounds
+            Assert.IsTrue(_builder.IsValidPlacementPosition(Vector3.zero));
+
+            // Position outside bounds
+            Assert.IsFalse(_builder.IsValidPlacementPosition(new Vector3(10f, 0f, 0f)));
+        }
+
+        [Test]
+        public void StartPlacement_And_ConfirmRegistersPlacedObject()
+        {
+            // Create a simple prefab and add to a library
+            var prefab = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            prefab.name = "TestPrefab";
+
+            var lib = ScriptableObject.CreateInstance<Systems.SceneSandbox.Data.SceneObjectLibrary>();
+            var objData = new Systems.SceneSandbox.Data.SceneObjectData("Cube", prefab, Systems.SceneSandbox.Data.SceneObjectType.Prop);
+            lib.AddObject(objData);
+
+            // Assign library to builder and initialize placement
+            _builder.SetObjectLibrary(lib);
+
+            Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
+
+            // Start placement using builder (delegates to PlacementSystem)
+            _builder.StartPlacement(objData.id, screenCenter);
+
+            // PlacementSystem should have an active current object
+            Assert.IsTrue(_builder.PlacementSystem.IsActive);
+            Assert.IsNotNull(_builder.PlacementSystem.CurrentObject);
+
+            // Confirm placement via builder (this will invoke serializer registration)
+            _builder.ConfirmPlacement();
+
+            // After confirmation, PlacementSystem.CurrentObject should be null (reset)
+            Assert.IsNull(_builder.PlacementSystem.CurrentObject);
+
+            // SceneSerializer should have recorded the placed object
+            Assert.IsNotNull(_builder.SceneSerializer.CurrentScene);
+            Assert.GreaterOrEqual(_builder.SceneSerializer.CurrentScene.placedObjects.Count, 1);
+
+            // Clean up created prefab
+            Object.DestroyImmediate(prefab);
+        }
+
+        [Test]
+        public void CancelPlacement_DestroysNewlyCreatedObject()
+        {
+            var prefab = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            prefab.name = "TempPrefab";
+            var lib = ScriptableObject.CreateInstance<Systems.SceneSandbox.Data.SceneObjectLibrary>();
+            var objData = new Systems.SceneSandbox.Data.SceneObjectData("Sphere", prefab, Systems.SceneSandbox.Data.SceneObjectType.Prop);
+            lib.AddObject(objData);
+            _builder.SetObjectLibrary(lib);
+
+            Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
+            _builder.StartPlacement(objData.id, screenCenter);
+
+            // Ensure created
+            var created = _builder.PlacementSystem.CurrentObject;
+            Assert.IsNotNull(created);
+
+            // Cancel placement
+            _builder.CancelPlacement();
+
+            // Placement system should be idle and current object null
+            Assert.IsFalse(_builder.PlacementSystem.IsActive);
+            Assert.IsNull(_builder.PlacementSystem.CurrentObject);
+
+            Object.DestroyImmediate(prefab);
+        }
+
+        [Test]
+        public void ProjectAndSceneManagement_CreateDuplicateRenameCount()
+        {
+            // Create project
+            _builder.CreateNewProject("MyTestProject");
+            Assert.IsNotNull(_builder.SceneSerializer.CurrentProject);
+            Assert.AreEqual("MyTestProject", _builder.SceneSerializer.CurrentProject.projectName);
+
+            // Create new scene in project
+            var newScene = _builder.CreateNewSceneInProject("Level 2");
+            Assert.IsNotNull(newScene);
+            Assert.AreEqual(2, _builder.GetSceneCount());
+
+            // Duplicate current scene
+            var duplicate = _builder.DuplicateCurrentScene();
+            Assert.IsNotNull(duplicate);
+            Assert.AreEqual(3, _builder.GetSceneCount());
+
+            // Rename current scene
+            string nameBefore = _builder.SceneSerializer.CurrentScene.sceneName;
+            _builder.RenameCurrentScene("RenamedScene");
+            Assert.AreEqual("RenamedScene", _builder.SceneSerializer.CurrentScene.sceneName);
+
+            // Get metadata list
+            var metadata = _builder.GetAllSceneMetadata();
+            Assert.IsNotNull(metadata);
+            Assert.GreaterOrEqual(metadata.Count, 1);
+        }
+
+        [Test]
+        public void RemoveObject_AfterPlacement_RemovesFromScene()
+        {
+            var prefab = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            prefab.name = "RemovePrefab";
+            var lib = ScriptableObject.CreateInstance<Systems.SceneSandbox.Data.SceneObjectLibrary>();
+            var objData = new Systems.SceneSandbox.Data.SceneObjectData("Cube2", prefab, Systems.SceneSandbox.Data.SceneObjectType.Prop);
+            lib.AddObject(objData);
+            _builder.SetObjectLibrary(lib);
+
+            Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
+            _builder.StartPlacement(objData.id, screenCenter);
+            // Confirm placement and ensure scene has object
+            _builder.ConfirmPlacement();
+            Assert.GreaterOrEqual(_builder.SceneSerializer.CurrentScene.placedObjects.Count, 1);
+
+            // Find the placed object in the scene (PlacementSystem tracks placed objects)
+            var placedEntries = _builder.SceneSerializer.CurrentScene.placedObjects;
+            var first = placedEntries[0];
+
+            // Try to find the actual GameObject by placed id via PlacementSystem
+            var placedObj = _builder.PlacementSystem.GetPlacedObject(first.id);
+            Assert.IsNotNull(placedObj);
+
+            // Remove via builder
+            bool removed = _builder.RemoveObject(placedObj);
+            Assert.IsTrue(removed);
+            Assert.IsFalse(_builder.SceneSerializer.CurrentScene.placedObjects.Exists(p => p.id == first.id));
+
+            Object.DestroyImmediate(prefab);
         }
     }
 }
