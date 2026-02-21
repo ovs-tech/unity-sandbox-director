@@ -3,6 +3,7 @@ using Systems.PlacementSystem.Core;
 using Systems.PlacementSystem.Selection;
 using Systems.PlacementSystem.Sockets;
 using Systems.PlacementSystem.Validation;
+using Systems.PlacementSystem.Tools.Commands;
 
 namespace Systems.PlacementSystem.Tools
 {
@@ -174,41 +175,28 @@ namespace Systems.PlacementSystem.Tools
                 return;
             }
 
-            // Instantiate real object at ghost position
-            GameObject placedObject = Object.Instantiate(
+            // Use command system to perform placement so it's undoable
+            var pos = _ghostObject.transform.position;
+            var rot = _ghostObject.transform.rotation;
+
+            var placeCommand = new PlaceObjectCommand(
                 _objectToPrefab,
-                _ghostObject.transform.position,
-                _ghostObject.transform.rotation
+                pos,
+                rot,
+                _makeObjectsSelectable,
+                _context.SnapManager,
+                _nearestSocket
             );
-            placedObject.name = _objectToPrefab.name;
 
-            // Add Selectable component if enabled
-            if (_makeObjectsSelectable && placedObject.GetComponent<Selectable>() == null)
-            {
-                placedObject.AddComponent<Selectable>();
-            }
+            Systems.CommandSystem.CommandManager.Instance.ExecuteCommand(placeCommand, false, Systems.CommandSystem.CommandManager.DEFAULT_NAMESPACE);
 
-            // Register any sockets on the placed object with SnapManager
-            if (_context.SnapManager != null)
-            {
-                var sockets = placedObject.GetComponentsInChildren<Socket>();
-                foreach (var socket in sockets)
-                {
-                    _context.SnapManager.RegisterSocket(socket);
-                }
-            }
-
-            // Mark socket as occupied if we snapped to one
-            if (_nearestSocket != null)
-            {
-                _nearestSocket.IsOccupied = true;
-            }
+            // Retrieve created instance from the command and pass to callback
+            var created = placeCommand.Instance;
 
             // Clean up ghost
             CleanupGhost();
 
-            // Fire callback with placed object
-            OnPlacementConfirmed?.Invoke(placedObject);
+            OnPlacementConfirmed?.Invoke(created);
         }
 
         /// <summary>

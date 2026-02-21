@@ -1,6 +1,7 @@
 using UnityEngine;
 using Systems.PlacementSystem.Core;
 using Systems.PlacementSystem.Validation;
+using Systems.PlacementSystem.Tools.Commands;
 
 namespace Systems.PlacementSystem.Tools
 {
@@ -161,11 +162,19 @@ namespace Systems.PlacementSystem.Tools
                 return;
 
             GameObject movedObject = _movingObject;
+            if (movedObject != null)
+            {
+                var toPos = movedObject.transform.position;
+                var toRot = movedObject.transform.rotation;
+                var cmd = new MoveObjectCommand(movedObject, _startPosition, _startRotation, toPos, toRot);
+                Systems.CommandSystem.CommandManager.Instance.ExecuteCommand(cmd, true, Systems.CommandSystem.CommandManager.DEFAULT_NAMESPACE);
+                OnMoveConfirmed?.Invoke(movedObject);
+            }
+
             _movingObject = null;
             _isMoveActive = false;
             UpdateMoveState();
             _context?.SelectionTool?.ClearSelection();
-            OnMoveConfirmed?.Invoke(movedObject);
         }
 
         /// <summary>

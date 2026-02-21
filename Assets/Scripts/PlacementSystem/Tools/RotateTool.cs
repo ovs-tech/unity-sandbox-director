@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using Systems.PlacementSystem.Tools.Commands;
 namespace Systems.PlacementSystem.Tools
 {
     /// <summary>
@@ -31,7 +31,10 @@ namespace Systems.PlacementSystem.Tools
             if (selected == null)
                 return;
 
-            selected.transform.Rotate(Vector3.up, _context.RotationIncrementDegrees, Space.World);
+            var fromRot = selected.transform.rotation;
+            var toRot = fromRot * Quaternion.Euler(0, _context.RotationIncrementDegrees, 0);
+            var cmd = new RotateObjectCommand(selected, fromRot, toRot);
+            Systems.CommandSystem.CommandManager.Instance.ExecuteCommand(cmd, true, Systems.CommandSystem.CommandManager.DEFAULT_NAMESPACE);
         }
 
         public void Tick()

@@ -2,7 +2,8 @@
     "name": "Systems.PlacementSystem",
     "rootNamespace": "Systems.PlacementSystem",
     "references": [
-        "GUID:75469ad4d38634e559750d17036d5f7c"
+        "GUID:75469ad4d38634e559750d17036d5f7c",
+        "GUID:5a8a9fedc366abb4694ec00ac8b13f4a"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

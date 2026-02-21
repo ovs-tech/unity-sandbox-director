@@ -1,4 +1,5 @@
 using UnityEngine;
+using Systems.PlacementSystem.Tools.Commands;
 
 namespace Systems.PlacementSystem.Tools
 {
@@ -33,19 +34,8 @@ namespace Systems.PlacementSystem.Tools
                 var obj = selectedObjects[i];
                 if (obj != null)
                 {
-                    // Unregister any sockets before destroying
-                    if (_context.SnapManager != null)
-                    {
-                        var sockets = obj.GetComponentsInChildren<Sockets.Socket>();
-                        foreach (var socket in sockets)
-                        {
-                            _context.SnapManager.UnregisterSocket(socket);
-                        }
-                    }
-                    if (Application.isPlaying)
-                        Object.Destroy(obj);
-                    else
-                        Object.DestroyImmediate(obj);
+                    var cmd = new DeleteObjectCommand(obj, _context.SnapManager);
+                    Systems.CommandSystem.CommandManager.Instance.ExecuteCommand(cmd, false, Systems.CommandSystem.CommandManager.DEFAULT_NAMESPACE);
                 }
             }
 
