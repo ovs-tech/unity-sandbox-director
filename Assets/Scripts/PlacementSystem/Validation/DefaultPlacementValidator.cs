@@ -10,10 +10,10 @@ namespace Systems.PlacementSystem.Validation
     /// </summary>
     public class DefaultPlacementValidator : IPlacementValidator
     {
-        public bool IsPlacementValid(Vector3 position, Quaternion rotation, GameObject ghostObject)
+        public ValidationResult IsPlacementValid(Vector3 position, Quaternion rotation, GameObject ghostObject)
         {
             if (ghostObject == null)
-                return false;
+                return ValidationResult.Failure("Ghost object is null.");
 
             // Get the PlaceableObject component from the ghost
             var placeableObject = ghostObject.GetComponent<PlaceableObject>();
@@ -22,7 +22,7 @@ namespace Systems.PlacementSystem.Validation
             {
                 // If no PlaceableObject component, assume placement is valid
                 // (object has no specific validation requirements)
-                return true;
+                return ValidationResult.Success;
             }
 
             // Validate using the object's rules

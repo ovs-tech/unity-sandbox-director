@@ -43,6 +43,11 @@ namespace Systems.PlacementSystem.Tests
         {
             public bool ReturnValid = true;
             public bool IsPlacementValid(Vector3 position, Quaternion rotation, GameObject ghostObject) => ReturnValid;
+
+            ValidationResult IPlacementValidator.IsPlacementValid(Vector3 position, Quaternion rotation, GameObject ghostObject)
+            {
+                throw new System.NotImplementedException();
+            }
         }
 
         [SetUp]

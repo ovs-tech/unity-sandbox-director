@@ -1,14 +1,8 @@
 {
-    "name": "Systems.MiniTimeline",
-    "rootNamespace": "Systems.MiniTimeline",
+    "name": "Systems.CommandSystem",
+    "rootNamespace": "Systems.CommandSystem",
     "references": [
-        "Unity.InputSystem",
-        "Core",
-        "Unity.Cinemachine",
-        "Unity.Localization",
-        "Unity.Addressables",
-        "Unity.ResourceManager",
-        "Systems.CommandSystem"
+        "Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

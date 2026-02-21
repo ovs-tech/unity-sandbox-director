@@ -1,4 +1,4 @@
-using Core.Behaviors.Command;
+using Systems.CommandSystem;
 using Systems.MiniTimeline.Core;
 
 namespace Systems.MiniTimeline.UI.Commands
@@ -7,7 +7,7 @@ namespace Systems.MiniTimeline.UI.Commands
     /// Command for changing timeline playback time (scrubbing)
     /// This command typically doesn't need undo/redo as it's a navigation operation
     /// </summary>
-    public class SeekTimeCommand : TimelineCommandBase
+    public class SeekTimeCommand : CommandBase
     {
         private readonly MiniTimelineDirector director;
         private readonly float oldTime;
@@ -31,13 +31,13 @@ namespace Systems.MiniTimeline.UI.Commands
             director?.Seek(oldTime);
         }
         
-        public override bool CanMergeWith(ITimelineCommand other)
+        public override bool CanMergeWith(ICommand other)
         {
             // Seek commands can be merged to avoid cluttering undo history
             return other is SeekTimeCommand;
         }
         
-        public override void MergeWith(ITimelineCommand other)
+        public override void MergeWith(ICommand other)
         {
             if (other is SeekTimeCommand seekCommand)
             {

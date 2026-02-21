@@ -1,0 +1,240 @@
+using System;
+using System.Collections.Generic;
+
+using UnityEngine;
+
+namespace Systems.CommandSystem
+{
+    /// <summary>
+    /// Manages command execution and undo/redo stack
+    /// Provides thread-safe operations and memory management
+    /// </summary>
+    public class CommandManager : PersistentSingleton<CommandManager>, ICommandManager
+    {
+        private readonly Stack<ICommand> undoStack = new Stack<ICommand>();
+        
+        private readonly Stack<ICommand> redoStack = new Stack<ICommand>();
+        [SerializeField]
+        private readonly int maxHistorySize = 100;
+        [SerializeField] private bool _debugLog = true;
+
+        // Events
+        public event Action<ICommand> OnCommandExecuted;
+        public event Action<ICommand> OnUndoPerformed;
+        public event Action<ICommand> OnRedoPerformed;
+        public event Action<bool, bool> OnStacksChanged;  // (canUndo, canRedo)
+
+        #region Properties
+
+        public bool CanUndo => undoStack.Count > 0;
+        public bool CanRedo => redoStack.Count > 0;
+        public int UndoStackCount => undoStack.Count;
+        public int RedoStackCount => redoStack.Count;
+
+        public string NextUndoDescription => CanUndo ? undoStack.Peek().Description : "";
+        public string NextRedoDescription => CanRedo ? redoStack.Peek().Description : "";
+
+        /// <summary>
+        /// Enable/disable debug logging for command operations
+        /// </summary>
+        public bool DebugLog
+        {
+            get => _debugLog;
+            set => _debugLog = value;
+        }
+
+        #endregion
+
+        #region Command Execution
+
+        /// <summary>
+        /// Execute a command and add it to the undo stack
+        /// </summary>
+        /// <param name="command">Command to execute</param>
+        /// <param name="merge">Whether to attempt merging with the last command</param>
+        public void ExecuteCommand(ICommand command, bool merge = false)
+        {
+            if (command == null)
+            {
+                Debug.LogError("[CommandManager] Cannot execute null command");
+                return;
+            }
+
+            try
+            {
+                // Attempt to merge with the last command if requested
+                if (merge && undoStack.Count > 0)
+                {
+                    var lastCommand = undoStack.Peek();
+                    if (lastCommand.CanMergeWith(command))
+                    {
+                        lastCommand.MergeWith(command);
+                        OnCommandExecuted?.Invoke(command);
+                        return;
+                    }
+                }
+
+                // Execute the new command
+                command.Execute();
+
+                // Add to undo stack
+                undoStack.Push(command);
+
+                // Clear redo stack (new command invalidates redo history)
+                redoStack.Clear();
+
+                // Maintain max history size
+                TrimHistoryIfNeeded();
+
+                OnCommandExecuted?.Invoke(command);
+                OnStacksChanged?.Invoke(CanUndo, CanRedo);
+
+                if (_debugLog)
+                    Debug.Log($"[CommandManager] Executed: {command.Description}");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[CommandManager] Failed to execute command '{command.Description}': {e.Message}");
+            }
+        }
+
+        #endregion
+
+        #region Undo/Redo
+
+        /// <summary>
+        /// Undo the last command
+        /// </summary>
+        public void Undo()
+        {
+            if (!CanUndo)
+            {
+                if (_debugLog)
+                    Debug.LogWarning("[CommandManager] No commands to undo");
+                return;
+            }
+
+            try
+            {
+                var command = undoStack.Pop();
+                command.Undo();
+
+                redoStack.Push(command);
+
+                OnUndoPerformed?.Invoke(command);
+                OnStacksChanged?.Invoke(CanUndo, CanRedo);
+
+                if (_debugLog)
+                    Debug.Log($"[CommandManager] Undid: {command.Description}");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[CommandManager] Failed to undo command: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Redo the last undone command
+        /// </summary>
+        public void Redo()
+        {
+            if (!CanRedo)
+            {
+                if (_debugLog)
+                    Debug.LogWarning("[CommandManager] No commands to redo");
+                return;
+            }
+
+            try
+            {
+                var command = redoStack.Pop();
+                command.Redo();
+
+                undoStack.Push(command);
+
+                OnRedoPerformed?.Invoke(command);
+                OnStacksChanged?.Invoke(CanUndo, CanRedo);
+
+                if (_debugLog)
+                    Debug.Log($"[CommandManager] Redid: {command.Description}");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[CommandManager] Failed to redo command: {e.Message}");
+            }
+        }
+
+        #endregion
+
+        #region History Management
+
+        /// <summary>
+        /// Clear all command history
+        /// </summary>
+        public void Clear()
+        {
+            undoStack.Clear();
+            redoStack.Clear();
+            OnStacksChanged?.Invoke(CanUndo, CanRedo);
+
+            if (_debugLog)
+                Debug.Log("[CommandManager] Command history cleared");
+        }
+
+        /// <summary>
+        /// Get the command history for display purposes
+        /// </summary>
+        /// <returns>Array of command descriptions, most recent first</returns>
+        public string[] GetUndoHistory()
+        {
+            var history = new string[undoStack.Count];
+            var commands = undoStack.ToArray();
+
+            for (int i = 0; i < commands.Length; i++)
+            {
+                history[i] = commands[i].Description;
+            }
+
+            return history;
+        }
+
+        /// <summary>
+        /// Get the redo history for display purposes
+        /// </summary>
+        /// <returns>Array of command descriptions, most recent first</returns>
+        public string[] GetRedoHistory()
+        {
+            var history = new string[redoStack.Count];
+            var commands = redoStack.ToArray();
+
+            for (int i = 0; i < commands.Length; i++)
+            {
+                history[i] = commands[i].Description;
+            }
+
+            return history;
+        }
+
+        private void TrimHistoryIfNeeded()
+        {
+            while (undoStack.Count > maxHistorySize)
+            {
+                // Remove oldest commands
+                var tempStack = new Stack<ICommand>();
+                for (int i = 0; i < maxHistorySize - 1; i++)
+                {
+                    tempStack.Push(undoStack.Pop());
+                }
+
+                undoStack.Clear();
+
+                while (tempStack.Count > 0)
+                {
+                    undoStack.Push(tempStack.Pop());
+                }
+            }
+        }
+
+        #endregion
+    }
+}

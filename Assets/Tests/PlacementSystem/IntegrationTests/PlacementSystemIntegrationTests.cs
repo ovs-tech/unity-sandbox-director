@@ -143,22 +143,22 @@ namespace PlacementSystem.Tests
             placeableObject.AddRule(surfaceRule);
 
             // Act - Validate at valid position (above ground)
-            bool resultValid = placeableObject.ValidatePlacement(
+            var resultValid = placeableObject.ValidatePlacement(
                 new Vector3(0, 1.5f, 0),
                 Quaternion.identity,
                 prefab
             );
 
             // Validate at invalid position (in the air, far from ground)
-            bool resultInvalid = placeableObject.ValidatePlacement(
+            var resultInvalid = placeableObject.ValidatePlacement(
                 new Vector3(0, 100, 0),
                 Quaternion.identity,
                 prefab
             );
 
             // Assert
-            Assert.IsTrue(resultValid, "Should be valid near ground");
-            Assert.IsFalse(resultInvalid, "Should be invalid in the air");
+            Assert.IsTrue(resultValid.IsValid, "Should be valid near ground");
+            Assert.IsFalse(resultInvalid.IsValid, "Should be invalid in the air");
 
             // Cleanup
             Object.DestroyImmediate(prefab);

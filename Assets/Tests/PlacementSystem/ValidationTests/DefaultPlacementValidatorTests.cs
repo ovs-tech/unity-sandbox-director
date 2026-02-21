@@ -11,8 +11,8 @@ namespace Systems.PlacementSystem.Tests
         public void IsPlacementValid_NullGhostObject_ReturnsFalse()
         {
             var validator = new DefaultPlacementValidator();
-            bool result = validator.IsPlacementValid(Vector3.zero, Quaternion.identity, null);
-            Assert.IsFalse(result);
+            var result = validator.IsPlacementValid(Vector3.zero, Quaternion.identity, null);
+            Assert.IsFalse(result.IsValid);
         }
 
         [Test]
@@ -21,9 +21,9 @@ namespace Systems.PlacementSystem.Tests
             var validator = new DefaultPlacementValidator();
             var ghost = new GameObject("Ghost");
             
-            bool result = validator.IsPlacementValid(Vector3.zero, Quaternion.identity, ghost);
+            var result = validator.IsPlacementValid(Vector3.zero, Quaternion.identity, ghost);
             
-            Assert.IsTrue(result);
+            Assert.IsTrue(result.IsValid);
             Object.DestroyImmediate(ghost);
         }
     }

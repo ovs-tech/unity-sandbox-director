@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Reflection;
-using Core.Behaviors.Command;
+using Systems.CommandSystem;
 using Systems.MiniTimeline.Core;
 using UnityEngine;
 
@@ -10,7 +10,7 @@ namespace Systems.MiniTimeline.UI.Commands
     /// Command for updating track settings including bind key, enabled state, order, and binding context
     /// Supports undo/redo operations for track property changes
     /// </summary>
-    public class UpdateTrackSettingsCommand : TimelineCommandBase
+    public class UpdateTrackSettingsCommand : CommandBase
     {
         private readonly IMiniTrack track;
         private readonly Dictionary<string, object> oldSettings;
@@ -168,7 +168,7 @@ namespace Systems.MiniTimeline.UI.Commands
             Debug.LogWarning($"Could not find property or field {settingName} on track {track.Id}");
         }
 
-        public override bool CanMergeWith(ITimelineCommand other)
+        public override bool CanMergeWith(ICommand other)
         {
             // Track settings commands can be merged if they're for the same track
             if (other is UpdateTrackSettingsCommand settingsCommand)
@@ -178,7 +178,7 @@ namespace Systems.MiniTimeline.UI.Commands
             return false;
         }
 
-        public override void MergeWith(ITimelineCommand other)
+        public override void MergeWith(ICommand other)
         {
             if (other is UpdateTrackSettingsCommand settingsCommand && settingsCommand.track == track)
             {

@@ -42,10 +42,10 @@ namespace PlacementSystem.Tests
             Quaternion rotation = Quaternion.identity;
 
             // Act
-            bool result = rule.CheckRule(position, rotation, _testGameObject);
+            var result = rule.CheckRule(position, rotation, _testGameObject);
 
             // Assert
-            Assert.IsTrue(result, "ClearanceRule should pass when no obstacles present");
+            Assert.IsTrue(result.IsValid, "ClearanceRule should pass when no obstacles present");
 
             // Cleanup
             Object.DestroyImmediate(rule);
@@ -60,10 +60,10 @@ namespace PlacementSystem.Tests
             Quaternion rotation = Quaternion.identity;
 
             // Act
-            bool result = rule.CheckRule(position, rotation, _testGameObject);
+            var result = rule.CheckRule(position, rotation, _testGameObject);
 
             // Assert
-            Assert.IsFalse(result, "RequireSurfaceRule should fail when no surface below");
+            Assert.IsFalse(result.IsValid, "RequireSurfaceRule should fail when no surface below");
 
             // Cleanup
             Object.DestroyImmediate(rule);
@@ -85,10 +85,10 @@ namespace PlacementSystem.Tests
             Quaternion rotation = Quaternion.identity;
 
             // Act
-            bool result = rule.CheckRule(position, rotation, _testGameObject);
+            var result = rule.CheckRule(position, rotation, _testGameObject);
 
             // Assert
-            Assert.IsTrue(result, "RequireSurfaceRule should pass when valid surface exists");
+            Assert.IsTrue(result.IsValid, "RequireSurfaceRule should pass when valid surface exists");
 
             // Cleanup
             Object.DestroyImmediate(ground);
@@ -105,10 +105,10 @@ namespace PlacementSystem.Tests
             var placeableObject = _testGameObject.AddComponent<PlaceableObject>();
 
             // Act
-            bool result = placeableObject.ValidatePlacement(Vector3.zero, Quaternion.identity, _testGameObject);
+            var result = placeableObject.ValidatePlacement(Vector3.zero, Quaternion.identity, _testGameObject);
 
             // Assert
-            Assert.IsTrue(result, "PlaceableObject with no rules should always validate");
+            Assert.IsTrue(result.IsValid, "PlaceableObject with no rules should always validate");
         }
 
         [Test]
@@ -159,10 +159,10 @@ namespace PlacementSystem.Tests
             Vector3 position = new Vector3(100, 100, 100); // Far from any obstacles
 
             // Act
-            bool result = placeableObject.ValidatePlacement(position, Quaternion.identity, _testGameObject);
+            var result = placeableObject.ValidatePlacement(position, Quaternion.identity, _testGameObject);
 
             // Assert
-            Assert.IsTrue(result, "Validation should pass with passing rule");
+            Assert.IsTrue(result.IsValid, "Validation should pass with passing rule");
 
             // Cleanup
             Object.DestroyImmediate(rule);
@@ -180,10 +180,10 @@ namespace PlacementSystem.Tests
             Vector3 position = new Vector3(0, 1000, 0); // High in the air, no surface
 
             // Act
-            bool result = placeableObject.ValidatePlacement(position, Quaternion.identity, _testGameObject);
+            var result = placeableObject.ValidatePlacement(position, Quaternion.identity, _testGameObject);
 
             // Assert
-            Assert.IsFalse(result, "Validation should fail with failing rule");
+            Assert.IsFalse(result.IsValid, "Validation should fail with failing rule");
 
             // Cleanup
             Object.DestroyImmediate(rule);
@@ -209,10 +209,10 @@ namespace PlacementSystem.Tests
             Vector3 position = new Vector3(100, 1000, 100); // Far from obstacles but no surface
 
             // Act
-            bool result = placeableObject.ValidatePlacement(position, Quaternion.identity, _testGameObject);
+            var result = placeableObject.ValidatePlacement(position, Quaternion.identity, _testGameObject);
 
             // Assert
-            Assert.IsFalse(result, "Validation should fail when any rule fails");
+            Assert.IsFalse(result.IsValid, "Validation should fail when any rule fails");
 
             // Cleanup
             Object.DestroyImmediate(passingRule);
@@ -312,10 +312,10 @@ namespace PlacementSystem.Tests
             rulesList.Add(null);
 
             // Act
-            bool result = placeableObject.ValidatePlacement(Vector3.zero, Quaternion.identity, _testGameObject);
+            var result = placeableObject.ValidatePlacement(Vector3.zero, Quaternion.identity, _testGameObject);
 
             // Assert
-            Assert.IsTrue(result, "Validation should pass when null rule is skipped");
+            Assert.IsTrue(result.IsValid, "Validation should pass when null rule is skipped");
         }
 
         /// <summary>

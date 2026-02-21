@@ -1,4 +1,4 @@
-using Core.Behaviors.Command;
+using Systems.CommandSystem;
 using Systems.MiniTimeline.Core;
 
 namespace Systems.MiniTimeline.UI.Commands
@@ -7,7 +7,7 @@ namespace Systems.MiniTimeline.UI.Commands
     /// Command for changing timeline zoom level
     /// Note: This command no longer directly modifies UI. UI should observe zoom state from the timeline data.
     /// </summary>
-    public class ZoomTimelineCommand : TimelineCommandBase
+    public class ZoomTimelineCommand : CommandBase
     {
         private readonly float oldZoom;
         private readonly float newZoom;
@@ -31,13 +31,13 @@ namespace Systems.MiniTimeline.UI.Commands
             // UI will observe and update accordingly
         }
 
-        public override bool CanMergeWith(ITimelineCommand other)
+        public override bool CanMergeWith(ICommand other)
         {
             // Zoom commands can be merged
             return other is ZoomTimelineCommand;
         }
 
-        public override void MergeWith(ITimelineCommand other)
+        public override void MergeWith(ICommand other)
         {
             if (other is ZoomTimelineCommand zoomCommand)
             {

@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using Core.Behaviors.Command;
+using Systems.CommandSystem;
 using Systems.MiniTimeline.Core;
 using Systems.MiniTimeline.Tracks;
 using UnityEngine;
@@ -11,7 +11,7 @@ namespace Systems.MiniTimeline.UI.Commands
     /// Command for adding a new track to the timeline.
     /// Uses Odin-serialized runtime track instances directly (no DTO conversion).
     /// </summary>
-    public class AddTrackCommand : TimelineCommandBase
+    public class AddTrackCommand : CommandBase
     {
         private readonly MiniTimelineDirector director;
         private readonly string trackType;

@@ -22,7 +22,7 @@ namespace Systems.PlacementSystem.Validation
         [SerializeField, Tooltip("Maximum number of overlapping colliders allowed (0 = none)")]
         private int _maxAllowedOverlaps = 0;
 
-        public override bool CheckRule(Vector3 position, Quaternion rotation, GameObject ghostObject)
+        public override ValidationResult CheckRule(Vector3 position, Quaternion rotation, GameObject ghostObject)
         {
             // Calculate check position with offset
             Vector3 checkPosition = position + rotation * _checkOffset;
@@ -47,7 +47,8 @@ namespace Systems.PlacementSystem.Validation
                 }
             }
 
-            return validOverlaps <= _maxAllowedOverlaps;
+            bool isValid = validOverlaps <= _maxAllowedOverlaps;
+            return isValid ? ValidationResult.Success : ValidationResult.Failure("Space is occupied by another object.");
         }
 
         public override string GetDebugInfo()

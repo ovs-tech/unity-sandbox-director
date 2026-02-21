@@ -9,7 +9,7 @@ using Systems.MiniTimeline.Serialization;
 using Systems.MiniTimeline.UI.Commands;
 using Core.UI.FormSubmit;
 using Core.UI.Core.Helpers;
-using Core.Behaviors.Command;
+using Systems.CommandSystem;
 using Systems.MiniTimeline.UI.FormDefinitions;
 using Core.UI.FormSubmit.Fields;
 using BindingContextCore = Systems.MiniTimeline.Core.BindableObjectManager;
@@ -51,7 +51,7 @@ namespace Systems.MiniTimeline.UI
 
         // Core references
         [SerializeField] private MiniTimelineDirector director;
-        private TimelineCommandManager commandManager;
+        private CommandManager commandManager;
 
         // UI Toolkit Elements
         private VisualElement rootElement;
@@ -126,7 +126,7 @@ namespace Systems.MiniTimeline.UI
             UICreationHelper.Initialize(this);
 
             // Initialize command manager
-            commandManager = new TimelineCommandManager();
+            commandManager = new CommandManager();
 
             // Subscribe to command manager events
             SetupCommandManagerEvents();
@@ -176,19 +176,19 @@ namespace Systems.MiniTimeline.UI
             commandManager.OnStacksChanged += OnCommandStacksChanged;
         }
 
-        private void OnCommandExecuted(ITimelineCommand command)
+        private void OnCommandExecuted(ICommand command)
         {
             // Refresh UI after command execution
             RefreshTimelineUI();
         }
 
-        private void OnCommandUndoPerformed(ITimelineCommand command)
+        private void OnCommandUndoPerformed(ICommand command)
         {
             // Refresh UI after undo
             RefreshTimelineUI();
         }
 
-        private void OnCommandRedoPerformed(ITimelineCommand command)
+        private void OnCommandRedoPerformed(ICommand command)
         {
             // Refresh UI after redo
             RefreshTimelineUI();
@@ -791,7 +791,7 @@ namespace Systems.MiniTimeline.UI
         /// <summary>
         /// Execute a command through the command manager
         /// </summary>
-        public void ExecuteCommand(ITimelineCommand command, bool allowMerge = false)
+        public void ExecuteCommand(ICommand command, bool allowMerge = false)
         {
             commandManager?.ExecuteCommand(command, allowMerge);
         }
@@ -824,7 +824,7 @@ namespace Systems.MiniTimeline.UI
         /// <summary>
         /// Get command manager for direct access if needed
         /// </summary>
-        public TimelineCommandManager CommandManager => commandManager;
+        public CommandManager CommandManager => commandManager;
 
         #endregion
 

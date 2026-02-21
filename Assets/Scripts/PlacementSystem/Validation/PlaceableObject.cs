@@ -39,11 +39,11 @@ namespace Systems.PlacementSystem.Validation
         /// <param name="rotation">Rotation to validate</param>
         /// <param name="ghostObject">The ghost object (usually 'this.gameObject' or its parent)</param>
         /// <returns>True if all rules pass</returns>
-        public bool ValidatePlacement(Vector3 position, Quaternion rotation, GameObject ghostObject)
+        public ValidationResult ValidatePlacement(Vector3 position, Quaternion rotation, GameObject ghostObject)
         {
             // If no rules, allow placement by default
             if (_placementRules == null || _placementRules.Count == 0)
-                return true;
+                return ValidationResult.Success;
 
             // All rules must pass
             foreach (var rule in _placementRules)
@@ -53,13 +53,14 @@ namespace Systems.PlacementSystem.Validation
                     continue;
                 }
 
-                if (!rule.CheckRule(position, rotation, ghostObject))
+                var result = rule.CheckRule(position, rotation, ghostObject);
+                if (!result.IsValid)
                 {
-                    return false;
+                    return result;
                 }
             }
 
-            return true;
+            return ValidationResult.Success;
         }
 
         /// <summary>

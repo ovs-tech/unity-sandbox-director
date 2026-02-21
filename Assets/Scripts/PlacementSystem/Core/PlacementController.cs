@@ -21,6 +21,13 @@ namespace Systems.PlacementSystem.Core
             Delete
         }
 
+        [Header("Events")]
+        public UnityEngine.Events.UnityEvent<GameObject> OnPlacementStartedEvent;
+        public UnityEngine.Events.UnityEvent<GameObject> OnPlacementSuccessEvent;
+        public UnityEngine.Events.UnityEvent<string> OnPlacementFailedEvent;
+        public UnityEngine.Events.UnityEvent OnPlacementCancelledEvent;
+        public UnityEngine.Events.UnityEvent<PlacementToolType> OnToolChangedEvent;
+
         [Header("Dependencies")]
         [SerializeField, Tooltip("The camera used for raycasting")]
         private Camera _placementCamera;
@@ -125,6 +132,7 @@ namespace Systems.PlacementSystem.Core
 
             placementTool.OnPlacementConfirmed = HandlePlacementConfirmed;
             placementTool.OnPlacementCancelled = HandlePlacementCancelled;
+            placementTool.OnPlacementFailed = HandlePlacementFailed;
 
             SetActiveTool(PlacementToolType.Selection);
         }
@@ -156,6 +164,7 @@ namespace Systems.PlacementSystem.Core
 
             placementTool.OnPlacementConfirmed = HandlePlacementConfirmed;
             placementTool.OnPlacementCancelled = HandlePlacementCancelled;
+            placementTool.OnPlacementFailed = HandlePlacementFailed;
 
             SetActiveTool(PlacementToolType.Selection);
             
@@ -178,6 +187,7 @@ namespace Systems.PlacementSystem.Core
             var placementTool = ToolManager.GetTool(PlacementToolType.Placement) as PlacementTool;
             placementTool?.SetupPlacement(_currentGhost, _objectToPlace, _makeObjectsSelectable);
             _isPlacementActive = true;
+            OnPlacementStartedEvent?.Invoke(_currentGhost);
         }
 
         /// <summary>
@@ -207,6 +217,7 @@ namespace Systems.PlacementSystem.Core
         {
             _currentGhost = null;
             _isPlacementActive = false;
+            OnPlacementSuccessEvent?.Invoke(placedObject);
 
             StartPlacement();
         }
@@ -215,6 +226,12 @@ namespace Systems.PlacementSystem.Core
         {
             _currentGhost = null;
             _isPlacementActive = false;
+            OnPlacementCancelledEvent?.Invoke();
+        }
+
+        private void HandlePlacementFailed(string reason)
+        {
+            OnPlacementFailedEvent?.Invoke(reason);
         }
 
         public void SetActiveTool(PlacementToolType toolType)
@@ -243,6 +260,7 @@ namespace Systems.PlacementSystem.Core
                     SetToolStack(PlacementToolType.Selection);
                     break;
             }
+            OnToolChangedEvent?.Invoke(toolType);
         }
 
         public void SetToolStack(params PlacementToolType[] toolTypes)

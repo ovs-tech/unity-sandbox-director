@@ -32,6 +32,14 @@ namespace Systems.PlacementSystem.Tools
         public System.Action<GameObject> OnPlacementConfirmed { get; set; }
 
         /// <summary>
+        /// Fired when placement is confirmed and object is instantiated.
+        /// Passes the placed object as a parameter.
+        /// Fired after: object instantiation, Selectable component addition (if enabled), socket occupation marking, and ghost cleanup.
+        /// The passed object is fully initialized and ready for use.
+        /// </summary>
+        public System.Action<string> OnPlacementFailed { get; set; }
+
+        /// <summary>
         /// Fired when placement is cancelled.
         /// Carries no object since nothing was placed; only confirmation needs the reference.
         /// </summary>
@@ -154,14 +162,15 @@ namespace Systems.PlacementSystem.Tools
                 return;
 
             // Validate final placement
-            bool isValid = _context.PlacementValidator.IsPlacementValid(
+            var result = _context.PlacementValidator.IsPlacementValid(
                 _ghostObject.transform.position,
                 _ghostObject.transform.rotation,
                 _ghostObject
             );
 
-            if (!isValid)
+            if (!result.IsValid)
             {
+                OnPlacementFailed?.Invoke(result.ErrorMessage);
                 return;
             }
 
@@ -268,15 +277,15 @@ namespace Systems.PlacementSystem.Tools
             _ghostObject.transform.position = targetPosition;
             _ghostObject.transform.rotation = targetRotation;
 
-            bool isValid = _context.PlacementValidator.IsPlacementValid(
+            var result = _context.PlacementValidator.IsPlacementValid(
                 targetPosition,
                 targetRotation,
                 _ghostObject
             );
 
-            _context.PlacementVisualizer?.UpdateVisual(isValid);
+            _context.PlacementVisualizer?.UpdateVisual(result.IsValid);
 
-            if (isValid)
+            if (result.IsValid)
             {
                 _lastValidPosition = targetPosition;
                 _lastValidRotation = targetRotation;

@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using Systems.MiniTimeline.Core;
 using Systems.MiniTimeline.UI.Commands;
-using Core.Behaviors.Command;
+using Systems.CommandSystem;
 
 namespace Systems.MiniTimeline.UI.MVVM.Timeline
 {
@@ -219,7 +219,7 @@ namespace Systems.MiniTimeline.UI.MVVM.Timeline
         // Command Manager event subscriptions
         private void SubscribeToCommandManager()
         {
-            var commandManager = TimelineCommandManager.Instance;
+            var commandManager = CommandManager.Instance;
             if (commandManager == null) return;
             commandManager.OnCommandExecuted += (cmd) => OnCommandExecuted?.Invoke();
             commandManager.OnUndoPerformed += (cmd) => OnUndoPerformed?.Invoke();
@@ -267,17 +267,17 @@ namespace Systems.MiniTimeline.UI.MVVM.Timeline
         }
 
         // Command execution interface
-        public void ExecuteCommand(ITimelineCommand command, bool allowMerge = false)
+        public void ExecuteCommand(ICommand command, bool allowMerge = false)
         {
-            TimelineCommandManager.Instance?.ExecuteCommand(command, allowMerge);
+            CommandManager.Instance?.ExecuteCommand(command, allowMerge);
         }
 
-        public void Undo() => TimelineCommandManager.Instance?.Undo();
-        public void Redo() => TimelineCommandManager.Instance?.Redo();
-        public void ClearCommandHistory() => TimelineCommandManager.Instance?.Clear();
+        public void Undo() => CommandManager.Instance?.Undo();
+        public void Redo() => CommandManager.Instance?.Redo();
+        public void ClearCommandHistory() => CommandManager.Instance?.Clear();
 
-        public bool CanUndo => TimelineCommandManager.Instance?.CanUndo ?? false;
-        public bool CanRedo => TimelineCommandManager.Instance?.CanRedo ?? false;
+        public bool CanUndo => CommandManager.Instance?.CanUndo ?? false;
+        public bool CanRedo => CommandManager.Instance?.CanRedo ?? false;
 
         // Clip selection management
         public void SelectClip(IMiniClip clip)
@@ -309,7 +309,7 @@ namespace Systems.MiniTimeline.UI.MVVM.Timeline
         {
             UnsubscribeFromMiniTimelineDirector();
 
-            var commandManager = TimelineCommandManager.Instance;
+            var commandManager = CommandManager.Instance;
             if (commandManager != null)
             {
                 commandManager.OnCommandExecuted -= (cmd) => OnCommandExecuted?.Invoke();

@@ -1,4 +1,4 @@
-using Core.Behaviors.Command;
+using Systems.CommandSystem;
 using Systems.MiniTimeline.Core;
 using UnityEngine;
 
@@ -7,7 +7,7 @@ namespace Systems.MiniTimeline.UI.Commands
     /// <summary>
     /// Command for creating a new clip on a track
     /// </summary>
-    public class CreateClipCommand : TimelineCommandBase
+    public class CreateClipCommand : CommandBase
     {
         private readonly IMiniTrack track;
         private readonly IMiniClip clipInstance;

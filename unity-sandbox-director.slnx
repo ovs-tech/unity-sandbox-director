@@ -5,6 +5,7 @@
   <Project Path="Systems.PlacementSystem.csproj" />
   <Project Path="Tests.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="Systems.CommandSystem.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="Systems.SceneSandbox.Editor.csproj" />
   <Project Path="Systems.MiniTimeline.Editor.csproj" />
