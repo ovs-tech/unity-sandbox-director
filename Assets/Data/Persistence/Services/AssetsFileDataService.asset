@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04cd273c429304717ac1134b28fa0323, type: 3}
+  m_Name: AssetsFileDataService
+  m_EditorClassIdentifier: Systems.Persistence::Systems.Persistence.FileDataService
+  serializer: {fileID: 11400000, guid: b3634e478ac81462681f26eef82d6a9e, type: 2}
+  rootLocation: 1
+  customRootPath: 
+  savesFolderName: Scripts/Data/PlacementSystem/Saves
+  fileExtension: json

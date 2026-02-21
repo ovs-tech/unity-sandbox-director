@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 1623641943607576460}
   - component: {fileID: 7053177496473666825}
   - component: {fileID: 7404986253707761315}
+  - component: {fileID: 5307256089762547678}
   m_Layer: 0
   m_Name: CubePlacementItem
   m_TagString: Untagged
@@ -73,6 +74,7 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 50a5107e50cc61640a2e11f94fa09c9a, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -129,8 +131,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e781e1b4ff09443c384807f49638be57, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Validation.PlaceableObject
-  _placementRules:
-  - {fileID: 11400000, guid: 003468ee0cd024144acff3457ba60eea, type: 2}
+  _placementRules: []
   _requiredSocketType: {fileID: 11400000, guid: ff3b3e1f6c6094e5f9725d1dacb86bf9, type: 2}
   _snapRange: 1
 --- !u!114 &7404986253707761315
@@ -153,6 +154,20 @@ MonoBehaviour:
   _onDeselected:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &5307256089762547678
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1443516544727990350}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: abaa8a3bff5d9489fbd3eb8235e505a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Persistence.PlacedObjectInfo
+  _id: 
+  _prefabName: CubePlacementItem
 --- !u!1 &2010308510411842535
 GameObject:
   m_ObjectHideFlags: 0

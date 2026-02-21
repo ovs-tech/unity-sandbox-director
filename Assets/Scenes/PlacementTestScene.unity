@@ -311,6 +311,57 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!1 &867402196
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 867402198}
+  - component: {fileID: 867402197}
+  m_Layer: 0
+  m_Name: SaveLoadSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &867402197
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 867402196}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f138f5017fc0445aea14dee610c8083f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Systems.Persistence::Systems.Persistence.SaveLoadSystem
+  UnparentOnAwake: 1
+  gameData:
+    Name: 
+    CurrentLevelName: 
+  dataService: {fileID: 11400000, guid: 12897f982c9ad40a7842536fb9473b41, type: 2}
+  AutoSaveEnabled: 1
+  AutoSaveIntervalSeconds: 1
+--- !u!4 &867402198
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 867402196}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.11808, y: -0.5, z: 1.27591}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &884071954
 GameObject:
   m_ObjectHideFlags: 0
@@ -452,6 +503,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bef1b97b9903f48a7b11fdc668af378e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Core.PlacementController
+  OnPlacementStartedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnPlacementSuccessEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnPlacementFailedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnPlacementCancelledEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnToolChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
   _placementCamera: {fileID: 450753640}
   _placementSurface:
     serializedVersion: 2
@@ -1050,33 +1116,17 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1362076522437427743, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
-      propertyPath: m_Materials.Array.size
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 1362076522437427743, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
-      propertyPath: 'm_Materials.Array.data[1]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 50a5107e50cc61640a2e11f94fa09c9a, type: 2}
     - target: {fileID: 1443516544727990350, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
       propertyPath: m_Name
       value: CubePlacementItem
       objectReference: {fileID: 0}
-    - target: {fileID: 7053177496473666825, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
-      propertyPath: _placementRules.Array.size
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7053177496473666825, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
-      propertyPath: '_placementRules.Array.data[1]'
-      value: 
-      objectReference: {fileID: 11400000, guid: 003468ee0cd024144acff3457ba60eea, type: 2}
     - target: {fileID: 7494065892650909874, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.8852
       objectReference: {fileID: 0}
     - target: {fileID: 7494065892650909874, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.72
+      value: 0.23
       objectReference: {fileID: 0}
     - target: {fileID: 7494065892650909874, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
       propertyPath: m_LocalPosition.z
@@ -4382,3 +4432,4 @@ SceneRoots:
   - {fileID: 1276148452}
   - {fileID: 1008020061}
   - {fileID: 1043612671569015473}
+  - {fileID: 867402198}

@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Systems.PlacementSystem.Sockets;
 using Systems.PlacementSystem.Tools;
+using Systems.PlacementSystem.Persistence;
+using Systems.Persistence;
 
 namespace Systems.PlacementSystem.Core
 {
@@ -90,6 +93,9 @@ namespace Systems.PlacementSystem.Core
         private GameObject _currentGhost;
         private bool _isPlacementActive;
 
+        // Tracked placed objects for persistence
+        private readonly Dictionary<string, GameObject> _placedObjects = new Dictionary<string, GameObject>();
+
         private void Awake()
         {
             _inputProvider = _inputProviderComponent as IInputProvider;
@@ -135,6 +141,21 @@ namespace Systems.PlacementSystem.Core
             placementTool.OnPlacementFailed = HandlePlacementFailed;
 
             SetActiveTool(PlacementToolType.Selection);
+
+            // Register a persistence adapter if SaveLoadSystem is available
+            try
+            {
+                if (SaveLoadSystem.HasInstance)
+                {
+                    var sls = SaveLoadSystem.Instance;
+                    var adapter = new PlacementPersistenceAdapter(this, UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+                    sls.RegisterSubsystem(adapter);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"PlacementController: unable to register persistence adapter: {ex.Message}");
+            }
         }
 
         private void Update()
@@ -217,6 +238,8 @@ namespace Systems.PlacementSystem.Core
         {
             _currentGhost = null;
             _isPlacementActive = false;
+            // Register the placed object for persistence and notify listeners
+            RegisterPlacedObject(placedObject);
             OnPlacementSuccessEvent?.Invoke(placedObject);
 
             StartPlacement();
@@ -356,6 +379,76 @@ namespace Systems.PlacementSystem.Core
             }
 
             _placementStrategy?.OnDrawGizmos();
+        }
+
+        // -----------------------------------------------------------------
+        // Persistence / placed object helpers
+        // -----------------------------------------------------------------
+
+        public IEnumerable<GameObject> GetPlacedObjects()
+        {
+            return new List<GameObject>(_placedObjects.Values);
+        }
+
+        public void RegisterPlacedObject(GameObject instance, string id = null, string prefabName = null)
+        {
+            if (instance == null) return;
+
+            var info = instance.GetComponent<PlacedObjectInfo>();
+            if (info == null) info = instance.AddComponent<PlacedObjectInfo>();
+
+            if (!string.IsNullOrEmpty(id)) info.Id = id;
+            if (!string.IsNullOrEmpty(prefabName)) info.PrefabName = prefabName;
+            if (string.IsNullOrEmpty(info.Id)) info.Id = Guid.NewGuid().ToString();
+
+            _placedObjects[info.Id] = instance;
+        }
+
+        public GameObject PlaceObjectFromRecord(PlacedObjectRecord record)
+        {
+            if (record == null) return null;
+
+            GameObject prefab = null;
+            if (!string.IsNullOrEmpty(record.prefabName))
+            {
+                // Try Resources lookup first
+                prefab = Resources.Load<GameObject>(record.prefabName);
+            }
+
+            GameObject instance;
+            if (prefab != null)
+            {
+                instance = Instantiate(prefab, record.position, Quaternion.Euler(record.rotation));
+                instance.name = string.IsNullOrEmpty(record.customName) ? prefab.name : record.customName;
+            }
+            else
+            {
+                instance = new GameObject(string.IsNullOrEmpty(record.customName) ? (record.prefabName ?? "PlacedObject") : record.customName);
+                instance.transform.position = record.position;
+                instance.transform.eulerAngles = record.rotation;
+                instance.transform.localScale = record.scale;
+            }
+
+            instance.transform.position = record.position;
+            instance.transform.eulerAngles = record.rotation;
+            instance.transform.localScale = record.scale;
+
+            RegisterPlacedObject(instance, record.id, record.prefabName);
+            return instance;
+        }
+
+        public void ClearPlacedObjects(bool destroyGameObjects = true)
+        {
+            foreach (var kv in new List<GameObject>(_placedObjects.Values))
+            {
+                if (kv == null) continue;
+                if (destroyGameObjects)
+                {
+                    if (Application.isPlaying) Destroy(kv);
+                    else DestroyImmediate(kv);
+                }
+            }
+            _placedObjects.Clear();
         }
     }
 }

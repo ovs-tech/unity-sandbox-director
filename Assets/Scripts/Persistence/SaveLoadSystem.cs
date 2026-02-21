@@ -25,7 +25,12 @@ namespace Systems.Persistence {
     public class SaveLoadSystem : PersistentSingleton<SaveLoadSystem> {
         [SerializeField] public GameData gameData;
 
-        IDataService dataService;
+        [SerializeField]
+        BaseDataService dataService;
+
+        
+
+        // No setup call here; BaseDataService will initialize its serializer asset on enable.
 
         // Registered subsystem persistence adapters
         List<ISubsystemPersistence> _subsystems = new List<ISubsystemPersistence>();
@@ -36,13 +41,6 @@ namespace Systems.Persistence {
         [Header("Autosave")]
         [SerializeField] bool AutoSaveEnabled = false;
         [SerializeField] float AutoSaveIntervalSeconds = 60f;
-
-        protected override void Awake() {
-            base.Awake();
-            dataService = new FileDataService(new JsonSerializer());
-        }
-
-        void Start() => NewGame();
 
         void OnEnable() {
             SceneManager.sceneLoaded += OnSceneLoaded;
@@ -93,14 +91,6 @@ namespace Systems.Persistence {
                 entity.Bind(data);
             }
         }
-
-        public void NewGame() {
-            gameData = new GameData {
-                Name = "Game",
-                CurrentLevelName = "Demo"
-            };
-            SceneManager.LoadScene(gameData.CurrentLevelName);
-        }
         
         // Save/Load orchestration
         public void SaveGame() {
@@ -137,6 +127,7 @@ namespace Systems.Persistence {
             _subsystems.Remove(subsystem);
         }
 
+        [ContextMenu("All Saves")]
         // Save all registered subsystems into the current save folder
         public void SaveAll(string saveName = null) {
             string saveTo = saveName ?? CurrentSaveName ?? gameData?.Name ?? "Default";

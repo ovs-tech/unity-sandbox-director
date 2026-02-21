@@ -4,7 +4,8 @@
     "references": [
         "Core",
         "Systems.Core",
-        "Systems.CommandSystem"
+        "Systems.CommandSystem",
+        "Systems.Persistence"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

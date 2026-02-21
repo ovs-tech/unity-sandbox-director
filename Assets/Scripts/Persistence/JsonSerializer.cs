@@ -1,12 +1,13 @@
 using UnityEngine;
 
 namespace Systems.Persistence {
-    public class JsonSerializer : ISerializer {
-        public string Serialize<T>(T obj) {
+    [CreateAssetMenu(menuName = "Persistence/Json Serializer", fileName = "JsonSerializer")]
+    public class JsonSerializer : BaseSerializer {
+        public override string Serialize<T>(T obj) {
             return JsonUtility.ToJson(obj, true);
         }
 
-        public T Deserialize<T>(string json) {
+        public override T Deserialize<T>(string json) {
             return JsonUtility.FromJson<T>(json);
         }
     }
