@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using UnityEngine;
 
-namespace Core.Behaviors.Command
+namespace Systems.Core.Behaviors.Command
 {
     /// <summary>
     /// Manages command execution and undo/redo stack for timeline operations

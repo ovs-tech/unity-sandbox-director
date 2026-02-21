@@ -1,4 +1,4 @@
-namespace Core.Behaviors.Command
+namespace Systems.Core.Behaviors.Command
 {
     /// <summary>
     /// Command interface for implementing undo/redo operations

@@ -8,9 +8,9 @@ namespace Tests.CommandSystem
     {
         private class TestCommand : CommandBase
         {
-            public bool ExecuteCalled { get; private set; }
-            public bool UndoCalled { get; private set; }
-            public bool RedoCalled { get; private set; }
+            public bool ExecuteCalled { get; set; }
+            public bool UndoCalled { get; set; }
+            public bool RedoCalled { get; set; }
 
             public TestCommand(string description = "Test Command") : base(description) { }
 

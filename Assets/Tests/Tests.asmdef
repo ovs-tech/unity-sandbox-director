@@ -14,7 +14,7 @@
         "Unity.Localization",
         "Unity.Addressables",
         "Unity.ResourceManager",
-        "Core"
+        "Systems.Core"
     ],
     "includePlatforms": [
         "Editor"

@@ -7,11 +7,11 @@ using UnityEngine.Localization;
 using Systems.MiniTimeline.Core;
 using Systems.MiniTimeline.Serialization;
 using Systems.MiniTimeline.UI.Commands;
-using Core.UI.FormSubmit;
-using Core.UI.Core.Helpers;
+using Systems.Core.UI.FormSubmit;
+using Systems.Core.UI.Core.Helpers;
 using Systems.CommandSystem;
 using Systems.MiniTimeline.UI.FormDefinitions;
-using Core.UI.FormSubmit.Fields;
+using Systems.Core.UI.FormSubmit.Fields;
 using BindingContextCore = Systems.MiniTimeline.Core.BindableObjectManager;
 
 namespace Systems.MiniTimeline.UI

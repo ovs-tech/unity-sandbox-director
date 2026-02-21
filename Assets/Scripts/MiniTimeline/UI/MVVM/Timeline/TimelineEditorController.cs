@@ -9,8 +9,8 @@ using Systems.MiniTimeline.UI.MVVM.Track;
 using Systems.MiniTimeline.UI.MVVM.Ruler;
 using Systems.MiniTimeline.UI.Commands;
 using Systems.MiniTimeline.UI.FormDefinitions;
-using Core.UI.FormSubmit;
-using Core.UI.FormSubmit.Fields;
+using Systems.Core.UI.FormSubmit;
+using Systems.Core.UI.FormSubmit.Fields;
 using Unity.Properties;
 
 namespace Systems.MiniTimeline.UI.MVVM.Timeline

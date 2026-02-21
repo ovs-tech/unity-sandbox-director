@@ -170,7 +170,7 @@ namespace Systems.MiniTimeline.UI.MVVM.Track
             
             if (commandManager != null)
             {
-                commandManager.ExecuteCommand(command);
+                commandManager.ExecuteCommand(command, false);
             }
             else
             {
@@ -315,7 +315,7 @@ namespace Systems.MiniTimeline.UI.MVVM.Track
             var commandManager = CommandManager.Instance;
             if (commandManager != null)
             {
-                commandManager.ExecuteCommand(cmd);
+                commandManager.ExecuteCommand(cmd, false);
             }
             else
             {

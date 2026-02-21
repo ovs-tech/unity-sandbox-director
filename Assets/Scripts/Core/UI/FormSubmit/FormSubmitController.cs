@@ -3,10 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Core.UI.FormSubmit;
-using Core.UI.FormSubmit.Fields;
+using Systems.Core.UI.FormSubmit;
+using Systems.Core.UI.FormSubmit.Fields;
 
-namespace Core.UI.FormSubmit.MVVM
+namespace Systems.Core.UI.FormSubmit.MVVM
 {
     /// <summary>
     /// Orchestrates the FormSubmit MVVM flow. Initializes Model/View/ViewModel, wires events, and manages field lifecycle.

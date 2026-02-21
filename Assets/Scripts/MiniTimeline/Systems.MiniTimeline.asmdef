@@ -3,12 +3,12 @@
     "rootNamespace": "Systems.MiniTimeline",
     "references": [
         "Unity.InputSystem",
-        "Core",
         "Unity.Cinemachine",
         "Unity.Localization",
         "Unity.Addressables",
         "Unity.ResourceManager",
-        "Systems.CommandSystem"
+        "Systems.CommandSystem",
+        "Systems.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

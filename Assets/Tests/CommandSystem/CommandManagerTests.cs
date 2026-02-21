@@ -49,7 +49,7 @@ namespace Tests.CommandSystem
         public void ExecuteCommand_ExecutesAndAddsToUndoStack()
         {
             var cmd = new DummyCommand();
-            manager.ExecuteCommand(cmd);
+            manager.ExecuteCommand(cmd, false);
             
             Assert.IsTrue(cmd.Executed);
             Assert.IsTrue(manager.CanUndo);
@@ -62,11 +62,11 @@ namespace Tests.CommandSystem
             var cmd1 = new DummyCommand();
             var cmd2 = new DummyCommand();
             
-            manager.ExecuteCommand(cmd1);
+            manager.ExecuteCommand(cmd1, false);
             manager.Undo();
             Assert.IsTrue(manager.CanRedo);
             
-            manager.ExecuteCommand(cmd2);
+            manager.ExecuteCommand(cmd2, false);
             Assert.IsFalse(manager.CanRedo);
             Assert.AreEqual(0, manager.RedoStackCount);
         }
@@ -75,7 +75,7 @@ namespace Tests.CommandSystem
         public void Undo_PopsFromUndoAndPushesToRedo()
         {
             var cmd = new DummyCommand();
-            manager.ExecuteCommand(cmd);
+            manager.ExecuteCommand(cmd, false);
             
             manager.Undo();
             
@@ -90,7 +90,7 @@ namespace Tests.CommandSystem
         public void Redo_PopsFromRedoAndPushesToUndo()
         {
             var cmd = new DummyCommand();
-            manager.ExecuteCommand(cmd);
+            manager.ExecuteCommand(cmd, false);
             manager.Undo();
             
             manager.Redo();
@@ -122,7 +122,7 @@ namespace Tests.CommandSystem
         public void Clear_RemovesAllHistory()
         {
             var cmd = new DummyCommand();
-            manager.ExecuteCommand(cmd);
+            manager.ExecuteCommand(cmd, false);
             manager.Undo();
             
             manager.Clear();
@@ -155,7 +155,7 @@ namespace Tests.CommandSystem
             var cmd1 = new MergableDummyCommand("cmd1");
             var cmd2 = new MergableDummyCommand("cmd2");
             
-            manager.ExecuteCommand(cmd1);
+            manager.ExecuteCommand(cmd1, false);
             Assert.IsTrue(cmd1.Executed);
             
             manager.ExecuteCommand(cmd2, true);
@@ -180,7 +180,7 @@ namespace Tests.CommandSystem
 
             var cmd = new DummyCommand();
             
-            manager.ExecuteCommand(cmd); // execute: stack changes
+            manager.ExecuteCommand(cmd, false); // execute: stack changes
             manager.Undo();              // undo: stack changes
             manager.Redo();              // redo: stack changes
 
@@ -199,8 +199,8 @@ namespace Tests.CommandSystem
             Assert.AreEqual("", manager.NextUndoDescription);
             Assert.AreEqual("", manager.NextRedoDescription);
 
-            manager.ExecuteCommand(cmd1);
-            manager.ExecuteCommand(cmd2);
+            manager.ExecuteCommand(cmd1, false);
+            manager.ExecuteCommand(cmd2, false);
 
             Assert.AreEqual("Second", manager.NextUndoDescription);
 

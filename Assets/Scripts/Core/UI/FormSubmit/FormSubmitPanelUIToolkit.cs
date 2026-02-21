@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Core.UI.FormSubmit.Fields;
-using Core.UI.FormSubmit.MVVM;
+using Systems.Core.UI.FormSubmit.Fields;
+using Systems.Core.UI.FormSubmit.MVVM;
 
-namespace Core.UI.FormSubmit
+namespace Systems.Core.UI.FormSubmit
 {
     /// <summary>
     /// Dynamic form panel using UI Toolkit that can build UI forms from JSON field definitions

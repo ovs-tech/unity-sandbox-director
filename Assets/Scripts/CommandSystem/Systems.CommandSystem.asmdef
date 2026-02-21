@@ -2,7 +2,8 @@
     "name": "Systems.CommandSystem",
     "rootNamespace": "Systems.CommandSystem",
     "references": [
-        "Core"
+        "Core",
+        "Systems.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

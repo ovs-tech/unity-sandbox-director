@@ -5,7 +5,7 @@
         "Unity.InputSystem",
         "Systems.MiniTimeline",
         "Unity.Cinemachine",
-        "Core"
+        "Systems.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
