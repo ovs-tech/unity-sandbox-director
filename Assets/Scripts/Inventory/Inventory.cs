@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Systems.Persistence;
 using UnityEngine;
@@ -16,6 +17,17 @@ namespace Systems.Inventory {
                 .WithStartingItems(startingItems)
                 .WithCapacity(capacity)
                 .Build();
+
+            // Register inventory persistence adapter with central SaveLoadSystem if available
+            try {
+                var save = Systems.Persistence.SaveLoadSystem.Instance;
+                if (save != null) {
+                    var adapter = new InventoryPersistence(this);
+                    save.RegisterSubsystem(adapter);
+                }
+            } catch (Exception) {
+                // ignore when SaveLoadSystem is not present
+            }
         }
          
         public void Bind(InventoryData data) {

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Systems.Inventory;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -10,7 +9,8 @@ namespace Systems.Persistence {
         public string Name;
         public string CurrentLevelName;
         // public PlayerData playerData;
-        public InventoryData inventoryData;
+        // Store inventory data as ISaveable to avoid direct dependency on Systems.Inventory
+        public ISaveable inventoryData;
     }
         
     public interface ISaveable  {
@@ -27,21 +27,48 @@ namespace Systems.Persistence {
 
         IDataService dataService;
 
+        // Registered subsystem persistence adapters
+        List<ISubsystemPersistence> _subsystems = new List<ISubsystemPersistence>();
+
+        // Current save name in use
+        public string CurrentSaveName { get; private set; } = "Default";
+
+        [Header("Autosave")]
+        [SerializeField] bool AutoSaveEnabled = false;
+        [SerializeField] float AutoSaveIntervalSeconds = 60f;
+
         protected override void Awake() {
             base.Awake();
             dataService = new FileDataService(new JsonSerializer());
         }
-        
+
         void Start() => NewGame();
 
-        void OnEnable() => SceneManager.sceneLoaded += OnSceneLoaded;
-        void OnDisable() => SceneManager.sceneLoaded -= OnSceneLoaded;
-        
+        void OnEnable() {
+            SceneManager.sceneLoaded += OnSceneLoaded;
+            if (AutoSaveEnabled) {
+                InvokeRepeating(nameof(AutosaveTick), AutoSaveIntervalSeconds, AutoSaveIntervalSeconds);
+            }
+        }
+
+        void OnDisable() {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            CancelInvoke(nameof(AutosaveTick));
+        }
+
+        void AutosaveTick() {
+            try {
+                SaveAll();
+            } catch (Exception ex) {
+                Debug.LogError($"Autosave failed: {ex.Message}");
+            }
+        }
+
         void OnSceneLoaded(Scene scene, LoadSceneMode mode) {
             if (scene.name == "Menu") return;
-            
-            // Bind<Hero, PlayerData>(gameData.playerData);
-            Bind<Inventory.Inventory, InventoryData>(gameData.inventoryData);
+
+            // Let registered subsystems load their data for this save
+            LoadAll();
         }
         
         void Bind<T, TData>(TData data) where T : MonoBehaviour, IBind<TData> where TData : ISaveable, new() {
@@ -75,7 +102,12 @@ namespace Systems.Persistence {
             SceneManager.LoadScene(gameData.CurrentLevelName);
         }
         
-        public void SaveGame() => dataService.Save(gameData);
+        // Save/Load orchestration
+        public void SaveGame() {
+            dataService.Save(gameData);
+            // Also save registered subsystems under the current save folder
+            SaveAll();
+        }
 
         public void LoadGame(string gameName) {
             gameData = dataService.Load(gameName);
@@ -84,11 +116,63 @@ namespace Systems.Persistence {
                 gameData.CurrentLevelName = "Demo";
             }
 
+            CurrentSaveName = gameData.Name;
+
+            // Load subsystem files after level load if needed by callers
             SceneManager.LoadScene(gameData.CurrentLevelName);
         }
-        
+
         public void ReloadGame() => LoadGame(gameData.Name);
 
         public void DeleteGame(string gameName) => dataService.Delete(gameName);
+
+        // Subsystem registration
+        public void RegisterSubsystem(ISubsystemPersistence subsystem) {
+            if (subsystem == null) return;
+            if (!_subsystems.Contains(subsystem)) _subsystems.Add(subsystem);
+        }
+
+        public void UnregisterSubsystem(ISubsystemPersistence subsystem) {
+            if (subsystem == null) return;
+            _subsystems.Remove(subsystem);
+        }
+
+        // Save all registered subsystems into the current save folder
+        public void SaveAll(string saveName = null) {
+            string saveTo = saveName ?? CurrentSaveName ?? gameData?.Name ?? "Default";
+            foreach (var s in _subsystems) {
+                try {
+                    var data = s.GetSaveData();
+                    if (data != null) {
+                        // Use the concrete DataType when saving generically
+                        dataService.Save<object>(data, saveTo, s.Namespace, true);
+                    }
+                } catch (Exception ex) {
+                    Debug.LogError($"Failed to save subsystem '{s.Namespace}': {ex.Message}");
+                }
+            }
+        }
+
+        public void LoadAll(string saveName = null) {
+            string loadFrom = saveName ?? CurrentSaveName ?? gameData?.Name ?? "Default";
+            foreach (var s in _subsystems) {
+                try {
+                    // Attempt to load the file and pass to subsystem
+                    var list = dataService.ListFiles(loadFrom);
+                    if (list != null && list.Contains(s.Namespace)) {
+                        var loaded = dataService.Load<object>(loadFrom, s.Namespace);
+                        s.LoadData(loaded);
+                    }
+                } catch (Exception ex) {
+                    Debug.LogWarning($"Failed to load subsystem '{s.Namespace}' from save '{loadFrom}': {ex.Message}");
+                }
+            }
+        }
+
+        public IEnumerable<string> ListFiles(string saveName) => dataService.ListFiles(saveName);
+        public IEnumerable<string> ListSaves() => dataService.ListSaves();
+
+        public void SaveFile<T>(T data, string saveName, string ns, bool overwrite = true) => dataService.Save(data, saveName, ns, overwrite);
+        public T LoadFile<T>(string saveName, string ns) => dataService.Load<T>(saveName, ns);
     }
 }

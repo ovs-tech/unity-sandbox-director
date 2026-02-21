@@ -1,12 +1,8 @@
 {
-    "name": "Systems.SceneSandbox",
-    "rootNamespace": "Systems.SceneSandbox",
+    "name": "Systems.Persistence",
+    "rootNamespace": "Systems.Persistence",
     "references": [
-        "Unity.InputSystem",
-        "Systems.MiniTimeline",
-        "Unity.Cinemachine",
-        "Systems.Core",
-        "Systems.Persistence"
+        "Systems.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -68,6 +68,17 @@ namespace Systems.SceneSandbox.Core
                 TryAutoLoadFirstProject();
             }
 
+            // Register placement persistence with the central SaveLoadSystem if available
+            try {
+                var saveSystem = Systems.Persistence.SaveLoadSystem.Instance;
+                if (saveSystem != null) {
+                    var placementPersistence = new PlacementPersistence(_placementSystem, _currentScene, _currentSceneName);
+                    saveSystem.RegisterSubsystem(placementPersistence);
+                }
+            } catch (Exception) {
+                // Ignore if SaveLoadSystem not present in some contexts
+            }
+
             // Create default scene/project if needed
             if (_currentProject == null)
             {

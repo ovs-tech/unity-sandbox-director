@@ -1,10 +1,7 @@
 {
-    "name": "Systems.SceneSandbox",
-    "rootNamespace": "Systems.SceneSandbox",
+    "name": "Systems.Inventory",
+    "rootNamespace": "Systems.Inventory",
     "references": [
-        "Unity.InputSystem",
-        "Systems.MiniTimeline",
-        "Unity.Cinemachine",
         "Systems.Core",
         "Systems.Persistence"
     ],
