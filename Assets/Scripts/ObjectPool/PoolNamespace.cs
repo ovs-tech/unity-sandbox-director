@@ -51,7 +51,6 @@ namespace Systems.ObjectPool
         {
             if (prefab == null)
             {
-                Debug.LogError("[PoolNamespace] Cannot spawn null prefab");
                 throw new System.ArgumentNullException(nameof(prefab));
             }
 
@@ -108,6 +107,9 @@ namespace Systems.ObjectPool
 
         public void Clear()
         {
+            // Collect all tracked instances before clearing
+            var instancesToDestroy = new List<GameObject>(_instanceToPrefabId.Keys);
+            
             foreach (var pool in _pools.Values)
             {
                 pool.Clear();
@@ -116,6 +118,23 @@ namespace Systems.ObjectPool
             _pools.Clear();
             _prefabs.Clear();
             _instanceToPrefabId.Clear();
+            
+            // Destroy all tracked instances (both active and inactive)
+            foreach (var instance in instancesToDestroy)
+            {
+                if (instance != null)
+                {
+                    // Use DestroyImmediate in edit mode, Destroy in play mode
+                    if (Application.isPlaying)
+                    {
+                        Object.Destroy(instance);
+                    }
+                    else
+                    {
+                        Object.DestroyImmediate(instance);
+                    }
+                }
+            }
 
             if (_poolRoot != null)
             {

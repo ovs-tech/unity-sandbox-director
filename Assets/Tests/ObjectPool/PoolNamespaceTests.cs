@@ -75,7 +75,9 @@ namespace Tests.ObjectPool
 
       // Assert
       Assert.AreEqual(expectedPosition, instance.transform.position, "Instance should have correct position");
-      Assert.AreEqual(expectedRotation, instance.transform.rotation, "Instance should have correct rotation");
+      // Use Quaternion.Angle for robust comparison (handles q and -q equivalence)
+      float rotationAngleDifference = Quaternion.Angle(expectedRotation, instance.transform.rotation);
+      Assert.Less(rotationAngleDifference, 0.01f, "Instance should have correct rotation");
     }
 
     [Test]

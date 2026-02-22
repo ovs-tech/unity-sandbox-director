@@ -260,7 +260,9 @@ namespace Tests.ObjectPool
 
             // Assert
             Assert.AreEqual(testPosition, instance.transform.position);
-            Assert.AreEqual(testRotation, instance.transform.rotation);
+            // Use Quaternion.Angle for robust comparison (handles q and -q equivalence)
+            float rotationAngleDifference = Quaternion.Angle(testRotation, instance.transform.rotation);
+            Assert.Less(rotationAngleDifference, 0.01f, "Rotation should match within tolerance");
         }
 
         [Test]
