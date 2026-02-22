@@ -44,11 +44,5 @@ namespace Systems.ObjectPool
                 Debug.LogWarning($"[PooledInstance] Attempted to release {gameObject.name} but no pool is assigned.");
             }
         }
-
-        private void OnDisable()
-        {
-            // Optionally auto-release on disable - can be made configurable
-            // For now, we'll require explicit Release calls
-        }
     }
 }
