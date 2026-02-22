@@ -240,7 +240,14 @@ namespace Systems.SceneSandbox.Core
                         }
                     }
                     
-                    Destroy(obj);
+#if UNITY_EDITOR
+                    if (!UnityEngine.Application.isPlaying)
+                        UnityEngine.Object.DestroyImmediate(obj);
+                    else
+                        UnityEngine.Object.Destroy(obj);
+#else
+                    UnityEngine.Object.Destroy(obj);
+#endif
                 }
                 else
                 {
@@ -667,7 +674,14 @@ namespace Systems.SceneSandbox.Core
                 {
                     if (obj != null)
                     {
-                        Destroy(obj);
+#if UNITY_EDITOR
+                        if (!UnityEngine.Application.isPlaying)
+                            UnityEngine.Object.DestroyImmediate(obj);
+                        else
+                            UnityEngine.Object.Destroy(obj);
+#else
+                        UnityEngine.Object.Destroy(obj);
+#endif
                     }
                 }
             }

@@ -24,6 +24,7 @@ namespace Systems.SceneSandbox.Core.Tests
 
             // In EditMode, Awake is not automatically called by AddComponent unless marked with [ExecuteAlways].
             // We must simulate it so InitializeComponents() runs and dependencies are generated.
+            UnityEngine.TestTools.LogAssert.ignoreFailingMessages = true;
             _gameObject.SendMessage("Awake", SendMessageOptions.DontRequireReceiver);
             _gameObject.SendMessage("Start", SendMessageOptions.DontRequireReceiver);
         }

@@ -584,7 +584,14 @@ namespace Systems.SceneSandbox.Core
                     // Unregister with SceneSerializer
                     _sceneSerializer.UnregisterPlacedObject(objectId);
                 }
-                Destroy(obj);
+#if UNITY_EDITOR
+                if (!UnityEngine.Application.isPlaying)
+                    UnityEngine.Object.DestroyImmediate(obj);
+                else
+                    UnityEngine.Object.Destroy(obj);
+#else
+                UnityEngine.Object.Destroy(obj);
+#endif
 
             });
 
@@ -894,7 +901,14 @@ namespace Systems.SceneSandbox.Core
                     SelectObject(null);
                 }
 
-                Destroy(obj);
+#if UNITY_EDITOR
+                if (!UnityEngine.Application.isPlaying)
+                    UnityEngine.Object.DestroyImmediate(obj);
+                else
+                    UnityEngine.Object.Destroy(obj);
+#else
+                UnityEngine.Object.Destroy(obj);
+#endif
                 _onObjectRemoved?.Invoke(obj);
 
                 return true;

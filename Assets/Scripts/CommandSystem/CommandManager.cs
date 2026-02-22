@@ -43,8 +43,24 @@ namespace Systems.CommandSystem
 
         public bool CanUndoForNamespace(string ns) => GetUndoStack(ns).Count > 0;
         public bool CanRedoForNamespace(string ns) => GetRedoStack(ns).Count > 0;
+        public int UndoStackCountForNamespace(string ns) => GetUndoStack(ns).Count;
+        public int RedoStackCountForNamespace(string ns) => GetRedoStack(ns).Count;
         public string NextUndoDescriptionForNamespace(string ns) => CanUndoForNamespace(ns) ? GetUndoStack(ns).Peek().Description : "";
         public string NextRedoDescriptionForNamespace(string ns) => CanRedoForNamespace(ns) ? GetRedoStack(ns).Peek().Description : "";
+
+        public IEnumerable<string> ActiveNamespaces
+        {
+            get
+            {
+                var namespaces = new HashSet<string>();
+                foreach (var ns in undoStacks.Keys) namespaces.Add(ns);
+                foreach (var ns in redoStacks.Keys) namespaces.Add(ns);
+                if (!namespaces.Contains(DEFAULT_NAMESPACE)) {
+                    namespaces.Add(DEFAULT_NAMESPACE);
+                }
+                return namespaces;
+            }
+        }
 
         /// <summary>
         /// Enable/disable debug logging for command operations

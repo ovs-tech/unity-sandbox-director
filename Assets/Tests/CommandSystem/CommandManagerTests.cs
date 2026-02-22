@@ -119,6 +119,139 @@ namespace Tests.CommandSystem
         }
 
         [Test]
+        public void Undo_Namespaced_PopsFromUndoAndPushesToRedo()
+        {
+            var cmd = new DummyCommand("ns1_cmd");
+            manager.ExecuteCommand(cmd, false, "NS1");
+            
+            manager.Undo("NS1");
+            
+            Assert.IsTrue(cmd.Undone);
+            Assert.IsFalse(manager.CanUndoForNamespace("NS1"));
+            Assert.IsTrue(manager.CanRedoForNamespace("NS1"));
+            Assert.AreEqual(0, manager.UndoStackCountForNamespace("NS1"));
+            Assert.AreEqual(1, manager.RedoStackCountForNamespace("NS1"));
+        }
+
+        [Test]
+        public void Redo_Namespaced_PopsFromRedoAndPushesToUndo()
+        {
+            var cmd = new DummyCommand("ns1_cmd");
+            manager.ExecuteCommand(cmd, false, "NS1");
+            manager.Undo("NS1");
+            
+            manager.Redo("NS1");
+            
+            Assert.IsTrue(cmd.Redone);
+            Assert.IsTrue(manager.CanUndoForNamespace("NS1"));
+            Assert.IsFalse(manager.CanRedoForNamespace("NS1"));
+            Assert.AreEqual(1, manager.UndoStackCountForNamespace("NS1"));
+            Assert.AreEqual(0, manager.RedoStackCountForNamespace("NS1"));
+        }
+
+        [Test]
+        public void Clear_Namespaced_RemovesHistoryOnlyForThatNamespace()
+        {
+            var cmd1 = new DummyCommand("ns1_cmd");
+            var cmd2 = new DummyCommand("ns2_cmd");
+            
+            manager.ExecuteCommand(cmd1, false, "NS1");
+            manager.ExecuteCommand(cmd2, false, "NS2");
+            manager.Undo("NS1");
+            manager.Undo("NS2");
+            
+            manager.Clear("NS1");
+            
+            Assert.IsFalse(manager.CanUndoForNamespace("NS1"));
+            Assert.IsFalse(manager.CanRedoForNamespace("NS1"));
+            
+            Assert.IsFalse(manager.CanUndoForNamespace("NS2")); // It was undone
+            Assert.IsTrue(manager.CanRedoForNamespace("NS2")); // So redo should be possible
+        }
+
+        [Test]
+        public void ActiveNamespaces_ReturnsAllUsedNamespaces()
+        {
+            manager.ExecuteCommand(new DummyCommand(), false, "NS1");
+            manager.ExecuteCommand(new DummyCommand(), false, "NS2");
+            
+            var namespaces = new List<string>(manager.ActiveNamespaces);
+            
+            Assert.IsTrue(namespaces.Contains("NS1"));
+            Assert.IsTrue(namespaces.Contains("NS2"));
+            Assert.IsTrue(namespaces.Contains(CommandManager.DEFAULT_NAMESPACE)); // default is always included
+        }
+
+        [Test]
+        public void Events_Namespaced_FiredOnExecuteUndoRedo()
+        {
+            int executeCount = 0;
+            int undoCount = 0;
+            int redoCount = 0;
+            int stackChangeCount = 0;
+            string lastNamespace = null;
+
+            manager.OnCommandExecutedByNamespace += (ns, _) => { executeCount++; lastNamespace = ns; };
+            manager.OnUndoPerformedByNamespace += (ns, _) => { undoCount++; lastNamespace = ns; };
+            manager.OnRedoPerformedByNamespace += (ns, _) => { redoCount++; lastNamespace = ns; };
+            manager.OnStacksChangedByNamespace += (ns, _, _) => { stackChangeCount++; lastNamespace = ns; };
+
+            var cmd = new DummyCommand();
+            
+            manager.ExecuteCommand(cmd, false, "TestNS"); 
+            Assert.AreEqual("TestNS", lastNamespace);
+
+            manager.Undo("TestNS");              
+            Assert.AreEqual("TestNS", lastNamespace);
+
+            manager.Redo("TestNS");              
+            Assert.AreEqual("TestNS", lastNamespace);
+
+            Assert.AreEqual(1, executeCount);
+            Assert.AreEqual(1, undoCount);
+            Assert.AreEqual(1, redoCount);
+            Assert.AreEqual(3, stackChangeCount);
+        }
+
+        [Test]
+        public void Properties_Namespaced_ReturnsCorrectly()
+        {
+            var cmd1 = new DummyCommand("FirstNS");
+            var cmd2 = new DummyCommand("SecondNS");
+            
+            Assert.AreEqual("", manager.NextUndoDescriptionForNamespace("NS1"));
+            Assert.AreEqual("", manager.NextRedoDescriptionForNamespace("NS1"));
+
+            manager.ExecuteCommand(cmd1, false, "NS1");
+            manager.ExecuteCommand(cmd2, false, "NS1");
+
+            Assert.AreEqual("SecondNS", manager.NextUndoDescriptionForNamespace("NS1"));
+
+            manager.Undo("NS1"); 
+            
+            Assert.AreEqual("FirstNS", manager.NextUndoDescriptionForNamespace("NS1"));
+            Assert.AreEqual("SecondNS", manager.NextRedoDescriptionForNamespace("NS1"));
+        }
+
+        [Test]
+        public void GetHistory_Namespaced_ReturnsDescriptionsInOrder()
+        {
+            manager.ExecuteCommand(new DummyCommand("Cmd1"), false, "NS1");
+            manager.ExecuteCommand(new DummyCommand("Cmd2"), false, "NS1");
+            manager.ExecuteCommand(new DummyCommand("OtherNSCmd"), false, "NS2");
+            
+            manager.Undo("NS1"); // Cmd2 goes to redo stack
+
+            var undoHistory = manager.GetUndoHistory("NS1");
+            Assert.AreEqual(1, undoHistory.Length);
+            Assert.AreEqual("Cmd1", undoHistory[0]);
+            
+            var redoHistory = manager.GetRedoHistory("NS1");
+            Assert.AreEqual(1, redoHistory.Length);
+            Assert.AreEqual("Cmd2", redoHistory[0]);
+        }
+
+        [Test]
         public void Clear_RemovesAllHistory()
         {
             var cmd = new DummyCommand();

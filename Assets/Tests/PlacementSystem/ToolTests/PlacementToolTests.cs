@@ -151,19 +151,30 @@ namespace Systems.PlacementSystem.Tests
         public void Tick_UpdatesGhostPositionAndRotation()
         {
             var tool = new PlacementTool();
-            var input = new MockInput { PointerPos = new Vector2(Screen.width / 2, Screen.height / 2) };
-
+            
             var strategy = ScriptableObject.CreateInstance<MockStrategy>();
             strategy.ReturnPos = new Vector3(1, 0, 1);
             strategy.ReturnRot = Quaternion.Euler(0, 90, 0);
 
             var context = new PlacementToolContext(
-                input, strategy, new MockValidator(), null, null, _camera, 100, 90, 90, false, false, false, -1, -1, -1, new PlacementSelectionState(), null, new ToolStateRegistry()
+                null, strategy, new MockValidator(), null, null, _camera, 100, 90, 90, false, false, false, -1, -1, -1, new PlacementSelectionState(), null, new ToolStateRegistry()
             );
 
-            // Add collider for raycast surface
-            var floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            floor.transform.position = Vector3.zero;
+            // Add safe box collider for reliable raycast
+            var floor = new GameObject("Floor");
+            var coll = floor.AddComponent<BoxCollider>();
+            coll.size = new Vector3(100, 1, 100);
+            floor.transform.position = new Vector3(0, -0.5f, 0);
+
+            // Important: sync transforms
+            Physics.SyncTransforms();
+
+            var input = new MockInput { PointerPos = new Vector2(_camera.pixelWidth / 2f, _camera.pixelHeight / 2f) };
+            
+            // Need to recreate context with the assigned input
+            context = new PlacementToolContext(
+                input, strategy, new MockValidator(), null, null, _camera, 100, 90, 90, false, false, false, -1, -1, -1, new PlacementSelectionState(), null, new ToolStateRegistry()
+            );
 
             tool.OnEnter(context);
             tool.SetupPlacement(_ghost, _prefab);

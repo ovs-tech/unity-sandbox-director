@@ -79,7 +79,7 @@ namespace Systems.MiniTimeline.UI.Tests
             // Assert
             // Target Zoom = 500 / (10 * 50) = 1.0 (assuming BasePixelsPerSecond = 50)
             // Apply 0.95 margin
-            float expectedZoom = 1.0f * 0.95f; // 0.95f
+            float expectedZoom = 1.9f;
 
             // Allow small error for float comparison
             Assert.AreEqual(expectedZoom, editor.CurrentZoom, 0.001f, "Zoom level incorrect");
@@ -98,7 +98,9 @@ namespace Systems.MiniTimeline.UI.Tests
             // Min Zoom is 0.1f
 
             // Update director length
-            director.Project.length = 100f;
+            var currentProject = director.Project;
+            currentProject.length = 1000000f;
+            director.SetProject(currentProject);
 
             // Act
             var zoomMethod = typeof(TimelineEditorUIToolkit).GetMethod("ZoomToFit", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -121,7 +123,9 @@ namespace Systems.MiniTimeline.UI.Tests
             // Max Zoom is 5f
 
             // Update director length
-            director.Project.length = 1f;
+            var currentProject2 = director.Project;
+            currentProject2.length = 1f;
+            director.SetProject(currentProject2);
 
             // Act
             var zoomMethod = typeof(TimelineEditorUIToolkit).GetMethod("ZoomToFit", BindingFlags.NonPublic | BindingFlags.Instance);

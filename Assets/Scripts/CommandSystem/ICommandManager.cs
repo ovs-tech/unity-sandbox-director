@@ -17,6 +17,10 @@ namespace Systems.CommandSystem
         int UndoStackCount { get; }
         int RedoStackCount { get; }
 
+        System.Collections.Generic.IEnumerable<string> ActiveNamespaces { get; }
+        int UndoStackCountForNamespace(string ns);
+        int RedoStackCountForNamespace(string ns);
+
         string NextUndoDescription { get; }
         string NextRedoDescription { get; }
 
