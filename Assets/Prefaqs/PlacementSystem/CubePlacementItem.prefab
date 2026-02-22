@@ -68,7 +68,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Sockets.Socket
   _socketType: {fileID: 11400000, guid: ff3b3e1f6c6094e5f9725d1dacb86bf9, type: 2}
   _isOccupied: 0
-  _showGizmo: 1
+  _showGizmo: 0
 --- !u!1 &804901305500025761
 GameObject:
   m_ObjectHideFlags: 0
@@ -137,7 +137,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Sockets.Socket
   _socketType: {fileID: 11400000, guid: ff3b3e1f6c6094e5f9725d1dacb86bf9, type: 2}
   _isOccupied: 0
-  _showGizmo: 1
+  _showGizmo: 0
 --- !u!1 &1443516544727990350
 GameObject:
   m_ObjectHideFlags: 0
@@ -269,9 +269,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Validation.PlaceableObject
   _model: {fileID: 1443516544727990350}
   _preview: {fileID: 5497193667457968754, guid: efd55465b2dca43178bda5e1b18d453e, type: 3}
-  _placementRules:
-  - {fileID: 11400000, guid: 003468ee0cd024144acff3457ba60eea, type: 2}
-  - {fileID: 11400000, guid: f721b1ecd52b04ae2a80dd15f97ee72b, type: 2}
+  _placementRules: []
   _requiredSocketType: {fileID: 11400000, guid: ff3b3e1f6c6094e5f9725d1dacb86bf9, type: 2}
   _snapRange: 1
 --- !u!114 &7404986253707761315
@@ -376,7 +374,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Sockets.Socket
   _socketType: {fileID: 11400000, guid: ff3b3e1f6c6094e5f9725d1dacb86bf9, type: 2}
   _isOccupied: 0
-  _showGizmo: 1
+  _showGizmo: 0
 --- !u!1 &2973839670544950683
 GameObject:
   m_ObjectHideFlags: 0
@@ -482,7 +480,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Sockets.Socket
   _socketType: {fileID: 11400000, guid: ff3b3e1f6c6094e5f9725d1dacb86bf9, type: 2}
   _isOccupied: 0
-  _showGizmo: 1
+  _showGizmo: 0
 --- !u!1 &6835737588431740126
 GameObject:
   m_ObjectHideFlags: 0
@@ -551,7 +549,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Sockets.Socket
   _socketType: {fileID: 11400000, guid: ff3b3e1f6c6094e5f9725d1dacb86bf9, type: 2}
   _isOccupied: 0
-  _showGizmo: 1
+  _showGizmo: 0
 --- !u!1 &7781271585353725598
 GameObject:
   m_ObjectHideFlags: 0
@@ -620,4 +618,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Sockets.Socket
   _socketType: {fileID: 11400000, guid: ff3b3e1f6c6094e5f9725d1dacb86bf9, type: 2}
   _isOccupied: 0
-  _showGizmo: 1
+  _showGizmo: 0

@@ -30,7 +30,7 @@ namespace Systems.PlacementSystem.Tools.Commands
                 }
             }
 
-            _target.SetActive(false);
+            Systems.ObjectPool.ObjectPool.Release(_target);
         }
 
         protected override void UndoInternal()

@@ -39,7 +39,7 @@ namespace Systems.PlacementSystem.Tools.Commands
             if (_prefab == null)
                 return;
 
-            _instance = Object.Instantiate(_prefab, _position, _rotation);
+            _instance = Systems.ObjectPool.ObjectPool.Spawn(_prefab, _position, _rotation, null);
             _instance.name = _prefab.name;
 
             if (_makeSelectable && _instance.GetComponent<Selectable>() == null)
@@ -76,7 +76,8 @@ namespace Systems.PlacementSystem.Tools.Commands
                 }
             }
 
-            _instance.SetActive(false);
+            Systems.ObjectPool.ObjectPool.Release(_instance);
+            _instance = null;
 
             if (_occupiedSocket != null)
             {
