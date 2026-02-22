@@ -119,7 +119,15 @@ namespace Systems.ObjectPool
 
             if (_poolRoot != null)
             {
-                Object.Destroy(_poolRoot);
+                // Use DestroyImmediate in edit mode, Destroy in play mode
+                if (Application.isPlaying)
+                {
+                    Object.Destroy(_poolRoot);
+                }
+                else
+                {
+                    Object.DestroyImmediate(_poolRoot);
+                }
                 _poolRoot = null;
             }
         }
@@ -193,7 +201,15 @@ namespace Systems.ObjectPool
                 _instanceToPrefabId.Remove(instance);
             }
             
-            Object.Destroy(instance);
+            // Use DestroyImmediate in edit mode, Destroy in play mode
+            if (Application.isPlaying)
+            {
+                Object.Destroy(instance);
+            }
+            else
+            {
+                Object.DestroyImmediate(instance);
+            }
         }
     }
 }
