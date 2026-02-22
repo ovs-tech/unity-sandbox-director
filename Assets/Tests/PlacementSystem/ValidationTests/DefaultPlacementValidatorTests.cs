@@ -16,7 +16,7 @@ namespace Systems.PlacementSystem.Tests
         }
 
         [Test]
-        public void IsPlacementValid_GhostWithoutPlaceableObject_ReturnsTrue()
+        public void IsPlacementValid_GhostWithoutPart_ReturnsTrue()
         {
             var validator = new DefaultPlacementValidator();
             var ghost = new GameObject("Ghost");

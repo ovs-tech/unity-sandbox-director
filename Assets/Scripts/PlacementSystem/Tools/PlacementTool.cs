@@ -1,9 +1,7 @@
 using UnityEngine;
-using Systems.PlacementSystem.Core;
-using Systems.PlacementSystem.Selection;
 using Systems.PlacementSystem.Sockets;
-using Systems.PlacementSystem.Validation;
 using Systems.PlacementSystem.Tools.Commands;
+using Systems.PlacementSystem.Core.Components;
 
 namespace Systems.PlacementSystem.Tools
 {
@@ -303,9 +301,9 @@ namespace Systems.PlacementSystem.Tools
             }
 
             Quaternion baseRotation = Quaternion.Euler(0, _currentRotationAngle, 0);
-            var placeableObject = _ghostObject.GetComponent<PlaceableObject>();
-            var socketType = placeableObject != null ? placeableObject.RequiredSocketType : null;
-            float snapRange = placeableObject != null ? placeableObject.SnapRange : 0f;
+            var part = _ghostObject.GetComponent<PlacementPart>();
+            var socketType = part != null ? part.RequiredSocketType : null;
+            float snapRange = part != null ? part.SnapRange : 0f;
 
             snapState.SetRequest(_ghostObject, hit.point, baseRotation, socketType, snapRange);
         }

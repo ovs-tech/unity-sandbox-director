@@ -1,10 +1,11 @@
 using UnityEngine;
 using Systems.PlacementSystem.Core;
+using Systems.PlacementSystem.Core.Components;
 
 namespace Systems.PlacementSystem.Validation
 {
     /// <summary>
-    /// Concrete implementation of IPlacementValidator that uses PlaceableObject rules.
+    /// Concrete implementation of IPlacementValidator that uses Part rules.
     /// This bridges the interface-based architecture with the ScriptableObject rule system.
     /// It is a pure C# class that can be instantiated by the pipeline.
     /// </summary>
@@ -15,18 +16,18 @@ namespace Systems.PlacementSystem.Validation
             if (ghostObject == null)
                 return ValidationResult.Failure("Ghost object is null.");
 
-            // Get the PlaceableObject component from the ghost
-            var placeableObject = ghostObject.GetComponent<PlaceableObject>();
+            // Get the Part component from the ghost
+            var part = ghostObject.GetComponent<PlacementPart>();
 
-            if (placeableObject == null)
+            if (part == null)
             {
-                // If no PlaceableObject component, assume placement is valid
+                // If no Part component, assume placement is valid
                 // (object has no specific validation requirements)
                 return ValidationResult.Success;
             }
 
             // Validate using the object's rules
-            return placeableObject.ValidatePlacement(position, rotation, ghostObject);
+            return part.ValidatePlacement(position, rotation, ghostObject);
         }
     }
 }

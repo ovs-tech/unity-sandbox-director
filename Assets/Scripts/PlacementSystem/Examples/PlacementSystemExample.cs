@@ -1,12 +1,9 @@
 using UnityEngine;
 using Systems.PlacementSystem.Core;
-using Systems.PlacementSystem.Input;
 using Systems.PlacementSystem.Strategies;
 using Systems.PlacementSystem.Validation;
-using Systems.PlacementSystem.Visualization;
 using Systems.PlacementSystem.Sockets;
-using System.Linq;
-using System;
+using Systems.PlacementSystem.Core.Components;
 
 namespace Systems.PlacementSystem.Examples
 {
@@ -229,12 +226,12 @@ namespace Systems.PlacementSystem.Examples
         /// <summary>
         /// Example: Create validation rules programmatically.
         /// </summary>
-        public void SetupPlaceableObjectWithRules(GameObject prefab)
+        public void SetupPartWithRules(GameObject prefab)
         {
-            var placeableObject = prefab.GetComponent<PlaceableObject>();
-            if (placeableObject == null)
+            var part = prefab.GetComponent<PlacementPart>();
+            if (part == null)
             {
-                placeableObject = prefab.AddComponent<PlaceableObject>();
+                part = prefab.AddComponent<PlacementPart>();
             }
 
             // Create rules (normally you'd load these from assets)
@@ -254,8 +251,8 @@ namespace Systems.PlacementSystem.Examples
             SetPrivateField(surface, "_maxSurfaceAngle", 30f);
 
             // Attach rules to the placeable object
-            placeableObject.AddRule(clearance);
-            placeableObject.AddRule(surface);
+            part.AddRule(clearance);
+            part.AddRule(surface);
 
             
         }

@@ -4,7 +4,7 @@
 
 **Goal:** Refactor the Placement System validation returning a `ValidationResult` struct with error messages and add `UnityEvents` to `PlacementController` so non-coders can hook up UI, Audio, and VFX easily.
 
-**Architecture:** Introduce `ValidationResult` struct. Update `IPlacementValidator`, `PlacementRule`, and `PlaceableObject` to return this struct. Expose `UnityEvent` fields in `PlacementController` for key lifecycle events (Started, Success, Failed, Cancelled, ToolChanged) and trigger them from the relevant Tools.
+**Architecture:** Introduce `ValidationResult` struct. Update `IPlacementValidator`, `PlacementRule`, and `Part` to return this struct. Expose `UnityEvent` fields in `PlacementController` for key lifecycle events (Started, Success, Failed, Cancelled, ToolChanged) and trigger them from the relevant Tools.
 
 **Tech Stack:** Unity C#, UnityEngine.Events
 
@@ -39,11 +39,11 @@ git add Assets/Scripts/PlacementSystem/Validation/ValidationResult.cs
 git commit -m "feat: add ValidationResult struct for detailed placement feedback"
 ```
 
-### Task 2: Refactor PlaceableObject and PlacementRule
+### Task 2: Refactor Part and PlacementRule
 
 **Files:**
 - Modify: `Assets/Scripts/PlacementSystem/Validation/PlacementRule.cs`
-- Modify: `Assets/Scripts/PlacementSystem/Validation/PlaceableObject.cs`
+- Modify: `Assets/Scripts/PlacementSystem/Validation/Part.cs`
 
 **Step 1: Modify PlacementRule**
 
@@ -52,10 +52,10 @@ git commit -m "feat: add ValidationResult struct for detailed placement feedback
 public abstract ValidationResult CheckRule(Vector3 position, Quaternion rotation, GameObject ghostObject);
 ```
 
-**Step 2: Modify PlaceableObject**
+**Step 2: Modify Part**
 
 ```csharp
-// In PlaceableObject.cs, change ValidatePlacement signature and body:
+// In Part.cs, change ValidatePlacement signature and body:
 public ValidationResult ValidatePlacement(Vector3 position, Quaternion rotation, GameObject ghostObject)
 {
     if (_placementRules == null || _placementRules.Count == 0)
@@ -79,8 +79,8 @@ public ValidationResult ValidatePlacement(Vector3 position, Quaternion rotation,
 **Step 3: Commit**
 
 ```bash
-git add Assets/Scripts/PlacementSystem/Validation/PlacementRule.cs Assets/Scripts/PlacementSystem/Validation/PlaceableObject.cs
-git commit -m "refactor: update PlacementRule and PlaceableObject to use ValidationResult"
+git add Assets/Scripts/PlacementSystem/Validation/PlacementRule.cs Assets/Scripts/PlacementSystem/Validation/Part.cs
+git commit -m "refactor: update PlacementRule and Part to use ValidationResult"
 ```
 
 ### Task 3: Refactor Concrete Rules
@@ -129,9 +129,9 @@ ValidationResult ValidatePlacement(Vector3 position, Quaternion rotation, GameOb
 public ValidationResult ValidatePlacement(Vector3 position, Quaternion rotation, GameObject ghostObject)
 {
     if (ghostObject == null) return ValidationResult.Failure("Ghost object is null.");
-    var placeableObject = ghostObject.GetComponent<PlaceableObject>();
-    if (placeableObject == null) return ValidationResult.Success;
-    return placeableObject.ValidatePlacement(position, rotation, ghostObject);
+    var Part = ghostObject.GetComponent<Part>();
+    if (Part == null) return ValidationResult.Success;
+    return Part.ValidatePlacement(position, rotation, ghostObject);
 }
 ```
 

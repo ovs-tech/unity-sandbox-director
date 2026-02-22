@@ -7,6 +7,7 @@ using Systems.PlacementSystem.Strategies;
 using Systems.PlacementSystem.Validation;
 using Systems.PlacementSystem.Visualization;
 using Systems.PlacementSystem.Sockets;
+using Systems.PlacementSystem.Core.Components;
 
 namespace PlacementSystem.Tests
 {
@@ -59,7 +60,7 @@ namespace PlacementSystem.Tests
 
             // Create prefab with validation
             var prefab = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            var placeableObject = prefab.AddComponent<PlaceableObject>();
+            var part = prefab.AddComponent<PlacementPart>();
 
             // Setup controller via reflection
             SetupController(controller, _camera, inputProvider, strategy, visualizer, prefab);
@@ -129,7 +130,7 @@ namespace PlacementSystem.Tests
             if (collider != null)
                 Object.DestroyImmediate(collider);
 
-            var placeableObject = prefab.AddComponent<PlaceableObject>();
+            var part = prefab.AddComponent<PlacementPart>();
 
             // Create rules with lenient settings
             var clearanceRule = ScriptableObject.CreateInstance<ClearanceRule>();
@@ -139,18 +140,18 @@ namespace PlacementSystem.Tests
             ConfigureClearanceRule(clearanceRule);
             ConfigureRequireSurfaceRule(surfaceRule);
 
-            placeableObject.AddRule(clearanceRule);
-            placeableObject.AddRule(surfaceRule);
+            part.AddRule(clearanceRule);
+            part.AddRule(surfaceRule);
 
             // Act - Validate at valid position (above ground)
-            var resultValid = placeableObject.ValidatePlacement(
+            var resultValid = part.ValidatePlacement(
                 new Vector3(0, 1.5f, 0),
                 Quaternion.identity,
                 prefab
             );
 
             // Validate at invalid position (in the air, far from ground)
-            var resultInvalid = placeableObject.ValidatePlacement(
+            var resultInvalid = part.ValidatePlacement(
                 new Vector3(0, 100, 0),
                 Quaternion.identity,
                 prefab

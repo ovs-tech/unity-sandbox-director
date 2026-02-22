@@ -1,16 +1,27 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Systems.PlacementSystem.Sockets;
+using Systems.PlacementSystem.Validation;
 
-namespace Systems.PlacementSystem.Validation
+namespace Systems.PlacementSystem.Core.Components
 {
     /// <summary>
     /// Component attached to prefabs that holds their placement validation rules.
     /// Rules are ScriptableObjects that can be configured per-object in the editor.
     /// This makes validation data-driven and easily customizable without code changes.
     /// </summary>
-    public class PlaceableObject : MonoBehaviour
+    public class PlacementPart : MonoBehaviour
     {
+        [Header("Part Visuals")]
+        [SerializeField, Tooltip("The main visual model of the part")]
+        private GameObject _model;
+
+        [SerializeField, Tooltip("The preview/ghost object used during placement")]
+        private GameObject _preview;
+
+        public GameObject Model => _model;
+        public GameObject Preview => _preview;
+
         [Header("Validation Rules")]
         [SerializeField, Tooltip("List of rules that must ALL pass for placement to be valid")]
         private List<PlacementRule> _placementRules = new List<PlacementRule>();

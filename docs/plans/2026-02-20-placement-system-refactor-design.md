@@ -13,7 +13,7 @@ The goal of this refactor is to make the `PlacementSystem` more extensible and t
 
 ### 2. Validation System
 - Make `IPlacementValidator` independent of `MonoBehaviour`.
-- Create a `DefaultPlacementValidator : IPlacementValidator` (a pure C# class) to handle `PlaceableObject` validation logic.
+- Create a `DefaultPlacementValidator : IPlacementValidator` (a pure C# class) to handle `Part` validation logic.
 - Register it into the `PlacementController` via initialization instead of Inspector attachment.
 
 ### 3. Visualizer and Strategy Systems

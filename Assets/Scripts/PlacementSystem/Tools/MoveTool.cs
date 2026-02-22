@@ -1,7 +1,6 @@
 using UnityEngine;
-using Systems.PlacementSystem.Core;
-using Systems.PlacementSystem.Validation;
 using Systems.PlacementSystem.Tools.Commands;
+using Systems.PlacementSystem.Core.Components;
 
 namespace Systems.PlacementSystem.Tools
 {
@@ -229,9 +228,9 @@ namespace Systems.PlacementSystem.Tools
                 return;
             }
 
-            var placeable = _movingObject.GetComponent<PlaceableObject>();
-            var socketType = placeable != null ? placeable.RequiredSocketType : null;
-            float snapRange = placeable != null ? placeable.SnapRange : 0f;
+            var part = _movingObject.GetComponent<PlacementPart>();
+            var socketType = part != null ? part.RequiredSocketType : null;
+            float snapRange = part != null ? part.SnapRange : 0f;
 
             // Always set request with current mouse position - SnapTool handles sticky snap logic
             snapState.SetRequest(_movingObject, hit.point, _movingObject.transform.rotation, socketType, snapRange);

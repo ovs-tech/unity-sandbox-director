@@ -1116,9 +1116,33 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 881330377662219509, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
+      propertyPath: _showGizmo
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1443516544727990350, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
       propertyPath: m_Name
       value: CubePlacementItem
+      objectReference: {fileID: 0}
+    - target: {fileID: 3237370915596939488, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
+      propertyPath: _showGizmo
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3934430204850168097, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
+      propertyPath: _showGizmo
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4320696073998625817, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
+      propertyPath: _showGizmo
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6161211974705022856, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
+      propertyPath: _showGizmo
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6766329610624839298, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
+      propertyPath: _showGizmo
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7494065892650909874, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
       propertyPath: m_LocalPosition.x

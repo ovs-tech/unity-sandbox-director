@@ -2,6 +2,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Systems.PlacementSystem.Validation;
+using Systems.PlacementSystem.Core.Components;
 
 namespace PlacementSystem.Tests
 {
@@ -99,32 +100,32 @@ namespace PlacementSystem.Tests
         }
 
         [Test]
-        public void PlaceableObject_NoRules_ReturnsTrue()
+        public void Part_NoRules_ReturnsTrue()
         {
             // Arrange
-            var placeableObject = _testGameObject.AddComponent<PlaceableObject>();
+            var part = _testGameObject.AddComponent<PlacementPart>();
 
             // Act
-            var result = placeableObject.ValidatePlacement(Vector3.zero, Quaternion.identity, _testGameObject);
+            var result = part.ValidatePlacement(Vector3.zero, Quaternion.identity, _testGameObject);
 
             // Assert
-            Assert.IsTrue(result.IsValid, "PlaceableObject with no rules should always validate");
+            Assert.IsTrue(result.IsValid, "Part with no rules should always validate");
         }
 
         [Test]
-        public void PlaceableObject_AddAndRemoveRule_Works()
+        public void Part_AddAndRemoveRule_Works()
         {
             // Arrange
-            var placeableObject = _testGameObject.AddComponent<PlaceableObject>();
+            var part = _testGameObject.AddComponent<PlacementPart>();
             var rule = ScriptableObject.CreateInstance<ClearanceRule>();
 
             // Act
-            placeableObject.AddRule(rule);
-            var rules = placeableObject.GetRules();
+            part.AddRule(rule);
+            var rules = part.GetRules();
             int countAfterAdd = rules.Count;
 
-            placeableObject.RemoveRule(rule);
-            int countAfterRemove = placeableObject.GetRules().Count;
+            part.RemoveRule(rule);
+            int countAfterRemove = part.GetRules().Count;
 
             // Assert
             Assert.AreEqual(1, countAfterAdd, "Rule should be added");
@@ -135,31 +136,31 @@ namespace PlacementSystem.Tests
         }
 
         [Test]
-        public void PlaceableObject_NullRule_DoesNotThrow()
+        public void Part_NullRule_DoesNotThrow()
         {
             // Arrange
-            var placeableObject = _testGameObject.AddComponent<PlaceableObject>();
+            var part = _testGameObject.AddComponent<PlacementPart>();
 
             // Act & Assert
-            Assert.DoesNotThrow(() => placeableObject.AddRule(null));
-            Assert.DoesNotThrow(() => placeableObject.RemoveRule(null));
+            Assert.DoesNotThrow(() => part.AddRule(null));
+            Assert.DoesNotThrow(() => part.RemoveRule(null));
         }
 
         [Test]
-        public void PlaceableObject_ValidatePlacement_WithPassingRule_ReturnsTrue()
+        public void Part_ValidatePlacement_WithPassingRule_ReturnsTrue()
         {
             // Arrange
-            var placeableObject = _testGameObject.AddComponent<PlaceableObject>();
+            var part = _testGameObject.AddComponent<PlacementPart>();
             var rule = ScriptableObject.CreateInstance<ClearanceRule>();
             SetMaxAllowedOverlaps(rule, 0);
             SetCheckBoxSize(rule, new Vector3(1f, 1f, 1f));
             SetObstacleLayer(rule, 0);
             
-            placeableObject.AddRule(rule);
+            part.AddRule(rule);
             Vector3 position = new Vector3(100, 100, 100); // Far from any obstacles
 
             // Act
-            var result = placeableObject.ValidatePlacement(position, Quaternion.identity, _testGameObject);
+            var result = part.ValidatePlacement(position, Quaternion.identity, _testGameObject);
 
             // Assert
             Assert.IsTrue(result.IsValid, "Validation should pass with passing rule");
@@ -169,18 +170,18 @@ namespace PlacementSystem.Tests
         }
 
         [Test]
-        public void PlaceableObject_ValidatePlacement_WithFailingRule_ReturnsFalse()
+        public void Part_ValidatePlacement_WithFailingRule_ReturnsFalse()
         {
             // Arrange
-            var placeableObject = _testGameObject.AddComponent<PlaceableObject>();
+            var part = _testGameObject.AddComponent<PlacementPart>();
             var rule = ScriptableObject.CreateInstance<RequireSurfaceRule>();
             SetRequiredSurfaceLayer(rule, 0);
             
-            placeableObject.AddRule(rule);
+            part.AddRule(rule);
             Vector3 position = new Vector3(0, 1000, 0); // High in the air, no surface
 
             // Act
-            var result = placeableObject.ValidatePlacement(position, Quaternion.identity, _testGameObject);
+            var result = part.ValidatePlacement(position, Quaternion.identity, _testGameObject);
 
             // Assert
             Assert.IsFalse(result.IsValid, "Validation should fail with failing rule");
@@ -190,10 +191,10 @@ namespace PlacementSystem.Tests
         }
 
         [Test]
-        public void PlaceableObject_ValidatePlacement_WithMultipleRules_AllMustPass()
+        public void Part_ValidatePlacement_WithMultipleRules_AllMustPass()
         {
             // Arrange
-            var placeableObject = _testGameObject.AddComponent<PlaceableObject>();
+            var part = _testGameObject.AddComponent<PlacementPart>();
             
             var passingRule = ScriptableObject.CreateInstance<ClearanceRule>();
             SetMaxAllowedOverlaps(passingRule, 0);
@@ -203,13 +204,13 @@ namespace PlacementSystem.Tests
             var failingRule = ScriptableObject.CreateInstance<RequireSurfaceRule>();
             SetRequiredSurfaceLayer(failingRule, 0);
             
-            placeableObject.AddRule(passingRule);
-            placeableObject.AddRule(failingRule);
+            part.AddRule(passingRule);
+            part.AddRule(failingRule);
             
             Vector3 position = new Vector3(100, 1000, 100); // Far from obstacles but no surface
 
             // Act
-            var result = placeableObject.ValidatePlacement(position, Quaternion.identity, _testGameObject);
+            var result = part.ValidatePlacement(position, Quaternion.identity, _testGameObject);
 
             // Assert
             Assert.IsFalse(result.IsValid, "Validation should fail when any rule fails");
@@ -220,19 +221,19 @@ namespace PlacementSystem.Tests
         }
 
         [Test]
-        public void PlaceableObject_RequiredSocketType_ReturnsCorrectValue()
+        public void Part_RequiredSocketType_ReturnsCorrectValue()
         {
             // Arrange
-            var placeableObject = _testGameObject.AddComponent<PlaceableObject>();
+            var part = _testGameObject.AddComponent<PlacementPart>();
             var socketType = ScriptableObject.CreateInstance<Systems.PlacementSystem.Sockets.SocketType>();
             
             // Set via reflection
-            var field = typeof(Systems.PlacementSystem.Validation.PlaceableObject).GetField("_requiredSocketType",
+            var field = typeof(PlacementPart).GetField("_requiredSocketType",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            field.SetValue(placeableObject, socketType);
+            field.SetValue(part, socketType);
 
             // Act
-            var result = placeableObject.RequiredSocketType;
+            var result = part.RequiredSocketType;
 
             // Assert
             Assert.AreEqual(socketType, result, "RequiredSocketType should return assigned value");
@@ -242,34 +243,34 @@ namespace PlacementSystem.Tests
         }
 
         [Test]
-        public void PlaceableObject_SnapRange_ReturnsCorrectValue()
+        public void Part_SnapRange_ReturnsCorrectValue()
         {
             // Arrange
-            var placeableObject = _testGameObject.AddComponent<PlaceableObject>();
+            var part = _testGameObject.AddComponent<PlacementPart>();
             float expectedRange = 5.5f;
             
             // Set via reflection
-            var field = typeof(Systems.PlacementSystem.Validation.PlaceableObject).GetField("_snapRange",
+            var field = typeof(PlacementPart).GetField("_snapRange",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            field.SetValue(placeableObject, expectedRange);
+            field.SetValue(part, expectedRange);
 
             // Act
-            var result = placeableObject.SnapRange;
+            var result = part.SnapRange;
 
             // Assert
             Assert.AreEqual(expectedRange, result, "SnapRange should return assigned value");
         }
 
         [Test]
-        public void PlaceableObject_GetRules_ReturnsReadOnlyList()
+        public void Part_GetRules_ReturnsReadOnlyList()
         {
             // Arrange
-            var placeableObject = _testGameObject.AddComponent<PlaceableObject>();
+            var part = _testGameObject.AddComponent<PlacementPart>();
             var rule = ScriptableObject.CreateInstance<ClearanceRule>();
-            placeableObject.AddRule(rule);
+            part.AddRule(rule);
 
             // Act
-            var rules = placeableObject.GetRules();
+            var rules = part.GetRules();
 
             // Assert
             Assert.IsNotNull(rules, "GetRules should return a list");
@@ -281,16 +282,16 @@ namespace PlacementSystem.Tests
         }
 
         [Test]
-        public void PlaceableObject_AddDuplicateRule_DoesNotAddTwice()
+        public void Part_AddDuplicateRule_DoesNotAddTwice()
         {
             // Arrange
-            var placeableObject = _testGameObject.AddComponent<PlaceableObject>();
+            var part = _testGameObject.AddComponent<PlacementPart>();
             var rule = ScriptableObject.CreateInstance<ClearanceRule>();
 
             // Act
-            placeableObject.AddRule(rule);
-            placeableObject.AddRule(rule); // Add same rule again
-            var rules = placeableObject.GetRules();
+            part.AddRule(rule);
+            part.AddRule(rule); // Add same rule again
+            var rules = part.GetRules();
 
             // Assert
             Assert.AreEqual(1, rules.Count, "Duplicate rule should not be added");
@@ -300,19 +301,19 @@ namespace PlacementSystem.Tests
         }
 
         [Test]
-        public void PlaceableObject_ValidatePlacement_WithNullRule_SkipsRule()
+        public void Part_ValidatePlacement_WithNullRule_SkipsRule()
         {
             // Arrange
-            var placeableObject = _testGameObject.AddComponent<PlaceableObject>();
+            var part = _testGameObject.AddComponent<PlacementPart>();
             
             // Add null rule via reflection to simulate corrupted data
-            var rulesField = typeof(Systems.PlacementSystem.Validation.PlaceableObject).GetField("_placementRules",
+            var rulesField = typeof(PlacementPart).GetField("_placementRules",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var rulesList = (System.Collections.Generic.List<PlacementRule>)rulesField.GetValue(placeableObject);
+            var rulesList = (System.Collections.Generic.List<PlacementRule>)rulesField.GetValue(part);
             rulesList.Add(null);
 
             // Act
-            var result = placeableObject.ValidatePlacement(Vector3.zero, Quaternion.identity, _testGameObject);
+            var result = part.ValidatePlacement(Vector3.zero, Quaternion.identity, _testGameObject);
 
             // Assert
             Assert.IsTrue(result.IsValid, "Validation should pass when null rule is skipped");
