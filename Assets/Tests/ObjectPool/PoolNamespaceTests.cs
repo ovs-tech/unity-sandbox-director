@@ -223,7 +223,7 @@ namespace Tests.ObjectPool
         {
             // Act & Assert
             Assert.Throws<System.ArgumentException>(() => 
-                ObjectPool.Namespace(null),
+                Systems.ObjectPool.ObjectPool.Namespace(null),
                 "Creating namespace with null name should throw ArgumentException");
         }
 
@@ -232,7 +232,7 @@ namespace Tests.ObjectPool
         {
             // Act & Assert
             Assert.Throws<System.ArgumentException>(() => 
-                ObjectPool.Namespace(""),
+                Systems.ObjectPool.ObjectPool.Namespace(""),
                 "Creating namespace with empty string should throw ArgumentException");
         }
 
@@ -248,7 +248,7 @@ namespace Tests.ObjectPool
             Object.DestroyImmediate(instance);
 
             // Act & Assert - should not throw when releasing a destroyed object
-            Assert.DoesNotThrow(() => ObjectPool.Release(instance), 
+            Assert.DoesNotThrow(() => Systems.ObjectPool.ObjectPool.Release(instance), 
                 "Releasing a destroyed GameObject should handle gracefully");
         }
     }
