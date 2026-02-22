@@ -8,9 +8,10 @@ namespace Systems.ObjectPool
     /// Static facade for object pooling with namespace support
     /// Provides zero-allocation, easy-to-use pooling for GameObjects
     /// </summary>
+    /// <remarks>This class is NOT thread-safe. All methods must be called from the main thread.</remarks>
     public static class ObjectPool
     {
-        private const string DefaultNamespaceName = "default";
+        public const string DEFAULT_NAMESPACE = "default";
         private static readonly Dictionary<string, PoolNamespace> _namespaces = new();
 
         /// <summary>
@@ -22,9 +23,10 @@ namespace Systems.ObjectPool
         /// <param name="rotation">World rotation for the spawned instance</param>
         /// <param name="parent">Optional parent transform for the spawned instance</param>
         /// <returns>The spawned GameObject instance</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if prefab is null</exception>
         public static GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent)
         {
-            IPoolNamespace defaultNamespace = Namespace(DefaultNamespaceName);
+            IPoolNamespace defaultNamespace = Namespace(DEFAULT_NAMESPACE);
             return defaultNamespace.Spawn(prefab, position, rotation, parent);
         }
 
@@ -59,6 +61,9 @@ namespace Systems.ObjectPool
         /// <returns>The requested namespace</returns>
         public static IPoolNamespace Namespace(string namespaceName)
         {
+            if (string.IsNullOrEmpty(namespaceName))
+                throw new System.ArgumentException("Namespace name cannot be null or empty", nameof(namespaceName));
+            
             if (!_namespaces.TryGetValue(namespaceName, out var poolNamespace))
             {
                 poolNamespace = new PoolNamespace(namespaceName);

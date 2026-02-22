@@ -217,5 +217,39 @@ namespace Tests.ObjectPool
                 _poolNamespace.Spawn(null, Vector3.zero, Quaternion.identity, null),
                 "Spawning null prefab should throw ArgumentNullException");
         }
+
+        [Test]
+        public void Namespace_WithNullName_ThrowsArgumentException()
+        {
+            // Act & Assert
+            Assert.Throws<System.ArgumentException>(() => 
+                ObjectPool.Namespace(null),
+                "Creating namespace with null name should throw ArgumentException");
+        }
+
+        [Test]
+        public void Namespace_WithEmptyString_ThrowsArgumentException()
+        {
+            // Act & Assert
+            Assert.Throws<System.ArgumentException>(() => 
+                ObjectPool.Namespace(""),
+                "Creating namespace with empty string should throw ArgumentException");
+        }
+
+        [Test]
+        public void Release_OnDestroyedGameObject_HandlesGracefully()
+        {
+            // Arrange
+            GameObject instance = _poolNamespace.Spawn(_testPrefab, Vector3.zero, Quaternion.identity, null);
+            PooledInstance pooledInstance = instance.GetComponent<PooledInstance>();
+            Assert.IsNotNull(pooledInstance, "Instance should have PooledInstance component");
+            
+            // Destroy the game object without calling Release
+            Object.DestroyImmediate(instance);
+
+            // Act & Assert - should not throw when releasing a destroyed object
+            Assert.DoesNotThrow(() => ObjectPool.Release(instance), 
+                "Releasing a destroyed GameObject should handle gracefully");
+        }
     }
 }
