@@ -322,7 +322,7 @@ GameObject:
   - component: {fileID: 867402198}
   - component: {fileID: 867402197}
   m_Layer: 0
-  m_Name: SaveLoadSystem
+  m_Name: GamePersistenceManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

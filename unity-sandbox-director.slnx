@@ -9,6 +9,7 @@
   <Project Path="Systems.Inventory.csproj" />
   <Project Path="Systems.Persistence.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="Systems.ObjectPool.csproj" />
   <Project Path="Systems.SceneSandbox.Editor.csproj" />
   <Project Path="Systems.MiniTimeline.Editor.csproj" />
   <Project Path="SimpleJSON.csproj" />

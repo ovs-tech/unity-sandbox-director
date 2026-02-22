@@ -37,6 +37,16 @@ namespace Systems.ObjectPool
             return _poolRoot;
         }
 
+        /// <summary>
+        /// Spawns an instance from the pool, or creates one if none are available.
+        /// Positions the instance and sets its parent, reusing pooled objects when possible.
+        /// </summary>
+        /// <param name="prefab">The prefab to spawn from</param>
+        /// <param name="position">World position for the spawned instance</param>
+        /// <param name="rotation">World rotation for the spawned instance</param>
+        /// <param name="parent">Optional parent transform for the spawned instance</param>
+        /// <returns>The spawned GameObject instance</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown if prefab is null</exception>
         public GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent = null)
         {
             if (prefab == null)
@@ -71,6 +81,11 @@ namespace Systems.ObjectPool
             return instance;
         }
 
+        /// <summary>
+        /// Releases a spawned instance back to the pool for reuse.
+        /// The instance will be deactivated and stored for future spawning.
+        /// </summary>
+        /// <param name="instance">The instance to release back to the pool</param>
         public void Release(GameObject instance)
         {
             if (instance == null)
@@ -170,7 +185,7 @@ namespace Systems.ObjectPool
 
         private void OnDestroyPoolObject(GameObject instance)
         {
-            if (_instanceToPrefabId.ContainsKey(instance))
+            if (instance != null && _instanceToPrefabId.ContainsKey(instance))
             {
                 _instanceToPrefabId.Remove(instance);
             }
