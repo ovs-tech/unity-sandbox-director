@@ -11,7 +11,7 @@ namespace Systems.ObjectPool
         /// <summary>
         /// Spawn an instance from this namespace
         /// </summary>
-        GameObject Spawn(GameObject prefab, Vector3 position = default, Quaternion rotation = default, Transform parent = null);
+        GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent = null);
 
         /// <summary>
         /// Release an instance back to its pool in this namespace
@@ -34,9 +34,16 @@ namespace Systems.ObjectPool
     /// </summary>
     public struct PoolNamespaceStats
     {
-        public string namespaceName;
-        public int poolCount;
-        public int totalActiveInstances;
-        public int totalInactiveInstances;
+        /// <summary>Name of the namespace</summary>
+        public string NamespaceName;
+        
+        /// <summary>Number of distinct prefab pools in this namespace</summary>
+        public int PoolCount;
+        
+        /// <summary>Total number of active (spawned) instances across all pools</summary>
+        public int TotalActiveInstances;
+        
+        /// <summary>Total number of inactive (pooled) instances across all pools</summary>
+        public int TotalInactiveInstances;
     }
 }
