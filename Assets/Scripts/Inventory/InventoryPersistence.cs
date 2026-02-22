@@ -1,7 +1,5 @@
 using System;
-using System.Linq;
-using Systems.Persistence;
-using UnityEngine;
+using Systems.Persistence.Core;
 
 namespace Systems.Inventory {
     public class InventoryPersistence : ISubsystemPersistence {

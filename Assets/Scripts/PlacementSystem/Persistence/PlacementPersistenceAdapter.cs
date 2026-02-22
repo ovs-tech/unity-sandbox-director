@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
-using Systems.Persistence;
+using Systems.Persistence.Core;
 using Systems.PlacementSystem.Core;
-using Systems.PlacementSystem.Persistence;
 using UnityEngine;
 
 namespace Systems.PlacementSystem.Persistence

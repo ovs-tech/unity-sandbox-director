@@ -1,6 +1,6 @@
 using System;
 
-namespace Systems.Persistence {
+namespace Systems.Persistence.Core {
     public interface ISubsystemPersistence {
         // Namespace (filename without extension) used for this subsystem within a save folder
         string Namespace { get; }

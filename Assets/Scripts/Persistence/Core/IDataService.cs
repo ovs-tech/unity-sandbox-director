@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Systems.Persistence {
+namespace Systems.Persistence.Core {
     public interface IDataService {
         // Backwards-compatible game-level save/load
         void Save(GameData data, bool overwrite = true);

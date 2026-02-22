@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
-using Systems.Persistence;
+using Systems.Persistence.Core;
 using Systems.SceneSandbox.Data;
-using UnityEngine;
 
 namespace Systems.SceneSandbox.Core {
     // Adapter that exposes PlacementSystem's scene-placed objects as a subsystem persistence

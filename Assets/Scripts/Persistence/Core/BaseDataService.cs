@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-namespace Systems.Persistence
+namespace Systems.Persistence.Core
 {
   public abstract class BaseDataService : ScriptableObject, IDataService
   {
