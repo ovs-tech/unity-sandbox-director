@@ -15,7 +15,7 @@ namespace Systems.Inventory {
 
         public object GetSaveData() {
             try {
-                var sls = Systems.Persistence.SaveLoadSystem.Instance;
+                var sls = Systems.Persistence.GamePersistenceManager.Instance;
                 if (sls != null && sls.gameData != null) return sls.gameData.inventoryData;
             } catch (Exception) { }
             return null;
@@ -28,7 +28,7 @@ namespace Systems.Inventory {
 
             // Store into central gameData if available
             try {
-                var sls = Systems.Persistence.SaveLoadSystem.Instance;
+                var sls = Systems.Persistence.GamePersistenceManager.Instance;
                 if (sls != null) {
                     sls.gameData.inventoryData = invData;
                 }

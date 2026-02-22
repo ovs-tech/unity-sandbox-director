@@ -4,7 +4,7 @@ using System.IO;
 using Systems.Persistence.Core;
 using UnityEngine;
 
-namespace Systems.Persistence
+namespace Systems.Persistence.Services
 {
     [CreateAssetMenu(menuName = "Persistence/File Data Service", fileName = "FileDataService")]
     public class FileDataService : BaseDataService

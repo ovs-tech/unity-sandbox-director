@@ -145,9 +145,9 @@ namespace Systems.PlacementSystem.Core
             // Register a persistence adapter if SaveLoadSystem is available
             try
             {
-                if (SaveLoadSystem.HasInstance)
+                if (GamePersistenceManager.HasInstance)
                 {
-                    var sls = SaveLoadSystem.Instance;
+                    var sls = GamePersistenceManager.Instance;
                     var adapter = new PlacementPersistenceAdapter(this, UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
                     sls.RegisterSubsystem(adapter);
                 }

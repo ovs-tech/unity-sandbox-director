@@ -20,7 +20,7 @@ namespace Systems.Inventory {
 
             // Register inventory persistence adapter with central SaveLoadSystem if available
             try {
-                var save = Systems.Persistence.SaveLoadSystem.Instance;
+                var save = Systems.Persistence.GamePersistenceManager.Instance;
                 if (save != null) {
                     var adapter = new InventoryPersistence(this);
                     save.RegisterSubsystem(adapter);

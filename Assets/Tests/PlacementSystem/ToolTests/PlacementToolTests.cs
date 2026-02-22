@@ -46,7 +46,7 @@ namespace Systems.PlacementSystem.Tests
 
             ValidationResult IPlacementValidator.IsPlacementValid(Vector3 position, Quaternion rotation, GameObject ghostObject)
             {
-                throw new System.NotImplementedException();
+                return ReturnValid ? ValidationResult.Success : ValidationResult.Failure("Invalid placement");
             }
         }
 
@@ -57,7 +57,7 @@ namespace Systems.PlacementSystem.Tests
             _ghost.name = "Ghost";
             _prefab = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             _prefab.name = "Prefab";
-            
+
             var camObj = new GameObject("TestCam");
             camObj.transform.position = new Vector3(0, 10, 0);
             camObj.transform.rotation = Quaternion.Euler(90, 0, 0); // look down
@@ -152,7 +152,7 @@ namespace Systems.PlacementSystem.Tests
         {
             var tool = new PlacementTool();
             var input = new MockInput { PointerPos = new Vector2(Screen.width / 2, Screen.height / 2) };
-            
+
             var strategy = ScriptableObject.CreateInstance<MockStrategy>();
             strategy.ReturnPos = new Vector3(1, 0, 1);
             strategy.ReturnRot = Quaternion.Euler(0, 90, 0);
@@ -169,7 +169,7 @@ namespace Systems.PlacementSystem.Tests
             tool.SetupPlacement(_ghost, _prefab);
 
             // Trigger raycast state
-            tool.HandleInput(); 
+            tool.HandleInput();
             // Update position
             tool.Tick();
 

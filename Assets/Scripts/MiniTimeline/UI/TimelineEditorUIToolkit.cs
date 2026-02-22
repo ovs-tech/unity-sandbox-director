@@ -26,7 +26,7 @@ namespace Systems.MiniTimeline.UI
         [SerializeField] private string rootElementName = "timeline-editor";
 
         [Header("Editor Settings")]
-        [SerializeField] private float pixelsPerSecond = 100f;
+        [SerializeField] private float pixelsPerSecond = 50f;
         [SerializeField] private float minZoom = 0.1f;
         [SerializeField] private float maxZoom = 5f;
         [SerializeField] private float snapThreshold = 0.1f;
@@ -720,11 +720,12 @@ namespace Systems.MiniTimeline.UI
                 // Fallback to explicitly set style width (useful in tests)
                 try
                 {
-                    var styleWidth = timelineScrollView.style.width;
-                    if (styleWidth.value.unit == LengthUnit.Pixel && styleWidth.value.value > 0f)
-                    {
-                        width = styleWidth.value.value;
-                    }
+                        var styleWidth = timelineScrollView.style.width;
+                        // Accept explicit style width values regardless of the LengthUnit
+                        if (styleWidth.value.value > 0f)
+                        {
+                            width = styleWidth.value.value;
+                        }
                 }
                 catch
                 {

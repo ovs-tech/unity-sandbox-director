@@ -70,7 +70,7 @@ namespace Systems.SceneSandbox.Core
 
             // Register placement persistence with the central SaveLoadSystem if available
             try {
-                var saveSystem = Systems.Persistence.SaveLoadSystem.Instance;
+                var saveSystem = Systems.Persistence.GamePersistenceManager.Instance;
                 if (saveSystem != null) {
                     var placementPersistence = new PlacementPersistence(_placementSystem, _currentScene, _currentSceneName);
                     saveSystem.RegisterSubsystem(placementPersistence);

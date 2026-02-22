@@ -23,7 +23,7 @@ namespace Systems.Persistence {
         void Bind(TData data);
     }
     
-    public class SaveLoadSystem : PersistentSingleton<SaveLoadSystem> {
+    public class GamePersistenceManager : PersistentSingleton<GamePersistenceManager> {
         [SerializeField] public GameData gameData;
 
         [SerializeField]
