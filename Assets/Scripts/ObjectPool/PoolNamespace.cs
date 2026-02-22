@@ -124,6 +124,9 @@ namespace Systems.ObjectPool
             }
         }
 
+        /// <summary>
+        /// Get statistics for this namespace
+        /// </summary>
         public PoolNamespaceStats GetStats()
         {
             int totalActive = 0;
@@ -145,7 +148,7 @@ namespace Systems.ObjectPool
         }
 
         /// <summary>
-        /// Proxy method implementing IPooledInstancePool.Release for PooledInstance callbacks
+        /// Release an instance back to its pool (internal interface implementation)
         /// </summary>
         void IPooledInstancePool.Release(GameObject instance)
         {
