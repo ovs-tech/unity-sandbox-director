@@ -29,6 +29,12 @@ namespace Systems.Persistence.Services
         public RootLocation RootPathMode => rootLocation;
         public string CustomRootPath => customRootPath;
 
+        public override string GetRootPath()
+        {
+            if (string.IsNullOrEmpty(rootPath)) ComputeRootPath();
+            return rootPath;
+        }
+
         public override void Setup()
         {
             base.Setup();

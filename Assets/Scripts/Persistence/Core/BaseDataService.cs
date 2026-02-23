@@ -31,6 +31,13 @@ namespace Systems.Persistence.Core
       EnsureSerializerInitialized();
     }
 
+    // Returns the filesystem root path used by this data service when applicable.
+    // Default implementation returns null for services that don't expose a filesystem path.
+    public virtual string GetRootPath()
+    {
+      return null;
+    }
+
     protected void EnsureSerializerInitialized()
     {
       if (serializer != null) return;

@@ -5,7 +5,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using Systems.MiniTimeline.Core;
-using Systems.MiniTimeline.Serialization;
 
 namespace Systems.MiniTimeline.Editor
 {
@@ -1371,15 +1370,33 @@ namespace Systems.MiniTimeline.Editor
                 
                 if (!string.IsNullOrEmpty(path))
                 {
-                    if (ProjectSerializer.SaveToFile(director.Project, path))
+                    // Save using the director/persistence system then export the saved file to the chosen path
+                    if (director.SaveProject())
                     {
-                        lastSavedPath = path;
-                        Debug.Log($"[MiniTimelineDirectorEditor] Project saved to: {path}");
-                        EditorUtility.DisplayDialog("Save Successful", $"Project saved to:\n{path}", "OK");
+                        var savedPath = MiniTimelineDirector.GetProjectFilePath(director.Project.name);
+                        try
+                        {
+                            if (!string.IsNullOrEmpty(savedPath) && File.Exists(savedPath))
+                            {
+                                File.Copy(savedPath, path, true);
+                                lastSavedPath = path;
+                                Debug.Log($"[MiniTimelineDirectorEditor] Project exported to: {path}");
+                                EditorUtility.DisplayDialog("Export Successful", $"Project exported to:\n{path}", "OK");
+                            }
+                            else
+                            {
+                                EditorUtility.DisplayDialog("Export Failed", "Saved project file not found to export.", "OK");
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogError($"[MiniTimelineDirectorEditor] Failed to export project: {e.Message}");
+                            EditorUtility.DisplayDialog("Export Failed", $"Failed to export project:\n{e.Message}", "OK");
+                        }
                     }
                     else
                     {
-                        EditorUtility.DisplayDialog("Save Failed", "Failed to save project. Check console for details.", "OK");
+                        EditorUtility.DisplayDialog("Save Failed", "Failed to save project via persistence manager. Check console for details.", "OK");
                     }
                 }
             }
@@ -1460,17 +1477,34 @@ namespace Systems.MiniTimeline.Editor
             
             if (!string.IsNullOrEmpty(path))
             {
-                var project = ProjectSerializer.LoadFromFile(path);
-                if (project != null)
+                // Import the selected file into the persistent projects folder and load it via the director
+                if (string.IsNullOrEmpty(MiniTimelineDirector.GetProjectsFolder()))
                 {
-                    director.SetProject(project);
-                    lastLoadedPath = path;
-                    Debug.Log($"[MiniTimelineDirectorEditor] Project loaded from: {path}");
-                    EditorUtility.DisplayDialog("Load Successful", $"Project '{project.name}' loaded successfully.", "OK");
+                    EditorUtility.DisplayDialog("Import Failed", "Persistent projects folder is not available.", "OK");
+                    return;
                 }
-                else
+
+                var destPath = Path.Combine(MiniTimelineDirector.GetProjectsFolder(), Path.GetFileName(path));
+                try
                 {
-                    EditorUtility.DisplayDialog("Load Failed", "Failed to load project. Check console for details.", "OK");
+                    File.Copy(path, destPath, true);
+                    // Attempt to load by project name (file name without extension)
+                    var projectName = Path.GetFileNameWithoutExtension(path);
+                    if (director.LoadProject(projectName))
+                    {
+                        lastLoadedPath = destPath;
+                        Debug.Log($"[MiniTimelineDirectorEditor] Project imported and loaded from: {destPath}");
+                        EditorUtility.DisplayDialog("Load Successful", $"Project '{projectName}' imported and loaded successfully.", "OK");
+                    }
+                    else
+                    {
+                        EditorUtility.DisplayDialog("Load Failed", "Imported file failed to load via persistence manager.", "OK");
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[MiniTimelineDirectorEditor] Failed to import/load project: {e.Message}");
+                    EditorUtility.DisplayDialog("Import Failed", $"Failed to import project:\n{e.Message}", "OK");
                 }
             }
         }
@@ -1490,10 +1524,26 @@ namespace Systems.MiniTimeline.Editor
                 }
                 else if (!string.IsNullOrEmpty(lastSavedPath))
                 {
-                    // Save to custom path using serializer directly
-                    if (ProjectSerializer.SaveToFile(director.Project, lastSavedPath))
+                    // For custom last-saved locations, export the latest persistent save to that custom path
+                    if (director.SaveProject())
                     {
-                        Debug.Log($"[MiniTimelineDirectorEditor] Quick saved to: {lastSavedPath}");
+                        var savedPath = MiniTimelineDirector.GetProjectFilePath(director.Project.name);
+                        try
+                        {
+                            if (!string.IsNullOrEmpty(savedPath) && File.Exists(savedPath))
+                            {
+                                File.Copy(savedPath, lastSavedPath, true);
+                                Debug.Log($"[MiniTimelineDirectorEditor] Quick exported to: {lastSavedPath}");
+                            }
+                            else
+                            {
+                                Debug.LogWarning("[MiniTimelineDirectorEditor] Quick save export failed: source file not found.");
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogError($"[MiniTimelineDirectorEditor] Quick save export failed: {e.Message}");
+                        }
                     }
                 }
                 else
@@ -1524,12 +1574,24 @@ namespace Systems.MiniTimeline.Editor
                 }
                 else
                 {
-                    // Load from custom path using serializer directly
-                    var project = ProjectSerializer.LoadFromFile(lastLoadedPath);
-                    if (project != null)
+                    // For custom last-loaded locations, import the project into persistent folder and load it
+                    try
                     {
-                        director.SetProject(project);
-                        Debug.Log($"[MiniTimelineDirectorEditor] Quick loaded from: {lastLoadedPath}");
+                        var destPath = Path.Combine(MiniTimelineDirector.GetProjectsFolder(), Path.GetFileName(lastLoadedPath));
+                        File.Copy(lastLoadedPath, destPath, true);
+                        var projectName = Path.GetFileNameWithoutExtension(lastLoadedPath);
+                        if (director.LoadProject(projectName))
+                        {
+                            Debug.Log($"[MiniTimelineDirectorEditor] Quick imported and loaded from: {lastLoadedPath}");
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"[MiniTimelineDirectorEditor] Quick import succeeded but load failed for: {lastLoadedPath}");
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError($"[MiniTimelineDirectorEditor] Quick load import failed: {e.Message}");
                     }
                 }
             }

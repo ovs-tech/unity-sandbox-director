@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+using Systems.Persistence;
+using Systems.Persistence.Core;
 
 namespace Systems.MiniTimeline.Core
 {
@@ -21,7 +23,7 @@ namespace Systems.MiniTimeline.Core
     /// Main director class that manages Mini Timeline playback
     /// Controls time, state, and coordinates all tracks
     /// </summary>
-    public class MiniTimelineDirector : MonoBehaviour
+    public class MiniTimelineDirector : MonoBehaviour, ISubsystemPersistence
     {
         [Header("Timeline Settings")]
         [SerializeField] private float length = 10f;
@@ -290,6 +292,38 @@ namespace Systems.MiniTimeline.Core
             CloseProject();
         }
 
+        private void OnEnable()
+        {
+            try
+            {
+                var mgr = GamePersistenceManager.Instance;
+                if (mgr != null)
+                {
+                    mgr.RegisterSubsystem(this);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[MiniTimelineDirector] Failed to register with GamePersistenceManager: {ex.Message}");
+            }
+        }
+
+        private void OnDisable()
+        {
+            try
+            {
+                var mgr = GamePersistenceManager.Instance;
+                if (mgr != null)
+                {
+                    mgr.UnregisterSubsystem(this);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[MiniTimelineDirector] Failed to unregister from GamePersistenceManager: {ex.Message}");
+            }
+        }
+
         #endregion
 
         #region Playback Control
@@ -367,17 +401,28 @@ namespace Systems.MiniTimeline.Core
         /// <returns>Full path to projects folder</returns>
         public static string GetProjectsFolder()
         {
-            string rootPath = Application.isEditor ? System.IO.Path.Combine(Application.dataPath, "Data") : Application.persistentDataPath;
-            string projectsPath = Path.Combine(rootPath, "TimelineProjects");
-
-            // Ensure directory exists
-            if (!Directory.Exists(projectsPath))
+            // Use persistence data service root path exclusively — no fallback to Application paths
+            var mgr = GamePersistenceManager.Instance;
+            if (mgr == null)
             {
-                Directory.CreateDirectory(projectsPath);
-                Debug.Log($"[MiniTimelineDirector] Created projects folder: {projectsPath}");
+                Debug.LogError("[MiniTimelineDirector] GamePersistenceManager not available - cannot determine projects folder");
+                return null;
             }
 
-            return projectsPath;
+            var serviceRoot = mgr.GetDataServiceRootPath();
+            if (string.IsNullOrEmpty(serviceRoot))
+            {
+                Debug.LogError("[MiniTimelineDirector] Data service root path not available - cannot determine projects folder");
+                return null;
+            }
+
+            if (!Directory.Exists(serviceRoot))
+            {
+                Directory.CreateDirectory(serviceRoot);
+                Debug.Log($"[MiniTimelineDirector] Created projects folder (from data service): {serviceRoot}");
+            }
+
+            return serviceRoot;
         }
 
         /// <summary>
@@ -387,7 +432,22 @@ namespace Systems.MiniTimeline.Core
         /// <returns>Full file path</returns>
         public static string GetProjectFilePath(string projectName)
         {
-            return Path.Combine(GetProjectsFolder(), projectName + ".json");
+            // Require the persistence data service root path; no fallback.
+            var mgr = GamePersistenceManager.Instance;
+            if (mgr == null)
+            {
+                Debug.LogError("[MiniTimelineDirector] GamePersistenceManager not available - cannot build project file path");
+                return null;
+            }
+
+            var serviceRoot = mgr.GetDataServiceRootPath();
+            if (string.IsNullOrEmpty(serviceRoot))
+            {
+                Debug.LogError("[MiniTimelineDirector] Data service root path not available - cannot build project file path");
+                return null;
+            }
+
+            return Path.Combine(serviceRoot, projectName + ".json");
         }
 
         /// <summary>
@@ -448,15 +508,19 @@ namespace Systems.MiniTimeline.Core
                     project.name = projectName;
                 }
 
-                string filePath = GetProjectFilePath(saveName);
+                // Prefer persistence subsystem when available
+                var mgr = GamePersistenceManager.Instance;
+                if (mgr == null)
+                {
+                    Debug.LogError("[MiniTimelineDirector] GamePersistenceManager not available - cannot save project");
+                    return false;
+                }
 
-                // Save with runtime tracks
-                bool success = Serialization.ProjectSerializer.SaveToFile(project, filePath);
+                mgr.SaveFile(project, saveName, "MiniTimelineProject", true);
+                if (debugMode)
+                    Debug.Log($"[MiniTimelineDirector] Saved project '{saveName}' via GamePersistenceManager");
 
-                if (success && debugMode)
-                    Debug.Log($"[MiniTimelineDirector] Saved project '{saveName}' to: {filePath}");
-
-                return success;
+                return true;
             }
             catch (Exception e)
             {
@@ -474,26 +538,30 @@ namespace Systems.MiniTimeline.Core
         {
             try
             {
-                string filePath = GetProjectFilePath(projectName);
-
-                if (!File.Exists(filePath))
+                var mgr = GamePersistenceManager.Instance;
+                if (mgr == null)
                 {
-                    Debug.LogWarning($"[MiniTimelineDirector] Project file not found: {filePath}");
+                    Debug.LogError("[MiniTimelineDirector] GamePersistenceManager not available - cannot load project");
                     return false;
                 }
 
-                var loadedProject = Serialization.ProjectSerializer.LoadFromFile(filePath);
+                var files = mgr.ListFiles(projectName);
+                if (files == null || !System.Linq.Enumerable.Contains(files, "MiniTimelineProject"))
+                {
+                    Debug.LogWarning($"[MiniTimelineDirector] Persistence save '{projectName}' does not contain a MiniTimelineProject file");
+                    return false;
+                }
 
+                var loadedProject = mgr.LoadFile<MiniTimelineProject>(projectName, "MiniTimelineProject");
                 if (loadedProject != null)
                 {
                     SetProject(loadedProject);
-
                     if (debugMode)
-                        Debug.Log($"[MiniTimelineDirector] Loaded project '{projectName}' from: {filePath}");
-
+                        Debug.Log($"[MiniTimelineDirector] Loaded project '{projectName}' via GamePersistenceManager");
                     return true;
                 }
 
+                Debug.LogWarning($"[MiniTimelineDirector] Failed to load MiniTimelineProject from persistence save '{projectName}'");
                 return false;
             }
             catch (Exception e)
@@ -511,22 +579,32 @@ namespace Systems.MiniTimeline.Core
         {
             try
             {
-                string projectsFolder = GetProjectsFolder();
-
-                if (!Directory.Exists(projectsFolder))
+                var mgr = GamePersistenceManager.Instance;
+                if (mgr == null)
                 {
+                    Debug.LogWarning("[MiniTimelineDirector] GamePersistenceManager not available - no projects listed");
                     return new string[0];
                 }
 
-                var jsonFiles = Directory.GetFiles(projectsFolder, "*.json");
-                var projectNames = new string[jsonFiles.Length];
-
-                for (int i = 0; i < jsonFiles.Length; i++)
+                var saves = mgr.ListSaves();
+                var list = new System.Collections.Generic.List<string>();
+                if (saves != null)
                 {
-                    projectNames[i] = Path.GetFileNameWithoutExtension(jsonFiles[i]);
+                    foreach (var s in saves)
+                    {
+                        try
+                        {
+                            var files = mgr.ListFiles(s);
+                            if (files != null && System.Linq.Enumerable.Contains(files, "MiniTimelineProject"))
+                            {
+                                list.Add(s);
+                            }
+                        }
+                        catch { }
+                    }
                 }
 
-                return projectNames;
+                return list.ToArray();
             }
             catch (Exception e)
             {
@@ -544,17 +622,24 @@ namespace Systems.MiniTimeline.Core
         {
             try
             {
-                string filePath = GetProjectFilePath(projectName);
-
-                if (File.Exists(filePath))
+                var mgr = GamePersistenceManager.Instance;
+                if (mgr == null)
                 {
-                    File.Delete(filePath);
-                    Debug.Log($"[MiniTimelineDirector] Deleted project: {filePath}");
-                    return true;
+                    Debug.LogError("[MiniTimelineDirector] GamePersistenceManager not available - cannot delete project");
+                    return false;
                 }
 
-                Debug.LogWarning($"[MiniTimelineDirector] Project file not found: {filePath}");
-                return false;
+                try
+                {
+                    mgr.DeleteGame(projectName);
+                    Debug.Log($"[MiniTimelineDirector] Deleted persistence save: {projectName}");
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"[MiniTimelineDirector] Failed to delete persistence save '{projectName}': {ex.Message}");
+                    return false;
+                }
             }
             catch (Exception e)
             {
@@ -570,9 +655,45 @@ namespace Systems.MiniTimeline.Core
         /// <returns>True if project file exists</returns>
         public static bool ProjectExists(string projectName)
         {
-            string filePath = GetProjectFilePath(projectName);
-            return File.Exists(filePath);
+            var mgr = GamePersistenceManager.Instance;
+            if (mgr == null)
+            {
+                Debug.LogWarning("[MiniTimelineDirector] GamePersistenceManager not available - cannot determine project existence");
+                return false;
+            }
+
+            try
+            {
+                var files = mgr.ListFiles(projectName);
+                if (files != null && System.Linq.Enumerable.Contains(files, "MiniTimelineProject")) return true;
+            }
+            catch { }
+
+            return false;
         }
+
+        // ISubsystemPersistence implementation
+        public string Namespace => "MiniTimelineProject";
+
+        public object GetSaveData()
+        {
+            if (project == null) return null;
+            return project;
+        }
+
+        public void LoadData(object data)
+        {
+            if (data is MiniTimelineProject proj)
+            {
+                SetProject(proj);
+            }
+            else
+            {
+                Debug.LogWarning($"[MiniTimelineDirector] LoadData received unexpected type: {data?.GetType()}");
+            }
+        }
+
+        public Type DataType => typeof(MiniTimelineProject);
 
         /// <summary>
         /// Load a timeline project

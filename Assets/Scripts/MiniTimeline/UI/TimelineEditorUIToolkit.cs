@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.Localization;
 using Systems.MiniTimeline.Core;
-using Systems.MiniTimeline.Serialization;
 using Systems.MiniTimeline.UI.Commands;
 using Systems.Core.UI.FormSubmit;
 using Systems.Core.UI.Core.Helpers;
@@ -1384,16 +1383,34 @@ namespace Systems.MiniTimeline.UI
                 // For now, save to persistent data path (in a real game you'd want file browser)
                 string filePath = System.IO.Path.Combine(Application.persistentDataPath, filename);
 
-                // Save the project (automatically updates from runtime tracks)
-                bool success = ProjectSerializer.SaveToFile(director.Project, filePath);
-
-                if (success)
+                // Save the project via the director/persistence system, then export to the requested path
+                if (director.SaveProject())
                 {
-                    // Debug.Log($"Project saved successfully to: {filePath}");
+                    var savedPath = MiniTimelineDirector.GetProjectFilePath(director.Project.name);
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(savedPath) && System.IO.File.Exists(savedPath))
+                        {
+                            // If requested path differs, copy exported file
+                            if (!string.Equals(savedPath, filePath, StringComparison.OrdinalIgnoreCase))
+                            {
+                                System.IO.File.Copy(savedPath, filePath, true);
+                            }
+                            // success
+                        }
+                        else
+                        {
+                            Debug.LogError("Failed to save project: saved file not found.");
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError($"Failed to export saved project: {e.Message}");
+                    }
                 }
                 else
                 {
-                    Debug.LogError("Failed to save project. Check console for details.");
+                    Debug.LogError("Failed to save project via persistence manager. Check console for details.");
                 }
             }
             catch (System.Exception ex)
@@ -1525,27 +1542,29 @@ namespace Systems.MiniTimeline.UI
                     filename += ".json";
                 }
 
-                // For now, load from persistent data path
-                string filePath = System.IO.Path.Combine(Application.persistentDataPath, filename);
-
-                // Load the project
-                var loadedProject = ProjectSerializer.LoadFromFile(filePath);
-
-                if (loadedProject != null)
+                // Use the director/persistence system to load the selected project from its projects folder
+                var projectsFolder = MiniTimelineDirector.GetProjectsFolder();
+                if (string.IsNullOrEmpty(projectsFolder))
                 {
-                    director.SetProject(loadedProject);
+                    Debug.LogError("Persistent projects folder is not available.");
+                    return;
+                }
 
-                    // Auto-update bindings if requested
+                var filePath = System.IO.Path.Combine(projectsFolder, filename);
+                var projectName = System.IO.Path.GetFileNameWithoutExtension(filename);
+
+                if (director.LoadProject(projectName))
+                {
                     if (replaceBindings)
                     {
                         AutoDetectSceneBindings();
                     }
 
-                    Debug.Log($"Project '{loadedProject.name}' loaded successfully from: {filePath}");
+                    Debug.Log($"Project '{projectName}' loaded successfully from: {filePath}");
                 }
                 else
                 {
-                    Debug.LogError("Failed to load project. Check console for details.");
+                    Debug.LogError("Failed to load project via persistence manager. Check console for details.");
                 }
             }
             catch (System.Exception ex)
@@ -1562,9 +1581,6 @@ namespace Systems.MiniTimeline.UI
             Debug.Log("Load project cancelled");
         }
 
-        /// <summary>
-        /// Get project information for display in save form
-        /// </summary>
         private string GetProjectInfoForDisplay()
         {
             if (director?.Project == null)
@@ -1599,17 +1615,15 @@ namespace Systems.MiniTimeline.UI
         {
             try
             {
-                string persistentPath = Application.persistentDataPath;
-                if (System.IO.Directory.Exists(persistentPath))
+                var projects = MiniTimelineDirector.GetAvailableProjects();
+                if (projects != null && projects.Length > 0)
                 {
-                    return System.IO.Directory.GetFiles(persistentPath, "*.json")
-                        .Select(System.IO.Path.GetFileName)
-                        .ToArray();
+                    return projects.Select(p => p.EndsWith(".json") ? p : p + ".json").ToArray();
                 }
             }
             catch (System.Exception ex)
             {
-                Debug.LogWarning($"Failed to get available project files: {ex.Message}");
+                Debug.LogError($"Error getting available projects: {ex.Message}");
             }
 
             return new string[0];
@@ -1620,12 +1634,14 @@ namespace Systems.MiniTimeline.UI
         /// </summary>
         private string GetAvailableFilesDisplay(string[] files)
         {
+            var projectsFolder = MiniTimelineDirector.GetProjectsFolder() ?? Application.persistentDataPath;
+
             if (files.Length == 0)
             {
-                return $"No project files found in:\n{Application.persistentDataPath}\n\nTip: Save a project first, or manually place .json files in this directory.";
+                return $"No project files found in:\n{projectsFolder}\n\nTip: Save a project first, or import a .json file using the load dialog.";
             }
 
-            var display = $"Found {files.Length} project file(s) in:\n{Application.persistentDataPath}\n\n";
+            var display = $"Found {files.Length} project file(s) in:\n{projectsFolder}\n\n";
             display += "Use the dropdown above to select a file, or enter a filename manually.";
 
             return display;

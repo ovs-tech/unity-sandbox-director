@@ -166,5 +166,15 @@ namespace Systems.Persistence {
 
         public void SaveFile<T>(T data, string saveName, string ns, bool overwrite = true) => dataService.Save(data, saveName, ns, overwrite);
         public T LoadFile<T>(string saveName, string ns) => dataService.Load<T>(saveName, ns);
+
+        // Expose data service root path for integration with systems that need filesystem locations.
+        public string GetDataServiceRootPath()
+        {
+            try
+            {
+                return dataService?.GetRootPath();
+            }
+            catch { return null; }
+        }
     }
 }
