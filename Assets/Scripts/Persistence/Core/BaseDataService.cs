@@ -13,6 +13,7 @@ namespace Systems.Persistence.Core
     public abstract void DeleteFile(string saveName, string ns);
     public abstract IEnumerable<string> ListFiles(string saveName);
     public abstract IEnumerable<string> ListSaves();
+    public abstract IEnumerable<string> ListSaves(string ns);
     public abstract GameData Load(string name);
     public abstract T Load<T>(string saveName, string ns);
     public abstract void Save(GameData data, bool overwrite = true);
@@ -36,6 +37,15 @@ namespace Systems.Persistence.Core
     public virtual string GetRootPath()
     {
       return null;
+    }
+
+    // Namespace-aware root path. Default behavior appends the namespace to the root path
+    // returned by `GetRootPath()` if present. Override in implementations that support
+    // different semantics.
+    public virtual string GetRootPath(string ns)
+    {
+      var root = GetRootPath();
+      return string.IsNullOrEmpty(root) ? null : (string.IsNullOrEmpty(ns) ? root : System.IO.Path.Combine(root, ns));
     }
 
     protected void EnsureSerializerInitialized()

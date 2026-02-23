@@ -128,7 +128,6 @@ namespace Systems.Persistence {
             _subsystems.Remove(subsystem);
         }
 
-        [ContextMenu("All Saves")]
         // Save all registered subsystems into the current save folder
         public void SaveAll(string saveName = null) {
             string saveTo = saveName ?? CurrentSaveName ?? gameData?.Name ?? "Default";
@@ -163,6 +162,7 @@ namespace Systems.Persistence {
 
         public IEnumerable<string> ListFiles(string saveName) => dataService.ListFiles(saveName);
         public IEnumerable<string> ListSaves() => dataService.ListSaves();
+        public IEnumerable<string> ListSaves(string ns) => dataService.ListSaves(ns);
 
         public void SaveFile<T>(T data, string saveName, string ns, bool overwrite = true) => dataService.Save(data, saveName, ns, overwrite);
         public T LoadFile<T>(string saveName, string ns) => dataService.Load<T>(saveName, ns);
@@ -173,6 +173,17 @@ namespace Systems.Persistence {
             try
             {
                 return dataService?.GetRootPath();
+            }
+            catch { return null; }
+        }
+
+        // Namespace-aware root path retrieval (returns root path concatenated with namespace folder)
+        public string GetDataServiceRootPath(string ns)
+        {
+            try
+            {
+                // If the underlying data service supports namespace-aware roots, use it.
+                return dataService?.GetRootPath(ns);
             }
             catch { return null; }
         }

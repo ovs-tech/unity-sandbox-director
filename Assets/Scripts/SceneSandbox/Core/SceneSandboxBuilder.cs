@@ -1069,7 +1069,28 @@ namespace Systems.SceneSandbox.Core
                 return null;
 
             // Update project from runtime state before getting info
-            SandboxProjectSerializer.UpdateProjectFromRuntimeState(currentProject, this);
+            // Inline runtime update (migrated from SandboxProjectSerializer)
+            currentProject.lastModified = System.DateTime.Now;
+            if (_sceneSerializer?.CurrentScene != null)
+            {
+                var activeScene = currentProject.GetActiveScene();
+                if (activeScene != null)
+                {
+                    var index = currentProject.scenes.IndexOf(activeScene);
+                    if (index >= 0)
+                    {
+                        currentProject.scenes[index] = _sceneSerializer.CurrentScene;
+                    }
+                }
+                else
+                {
+                    currentProject.scenes.Add(_sceneSerializer.CurrentScene);
+                    currentProject.activeSceneId = _sceneSerializer.CurrentScene.sceneId;
+                }
+            }
+
+            // Ensure settings reflect builder state
+            UpdateProjectSettingsFromBuilder();
 
             return new SandboxProjectMetadata
             {

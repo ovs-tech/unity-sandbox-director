@@ -409,7 +409,8 @@ namespace Systems.MiniTimeline.Core
                 return null;
             }
 
-            var serviceRoot = mgr.GetDataServiceRootPath();
+            // Request the data service root path scoped to the MiniTimeline namespace
+            var serviceRoot = mgr.GetDataServiceRootPath("MiniTimelineProject");
             if (string.IsNullOrEmpty(serviceRoot))
             {
                 Debug.LogError("[MiniTimelineDirector] Data service root path not available - cannot determine projects folder");
@@ -440,7 +441,7 @@ namespace Systems.MiniTimeline.Core
                 return null;
             }
 
-            var serviceRoot = mgr.GetDataServiceRootPath();
+            var serviceRoot = mgr.GetDataServiceRootPath("MiniTimelineProject");
             if (string.IsNullOrEmpty(serviceRoot))
             {
                 Debug.LogError("[MiniTimelineDirector] Data service root path not available - cannot build project file path");

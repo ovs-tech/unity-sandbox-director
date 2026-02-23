@@ -35,6 +35,13 @@ namespace Systems.Persistence.Services
             return rootPath;
         }
 
+        // Returns the root path concatenated with a namespace subfolder when provided.
+        public string GetRootPath(string ns)
+        {
+            if (string.IsNullOrEmpty(rootPath)) ComputeRootPath();
+            return string.IsNullOrEmpty(ns) ? rootPath : Path.Combine(rootPath, ns);
+        }
+
         public override void Setup()
         {
             base.Setup();
@@ -68,10 +75,13 @@ namespace Systems.Persistence.Services
 
         protected string GetPathToFile(string saveName, string ns)
         {
-            if (string.IsNullOrEmpty(rootPath)) ComputeRootPath();
-            string folder = Path.Combine(rootPath, saveName);
+            // Resolve the base root path including namespace. Do NOT make a subfolder per saveName;
+            // files live directly under the namespace folder.
+            string basePath = GetRootPath(ns);
+            string folder = basePath;
             if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-            return Path.Combine(folder, string.Concat(ns, ".", fileExtension));
+            // Filename is based on the saveName (e.g. "mysave.json")
+            return Path.Combine(folder, string.Concat(saveName, ".", fileExtension));
         }
 
         public override void Save(GameData data, bool overwrite = true)
@@ -86,8 +96,24 @@ namespace Systems.Persistence.Services
 
         public override void Delete(string name)
         {
-            string folder = Path.Combine(rootPath, name);
-            if (Directory.Exists(folder)) Directory.Delete(folder, true);
+            if (string.IsNullOrEmpty(rootPath)) ComputeRootPath();
+
+            // Delete any files named '{name}.{ext}' in the root and all namespace subfolders.
+            string fileName = string.Concat(name, ".", fileExtension);
+
+            // Root-level file
+            var rootFile = Path.Combine(rootPath, fileName);
+            if (File.Exists(rootFile)) File.Delete(rootFile);
+
+            // Namespace subfolders
+            if (Directory.Exists(rootPath))
+            {
+                foreach (var dir in Directory.EnumerateDirectories(rootPath))
+                {
+                    var p = Path.Combine(dir, fileName);
+                    if (File.Exists(p)) File.Delete(p);
+                }
+            }
         }
 
         public override void DeleteAll()
@@ -103,10 +129,61 @@ namespace Systems.Persistence.Services
 
         public override IEnumerable<string> ListSaves()
         {
+            if (string.IsNullOrEmpty(rootPath)) ComputeRootPath();
             if (!Directory.Exists(rootPath)) yield break;
+
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            // Files directly under root
+            foreach (string f in Directory.EnumerateFiles(rootPath))
+            {
+                if (Path.GetExtension(f) == "." + fileExtension)
+                {
+                    seen.Add(Path.GetFileNameWithoutExtension(f));
+                }
+            }
+
+            // Files under namespace folders
             foreach (string dir in Directory.EnumerateDirectories(rootPath))
             {
-                yield return Path.GetFileName(dir);
+                foreach (string f in Directory.EnumerateFiles(dir))
+                {
+                    if (Path.GetExtension(f) == "." + fileExtension)
+                    {
+                        seen.Add(Path.GetFileNameWithoutExtension(f));
+                    }
+                }
+            }
+
+            foreach (var name in seen)
+            {
+                yield return name;
+            }
+        }
+
+        public override IEnumerable<string> ListSaves(string ns)
+        {
+            if (string.IsNullOrEmpty(rootPath)) ComputeRootPath();
+            if (!Directory.Exists(rootPath)) yield break;
+
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            // Check the specified namespace folder for files
+            string nsFolder = Path.Combine(rootPath, ns);
+            if (Directory.Exists(nsFolder))
+            {
+                foreach (string f in Directory.EnumerateFiles(nsFolder))
+                {
+                    if (Path.GetExtension(f) == "." + fileExtension)
+                    {
+                        seen.Add(Path.GetFileNameWithoutExtension(f));
+                    }
+                }
+            }
+
+            foreach (var name in seen)
+            {
+                yield return name;
             }
         }
 
@@ -117,7 +194,7 @@ namespace Systems.Persistence.Services
 
             if (!overwrite && File.Exists(fileLocation))
             {
-                throw new IOException($"The file '{ns}.{fileExtension}' already exists in save '{saveName}' and cannot be overwritten.");
+                throw new IOException($"The file '{saveName}.{fileExtension}' already exists in save '{saveName}' and cannot be overwritten.");
             }
 
             File.WriteAllText(fileLocation, serializer.Serialize(data));
@@ -130,7 +207,7 @@ namespace Systems.Persistence.Services
 
             if (!File.Exists(fileLocation))
             {
-                throw new ArgumentException($"No persisted file '{ns}.{fileExtension}' in save '{saveName}'");
+                throw new ArgumentException($"No persisted file '{saveName}.{fileExtension}' in save '{saveName}'");
             }
 
             return serializer.Deserialize<T>(File.ReadAllText(fileLocation));
@@ -138,13 +215,18 @@ namespace Systems.Persistence.Services
 
         public override IEnumerable<string> ListFiles(string saveName)
         {
-            string folder = Path.Combine(rootPath, saveName);
-            if (!Directory.Exists(folder)) yield break;
-            foreach (string path in Directory.EnumerateFiles(folder))
+            if (string.IsNullOrEmpty(rootPath)) ComputeRootPath();
+            if (!Directory.Exists(rootPath)) yield break;
+
+            string targetFileName = string.Concat(saveName, ".", fileExtension);
+
+            // Check all namespace directories for the presence of this save file and return namespaces that contain it
+            foreach (string dir in Directory.EnumerateDirectories(rootPath))
             {
-                if (Path.GetExtension(path) == "." + fileExtension)
+                var candidate = Path.Combine(dir, targetFileName);
+                if (File.Exists(candidate))
                 {
-                    yield return Path.GetFileNameWithoutExtension(path);
+                    yield return Path.GetFileName(dir);
                 }
             }
         }

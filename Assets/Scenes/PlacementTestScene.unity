@@ -198,7 +198,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8f524a58effd4d5aa3a7395f55a3246, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Systems.MiniTimeline::Systems.MiniTimeline.Core.MiniTimelineDirector
-  length: 10
+  length: 12
   playbackSpeed: 1
   loop: 0
   playOnAwake: 0
@@ -224,6 +224,61 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &349224916
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 349224917}
+  - component: {fileID: 349224918}
+  m_Layer: 0
+  m_Name: Stage Area
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &349224917
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 349224916}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1506182200}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &349224918
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 349224916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ddeceffe9957c4ccda9c1a43f709ce75, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Systems.SceneSandbox::Systems.SceneSandbox.Core.DropZone
+  _acceptAllTypes: 1
+  _acceptedObjectTypes: []
+  _snapToCenter: 0
+  _snapToGrid: 1
+  _gridSize: 1
+  _highlightMaterial: {fileID: 0}
+  _validDropColor: {r: 0, g: 1, b: 0, a: 1}
+  _invalidDropColor: {r: 1, g: 0, b: 0, a: 1}
+  _dropIndicator: {fileID: 0}
+  _zoneSize: {x: 20, y: 5, z: 20}
+  _showGizmos: 1
 --- !u!1 &450753637
 GameObject:
   m_ObjectHideFlags: 0
@@ -772,6 +827,38 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1506182199
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1506182200}
+  m_Layer: 0
+  m_Name: Scene Root
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1506182200
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1506182199}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 349224917}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1522427159
 GameObject:
   m_ObjectHideFlags: 1
@@ -818,6 +905,422 @@ MonoScript:
   m_ClassName: SceneObjectIDMapSceneAsset
   m_Namespace: UnityEngine.Rendering.HighDefinition
   m_AssemblyName: Unity.RenderPipelines.HighDefinition.Runtime
+--- !u!1 &1682729684
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1682729695}
+  - component: {fileID: 1682729694}
+  - component: {fileID: 1682729693}
+  - component: {fileID: 1682729692}
+  - component: {fileID: 1682729691}
+  - component: {fileID: 1682729690}
+  - component: {fileID: 1682729689}
+  - component: {fileID: 1682729688}
+  - component: {fileID: 1682729687}
+  - component: {fileID: 1682729686}
+  - component: {fileID: 1682729685}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1682729685
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1682729684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee2782005acda334cb7b2edc196f287a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Systems.SceneSandbox::Systems.SceneSandbox.Core.SandboxGizmoRenderer
+  _builder: {fileID: 1682729694}
+  _placementSystem: {fileID: 1682729690}
+  _selectionManager: {fileID: 1682729689}
+  _gridManager: {fileID: 1682729691}
+  _stageArea: {fileID: 349224917}
+  _enableGizmos: 1
+  _showBoundsGizmo: 1
+  _showAxesGizmo: 1
+  _showHandlesGizmo: 1
+  _gizmoBoundsColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _gizmoAxisLength: 1
+  _enableSceneGizmos: 1
+  _showSceneGrid: 1
+  _showSceneBounds: 1
+  _showStageAreaGizmo: 1
+  _showPlacementHeightGizmo: 1
+  _sceneBoundsColor: {r: 0, g: 1, b: 1, a: 1}
+  _placementHeightColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _showGridSnapIndicator: 1
+  _showSurfaceNormal: 1
+  _surfaceNormalLength: 1
+--- !u!114 &1682729686
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1682729684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db29768f148f948a19ad30d16c2571b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Systems.SceneSandbox::Systems.SceneSandbox.Core.PreviewController
+  _autoPreview: 0
+  _previewDuration: 10
+  _onPreviewStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &1682729687
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1682729684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf05642956de44512b59cd26fb881d70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Systems.SceneSandbox::Systems.SceneSandbox.Core.SceneSerializer
+  _currentSceneName: Untitled Scene
+  _autoLoadFirstProject: 0
+  _debugLogs: 0
+  _onSceneLoaded:
+    m_PersistentCalls:
+      m_Calls: []
+  _onSceneSaved:
+    m_PersistentCalls:
+      m_Calls: []
+  _onSceneCleared:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &1682729688
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1682729684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07802a53f3f514398a66f2e62ea17100, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Systems.SceneSandbox::Systems.SceneSandbox.Core.TransformController
+  _debugLogs: 0
+  _selectionManager: {fileID: 1682729689}
+  _gridManager: {fileID: 1682729691}
+  _rotationSensitivity: 1
+  _scaleSensitivity: 0.01
+  _scrollScaleSensitivity: 0.1
+  _minScale: {x: 0.1, y: 0.1, z: 0.1}
+  _maxScale: {x: 10, y: 10, z: 10}
+  _positionModeColor: {r: 0, g: 1, b: 1, a: 0.5}
+  _rotationModeColor: {r: 1, g: 1, b: 0, a: 0.5}
+  _scaleModeColor: {r: 1, g: 0, b: 1, a: 0.5}
+  OnTransformModeChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  OnTransformAxisChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  OnTransformChanged:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &1682729689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1682729684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8185b5c1d94e4c5b85486f6c099b41d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Systems.SceneSandbox::Systems.SceneSandbox.Core.SelectionManager
+  _debugLogs: 0
+  _cameraRaycaster: {fileID: 1682729692}
+  _selectionLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _autoEditOnSelect: 1
+  OnObjectSelected:
+    m_PersistentCalls:
+      m_Calls: []
+  OnObjectDeselected:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSelectionChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  OnObjectHoverEnter:
+    m_PersistentCalls:
+      m_Calls: []
+  OnObjectHoverExit:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &1682729690
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1682729684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9bab9639753b4f56a6142d2b86fdd10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Systems.SceneSandbox::Systems.SceneSandbox.Core.PlacementSystem
+  _debugLogs: 0
+  _objectLibrary: {fileID: 0}
+  _gridManager: {fileID: 1682729691}
+  _cameraRaycaster: {fileID: 1682729692}
+  _stageArea: {fileID: 349224917}
+  _snapToGrid: 1
+  _rotationSnapDegrees: 15
+  _placementLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _selectionLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _maxRaycastDistance: 1000
+  _checkCollisions: 1
+  _collisionLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _groundLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  _ignoreStaticObjects: 1
+  _requireSurfaceBelow: 0
+  OnPlacementStarted:
+    m_PersistentCalls:
+      m_Calls: []
+  OnPlacementUpdated:
+    m_PersistentCalls:
+      m_Calls: []
+  OnPlacementConfirmed:
+    m_PersistentCalls:
+      m_Calls: []
+  OnPlacementCancelled:
+    m_PersistentCalls:
+      m_Calls: []
+  OnDropIndicatorShown:
+    m_PersistentCalls:
+      m_Calls: []
+  OnDropIndicatorUpdated:
+    m_PersistentCalls:
+      m_Calls: []
+  OnDropIndicatorHidden:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &1682729691
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1682729684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 106cb95289e0a4813af3e4e9d6cac804, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Systems.SceneSandbox::Systems.SceneSandbox.Core.GridManager
+  _enabled: 1
+  _cellSize: 0.5
+  _offset: {x: 0, y: 0, z: 0}
+--- !u!114 &1682729692
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1682729684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7027c60166a4b4007890b2d46c4f47cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Systems.SceneSandbox::Systems.SceneSandbox.Core.CameraRaycaster
+  _camera: {fileID: 0}
+  _raycastMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _maxDistance: 1000
+--- !u!114 &1682729693
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1682729684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7e1f7d95ac0e624fb590581b5db589d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Systems.SceneSandbox::Systems.SceneSandbox.Core.SandboxInputManager
+  _toggleModeActionRef: {fileID: 0}
+  _exitAllModesActionRef: {fileID: 0}
+  _moveHotkeyActionRef: {fileID: 0}
+  _rotateHotkeyActionRef: {fileID: 0}
+  _scaleHotkeyActionRef: {fileID: 0}
+  _transformModeIncreaseActionRef: {fileID: 0}
+  _transformModeDecreaseActionRef: {fileID: 0}
+  _transformModeToggleAxisActionRef: {fileID: 0}
+  _pointerPositionActionRef: {fileID: 0}
+  _leftClickActionRef: {fileID: 0}
+  _rightClickActionRef: {fileID: 0}
+  _mouseScrollActionRef: {fileID: 0}
+  _cancelPlacementActionRef: {fileID: 0}
+  _switchPlacementItemActionRef: {fileID: 0}
+  _startPlacementActionRef: {fileID: 0}
+  _enableHotkeys: 1
+  _debugLogs: 0
+--- !u!114 &1682729694
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1682729684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c60d480f8ad344cb89f55067d22bb81, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Systems.SceneSandbox::Systems.SceneSandbox.Core.SceneSandboxBuilder
+  _cameraRaycaster: {fileID: 1682729692}
+  _inputManager: {fileID: 1682729693}
+  _gridManager: {fileID: 1682729691}
+  _placementSystem: {fileID: 1682729690}
+  _selectionManager: {fileID: 1682729689}
+  _transformController: {fileID: 1682729688}
+  _sceneSerializer: {fileID: 1682729687}
+  _previewController: {fileID: 1682729686}
+  _gizmoRenderer: {fileID: 1682729685}
+  _libraryController: {fileID: 0}
+  _objectLibrary: {fileID: 0}
+  _sceneRoot: {fileID: 1506182200}
+  _stageArea: {fileID: 349224917}
+  _toggleModeActionRef: {fileID: 0}
+  _exitAllModesActionRef: {fileID: 0}
+  _moveHotkeyActionRef: {fileID: 0}
+  _rotateHotkeyActionRef: {fileID: 0}
+  _scaleHotkeyActionRef: {fileID: 0}
+  _transformModeIncreaseActionRef: {fileID: 0}
+  _transformModeDecreaseActionRef: {fileID: 0}
+  _transformModeToggleAxisActionRef: {fileID: 0}
+  _pointerPositionActionRef: {fileID: 0}
+  _leftClickActionRef: {fileID: 0}
+  _rightClickActionRef: {fileID: 0}
+  _mouseScrollActionRef: {fileID: 0}
+  _cancelPlacementActionRef: {fileID: 0}
+  _switchPlacementItemActionRef: {fileID: 0}
+  _startPlacementActionRef: {fileID: 0}
+  _maxRaycastDistance: 1000
+  _dragThreshold: 5
+  _doubleClickTime: 0.3
+  _enableHotkeys: 1
+  _placementLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _selectionLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _snapToGrid: 1
+  _gridSize: 1
+  _gridOffset: {x: 0, y: 0, z: 0}
+  _gridPivotOffset: 0
+  _defaultPlacementHeight: 0
+  _minimumPlacementHeight: 0
+  _useRaycastForPlacement: 1
+  _useConsistentHeight: 0
+  _sceneBounds: {x: 20, y: 10, z: 20}
+  _sceneBoundsOffset: {x: 0, y: 0, z: 0}
+  _sceneBoundsPivot: 0
+  _enableDropIndicator: 1
+  _dropIndicatorPrefab: {fileID: 0}
+  _validDropColor: {r: 0, g: 1, b: 0, a: 1}
+  _invalidDropColor: {r: 1, g: 0, b: 0, a: 1}
+  _dropIndicatorSize: 1
+  _showGridSnapIndicator: 1
+  _showSurfaceNormal: 1
+  _surfaceNormalLength: 1
+  _autoEditOnSelect: 1
+  _checkCollisions: 1
+  _collisionLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _groundLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  _ignoreStaticObjects: 1
+  _requireSurfaceBelow: 0
+  _enableCostSystem: 0
+  _placementCost: 10
+  _rotationSensitivity: 1
+  _scaleSensitivity: 0.01
+  _scrollScaleSensitivity: 0.1
+  _rotationSnapDegrees: 15
+  _minScale: {x: 0.1, y: 0.1, z: 0.1}
+  _maxScale: {x: 10, y: 10, z: 10}
+  _timelineDirector: {fileID: 0}
+  _autoPreview: 0
+  _previewDuration: 10
+  _defaultSavePath: 
+  _currentSceneName: Untitled Scene
+  _defaultProjectSavePath: 
+  _autoLoadFirstProject: 0
+  _debugLogs: 0
+  _onSceneLoaded:
+    m_PersistentCalls:
+      m_Calls: []
+  _onSceneSaved:
+    m_PersistentCalls:
+      m_Calls: []
+  _onObjectPlaced:
+    m_PersistentCalls:
+      m_Calls: []
+  _onObjectRemoved:
+    m_PersistentCalls:
+      m_Calls: []
+  _onObjectSelected:
+    m_PersistentCalls:
+      m_Calls: []
+  _onSceneCleared:
+    m_PersistentCalls:
+      m_Calls: []
+  _onPreviewStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  _onModeChanged:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!4 &1682729695
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1682729684}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.74363, y: -0.5, z: -12.13742}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &119734848978804391
 GameObject:
   m_ObjectHideFlags: 0
@@ -4502,3 +5005,5 @@ SceneRoots:
   - {fileID: 1043612671569015473}
   - {fileID: 867402198}
   - {fileID: 290240577}
+  - {fileID: 1682729695}
+  - {fileID: 1506182200}
