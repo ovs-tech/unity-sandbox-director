@@ -18,6 +18,7 @@ namespace Systems.SceneSandbox.Core
         [Header("Save/Load Configuration")]
         private string _defaultSavePath = "";
         private string _defaultProjectSavePath = "";
+        private string _rootPath = "";
         [Tooltip("Name for the current scene configuration")]
         [SerializeField] private string _currentSceneName = "Untitled Scene";
         [Tooltip("Automatically load the first available project on start (Play mode only)")]
@@ -49,6 +50,8 @@ namespace Systems.SceneSandbox.Core
         public SceneConfiguration CurrentScene => _currentScene;
         public SandboxProjectData CurrentProject => _currentProject;
         public string CurrentSceneName => _currentSceneName;
+        // Root folder used for save/load (editor can read this)
+        public string RootPath => _rootPath;
         public SceneConfigurationEvent OnSceneLoadedEvent => _onSceneLoaded;
         public SceneConfigurationEvent OnSceneSavedEvent => _onSceneSaved;
         public UnityEvent OnSceneClearedEvent => _onSceneCleared;
@@ -94,7 +97,29 @@ namespace Systems.SceneSandbox.Core
 
         private void InitializeSavePaths()
         {
-            string rootPath = Application.isEditor ? System.IO.Path.Combine(Application.dataPath, "Data") : Application.persistentDataPath;
+            // Require persistence manager's data-service root path (no fallback to Application paths)
+            string rootPath = null;
+            try
+            {
+                var pm = Systems.Persistence.GamePersistenceManager.Instance;
+                if (pm != null)
+                {
+                    // Prefer namespace-aware root; fall back to generic data service root only within persistence manager
+                    rootPath = pm.GetDataServiceRootPath(Namespace) ?? pm.GetDataServiceRootPath();
+                }
+            }
+            catch { /* ignore */ }
+
+            if (string.IsNullOrEmpty(rootPath))
+            {
+                Debug.LogWarning("[SceneSerializer] Persistence data-service root not available. Save/load paths will be disabled until persistence is available.");
+                _rootPath = string.Empty;
+                _defaultSavePath = string.Empty;
+                _defaultProjectSavePath = string.Empty;
+                return;
+            }
+
+            _rootPath = rootPath;
             _defaultSavePath = System.IO.Path.Combine(rootPath, "SceneSandboxBuilder", "SavedScenes");
             _defaultProjectSavePath = System.IO.Path.Combine(rootPath, "SceneSandboxBuilder", "SavedProjects");
             try
