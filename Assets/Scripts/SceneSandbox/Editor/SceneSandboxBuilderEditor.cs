@@ -764,9 +764,21 @@ namespace Systems.SceneSandbox.Editor
             
             // Save/Load Path Settings (Read-Only)
             EditorGUILayout.LabelField("Save/Load Path Settings (Read-Only)", EditorStyles.miniBoldLabel);
-            string rootPath = _target.SceneSerializer?.RootPath ?? Application.persistentDataPath;
+            // Prefer SceneSerializer's RootPath (already initialized from persistence system),
+            // then fallback to the persistence manager's root, then finally Application.persistentDataPath.
+            string rootPath = null;
+            try
+            {
+                // Use the serializer's root path when available (preferred).
+                rootPath = _target.SceneSerializer?.RootPath;
+            }
+            catch { }
+
+            if (string.IsNullOrEmpty(rootPath))
+                rootPath = Application.persistentDataPath;
+
             EditorGUILayout.HelpBox(
-                "Save paths are automatically managed using Application.persistentDataPath for cross-platform compatibility.\n" +
+                "Save paths are managed by the project's persistence system (GamePersistenceManager) when available.\n" +
                 "Root folder is locked to ensure data consistency across all platforms.\n\n" +
                 $"Root: {rootPath}", 
                 MessageType.Info);
@@ -1170,10 +1182,18 @@ namespace Systems.SceneSandbox.Editor
             
             // Save/Load Path Settings (Read-Only)
             EditorGUILayout.LabelField("Save/Load Path Settings (Read-Only)", EditorStyles.boldLabel);
-            string rootPath = _target.SceneSerializer?.RootPath ?? Application.persistentDataPath;
+            string rootPath = null;
+            try
+            {
+                rootPath = _target.SceneSerializer?.RootPath;
+            }
+            catch { }
+
+            if (string.IsNullOrEmpty(rootPath))
+                rootPath = Application.persistentDataPath;
+
             EditorGUILayout.HelpBox(
-                "Save paths are automatically managed using Application.persistentDataPath for cross-platform compatibility.\n" +
-                "Root folder is locked to ensure data consistency across all platforms.\n\n" +
+                "Save paths are provided by the SceneSerializer when available; otherwise the persistent data path is used.\n\n" +
                 $"Root: {rootPath}", 
                 MessageType.Info);
             
