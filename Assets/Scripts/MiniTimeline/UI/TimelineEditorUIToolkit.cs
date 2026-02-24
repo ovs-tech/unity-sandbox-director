@@ -1386,7 +1386,7 @@ namespace Systems.MiniTimeline.UI
                 // Save the project via the director/persistence system, then export to the requested path
                 if (director.SaveProject())
                 {
-                    var savedPath = MiniTimelineDirector.GetProjectFilePath(director.Project.name);
+                    var savedPath = director.GetProjectFilePath(director.Project.name);
                     try
                     {
                         if (!string.IsNullOrEmpty(savedPath) && System.IO.File.Exists(savedPath))
@@ -1543,7 +1543,7 @@ namespace Systems.MiniTimeline.UI
                 }
 
                 // Use the director/persistence system to load the selected project from its projects folder
-                var projectsFolder = MiniTimelineDirector.GetProjectsFolder();
+                var projectsFolder = director.GetProjectsFolder();
                 if (string.IsNullOrEmpty(projectsFolder))
                 {
                     Debug.LogError("Persistent projects folder is not available.");

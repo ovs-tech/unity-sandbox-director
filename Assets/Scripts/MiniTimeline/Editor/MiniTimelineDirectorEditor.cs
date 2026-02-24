@@ -358,11 +358,11 @@ namespace Systems.MiniTimeline.Editor
                 
                 if (GUILayout.Button("📁 Open Folder", EditorStyles.miniButton, GUILayout.Width(100)))
                 {
-                    EditorUtility.RevealInFinder(MiniTimelineDirector.GetProjectsFolder());
+                    EditorUtility.RevealInFinder(director.GetProjectsFolder());
                 }
                 EditorGUILayout.EndHorizontal();
                 
-                EditorGUILayout.LabelField(MiniTimelineDirector.GetProjectsFolder(), EditorStyles.miniLabel);
+                EditorGUILayout.LabelField(director.GetProjectsFolder(), EditorStyles.miniLabel);
                 
                 EditorGUILayout.Space(5);
                 
@@ -375,9 +375,9 @@ namespace Systems.MiniTimeline.Editor
                     var sortedProjects = availableProjects
                         .Select(name => new { 
                             Name = name, 
-                            Path = MiniTimelineDirector.GetProjectFilePath(name),
-                            ModifiedTime = File.Exists(MiniTimelineDirector.GetProjectFilePath(name)) 
-                                ? new FileInfo(MiniTimelineDirector.GetProjectFilePath(name)).LastWriteTime 
+                            Path = director.GetProjectFilePath(name),
+                            ModifiedTime = File.Exists(director.GetProjectFilePath(name)) 
+                                ? new FileInfo(director.GetProjectFilePath(name)).LastWriteTime 
                                 : DateTime.MinValue
                         })
                         .OrderByDescending(p => p.ModifiedTime)
@@ -457,7 +457,7 @@ namespace Systems.MiniTimeline.Editor
             EditorGUILayout.EndHorizontal();
             
             // File info
-            string filePath = MiniTimelineDirector.GetProjectFilePath(projectName);
+            string filePath = director.GetProjectFilePath(projectName);
             if (File.Exists(filePath))
             {
                 var fileInfo = new FileInfo(filePath);
@@ -506,7 +506,7 @@ namespace Systems.MiniTimeline.Editor
                 {
                     var newName = EditorUtility.SaveFilePanel(
                         "Save Project As",
-                        MiniTimelineDirector.GetProjectsFolder(),
+                        director.GetProjectsFolder(),
                         projectName,
                         "json"
                     );
@@ -539,7 +539,7 @@ namespace Systems.MiniTimeline.Editor
                         director.CloseProject();
                     }
                     
-                    if (MiniTimelineDirector.DeleteProject(projectName))
+                    if (director.DeleteProject(projectName))
                     {
                         Debug.Log($"[MiniTimelineDirectorEditor] Deleted project: {projectName}");
                         Repaint();
@@ -1340,7 +1340,7 @@ namespace Systems.MiniTimeline.Editor
             // Option 1: Quick save to persistent path
             var quickSaveChoice = EditorUtility.DisplayDialogComplex(
                 "Save Timeline Project",
-                $"Save '{director.Project.name}' to persistent data path?\n\nPath: {MiniTimelineDirector.GetProjectsFolder()}",
+                $"Save '{director.Project.name}' to persistent data path?\n\nPath: {director.GetProjectsFolder()}",
                 "Save to Persistent Path",
                 "Cancel",
                 "Browse Custom Location"
@@ -1350,7 +1350,7 @@ namespace Systems.MiniTimeline.Editor
             {
                 if (director.SaveProject())
                 {
-                    lastSavedPath = MiniTimelineDirector.GetProjectFilePath(director.Project.name);
+                    lastSavedPath = director.GetProjectFilePath(director.Project.name);
                     Debug.Log($"[MiniTimelineDirectorEditor] Project saved to: {lastSavedPath}");
                     EditorUtility.DisplayDialog("Save Successful", $"Project saved to:\n{lastSavedPath}", "OK");
                 }
@@ -1363,8 +1363,8 @@ namespace Systems.MiniTimeline.Editor
             {
                 var path = EditorUtility.SaveFilePanel(
                     "Save Timeline Project",
-                    Application.dataPath,
-                    director.Project.name,
+                    director.GetProjectsFolder(),
+                    director.Project?.name ?? "NewProject",
                     "json"
                 );
                 
@@ -1373,7 +1373,7 @@ namespace Systems.MiniTimeline.Editor
                     // Save using the director/persistence system then export the saved file to the chosen path
                     if (director.SaveProject())
                     {
-                        var savedPath = MiniTimelineDirector.GetProjectFilePath(director.Project.name);
+                        var savedPath = director.GetProjectFilePath(director.Project.name);
                         try
                         {
                             if (!string.IsNullOrEmpty(savedPath) && File.Exists(savedPath))
@@ -1405,14 +1405,14 @@ namespace Systems.MiniTimeline.Editor
         private void LoadProject()
         {
             // Get available projects from persistent path
-            var availableProjects = MiniTimelineDirector.GetAvailableProjects();
+            var availableProjects = director.GetAvailableProjects();
             
             if (availableProjects.Length > 0)
             {
                 // Show choice dialog
                 var loadChoice = EditorUtility.DisplayDialogComplex(
                     "Load Timeline Project",
-                    $"Load from persistent data path?\n\nFound {availableProjects.Length} project(s)\nPath: {MiniTimelineDirector.GetProjectsFolder()}",
+                    $"Load from persistent data path?\n\nFound {availableProjects.Length} project(s)\nPath: {director.GetProjectsFolder()}",
                     "Select from List",
                     "Cancel",
                     "Browse Custom Location"
@@ -1432,7 +1432,7 @@ namespace Systems.MiniTimeline.Editor
                 // No projects found, offer custom browse
                 if (EditorUtility.DisplayDialog(
                     "No Projects Found",
-                    $"No projects found in persistent data path:\n{MiniTimelineDirector.GetProjectsFolder()}\n\nBrowse for a project file?",
+                    $"No projects found in persistent data path:\n{director.GetProjectsFolder()}\n\nBrowse for a project file?",
                     "Browse",
                     "Cancel"))
                 {
@@ -1457,7 +1457,7 @@ namespace Systems.MiniTimeline.Editor
         {
             if (director.LoadProject(projectName))
             {
-                lastLoadedPath = MiniTimelineDirector.GetProjectFilePath(projectName);
+                lastLoadedPath = director.GetProjectFilePath(projectName);
                 Debug.Log($"[MiniTimelineDirectorEditor] Project loaded from: {lastLoadedPath}");
                 EditorUtility.DisplayDialog("Load Successful", $"Project '{projectName}' loaded successfully.", "OK");
             }
@@ -1471,7 +1471,7 @@ namespace Systems.MiniTimeline.Editor
         {
             var path = EditorUtility.OpenFilePanel(
                 "Load Timeline Project",
-                Application.dataPath,
+                director.GetProjectsFolder(),
                 "json"
             );
             

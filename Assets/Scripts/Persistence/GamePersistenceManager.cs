@@ -177,7 +177,6 @@ namespace Systems.Persistence {
             catch { return null; }
         }
 
-        // Namespace-aware root path retrieval (returns root path concatenated with namespace folder)
         public string GetDataServiceRootPath(string ns)
         {
             try
@@ -186,6 +185,13 @@ namespace Systems.Persistence {
                 return dataService?.GetRootPath(ns);
             }
             catch { return null; }
+        }
+
+        // Subsystem-aware root path retrieval (extracts namespace from the subsystem)
+        public string GetDataServiceRootPath(ISubsystemPersistence subsystem)
+        {
+            if (subsystem == null) return null;
+            return GetDataServiceRootPath(subsystem.Namespace);
         }
     }
 }
