@@ -11,18 +11,27 @@ namespace Systems.PlacementSystem.Tests
         private Camera _camera;
         private GameObject _selectableObject;
 
+        #pragma warning disable 0649
         private class MockInput : IInputProvider
         {
-            public bool SelectTriggered;
-            public Vector2 PointerPos;
-            public bool IsModifierPressed;
+            private readonly bool _selectTriggered;
+            private readonly Vector2 _pointerPos;
+            private readonly bool _isModifierPressed;
 
-            public bool IsPlaceActionTriggered() => SelectTriggered; // Mapping Selection to PlaceAction usually or separate action
+            public MockInput(bool selectTriggered = false, Vector2 pointerPos = default, bool isModifierPressed = false)
+            {
+                _selectTriggered = selectTriggered;
+                _pointerPos = pointerPos == default ? Vector2.zero : pointerPos;
+                _isModifierPressed = isModifierPressed;
+            }
+
+            public bool IsPlaceActionTriggered() => _selectTriggered; // Mapping Selection to PlaceAction usually or separate action
             public bool IsCancelActionTriggered() => false;
             public bool IsRotateActionTriggered() => false;
             public bool IsDeleteActionTriggered() => false;
-            public Vector2 GetPointerPosition() => PointerPos;
+            public Vector2 GetPointerPosition() => _pointerPos;
         }
+        #pragma warning restore 0649
 
         [SetUp]
         public void SetUp()

@@ -10,19 +10,29 @@ namespace Systems.PlacementSystem.Tests
         private GameObject _testObject;
         private Camera _camera;
 
+        #pragma warning disable 0649
         private class MockInput : IInputProvider
         {
-            public bool PlaceTriggered;
-            public bool CancelTriggered;
-            public bool RotateTriggered;
-            public Vector2 PointerPos;
+            private readonly bool _placeTriggered;
+            private readonly bool _cancelTriggered;
+            private readonly bool _rotateTriggered;
+            private readonly Vector2 _pointerPos;
 
-            public bool IsPlaceActionTriggered() => PlaceTriggered;
-            public bool IsCancelActionTriggered() => CancelTriggered;
-            public bool IsRotateActionTriggered() => RotateTriggered;
+            public MockInput(bool placeTriggered = false, bool cancelTriggered = false, bool rotateTriggered = false, Vector2 pointerPos = default)
+            {
+                _placeTriggered = placeTriggered;
+                _cancelTriggered = cancelTriggered;
+                _rotateTriggered = rotateTriggered;
+                _pointerPos = pointerPos == default ? Vector2.zero : pointerPos;
+            }
+
+            public bool IsPlaceActionTriggered() => _placeTriggered;
+            public bool IsCancelActionTriggered() => _cancelTriggered;
+            public bool IsRotateActionTriggered() => _rotateTriggered;
             public bool IsDeleteActionTriggered() => false;
-            public Vector2 GetPointerPosition() => PointerPos;
+            public Vector2 GetPointerPosition() => _pointerPos;
         }
+        #pragma warning restore 0649
 
         [SetUp]
         public void SetUp()

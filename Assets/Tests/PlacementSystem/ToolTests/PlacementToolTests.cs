@@ -12,19 +12,29 @@ namespace Systems.PlacementSystem.Tests
         private GameObject _prefab;
         private Camera _camera;
 
+        #pragma warning disable 0649
         private class MockInput : IInputProvider
         {
-            public bool PlaceTriggered;
-            public bool CancelTriggered;
-            public bool RotateTriggered;
-            public Vector2 PointerPos;
+            private readonly bool _placeTriggered;
+            private readonly bool _cancelTriggered;
+            private readonly bool _rotateTriggered;
+            private readonly Vector2 _pointerPos;
 
-            public bool IsPlaceActionTriggered() => PlaceTriggered;
-            public bool IsCancelActionTriggered() => CancelTriggered;
-            public bool IsRotateActionTriggered() => RotateTriggered;
+            public MockInput(bool placeTriggered = false, bool cancelTriggered = false, bool rotateTriggered = false, Vector2 pointerPos = default)
+            {
+                _placeTriggered = placeTriggered;
+                _cancelTriggered = cancelTriggered;
+                _rotateTriggered = rotateTriggered;
+                _pointerPos = pointerPos == default ? Vector2.zero : pointerPos;
+            }
+
+            public bool IsPlaceActionTriggered() => _placeTriggered;
+            public bool IsCancelActionTriggered() => _cancelTriggered;
+            public bool IsRotateActionTriggered() => _rotateTriggered;
             public bool IsDeleteActionTriggered() => false;
-            public Vector2 GetPointerPosition() => PointerPos;
+            public Vector2 GetPointerPosition() => _pointerPos;
         }
+        #pragma warning restore 0649
 
         private class MockStrategy : BasePlacementStrategy
         {
@@ -91,7 +101,7 @@ namespace Systems.PlacementSystem.Tests
         public void HandleInput_PlaceAction_CallsConfirmPlacement()
         {
             var tool = new PlacementTool();
-            var input = new MockInput { PlaceTriggered = true };
+            var input = new MockInput(placeTriggered: true);
             var context = new PlacementToolContext(
                 input, null, new MockValidator(), null, null, _camera, 100, 90, 90, false, false, false, -1, -1, -1, new PlacementSelectionState(), null, new ToolStateRegistry()
             );
@@ -111,7 +121,7 @@ namespace Systems.PlacementSystem.Tests
         public void HandleInput_CancelAction_CallsCancelPlacement()
         {
             var tool = new PlacementTool();
-            var input = new MockInput { CancelTriggered = true };
+            var input = new MockInput(cancelTriggered: true);
             var context = new PlacementToolContext(
                 input, null, new MockValidator(), null, null, _camera, 100, 90, 90, false, false, false, -1, -1, -1, new PlacementSelectionState(), null, new ToolStateRegistry()
             );
@@ -169,7 +179,7 @@ namespace Systems.PlacementSystem.Tests
             // Important: sync transforms
             Physics.SyncTransforms();
 
-            var input = new MockInput { PointerPos = new Vector2(_camera.pixelWidth / 2f, _camera.pixelHeight / 2f) };
+            var input = new MockInput(pointerPos: new Vector2(_camera.pixelWidth / 2f, _camera.pixelHeight / 2f));
             
             // Need to recreate context with the assigned input
             context = new PlacementToolContext(
