@@ -271,6 +271,10 @@ namespace Systems.SceneSandbox.Core
         // Namespace used by the persistence system for project files
         public string Namespace => "SceneSandboxProject";
 
+        public string PersistentName => _currentProject?.projectName ?? _currentSceneName ?? "scene_project";
+
+        public PersistenceTarget Target => PersistenceTarget.External;
+
         // The concrete data type we provide/expect
         public Type DataType => typeof(SandboxProjectData);
 
@@ -379,7 +383,7 @@ namespace Systems.SceneSandbox.Core
                     {
                         // Use filename (without extension) as save name and a dedicated namespace
                         string saveName = System.IO.Path.GetFileNameWithoutExtension(savePath);
-                        pm.SaveFile(_currentProject, saveName, Namespace, true);
+                        pm.SaveFile(this, saveName, null, true);
                         success = true;
                     }
                     else
@@ -427,7 +431,7 @@ namespace Systems.SceneSandbox.Core
                     string saveName = System.IO.Path.GetFileNameWithoutExtension(filePath);
                     try
                     {
-                        project = pm.LoadFile<SandboxProjectData>(saveName, Namespace);
+                        project = pm.LoadFile<SandboxProjectData>(this, saveName);
                     }
                     catch { project = null; }
                 }

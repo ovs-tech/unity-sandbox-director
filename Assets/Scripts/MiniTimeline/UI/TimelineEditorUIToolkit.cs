@@ -1615,7 +1615,7 @@ namespace Systems.MiniTimeline.UI
         {
             try
             {
-                var projects = MiniTimelineDirector.GetAvailableProjects();
+                var projects = director?.GetAvailableProjects() ?? new string[0];
                 if (projects != null && projects.Length > 0)
                 {
                     return projects.Select(p => p.EndsWith(".json") ? p : p + ".json").ToArray();
@@ -1634,7 +1634,7 @@ namespace Systems.MiniTimeline.UI
         /// </summary>
         private string GetAvailableFilesDisplay(string[] files)
         {
-            var projectsFolder = MiniTimelineDirector.GetProjectsFolder() ?? Application.persistentDataPath;
+            var projectsFolder = director?.GetProjectsFolder() ?? Application.persistentDataPath;
 
             if (files.Length == 0)
             {

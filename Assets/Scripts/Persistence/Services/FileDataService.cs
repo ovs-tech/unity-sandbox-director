@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Systems.Persistence.Core;
 using UnityEngine;
 
@@ -9,25 +10,22 @@ namespace Systems.Persistence.Services
     [CreateAssetMenu(menuName = "Persistence/File Data Service", fileName = "FileDataService")]
     public class FileDataService : BaseDataService
     {
-        public enum RootLocation
-        {
-            PersistentDataPath,
-            AssetsPath,
-            CustomPath
-        }
-
-        [Header("Path Settings")]
-        [SerializeField] RootLocation rootLocation = RootLocation.PersistentDataPath;
-        [SerializeField] string customRootPath = "";
-        [SerializeField] string savesFolderName = "saves";
-
         [Header("File Settings")]
         [SerializeField] string fileExtension = "json";
 
-        protected string rootPath;
+        string rootPath = "";
 
-        public RootLocation RootPathMode => rootLocation;
-        public string CustomRootPath => customRootPath;
+        public override void Setup()
+        {
+            base.Setup();
+            ComputeRootPath();
+        }
+
+        private void ComputeRootPath()
+        {
+            rootPath = Path.Combine(Application.persistentDataPath, "saves");
+            if (!Directory.Exists(rootPath)) Directory.CreateDirectory(rootPath);
+        }
 
         public override string GetRootPath()
         {
@@ -35,85 +33,48 @@ namespace Systems.Persistence.Services
             return rootPath;
         }
 
-        // Returns the root path concatenated with a namespace subfolder when provided.
-        public string GetRootPath(string ns)
+        public override string GetRootPath(string ns)
+        {
+            var root = GetRootPath();
+            return string.IsNullOrEmpty(ns) ? root : Path.Combine(root, ns);
+        }
+
+        /// <summary>
+        /// Combines saveName, namespace, and optional fileName to get the full path.
+        /// Result: saves/{saveName}/{ns}/{fileName}.json
+        /// </summary>
+        private string GetPathToFile(string saveName, string ns, string fileName = null)
         {
             if (string.IsNullOrEmpty(rootPath)) ComputeRootPath();
-            return string.IsNullOrEmpty(ns) ? rootPath : Path.Combine(rootPath, ns);
+
+            // Root save folder: saves/{saveName}
+            string saveFolder = Path.Combine(rootPath, saveName);
+            if (!Directory.Exists(saveFolder)) Directory.CreateDirectory(saveFolder);
+
+            // Namespace subfolder: saves/{saveName}/{ns}
+            string targetFolder = Path.Combine(saveFolder, ns);
+            if (!Directory.Exists(targetFolder)) Directory.CreateDirectory(targetFolder);
+
+            // If fileName is provided, use it. Otherwise fallback to saveName (backwards compatibility)
+            string actualFileName = string.IsNullOrEmpty(fileName) ? saveName : fileName;
+            return Path.Combine(targetFolder, string.Concat(actualFileName, ".", fileExtension));
         }
 
-        public override void Setup()
+        public override void Save(GameData data, string saveName, bool overwrite = true)
         {
-            base.Setup();
-
-            ComputeRootPath();
-            if (!Directory.Exists(rootPath)) Directory.CreateDirectory(rootPath);
+            Save(data, saveName, "gamedata", null, overwrite);
         }
 
-        protected void ComputeRootPath()
+        public override GameData Load(string saveName)
         {
-            // Normalize folder segments so inspectors using forward/back slashes work correctly
-            var segments = (savesFolderName ?? string.Empty).Split(new char[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
-            string combined = segments.Length > 0 ? segments[0] : string.Empty;
-            for (int i = 1; i < segments.Length; i++) combined = Path.Combine(combined, segments[i]);
-
-            switch (rootLocation)
-            {
-                case RootLocation.AssetsPath:
-                    rootPath = string.IsNullOrEmpty(combined) ? Application.dataPath : Path.Combine(Application.dataPath, combined);
-                    break;
-                case RootLocation.CustomPath:
-                    var basePath = string.IsNullOrWhiteSpace(customRootPath) ? Application.persistentDataPath : customRootPath;
-                    rootPath = string.IsNullOrEmpty(combined) ? basePath : Path.Combine(basePath, combined);
-                    break;
-                case RootLocation.PersistentDataPath:
-                default:
-                    rootPath = string.IsNullOrEmpty(combined) ? Application.persistentDataPath : Path.Combine(Application.persistentDataPath, combined);
-                    break;
-            }
-        }
-
-        protected string GetPathToFile(string saveName, string ns)
-        {
-            // Resolve the base root path including namespace. Do NOT make a subfolder per saveName;
-            // files live directly under the namespace folder.
-            string basePath = GetRootPath(ns);
-            string folder = basePath;
-            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-            // Filename is based on the saveName (e.g. "mysave.json")
-            return Path.Combine(folder, string.Concat(saveName, ".", fileExtension));
-        }
-
-        public override void Save(GameData data, bool overwrite = true)
-        {
-            Save(data, data.Name, "gamedata", overwrite);
-        }
-
-        public override GameData Load(string name)
-        {
-            return Load<GameData>(name, "gamedata");
+            return Load<GameData>(saveName, "gamedata");
         }
 
         public override void Delete(string name)
         {
             if (string.IsNullOrEmpty(rootPath)) ComputeRootPath();
-
-            // Delete any files named '{name}.{ext}' in the root and all namespace subfolders.
-            string fileName = string.Concat(name, ".", fileExtension);
-
-            // Root-level file
-            var rootFile = Path.Combine(rootPath, fileName);
-            if (File.Exists(rootFile)) File.Delete(rootFile);
-
-            // Namespace subfolders
-            if (Directory.Exists(rootPath))
-            {
-                foreach (var dir in Directory.EnumerateDirectories(rootPath))
-                {
-                    var p = Path.Combine(dir, fileName);
-                    if (File.Exists(p)) File.Delete(p);
-                }
-            }
+            string path = Path.Combine(rootPath, name);
+            if (Directory.Exists(path)) Directory.Delete(path, true);
         }
 
         public override void DeleteAll()
@@ -132,82 +93,52 @@ namespace Systems.Persistence.Services
             if (string.IsNullOrEmpty(rootPath)) ComputeRootPath();
             if (!Directory.Exists(rootPath)) yield break;
 
-            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            // Files directly under root
-            foreach (string f in Directory.EnumerateFiles(rootPath))
-            {
-                if (Path.GetExtension(f) == "." + fileExtension)
-                {
-                    seen.Add(Path.GetFileNameWithoutExtension(f));
-                }
-            }
-
-            // Files under namespace folders
+            // In folder-per-save structure, each directory in root is a save
             foreach (string dir in Directory.EnumerateDirectories(rootPath))
             {
-                foreach (string f in Directory.EnumerateFiles(dir))
+                string saveName = Path.GetFileName(dir);
+                // Verify it has a game-data.json
+                if (File.Exists(Path.Combine(dir, "gamedata", "gamedata." + fileExtension)))
                 {
-                    if (Path.GetExtension(f) == "." + fileExtension)
-                    {
-                        seen.Add(Path.GetFileNameWithoutExtension(f));
-                    }
+                    yield return saveName;
                 }
-            }
-
-            foreach (var name in seen)
-            {
-                yield return name;
             }
         }
 
         public override IEnumerable<string> ListSaves(string ns)
         {
-            if (string.IsNullOrEmpty(rootPath)) ComputeRootPath();
-            if (!Directory.Exists(rootPath)) yield break;
-
-            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            // Check the specified namespace folder for files
-            string nsFolder = Path.Combine(rootPath, ns);
-            if (Directory.Exists(nsFolder))
+            // For now, return all saves that have this namespace subfolder.
+            foreach (var saveName in ListSaves())
             {
-                foreach (string f in Directory.EnumerateFiles(nsFolder))
+                string nsFolder = Path.Combine(rootPath, saveName, ns);
+                if (Directory.Exists(nsFolder))
                 {
-                    if (Path.GetExtension(f) == "." + fileExtension)
-                    {
-                        seen.Add(Path.GetFileNameWithoutExtension(f));
-                    }
+                    yield return saveName;
                 }
-            }
-
-            foreach (var name in seen)
-            {
-                yield return name;
             }
         }
 
-        public override void Save<T>(T data, string saveName, string ns, bool overwrite = true)
+        public override void Save<T>(T data, string saveName, string ns, string fileName = null, bool overwrite = true)
         {
             if (serializer == null) throw new InvalidOperationException("FileDataService serializer not set. Call Setup(serializer) before using.");
-            string fileLocation = GetPathToFile(saveName, ns);
+            string fileLocation = GetPathToFile(saveName, ns, fileName);
 
             if (!overwrite && File.Exists(fileLocation))
             {
-                throw new IOException($"The file '{saveName}.{fileExtension}' already exists in save '{saveName}' and cannot be overwritten.");
+                throw new IOException($"The file already exists at '{fileLocation}' and cannot be overwritten.");
             }
 
             File.WriteAllText(fileLocation, serializer.Serialize(data));
         }
 
-        public override T Load<T>(string saveName, string ns)
+        public override T Load<T>(string saveName, string ns, string fileName = null)
         {
             if (serializer == null) throw new InvalidOperationException("FileDataService serializer not set. Call Setup(serializer) before using.");
-            string fileLocation = GetPathToFile(saveName, ns);
+            string fileLocation = GetPathToFile(saveName, ns, fileName);
 
             if (!File.Exists(fileLocation))
             {
-                throw new ArgumentException($"No persisted file '{saveName}.{fileExtension}' in save '{saveName}'");
+                throw new ArgumentException($"No persisted file at '{fileLocation}'");
             }
 
             return serializer.Deserialize<T>(File.ReadAllText(fileLocation));
@@ -216,24 +147,25 @@ namespace Systems.Persistence.Services
         public override IEnumerable<string> ListFiles(string saveName)
         {
             if (string.IsNullOrEmpty(rootPath)) ComputeRootPath();
-            if (!Directory.Exists(rootPath)) yield break;
+            string saveFolder = Path.Combine(rootPath, saveName);
+            if (!Directory.Exists(saveFolder)) yield break;
 
-            string targetFileName = string.Concat(saveName, ".", fileExtension);
-
-            // Check all namespace directories for the presence of this save file and return namespaces that contain it
-            foreach (string dir in Directory.EnumerateDirectories(rootPath))
+            // Return all subfolders (namespaces) under this save
+            foreach (string dir in Directory.EnumerateDirectories(saveFolder))
             {
-                var candidate = Path.Combine(dir, targetFileName);
-                if (File.Exists(candidate))
-                {
-                    yield return Path.GetFileName(dir);
-                }
+                yield return Path.GetFileName(dir);
+            }
+
+            // Also include "gamedata" if game-data.json exists
+            if (File.Exists(Path.Combine(saveFolder, "gamedata", "gamedata." + fileExtension)))
+            {
+                yield return "gamedata";
             }
         }
 
-        public override void DeleteFile(string saveName, string ns)
+        public override void DeleteFile(string saveName, string ns, string fileName = null)
         {
-            string fileLocation = GetPathToFile(saveName, ns);
+            string fileLocation = GetPathToFile(saveName, ns, fileName);
             if (File.Exists(fileLocation)) File.Delete(fileLocation);
         }
     }

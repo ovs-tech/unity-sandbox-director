@@ -367,7 +367,7 @@ namespace Systems.MiniTimeline.Editor
                 EditorGUILayout.Space(5);
                 
                 // Get available projects
-                var availableProjects = MiniTimelineDirector.GetAvailableProjects();
+                var availableProjects = director.GetAvailableProjects();
                 
                 if (availableProjects.Length > 0)
                 {
@@ -1478,13 +1478,13 @@ namespace Systems.MiniTimeline.Editor
             if (!string.IsNullOrEmpty(path))
             {
                 // Import the selected file into the persistent projects folder and load it via the director
-                if (string.IsNullOrEmpty(MiniTimelineDirector.GetProjectsFolder()))
+                if (string.IsNullOrEmpty(director.GetProjectsFolder()))
                 {
                     EditorUtility.DisplayDialog("Import Failed", "Persistent projects folder is not available.", "OK");
                     return;
                 }
 
-                var destPath = Path.Combine(MiniTimelineDirector.GetProjectsFolder(), Path.GetFileName(path));
+                var destPath = Path.Combine(director.GetProjectsFolder(), Path.GetFileName(path));
                 try
                 {
                     File.Copy(path, destPath, true);
@@ -1514,7 +1514,7 @@ namespace Systems.MiniTimeline.Editor
             if (director.Project != null)
             {
                 // Check if last saved path is in persistent data or custom location
-                if (!string.IsNullOrEmpty(lastSavedPath) && lastSavedPath.StartsWith(MiniTimelineDirector.GetProjectsFolder()))
+                if (!string.IsNullOrEmpty(lastSavedPath) && lastSavedPath.StartsWith(director.GetProjectsFolder()))
                 {
                     // Quick save to persistent path using director method
                     if (director.SaveProject())
@@ -1527,7 +1527,7 @@ namespace Systems.MiniTimeline.Editor
                     // For custom last-saved locations, export the latest persistent save to that custom path
                     if (director.SaveProject())
                     {
-                        var savedPath = MiniTimelineDirector.GetProjectFilePath(director.Project.name);
+                        var savedPath = director.GetProjectFilePath(director.Project.name);
                         try
                         {
                             if (!string.IsNullOrEmpty(savedPath) && File.Exists(savedPath))
@@ -1551,7 +1551,7 @@ namespace Systems.MiniTimeline.Editor
                     // No last path, use default persistent path
                     if (director.SaveProject())
                     {
-                        lastSavedPath = MiniTimelineDirector.GetProjectFilePath(director.Project.name);
+                        lastSavedPath = director.GetProjectFilePath(director.Project.name);
                         Debug.Log($"[MiniTimelineDirectorEditor] Quick saved to: {lastSavedPath}");
                     }
                 }
@@ -1563,7 +1563,7 @@ namespace Systems.MiniTimeline.Editor
             if (!string.IsNullOrEmpty(lastLoadedPath))
             {
                 // Check if it's from persistent data or custom location
-                if (lastLoadedPath.StartsWith(MiniTimelineDirector.GetProjectsFolder()))
+                if (lastLoadedPath.StartsWith(director.GetProjectsFolder()))
                 {
                     // Load using director method
                     string projectName = Path.GetFileNameWithoutExtension(lastLoadedPath);
@@ -1577,7 +1577,7 @@ namespace Systems.MiniTimeline.Editor
                     // For custom last-loaded locations, import the project into persistent folder and load it
                     try
                     {
-                        var destPath = Path.Combine(MiniTimelineDirector.GetProjectsFolder(), Path.GetFileName(lastLoadedPath));
+                        var destPath = Path.Combine(director.GetProjectsFolder(), Path.GetFileName(lastLoadedPath));
                         File.Copy(lastLoadedPath, destPath, true);
                         var projectName = Path.GetFileNameWithoutExtension(lastLoadedPath);
                         if (director.LoadProject(projectName))

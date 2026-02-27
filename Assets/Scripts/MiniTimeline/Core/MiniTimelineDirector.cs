@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Unity.VisualScripting;
-using UnityEngine;
 using Systems.Persistence;
 using Systems.Persistence.Core;
+using Unity.VisualScripting;
+using UnityEngine;
 
 namespace Systems.MiniTimeline.Core
 {
@@ -49,12 +49,12 @@ namespace Systems.MiniTimeline.Core
         public event Action<PlaybackState> OnStateChanged;
         public event Action OnProjectLoaded;
         public event Action OnProjectClosed;
-        
+
         // Track events
         public event Action<IMiniTrack> OnTrackAdded;
         public event Action<string> OnTrackRemoved;
         public event Action<IMiniTrack> OnTrackUpdated;
-        
+
         // Clip events
         public event Action<IMiniClip, string> OnClipAdded; // clip, trackId
         public event Action<string, string> OnClipRemoved; // clipId, trackId
@@ -243,7 +243,7 @@ namespace Systems.MiniTimeline.Core
             {
                 TryAutoLoadFirstProject();
             }
-            
+
             // Auto-create empty project if enabled and no project is loaded
             if (autoCreateEmptyProject && project == null)
             {
@@ -517,7 +517,7 @@ namespace Systems.MiniTimeline.Core
                     return false;
                 }
 
-                mgr.SaveFile(project, saveName, Namespace, true);
+                mgr.SaveFile(this, saveName, null, true);
                 if (debugMode)
                     Debug.Log($"[MiniTimelineDirector] Saved project '{saveName}' via GamePersistenceManager");
 
@@ -553,7 +553,7 @@ namespace Systems.MiniTimeline.Core
                     return false;
                 }
 
-                var loadedProject = mgr.LoadFile<MiniTimelineProject>(projectName, Namespace);
+                var loadedProject = mgr.LoadFile<MiniTimelineProject>(this, projectName);
                 if (loadedProject != null)
                 {
                     SetProject(loadedProject);
@@ -587,7 +587,7 @@ namespace Systems.MiniTimeline.Core
                     return new string[0];
                 }
 
-                var saves = mgr.ListSaves();
+                var saves = mgr.ListSaves(this);
                 var list = new System.Collections.Generic.List<string>();
                 if (saves != null)
                 {
@@ -674,7 +674,11 @@ namespace Systems.MiniTimeline.Core
         }
 
         // ISubsystemPersistence implementation
-        public string Namespace => "MiniTimelineProject";
+        public string Namespace => "minitimeline";
+
+        public string PersistentName => project != null ? project.name : "timeline";
+
+        public PersistenceTarget Target => PersistenceTarget.External;
 
         public object GetSaveData()
         {
@@ -803,14 +807,14 @@ namespace Systems.MiniTimeline.Core
         private void TryAutoLoadFirstProject()
         {
             var availableProjects = GetAvailableProjects();
-            
+
             if (availableProjects != null && availableProjects.Length > 0)
             {
                 var firstProjectName = availableProjects[0];
-                
+
                 if (debugMode)
                     Debug.Log($"[MiniTimelineDirector] Auto-loading first project: {firstProjectName}");
-                
+
                 if (LoadProject(firstProjectName))
                 {
                     if (debugMode)
@@ -1310,7 +1314,7 @@ namespace Systems.MiniTimeline.Core
         }
 
         // No factory-based creation; project contains runtime tracks.
-        
+
         /// <summary>
         /// Rebind all tracks to the current binding context.
         /// Useful when bindings have changed and tracks need to re-resolve their bound objects.

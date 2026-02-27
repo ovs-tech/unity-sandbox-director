@@ -17,6 +17,10 @@ namespace Systems.SceneSandbox.Core {
 
         public string Namespace => $"placed_objects_{_sceneName}";
 
+        public string PersistentName => _sceneName;
+
+        public PersistenceTarget Target => PersistenceTarget.External;
+
         public Type DataType => typeof(SceneConfiguration);
 
         public object GetSaveData() {
