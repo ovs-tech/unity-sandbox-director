@@ -1,35 +1,36 @@
 {
-    "name": "Tests",
-    "testAssemblies": true,
-    "rootNamespace": "",
-    "references": [
-        "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner",
-        "Systems.MiniTimeline",
-        "Systems.CommandSystem",
-        "Systems.SceneSandbox",
-        "Systems.PlacementSystem",
-        "Unity.Cinemachine",
-        "Unity.InputSystem",
-        "Unity.Localization",
-        "Unity.Addressables",
-        "Unity.ResourceManager",
-        "Systems.Core",
-        "Systems.ObjectPool"
-    ],
-    "includePlatforms": [
-        "Editor"
-    ],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": true,
-    "precompiledReferences": [
-        "nunit.framework.dll"
-    ],
-    "autoReferenced": false,
-    "defineConstraints": [
-        "UNITY_INCLUDE_TESTS"
-    ],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "Tests",
+  "testAssemblies": true,
+  "rootNamespace": "",
+  "references": [
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner",
+    "Systems.MiniTimeline",
+    "Systems.CommandSystem",
+    "Systems.SceneSandbox",
+    "Systems.PlacementSystem",
+    "Unity.Cinemachine",
+    "Unity.InputSystem",
+    "Unity.Localization",
+    "Unity.Addressables",
+    "Unity.ResourceManager",
+    "Systems.Core",
+    "Systems.ObjectPool",
+    "Systems.PlacementSystem.Editor"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
 }
