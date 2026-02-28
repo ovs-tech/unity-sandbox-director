@@ -19,7 +19,7 @@ namespace Systems.PlacementSystem.Validation
         /// <param name="rotation">Rotation to validate</param>
         /// <param name="ghostObject">The ghost object being placed (contains colliders for checking)</param>
         /// <returns>True if the rule passes, false otherwise</returns>
-        public abstract bool CheckRule(Vector3 position, Quaternion rotation, GameObject ghostObject);
+        public abstract ValidationResult CheckRule(Vector3 position, Quaternion rotation, GameObject ghostObject);
 
         /// <summary>
         /// Optional: Gets debug information about why the rule failed.

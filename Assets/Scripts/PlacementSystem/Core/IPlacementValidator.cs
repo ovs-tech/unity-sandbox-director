@@ -1,4 +1,5 @@
 using UnityEngine;
+using Systems.PlacementSystem.Validation;
 
 namespace Systems.PlacementSystem.Core
 {
@@ -15,6 +16,6 @@ namespace Systems.PlacementSystem.Core
         /// <param name="rotation">The rotation to validate</param>
         /// <param name="ghostObject">The ghost object being validated</param>
         /// <returns>True if placement is valid, false otherwise</returns>
-        bool IsPlacementValid(Vector3 position, Quaternion rotation, GameObject ghostObject);
+        ValidationResult IsPlacementValid(Vector3 position, Quaternion rotation, GameObject ghostObject);
     }
 }

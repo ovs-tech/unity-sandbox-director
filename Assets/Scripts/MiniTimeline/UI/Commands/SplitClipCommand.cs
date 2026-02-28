@@ -1,4 +1,4 @@
-using Core.Behaviors.Command;
+using Systems.CommandSystem;
 using Systems.MiniTimeline.Core;
 using UnityEngine;
 
@@ -8,7 +8,7 @@ namespace Systems.MiniTimeline.UI.Commands
     /// Command for splitting a clip at a specific time.
     /// Shortens the original clip and creates a new clip for the remaining duration.
     /// </summary>
-    public class SplitClipCommand : TimelineCommandBase
+    public class SplitClipCommand : CommandBase
     {
         private readonly IMiniTrack track;
         private readonly IMiniClip originalClip;

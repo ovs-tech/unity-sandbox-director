@@ -1,12 +1,9 @@
 using UnityEngine;
 using Systems.PlacementSystem.Core;
-using Systems.PlacementSystem.Input;
 using Systems.PlacementSystem.Strategies;
 using Systems.PlacementSystem.Validation;
-using Systems.PlacementSystem.Visualization;
 using Systems.PlacementSystem.Sockets;
-using System.Linq;
-using System;
+using Systems.PlacementSystem.Core.Components;
 
 namespace Systems.PlacementSystem.Examples
 {
@@ -30,6 +27,8 @@ namespace Systems.PlacementSystem.Examples
         [Header("UI Buttons Example")]
         [SerializeField, Tooltip("Index of prefab to place (for testing)")]
         private int _selectedPrefabIndex = 0;
+
+        private ScriptableObject _currentStrategy;
 
         private void Start()
         {
@@ -104,10 +103,9 @@ namespace Systems.PlacementSystem.Examples
             // Remove any previously active placement mode
             RemovePreviousPlacementMode();
 
-            var freeStrategy = GetOrAddComponent<FreePositionStrategy>();
+            var freeStrategy = ScriptableObject.CreateInstance<FreePositionStrategy>();
+            _currentStrategy = freeStrategy;
             _placementController.SetPlacementStrategy(freeStrategy);
-
-            
         }
 
         /// <summary>
@@ -123,10 +121,9 @@ namespace Systems.PlacementSystem.Examples
             // Remove any previously active placement mode
             RemovePreviousPlacementMode();
 
-            var gridStrategy = GetOrAddComponent<GridPlacementStrategy>();
+            var gridStrategy = ScriptableObject.CreateInstance<GridPlacementStrategy>();
+            _currentStrategy = gridStrategy;
             _placementController.SetPlacementStrategy(gridStrategy);
-
-            
         }
 
         /// <summary>
@@ -142,10 +139,9 @@ namespace Systems.PlacementSystem.Examples
             // Remove any previously active placement mode
             RemovePreviousPlacementMode();
 
-            var hexStrategy = GetOrAddComponent<HexPlacementStrategy>();
+            var hexStrategy = ScriptableObject.CreateInstance<HexPlacementStrategy>();
+            _currentStrategy = hexStrategy;
             _placementController.SetPlacementStrategy(hexStrategy);
-
-            
         }
 
         /// <summary>
@@ -214,7 +210,7 @@ namespace Systems.PlacementSystem.Examples
             }
 
             // Register with SnapManager (create one if missing)
-            var snapManager = FindObjectOfType<SnapManager>();
+            var snapManager = FindFirstObjectByType<SnapManager>();
             if (snapManager == null)
             {
                 var smObj = new GameObject("SnapManager");
@@ -230,12 +226,12 @@ namespace Systems.PlacementSystem.Examples
         /// <summary>
         /// Example: Create validation rules programmatically.
         /// </summary>
-        public void SetupPlaceableObjectWithRules(GameObject prefab)
+        public void SetupPartWithRules(GameObject prefab)
         {
-            var placeableObject = prefab.GetComponent<PlaceableObject>();
-            if (placeableObject == null)
+            var part = prefab.GetComponent<PlacementPart>();
+            if (part == null)
             {
-                placeableObject = prefab.AddComponent<PlaceableObject>();
+                part = prefab.AddComponent<PlacementPart>();
             }
 
             // Create rules (normally you'd load these from assets)
@@ -255,23 +251,10 @@ namespace Systems.PlacementSystem.Examples
             SetPrivateField(surface, "_maxSurfaceAngle", 30f);
 
             // Attach rules to the placeable object
-            placeableObject.AddRule(clearance);
-            placeableObject.AddRule(surface);
+            part.AddRule(clearance);
+            part.AddRule(surface);
 
             
-        }
-
-        /// <summary>
-        /// Helper: Get or add a component.
-        /// </summary>
-        private T GetOrAddComponent<T>() where T : Component
-        {
-            T component = _placementController.GetComponent<T>();
-            if (component == null)
-            {
-                component = _placementController.gameObject.AddComponent<T>();
-            }
-            return component;
         }
 
         /// <summary>
@@ -325,20 +308,15 @@ namespace Systems.PlacementSystem.Examples
             // Cancel any active placement (destroys ghost, etc.)
             _placementController.CancelPlacement();
 
-            // Remove any existing strategy components that implement IPlacementStrategy
-            var strategies = _placementController.GetComponents<MonoBehaviour>()
-                .Where(mb => mb is IPlacementStrategy)
-                .ToArray();
-
-            foreach (var s in strategies)
+            // Destroy the runtime generated ScriptableObject strategy
+            if (_currentStrategy != null)
             {
-                if (s == null)
-                    continue;
-
                 if (Application.isPlaying)
-                    Destroy(s);
+                    Destroy(_currentStrategy);
                 else
-                    DestroyImmediate(s);
+                    DestroyImmediate(_currentStrategy);
+                
+                _currentStrategy = null;
             }
         }
 

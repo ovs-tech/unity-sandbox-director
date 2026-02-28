@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Systems.PlacementSystem.Sockets;
 using Systems.PlacementSystem.Tools;
+using Systems.PlacementSystem.Persistence;
+using Systems.Persistence;
 
 namespace Systems.PlacementSystem.Core
 {
@@ -21,6 +24,13 @@ namespace Systems.PlacementSystem.Core
             Delete
         }
 
+        [Header("Events")]
+        public UnityEngine.Events.UnityEvent<GameObject> OnPlacementStartedEvent;
+        public UnityEngine.Events.UnityEvent<GameObject> OnPlacementSuccessEvent;
+        public UnityEngine.Events.UnityEvent<string> OnPlacementFailedEvent;
+        public UnityEngine.Events.UnityEvent OnPlacementCancelledEvent;
+        public UnityEngine.Events.UnityEvent<PlacementToolType> OnToolChangedEvent;
+
         [Header("Dependencies")]
         [SerializeField, Tooltip("The camera used for raycasting")]
         private Camera _placementCamera;
@@ -35,14 +45,11 @@ namespace Systems.PlacementSystem.Core
         [SerializeField, Tooltip("Reference to the input provider component")]
         private MonoBehaviour _inputProviderComponent;
 
-        [SerializeField, Tooltip("Reference to the placement strategy component")]
-        private MonoBehaviour _placementStrategyComponent;
+        [SerializeField, Tooltip("Reference to the placement strategy asset")]
+        private BasePlacementStrategy _placementStrategy;
 
-        [SerializeField, Tooltip("Reference to the placement validator component")]
-        private MonoBehaviour _placementValidatorComponent;
-
-        [SerializeField, Tooltip("Reference to the placement visualizer component")]
-        private MonoBehaviour _placementVisualizerComponent;
+        [SerializeField, Tooltip("Reference to the placement visualizer asset")]
+        private BasePlacementVisualizer _placementVisualizer;
 
         [SerializeField, Tooltip("Reference to the snap manager (optional)")]
         private SnapManager _snapManager;
@@ -77,31 +84,22 @@ namespace Systems.PlacementSystem.Core
         private bool _moveSelectedWithPointer = true;
 
         private IInputProvider _inputProvider;
-        private IPlacementStrategy _placementStrategy;
-        private IPlacementValidator _placementValidator;
-        private IPlacementVisualizer _placementVisualizer;
 
         private PlacementToolContext _toolContext;
         private PlacementSelectionState _selectionState;
 
-        private PlacementTool _placementTool;
-        private SelectionTool _selectionTool;
-        private SnapTool _snapTool;
-        private MoveTool _moveTool;
-        private RotateTool _rotateTool;
-        private DeleteTool _deleteTool;
-        private readonly List<IPlacementTool> _activeTools = new List<IPlacementTool>();
-        private ToolStateRegistry _toolStates;
+        public ToolManager ToolManager { get; private set; }
 
         private GameObject _currentGhost;
         private bool _isPlacementActive;
 
+        // Tracked placed objects for persistence
+        private readonly Dictionary<string, GameObject> _placedObjects = new Dictionary<string, GameObject>();
+
         private void Awake()
         {
             _inputProvider = _inputProviderComponent as IInputProvider;
-            _placementStrategy = _placementStrategyComponent as IPlacementStrategy;
-            _placementValidator = _placementValidatorComponent as IPlacementValidator;
-            _placementVisualizer = _placementVisualizerComponent as IPlacementVisualizer;
+            var placementValidator = new Validation.DefaultPlacementValidator();
 
             if (_inputProvider == null)
             {
@@ -110,10 +108,6 @@ namespace Systems.PlacementSystem.Core
             if (_placementStrategy == null)
             {
                 // Missing placement strategy; caller should assign a valid implementation
-            }
-            if (_placementValidator == null)
-            {
-                // Missing placement validator; caller should assign a valid implementation
             }
             if (_placementVisualizer == null)
             {
@@ -124,36 +118,78 @@ namespace Systems.PlacementSystem.Core
                 _placementCamera = Camera.main;
 
             _selectionState = new PlacementSelectionState();
-            _toolStates = new ToolStateRegistry();
-            _placementTool = new PlacementTool();
-            _selectionTool = new SelectionTool();
-            _snapTool = new SnapTool();
-            _moveTool = new MoveTool();
-            _rotateTool = new RotateTool();
-            _deleteTool = new DeleteTool();
+            ToolManager = new ToolManager();
+
+            var placementTool = new PlacementTool();
+            var selectionTool = new SelectionTool();
+            var snapTool = new SnapTool();
+            var moveTool = new MoveTool();
+            var rotateTool = new RotateTool();
+            var deleteTool = new DeleteTool();
+
+            ToolManager.RegisterTool(PlacementToolType.Placement, placementTool);
+            ToolManager.RegisterTool(PlacementToolType.Selection, selectionTool);
+            ToolManager.RegisterTool(PlacementToolType.Snap, snapTool);
+            ToolManager.RegisterTool(PlacementToolType.Move, moveTool);
+            ToolManager.RegisterTool(PlacementToolType.Rotate, rotateTool);
+            ToolManager.RegisterTool(PlacementToolType.Delete, deleteTool);
 
             RebuildToolContext();
 
-            _placementTool.OnPlacementConfirmed = HandlePlacementConfirmed;
-            _placementTool.OnPlacementCancelled = HandlePlacementCancelled;
+            placementTool.OnPlacementConfirmed = HandlePlacementConfirmed;
+            placementTool.OnPlacementCancelled = HandlePlacementCancelled;
+            placementTool.OnPlacementFailed = HandlePlacementFailed;
 
             SetActiveTool(PlacementToolType.Selection);
+
+            // Register a persistence adapter if SaveLoadSystem is available
+            try
+            {
+                if (GamePersistenceManager.HasInstance)
+                {
+                    var sls = GamePersistenceManager.Instance;
+                    var adapter = new PlacementPersistenceAdapter(this, UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+                    sls.RegisterSubsystem(adapter);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"PlacementController: unable to register persistence adapter: {ex.Message}");
+            }
         }
 
         private void Update()
         {
-            if (_activeTools.Count == 0)
-                return;
+            ToolManager.HandleInput();
+            ToolManager.Tick();
+        }
 
-            for (int i = 0; i < _activeTools.Count; i++)
-            {
-                _activeTools[i].HandleInput();
-            }
+        public void InitializeForTesting()
+        {
+            _selectionState = new PlacementSelectionState();
+            ToolManager = new ToolManager();
 
-            for (int i = 0; i < _activeTools.Count; i++)
-            {
-                _activeTools[i].Tick();
-            }
+            var placementTool = new PlacementTool();
+            var selectionTool = new SelectionTool();
+            var snapTool = new SnapTool();
+            var moveTool = new MoveTool();
+            var rotateTool = new RotateTool();
+            var deleteTool = new DeleteTool();
+
+            ToolManager.RegisterTool(PlacementToolType.Placement, placementTool);
+            ToolManager.RegisterTool(PlacementToolType.Selection, selectionTool);
+            ToolManager.RegisterTool(PlacementToolType.Snap, snapTool);
+            ToolManager.RegisterTool(PlacementToolType.Move, moveTool);
+            ToolManager.RegisterTool(PlacementToolType.Rotate, rotateTool);
+            ToolManager.RegisterTool(PlacementToolType.Delete, deleteTool);
+
+            placementTool.OnPlacementConfirmed = HandlePlacementConfirmed;
+            placementTool.OnPlacementCancelled = HandlePlacementCancelled;
+            placementTool.OnPlacementFailed = HandlePlacementFailed;
+
+            SetActiveTool(PlacementToolType.Selection);
+            
+            RebuildToolContext();
         }
 
         /// <summary>
@@ -169,8 +205,10 @@ namespace Systems.PlacementSystem.Core
             _currentGhost = Instantiate(_objectToPlace);
             _currentGhost.name = $"{_objectToPlace.name}_Ghost";
 
-            _placementTool.SetupPlacement(_currentGhost, _objectToPlace, _makeObjectsSelectable);
+            var placementTool = ToolManager.GetTool(PlacementToolType.Placement) as PlacementTool;
+            placementTool?.SetupPlacement(_currentGhost, _objectToPlace, _makeObjectsSelectable);
             _isPlacementActive = true;
+            OnPlacementStartedEvent?.Invoke(_currentGhost);
         }
 
         /// <summary>
@@ -181,7 +219,8 @@ namespace Systems.PlacementSystem.Core
             if (_currentGhost == null)
                 return;
 
-            _placementTool.CancelPlacement();
+            var placementTool = ToolManager.GetTool(PlacementToolType.Placement) as PlacementTool;
+            placementTool?.CancelPlacement();
             _currentGhost = null;
             _isPlacementActive = false;
         }
@@ -191,13 +230,17 @@ namespace Systems.PlacementSystem.Core
         /// </summary>
         public void ConfirmPlacement()
         {
-            _placementTool.ConfirmPlacement();
+            var placementTool = ToolManager.GetTool(PlacementToolType.Placement) as PlacementTool;
+            placementTool?.ConfirmPlacement();
         }
 
         private void HandlePlacementConfirmed(GameObject placedObject)
         {
             _currentGhost = null;
             _isPlacementActive = false;
+            // Register the placed object for persistence and notify listeners
+            RegisterPlacedObject(placedObject);
+            OnPlacementSuccessEvent?.Invoke(placedObject);
 
             StartPlacement();
         }
@@ -206,6 +249,12 @@ namespace Systems.PlacementSystem.Core
         {
             _currentGhost = null;
             _isPlacementActive = false;
+            OnPlacementCancelledEvent?.Invoke();
+        }
+
+        private void HandlePlacementFailed(string reason)
+        {
+            OnPlacementFailedEvent?.Invoke(reason);
         }
 
         public void SetActiveTool(PlacementToolType toolType)
@@ -234,48 +283,12 @@ namespace Systems.PlacementSystem.Core
                     SetToolStack(PlacementToolType.Selection);
                     break;
             }
+            OnToolChangedEvent?.Invoke(toolType);
         }
 
-        /// <summary>
-        /// Sets the tool pipeline order for the current update loop.
-        /// </summary>
         public void SetToolStack(params PlacementToolType[] toolTypes)
         {
-            if (toolTypes == null || toolTypes.Length == 0)
-                return;
-
-            var nextTools = new List<IPlacementTool>(toolTypes.Length);
-            var seen = new HashSet<IPlacementTool>();
-
-            for (int i = 0; i < toolTypes.Length; i++)
-            {
-                var tool = GetTool(toolTypes[i]);
-                if (tool != null && seen.Add(tool))
-                    nextTools.Add(tool);
-            }
-
-            ApplyToolStack(nextTools);
-        }
-
-        private IPlacementTool GetTool(PlacementToolType toolType)
-        {
-            switch (toolType)
-            {
-                case PlacementToolType.Placement:
-                    return _placementTool;
-                case PlacementToolType.Selection:
-                    return _selectionTool;
-                case PlacementToolType.Snap:
-                    return _snapTool;
-                case PlacementToolType.Move:
-                    return _moveTool;
-                case PlacementToolType.Rotate:
-                    return _rotateTool;
-                case PlacementToolType.Delete:
-                    return _deleteTool;
-                default:
-                    return _selectionTool;
-            }
+            ToolManager.SetPipeline(toolTypes);
         }
 
         private void RebuildToolContext()
@@ -283,7 +296,7 @@ namespace Systems.PlacementSystem.Core
             _toolContext = new PlacementToolContext(
                 _inputProvider,
                 _placementStrategy,
-                _placementValidator,
+                new Validation.DefaultPlacementValidator(),
                 _placementVisualizer,
                 _snapManager,
                 _placementCamera,
@@ -297,51 +310,20 @@ namespace Systems.PlacementSystem.Core
                 _selectionLayer,
                 _selectionMovementSurface,
                 _selectionState,
-                _selectionTool,
-                _toolStates
+                ToolManager.GetTool(PlacementToolType.Selection) as SelectionTool,
+                ToolManager.ToolStates
             );
 
-            _selectionTool?.SetContext(_toolContext);
+            ToolManager.InitializeContext(_toolContext);
         }
 
         /// <summary>
         /// Changes the placement strategy at runtime.
         /// </summary>
-        public void SetPlacementStrategy(IPlacementStrategy newStrategy)
+        public void SetPlacementStrategy(BasePlacementStrategy newStrategy)
         {
             _placementStrategy = newStrategy;
             RebuildToolContext();
-            RefreshActiveToolContexts();
-        }
-
-        private void ApplyToolStack(IReadOnlyList<IPlacementTool> nextTools)
-        {
-            var nextSet = new HashSet<IPlacementTool>(nextTools);
-            for (int i = 0; i < _activeTools.Count; i++)
-            {
-                var tool = _activeTools[i];
-                if (!nextSet.Contains(tool))
-                    tool.OnExit();
-            }
-
-            var previousSet = new HashSet<IPlacementTool>(_activeTools);
-            _activeTools.Clear();
-            _activeTools.AddRange(nextTools);
-
-            for (int i = 0; i < _activeTools.Count; i++)
-            {
-                var tool = _activeTools[i];
-                if (!previousSet.Contains(tool))
-                    tool.OnEnter(_toolContext);
-            }
-        }
-
-        private void RefreshActiveToolContexts()
-        {
-            for (int i = 0; i < _activeTools.Count; i++)
-            {
-                _activeTools[i].OnEnter(_toolContext);
-            }
         }
 
         /// <summary>
@@ -359,11 +341,12 @@ namespace Systems.PlacementSystem.Core
         /// </summary>
         public void HandleSelectionClick(GameObject selected)
         {
-            if (_selectionTool == null)
+            var selectionTool = ToolManager.GetTool(PlacementToolType.Selection) as SelectionTool;
+            if (selectionTool == null)
                 return;
 
-            _selectionTool.OnEnter(_toolContext);
-            _selectionTool.HandleSelection(selected);
+            selectionTool.OnEnter(_toolContext);
+            selectionTool.HandleSelection(selected);
         }
 
         /// <summary>
@@ -371,11 +354,12 @@ namespace Systems.PlacementSystem.Core
         /// </summary>
         public void DeselectAll()
         {
-            if (_selectionTool == null)
+            var selectionTool = ToolManager.GetTool(PlacementToolType.Selection) as SelectionTool;
+            if (selectionTool == null)
                 return;
 
-            _selectionTool.OnEnter(_toolContext);
-            _selectionTool.HandleSelection(null);
+            selectionTool.OnEnter(_toolContext);
+            selectionTool.HandleSelection(null);
         }
 
         /// <summary>
@@ -393,6 +377,78 @@ namespace Systems.PlacementSystem.Core
                 Gizmos.color = Color.yellow;
                 Gizmos.DrawWireSphere(_currentGhost.transform.position, 0.3f);
             }
+
+            _placementStrategy?.OnDrawGizmos();
+        }
+
+        // -----------------------------------------------------------------
+        // Persistence / placed object helpers
+        // -----------------------------------------------------------------
+
+        public IEnumerable<GameObject> GetPlacedObjects()
+        {
+            return new List<GameObject>(_placedObjects.Values);
+        }
+
+        public void RegisterPlacedObject(GameObject instance, string id = null, string prefabName = null)
+        {
+            if (instance == null) return;
+
+            var info = instance.GetComponent<PlacedObjectInfo>();
+            if (info == null) info = instance.AddComponent<PlacedObjectInfo>();
+
+            if (!string.IsNullOrEmpty(id)) info.Id = id;
+            if (!string.IsNullOrEmpty(prefabName)) info.PrefabName = prefabName;
+            if (string.IsNullOrEmpty(info.Id)) info.Id = Guid.NewGuid().ToString();
+
+            _placedObjects[info.Id] = instance;
+        }
+
+        public GameObject PlaceObjectFromRecord(PlacedObjectRecord record)
+        {
+            if (record == null) return null;
+
+            GameObject prefab = null;
+            if (!string.IsNullOrEmpty(record.prefabName))
+            {
+                // Try Resources lookup first
+                prefab = Resources.Load<GameObject>(record.prefabName);
+            }
+
+            GameObject instance;
+            if (prefab != null)
+            {
+                instance = Instantiate(prefab, record.position, Quaternion.Euler(record.rotation));
+                instance.name = string.IsNullOrEmpty(record.customName) ? prefab.name : record.customName;
+            }
+            else
+            {
+                instance = new GameObject(string.IsNullOrEmpty(record.customName) ? (record.prefabName ?? "PlacedObject") : record.customName);
+                instance.transform.position = record.position;
+                instance.transform.eulerAngles = record.rotation;
+                instance.transform.localScale = record.scale;
+            }
+
+            instance.transform.position = record.position;
+            instance.transform.eulerAngles = record.rotation;
+            instance.transform.localScale = record.scale;
+
+            RegisterPlacedObject(instance, record.id, record.prefabName);
+            return instance;
+        }
+
+        public void ClearPlacedObjects(bool destroyGameObjects = true)
+        {
+            foreach (var kv in new List<GameObject>(_placedObjects.Values))
+            {
+                if (kv == null) continue;
+                if (destroyGameObjects)
+                {
+                    if (Application.isPlaying) Destroy(kv);
+                    else DestroyImmediate(kv);
+                }
+            }
+            _placedObjects.Clear();
         }
     }
 }

@@ -59,7 +59,7 @@ Override `CheckRule()` to create custom validation logic.
 - **ClearanceRule**: Uses `Physics.OverlapBox` to ensure no obstructions
 - **RequireSurfaceRule**: Raycasts down to verify surface layer/angle
 
-#### PlaceableObject Component
+#### Part Component
 Attach to prefabs with a list of `PlacementRule` assets. All rules must pass for valid placement.
 
 ### 5. Socket System (Sockets/)
@@ -81,7 +81,7 @@ Efficiently finds nearest unoccupied socket using:
 - Optional socket caching for performance
 - Registration/unregistration for dynamic sockets
 
-When a `PlaceableObject` with `RequiredSocketType` is near a matching socket, placement snaps exactly to the socket's transform.
+When a `Part` with `RequiredSocketType` is near a matching socket, placement snaps exactly to the socket's transform.
 
 ### 6. Input Providers (Input/)
 
@@ -151,7 +151,7 @@ Configure in inspector:
 ### 3. Setup Placeable Prefabs
 
 On your prefab:
-1. Add **PlaceableObject** component
+1. Add **Part** component
 2. Drag your rule assets into the Rules list
 3. Optional: Set `RequiredSocketType` and `SnapRange` for socket snapping
 
@@ -211,8 +211,8 @@ public class CustomRule : PlacementRule
 ### Dynamic Rule Assignment
 
 ```csharp
-var placeableObject = prefab.GetComponent<PlaceableObject>();
-placeableObject.AddRule(myCustomRule);
+var Part = prefab.GetComponent<Part>();
+Part.AddRule(myCustomRule);
 ```
 
 ## Extension Points
@@ -249,7 +249,7 @@ The system is designed to be extended without modifying core code:
    - Ceiling → Ceiling Sockets
    - Makes management easier
 
-4. **Prefab Setup**: Always test prefabs with PlaceableObject before building
+4. **Prefab Setup**: Always test prefabs with Part before building
    - Verify collider sizes match visual bounds
    - Test rules in isolation first
 
@@ -271,7 +271,7 @@ PlacementController (Orchestrator)
     │   └── HexPlacementStrategy
     ├── IPlacementValidator (Validation)
     │   └── PlacementValidation
-    │       └── PlaceableObject
+    │       └── Part
     │           └── PlacementRule[] (ScriptableObjects)
     ├── IPlacementVisualizer (Feedback)
     │   ├── StandardPlacementVisualizer

@@ -2,10 +2,10 @@ using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Core.UI.FormSubmit;
+using Systems.Core.UI.FormSubmit;
 using Unity.Properties;
 
-namespace Core.UI.FormSubmit.MVVM
+namespace Systems.Core.UI.FormSubmit.MVVM
 {
     /// <summary>
     /// UI Toolkit view for the form submit panel. Loads UXML/USS and exposes UI element references.

@@ -1,6 +1,6 @@
 using UnityEngine;
-using Systems.PlacementSystem.Core;
-using Systems.PlacementSystem.Validation;
+using Systems.PlacementSystem.Tools.Commands;
+using Systems.PlacementSystem.Core.Components;
 
 namespace Systems.PlacementSystem.Tools
 {
@@ -161,11 +161,19 @@ namespace Systems.PlacementSystem.Tools
                 return;
 
             GameObject movedObject = _movingObject;
+            if (movedObject != null)
+            {
+                var toPos = movedObject.transform.position;
+                var toRot = movedObject.transform.rotation;
+                var cmd = new MoveObjectCommand(movedObject, _startPosition, _startRotation, toPos, toRot);
+                Systems.CommandSystem.CommandManager.Instance.ExecuteCommand(cmd, true, Systems.CommandSystem.CommandManager.DEFAULT_NAMESPACE);
+                OnMoveConfirmed?.Invoke(movedObject);
+            }
+
             _movingObject = null;
             _isMoveActive = false;
             UpdateMoveState();
             _context?.SelectionTool?.ClearSelection();
-            OnMoveConfirmed?.Invoke(movedObject);
         }
 
         /// <summary>
@@ -220,9 +228,9 @@ namespace Systems.PlacementSystem.Tools
                 return;
             }
 
-            var placeable = _movingObject.GetComponent<PlaceableObject>();
-            var socketType = placeable != null ? placeable.RequiredSocketType : null;
-            float snapRange = placeable != null ? placeable.SnapRange : 0f;
+            var part = _movingObject.GetComponent<PlacementPart>();
+            var socketType = part != null ? part.RequiredSocketType : null;
+            float snapRange = part != null ? part.SnapRange : 0f;
 
             // Always set request with current mouse position - SnapTool handles sticky snap logic
             snapState.SetRequest(_movingObject, hit.point, _movingObject.transform.rotation, socketType, snapRange);

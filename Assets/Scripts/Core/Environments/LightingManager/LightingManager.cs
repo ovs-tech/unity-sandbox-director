@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Core.Environment.LightingManager
+namespace Systems.Core.Environment.LightingManager
 {
     [ExecuteAlways]
     public class LightingManager : MonoBehaviour

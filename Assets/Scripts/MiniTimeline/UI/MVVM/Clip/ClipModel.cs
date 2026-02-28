@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Core.Behaviors.Command;
+using Systems.CommandSystem;
 using Systems.MiniTimeline.Core;
 using Systems.MiniTimeline.UI.Commands;
 
@@ -185,10 +185,10 @@ namespace Systems.MiniTimeline.UI.MVVM.Clip {
             }
         }
 
-        void ExecuteCommand(ITimelineCommand command, bool allowMerge = false) {
+        void ExecuteCommand(ICommand command, bool allowMerge = false) {
             if (command == null) return;
 
-            var commandManager = TimelineCommandManager.Instance;
+            var commandManager = CommandManager.Instance;
             if (commandManager != null) {
                 commandManager.ExecuteCommand(command, allowMerge);
             } else {

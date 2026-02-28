@@ -764,10 +764,23 @@ namespace Systems.SceneSandbox.Editor
             
             // Save/Load Path Settings (Read-Only)
             EditorGUILayout.LabelField("Save/Load Path Settings (Read-Only)", EditorStyles.miniBoldLabel);
+            // Prefer SceneSerializer's RootPath (already initialized from persistence system),
+            // then fallback to the persistence manager's root, then finally Application.persistentDataPath.
+            string rootPath = null;
+            try
+            {
+                // Use the serializer's root path when available (preferred).
+                rootPath = _target.SceneSerializer?.RootPath;
+            }
+            catch { }
+
+            if (string.IsNullOrEmpty(rootPath))
+                rootPath = Application.persistentDataPath;
+
             EditorGUILayout.HelpBox(
-                "Save paths are automatically managed using Application.persistentDataPath for cross-platform compatibility.\n" +
+                "Save paths are managed by the project's persistence system (GamePersistenceManager) when available.\n" +
                 "Root folder is locked to ensure data consistency across all platforms.\n\n" +
-                $"Root: {Application.persistentDataPath}", 
+                $"Root: {rootPath}", 
                 MessageType.Info);
             
             // Display current paths as read-only
@@ -784,7 +797,7 @@ namespace Systems.SceneSandbox.Editor
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Open Scenes Folder"))
             {
-                string scenesPath = System.IO.Path.Combine(Application.persistentDataPath, "SceneSandboxBuilder", "SavedScenes");
+                string scenesPath = System.IO.Path.Combine(rootPath, "SceneSandboxBuilder", "SavedScenes");
                 if (System.IO.Directory.Exists(scenesPath))
                 {
                     Application.OpenURL("file://" + scenesPath);
@@ -799,7 +812,7 @@ namespace Systems.SceneSandbox.Editor
             
             if (GUILayout.Button("Open Projects Folder"))
             {
-                string projectsPath = System.IO.Path.Combine(Application.persistentDataPath, "SceneSandboxBuilder", "SavedProjects");
+                string projectsPath = System.IO.Path.Combine(rootPath, "SceneSandboxBuilder", "SavedProjects");
                 if (System.IO.Directory.Exists(projectsPath))
                 {
                     Application.OpenURL("file://" + projectsPath);
@@ -815,7 +828,7 @@ namespace Systems.SceneSandbox.Editor
             
             if (GUILayout.Button("Open Root Data Folder"))
             {
-                Application.OpenURL("file://" + Application.persistentDataPath);
+                Application.OpenURL("file://" + rootPath);
             }
             
             // ===== SCENE MANAGEMENT SECTION =====
@@ -1169,10 +1182,19 @@ namespace Systems.SceneSandbox.Editor
             
             // Save/Load Path Settings (Read-Only)
             EditorGUILayout.LabelField("Save/Load Path Settings (Read-Only)", EditorStyles.boldLabel);
+            string rootPath = null;
+            try
+            {
+                rootPath = _target.SceneSerializer?.RootPath;
+            }
+            catch { }
+
+            if (string.IsNullOrEmpty(rootPath))
+                rootPath = Application.persistentDataPath;
+
             EditorGUILayout.HelpBox(
-                "Save paths are automatically managed using Application.persistentDataPath for cross-platform compatibility.\n" +
-                "Root folder is locked to ensure data consistency across all platforms.\n\n" +
-                $"Root: {Application.persistentDataPath}", 
+                "Save paths are provided by the SceneSerializer when available; otherwise the persistent data path is used.\n\n" +
+                $"Root: {rootPath}", 
                 MessageType.Info);
             
             // Display current paths as read-only
@@ -1189,7 +1211,7 @@ namespace Systems.SceneSandbox.Editor
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Open Scenes Folder"))
             {
-                string scenesPath = System.IO.Path.Combine(Application.persistentDataPath, "SceneSandboxBuilder", "SavedScenes");
+                string scenesPath = System.IO.Path.Combine(rootPath, "SceneSandboxBuilder", "SavedScenes");
                 if (System.IO.Directory.Exists(scenesPath))
                 {
                     Application.OpenURL("file://" + scenesPath);
@@ -1204,7 +1226,7 @@ namespace Systems.SceneSandbox.Editor
             
             if (GUILayout.Button("Open Projects Folder"))
             {
-                string projectsPath = System.IO.Path.Combine(Application.persistentDataPath, "SceneSandboxBuilder", "SavedProjects");
+                string projectsPath = System.IO.Path.Combine(rootPath, "SceneSandboxBuilder", "SavedProjects");
                 if (System.IO.Directory.Exists(projectsPath))
                 {
                     Application.OpenURL("file://" + projectsPath);
@@ -1220,7 +1242,7 @@ namespace Systems.SceneSandbox.Editor
             
             if (GUILayout.Button("Open Root Data Folder"))
             {
-                Application.OpenURL("file://" + Application.persistentDataPath);
+                Application.OpenURL("file://" + rootPath);
             }
             
             EditorGUILayout.EndVertical();

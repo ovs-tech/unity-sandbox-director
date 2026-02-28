@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using Core.UI.FormSubmit.Fields;
+using Systems.Core.UI.FormSubmit.Fields;
 
-namespace Core.UI.FormSubmit.MVVM
+namespace Systems.Core.UI.FormSubmit.MVVM
 {
     /// <summary>
     /// Data model for form submit MVVM flow. Holds field configs and captured values without Unity dependencies.

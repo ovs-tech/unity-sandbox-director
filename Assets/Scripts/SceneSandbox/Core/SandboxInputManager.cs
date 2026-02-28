@@ -128,8 +128,12 @@ namespace Systems.SceneSandbox.Core
             
             if (_debugLogs) Debug.Log($"[SandboxInputManager] Initialized with hotkeys: {enableHotkeys}");
             
-            // Enable actions immediately after initialization
-            EnableActions();
+            // Enable actions immediately after initialization only when playing.
+            // In EditMode tests we should avoid enabling Input System actions to prevent runtime asserts.
+            if (Application.isPlaying)
+            {
+                EnableActions();
+            }
         }
 
         /// <summary>

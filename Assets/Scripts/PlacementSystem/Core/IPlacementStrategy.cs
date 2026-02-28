@@ -22,5 +22,7 @@ namespace Systems.PlacementSystem.Core
         /// <param name="currentRotation">The current rotation of the ghost object</param>
         /// <returns>The calculated rotation (can be modified by user input or surface normal)</returns>
         Quaternion CalculateRotation(Quaternion currentRotation);
+
+        void OnDrawGizmos();
     }
 }

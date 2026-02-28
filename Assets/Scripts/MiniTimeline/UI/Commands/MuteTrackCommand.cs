@@ -1,4 +1,4 @@
-using Core.Behaviors.Command;
+using Systems.CommandSystem;
 using Systems.MiniTimeline.Core;
 using UnityEngine;
 
@@ -10,7 +10,7 @@ namespace Systems.MiniTimeline.UI.Commands
     /// Command for muting/unmuting a track
     /// Supports undo/redo operations for track enabled state
     /// </summary>
-    public class MuteTrackCommand : TimelineCommandBase
+    public class MuteTrackCommand : CommandBase
     {
         private readonly IMiniTrack track;
         private readonly bool oldEnabledState;
@@ -34,7 +34,7 @@ namespace Systems.MiniTimeline.UI.Commands
             SetTrackEnabled(oldEnabledState);
         }
 
-        public override bool CanMergeWith(ITimelineCommand other)
+        public override bool CanMergeWith(ICommand other)
         {
             // Mute commands can be merged if they're for the same track
             if (other is MuteTrackCommand muteCommand)
@@ -44,7 +44,7 @@ namespace Systems.MiniTimeline.UI.Commands
             return false;
         }
 
-        public override void MergeWith(ITimelineCommand other)
+        public override void MergeWith(ICommand other)
         {
             if (other is MuteTrackCommand muteCommand && muteCommand.track == track)
             {

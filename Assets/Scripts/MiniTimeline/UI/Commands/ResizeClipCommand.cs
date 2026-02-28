@@ -1,4 +1,4 @@
-using Core.Behaviors.Command;
+using Systems.CommandSystem;
 using Systems.MiniTimeline.Core;
 
 namespace Systems.MiniTimeline.UI.Commands
@@ -6,7 +6,7 @@ namespace Systems.MiniTimeline.UI.Commands
     /// <summary>
     /// Command for resizing a clip (changing duration and/or start time)
     /// </summary>
-    public class ResizeClipCommand : TimelineCommandBase
+    public class ResizeClipCommand : CommandBase
     {
         private readonly IMiniClip clip;
         private readonly float oldStartTime;
@@ -35,7 +35,7 @@ namespace Systems.MiniTimeline.UI.Commands
             SetClipTiming(oldStartTime, oldDuration);
         }
 
-        public override bool CanMergeWith(ITimelineCommand other)
+        public override bool CanMergeWith(ICommand other)
         {
             if (other is ResizeClipCommand resizeCommand)
             {
@@ -44,7 +44,7 @@ namespace Systems.MiniTimeline.UI.Commands
             return false;
         }
 
-        public override void MergeWith(ITimelineCommand other)
+        public override void MergeWith(ICommand other)
         {
             if (other is ResizeClipCommand resizeCommand && resizeCommand.clip == clip)
             {

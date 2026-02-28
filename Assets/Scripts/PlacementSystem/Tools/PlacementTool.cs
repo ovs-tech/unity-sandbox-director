@@ -1,8 +1,7 @@
 using UnityEngine;
-using Systems.PlacementSystem.Core;
-using Systems.PlacementSystem.Selection;
 using Systems.PlacementSystem.Sockets;
-using Systems.PlacementSystem.Validation;
+using Systems.PlacementSystem.Tools.Commands;
+using Systems.PlacementSystem.Core.Components;
 
 namespace Systems.PlacementSystem.Tools
 {
@@ -30,6 +29,14 @@ namespace Systems.PlacementSystem.Tools
         /// The passed object is fully initialized and ready for use.
         /// </summary>
         public System.Action<GameObject> OnPlacementConfirmed { get; set; }
+
+        /// <summary>
+        /// Fired when placement is confirmed and object is instantiated.
+        /// Passes the placed object as a parameter.
+        /// Fired after: object instantiation, Selectable component addition (if enabled), socket occupation marking, and ghost cleanup.
+        /// The passed object is fully initialized and ready for use.
+        /// </summary>
+        public System.Action<string> OnPlacementFailed { get; set; }
 
         /// <summary>
         /// Fired when placement is cancelled.
@@ -154,52 +161,40 @@ namespace Systems.PlacementSystem.Tools
                 return;
 
             // Validate final placement
-            bool isValid = _context.PlacementValidator.IsPlacementValid(
+            var result = _context.PlacementValidator.IsPlacementValid(
                 _ghostObject.transform.position,
                 _ghostObject.transform.rotation,
                 _ghostObject
             );
 
-            if (!isValid)
+            if (!result.IsValid)
             {
+                OnPlacementFailed?.Invoke(result.ErrorMessage);
                 return;
             }
 
-            // Instantiate real object at ghost position
-            GameObject placedObject = Object.Instantiate(
+            // Use command system to perform placement so it's undoable
+            var pos = _ghostObject.transform.position;
+            var rot = _ghostObject.transform.rotation;
+
+            var placeCommand = new PlaceObjectCommand(
                 _objectToPrefab,
-                _ghostObject.transform.position,
-                _ghostObject.transform.rotation
+                pos,
+                rot,
+                _makeObjectsSelectable,
+                _context.SnapManager,
+                _nearestSocket
             );
-            placedObject.name = _objectToPrefab.name;
 
-            // Add Selectable component if enabled
-            if (_makeObjectsSelectable && placedObject.GetComponent<Selectable>() == null)
-            {
-                placedObject.AddComponent<Selectable>();
-            }
+            Systems.CommandSystem.CommandManager.Instance.ExecuteCommand(placeCommand, false, Systems.CommandSystem.CommandManager.DEFAULT_NAMESPACE);
 
-            // Register any sockets on the placed object with SnapManager
-            if (_context.SnapManager != null)
-            {
-                var sockets = placedObject.GetComponentsInChildren<Socket>();
-                foreach (var socket in sockets)
-                {
-                    _context.SnapManager.RegisterSocket(socket);
-                }
-            }
-
-            // Mark socket as occupied if we snapped to one
-            if (_nearestSocket != null)
-            {
-                _nearestSocket.IsOccupied = true;
-            }
+            // Retrieve created instance from the command and pass to callback
+            var created = placeCommand.Instance;
 
             // Clean up ghost
             CleanupGhost();
 
-            // Fire callback with placed object
-            OnPlacementConfirmed?.Invoke(placedObject);
+            OnPlacementConfirmed?.Invoke(created);
         }
 
         /// <summary>
@@ -227,7 +222,10 @@ namespace Systems.PlacementSystem.Tools
 
             if (_ghostObject != null)
             {
-                Object.Destroy(_ghostObject);
+                if (Application.isPlaying)
+                    Object.Destroy(_ghostObject);
+                else
+                    Object.DestroyImmediate(_ghostObject);
                 _ghostObject = null;
             }
 
@@ -265,15 +263,15 @@ namespace Systems.PlacementSystem.Tools
             _ghostObject.transform.position = targetPosition;
             _ghostObject.transform.rotation = targetRotation;
 
-            bool isValid = _context.PlacementValidator.IsPlacementValid(
+            var result = _context.PlacementValidator.IsPlacementValid(
                 targetPosition,
                 targetRotation,
                 _ghostObject
             );
 
-            _context.PlacementVisualizer?.UpdateVisual(isValid);
+            _context.PlacementVisualizer?.UpdateVisual(result.IsValid);
 
-            if (isValid)
+            if (result.IsValid)
             {
                 _lastValidPosition = targetPosition;
                 _lastValidRotation = targetRotation;
@@ -303,9 +301,9 @@ namespace Systems.PlacementSystem.Tools
             }
 
             Quaternion baseRotation = Quaternion.Euler(0, _currentRotationAngle, 0);
-            var placeableObject = _ghostObject.GetComponent<PlaceableObject>();
-            var socketType = placeableObject != null ? placeableObject.RequiredSocketType : null;
-            float snapRange = placeableObject != null ? placeableObject.SnapRange : 0f;
+            var part = _ghostObject.GetComponent<PlacementPart>();
+            var socketType = part != null ? part.RequiredSocketType : null;
+            float snapRange = part != null ? part.SnapRange : 0f;
 
             snapState.SetRequest(_ghostObject, hit.point, baseRotation, socketType, snapRange);
         }

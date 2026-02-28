@@ -29,7 +29,7 @@ Tests for the validation rule system:
 - ✅ ClearanceRule validation with no obstacles
 - ✅ RequireSurfaceRule validation without surface
 - ✅ RequireSurfaceRule validation with valid surface
-- ✅ PlaceableObject with no rules
+- ✅ Part with no rules
 - ✅ Adding and removing rules dynamically
 - ✅ Null rule handling
 
@@ -37,7 +37,7 @@ Tests for the validation rule system:
 - `PlacementRule` (abstract base)
 - `ClearanceRule`
 - `RequireSurfaceRule`
-- `PlaceableObject`
+- `Part`
 
 ### 2. SocketSystemTests (12 tests)
 Tests for the socket snapping system:

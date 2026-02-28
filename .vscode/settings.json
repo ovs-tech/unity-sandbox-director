@@ -62,6 +62,8 @@
         "openspec-archive": true,
         "openspec-proposal": true
     },
-    "chat.tools.terminal.autoApprove": {
-    }
+    "chat.tools.terminal.autoApprove": {},
+    "dotrush.roslyn.projectOrSolutionFiles": [
+        "/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director/unity-sandbox-director.slnx"
+    ]
 }

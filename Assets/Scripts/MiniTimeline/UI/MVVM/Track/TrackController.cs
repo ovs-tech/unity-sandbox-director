@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 using Systems.MiniTimeline.Core;
 using Systems.MiniTimeline.UI.MVVM.Clip;
 using Systems.MiniTimeline.UI.FormDefinitions;
-using Core.UI.FormSubmit;
-using Core.UI.FormSubmit.Fields;
+using Systems.Core.UI.FormSubmit;
+using Systems.Core.UI.FormSubmit.Fields;
 using System.ComponentModel;
 using Unity.Properties;
 

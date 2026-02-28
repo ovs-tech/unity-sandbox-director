@@ -1,7 +1,7 @@
 using UnityEngine;
 using Systems.PlacementSystem.Core;
 
-#if ENABLE_INPUT_SYSTEM
+#if ENABLE_INPUT_SYSTEM && false
 using UnityEngine.InputSystem;
 #endif
 
@@ -14,7 +14,7 @@ namespace Systems.PlacementSystem.Input
     /// </summary>
     public class NewInputSystemProvider : MonoBehaviour, IInputProvider
     {
-#if ENABLE_INPUT_SYSTEM
+#if ENABLE_INPUT_SYSTEM && false
         [Header("Input Action References")]
         [SerializeField, Tooltip("Input action for pointer position")]
         private InputActionReference _pointerPositionAction;
@@ -58,8 +58,8 @@ namespace Systems.PlacementSystem.Input
                 return _pointerPositionAction.action.ReadValue<Vector2>();
             }
 
-            // Fallback to mouse position
-            return Mouse.current?.position.ReadValue() ?? Vector2.zero;
+            // Fallback to classic Input mouse position (avoids referencing InputSystem.Mouse when unavailable)
+            return (Vector2)UnityEngine.Input.mousePosition;
         }
 
         public bool IsPlaceActionTriggered()

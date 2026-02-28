@@ -1,5 +1,5 @@
 using System;
-using Core.Behaviors.Command;
+using Systems.CommandSystem;
 using Systems.MiniTimeline.Core;
 using UnityEngine;
 
@@ -9,7 +9,7 @@ namespace Systems.MiniTimeline.UI.Commands
     /// Command for deleting a clip from a track.
     /// Supports undo/redo operations for clip deletion.
     /// </summary>
-    public class DeleteClipCommand : TimelineCommandBase
+    public class DeleteClipCommand : CommandBase
     {
         private readonly IMiniTrack track;
         private readonly IMiniClip clip;

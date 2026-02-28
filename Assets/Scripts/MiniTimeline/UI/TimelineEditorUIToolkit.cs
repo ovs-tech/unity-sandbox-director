@@ -5,13 +5,12 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.Localization;
 using Systems.MiniTimeline.Core;
-using Systems.MiniTimeline.Serialization;
 using Systems.MiniTimeline.UI.Commands;
-using Core.UI.FormSubmit;
-using Core.UI.Core.Helpers;
-using Core.Behaviors.Command;
+using Systems.Core.UI.FormSubmit;
+using Systems.Core.UI.Core.Helpers;
+using Systems.CommandSystem;
 using Systems.MiniTimeline.UI.FormDefinitions;
-using Core.UI.FormSubmit.Fields;
+using Systems.Core.UI.FormSubmit.Fields;
 using BindingContextCore = Systems.MiniTimeline.Core.BindableObjectManager;
 
 namespace Systems.MiniTimeline.UI
@@ -26,7 +25,7 @@ namespace Systems.MiniTimeline.UI
         [SerializeField] private string rootElementName = "timeline-editor";
 
         [Header("Editor Settings")]
-        [SerializeField] private float pixelsPerSecond = 100f;
+        [SerializeField] private float pixelsPerSecond = 50f;
         [SerializeField] private float minZoom = 0.1f;
         [SerializeField] private float maxZoom = 5f;
         [SerializeField] private float snapThreshold = 0.1f;
@@ -51,7 +50,7 @@ namespace Systems.MiniTimeline.UI
 
         // Core references
         [SerializeField] private MiniTimelineDirector director;
-        private TimelineCommandManager commandManager;
+        private CommandManager commandManager;
 
         // UI Toolkit Elements
         private VisualElement rootElement;
@@ -126,7 +125,7 @@ namespace Systems.MiniTimeline.UI
             UICreationHelper.Initialize(this);
 
             // Initialize command manager
-            commandManager = new TimelineCommandManager();
+            commandManager = new CommandManager();
 
             // Subscribe to command manager events
             SetupCommandManagerEvents();
@@ -176,19 +175,19 @@ namespace Systems.MiniTimeline.UI
             commandManager.OnStacksChanged += OnCommandStacksChanged;
         }
 
-        private void OnCommandExecuted(ITimelineCommand command)
+        private void OnCommandExecuted(ICommand command)
         {
             // Refresh UI after command execution
             RefreshTimelineUI();
         }
 
-        private void OnCommandUndoPerformed(ITimelineCommand command)
+        private void OnCommandUndoPerformed(ICommand command)
         {
             // Refresh UI after undo
             RefreshTimelineUI();
         }
 
-        private void OnCommandRedoPerformed(ITimelineCommand command)
+        private void OnCommandRedoPerformed(ICommand command)
         {
             // Refresh UI after redo
             RefreshTimelineUI();
@@ -720,11 +719,12 @@ namespace Systems.MiniTimeline.UI
                 // Fallback to explicitly set style width (useful in tests)
                 try
                 {
-                    var styleWidth = timelineScrollView.style.width;
-                    if (styleWidth.value.unit == LengthUnit.Pixel && styleWidth.value.value > 0f)
-                    {
-                        width = styleWidth.value.value;
-                    }
+                        var styleWidth = timelineScrollView.style.width;
+                        // Accept explicit style width values regardless of the LengthUnit
+                        if (styleWidth.value.value > 0f)
+                        {
+                            width = styleWidth.value.value;
+                        }
                 }
                 catch
                 {
@@ -791,7 +791,7 @@ namespace Systems.MiniTimeline.UI
         /// <summary>
         /// Execute a command through the command manager
         /// </summary>
-        public void ExecuteCommand(ITimelineCommand command, bool allowMerge = false)
+        public void ExecuteCommand(ICommand command, bool allowMerge = false)
         {
             commandManager?.ExecuteCommand(command, allowMerge);
         }
@@ -824,7 +824,7 @@ namespace Systems.MiniTimeline.UI
         /// <summary>
         /// Get command manager for direct access if needed
         /// </summary>
-        public TimelineCommandManager CommandManager => commandManager;
+        public CommandManager CommandManager => commandManager;
 
         #endregion
 
@@ -1383,16 +1383,34 @@ namespace Systems.MiniTimeline.UI
                 // For now, save to persistent data path (in a real game you'd want file browser)
                 string filePath = System.IO.Path.Combine(Application.persistentDataPath, filename);
 
-                // Save the project (automatically updates from runtime tracks)
-                bool success = ProjectSerializer.SaveToFile(director.Project, filePath);
-
-                if (success)
+                // Save the project via the director/persistence system, then export to the requested path
+                if (director.SaveProject())
                 {
-                    // Debug.Log($"Project saved successfully to: {filePath}");
+                    var savedPath = director.GetProjectFilePath(director.Project.name);
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(savedPath) && System.IO.File.Exists(savedPath))
+                        {
+                            // If requested path differs, copy exported file
+                            if (!string.Equals(savedPath, filePath, StringComparison.OrdinalIgnoreCase))
+                            {
+                                System.IO.File.Copy(savedPath, filePath, true);
+                            }
+                            // success
+                        }
+                        else
+                        {
+                            Debug.LogError("Failed to save project: saved file not found.");
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError($"Failed to export saved project: {e.Message}");
+                    }
                 }
                 else
                 {
-                    Debug.LogError("Failed to save project. Check console for details.");
+                    Debug.LogError("Failed to save project via persistence manager. Check console for details.");
                 }
             }
             catch (System.Exception ex)
@@ -1524,27 +1542,29 @@ namespace Systems.MiniTimeline.UI
                     filename += ".json";
                 }
 
-                // For now, load from persistent data path
-                string filePath = System.IO.Path.Combine(Application.persistentDataPath, filename);
-
-                // Load the project
-                var loadedProject = ProjectSerializer.LoadFromFile(filePath);
-
-                if (loadedProject != null)
+                // Use the director/persistence system to load the selected project from its projects folder
+                var projectsFolder = director.GetProjectsFolder();
+                if (string.IsNullOrEmpty(projectsFolder))
                 {
-                    director.SetProject(loadedProject);
+                    Debug.LogError("Persistent projects folder is not available.");
+                    return;
+                }
 
-                    // Auto-update bindings if requested
+                var filePath = System.IO.Path.Combine(projectsFolder, filename);
+                var projectName = System.IO.Path.GetFileNameWithoutExtension(filename);
+
+                if (director.LoadProject(projectName))
+                {
                     if (replaceBindings)
                     {
                         AutoDetectSceneBindings();
                     }
 
-                    Debug.Log($"Project '{loadedProject.name}' loaded successfully from: {filePath}");
+                    Debug.Log($"Project '{projectName}' loaded successfully from: {filePath}");
                 }
                 else
                 {
-                    Debug.LogError("Failed to load project. Check console for details.");
+                    Debug.LogError("Failed to load project via persistence manager. Check console for details.");
                 }
             }
             catch (System.Exception ex)
@@ -1561,9 +1581,6 @@ namespace Systems.MiniTimeline.UI
             Debug.Log("Load project cancelled");
         }
 
-        /// <summary>
-        /// Get project information for display in save form
-        /// </summary>
         private string GetProjectInfoForDisplay()
         {
             if (director?.Project == null)
@@ -1598,17 +1615,15 @@ namespace Systems.MiniTimeline.UI
         {
             try
             {
-                string persistentPath = Application.persistentDataPath;
-                if (System.IO.Directory.Exists(persistentPath))
+                var projects = director?.GetAvailableProjects() ?? new string[0];
+                if (projects != null && projects.Length > 0)
                 {
-                    return System.IO.Directory.GetFiles(persistentPath, "*.json")
-                        .Select(System.IO.Path.GetFileName)
-                        .ToArray();
+                    return projects.Select(p => p.EndsWith(".json") ? p : p + ".json").ToArray();
                 }
             }
             catch (System.Exception ex)
             {
-                Debug.LogWarning($"Failed to get available project files: {ex.Message}");
+                Debug.LogError($"Error getting available projects: {ex.Message}");
             }
 
             return new string[0];
@@ -1619,12 +1634,14 @@ namespace Systems.MiniTimeline.UI
         /// </summary>
         private string GetAvailableFilesDisplay(string[] files)
         {
+            var projectsFolder = director?.GetProjectsFolder() ?? Application.persistentDataPath;
+
             if (files.Length == 0)
             {
-                return $"No project files found in:\n{Application.persistentDataPath}\n\nTip: Save a project first, or manually place .json files in this directory.";
+                return $"No project files found in:\n{projectsFolder}\n\nTip: Save a project first, or import a .json file using the load dialog.";
             }
 
-            var display = $"Found {files.Length} project file(s) in:\n{Application.persistentDataPath}\n\n";
+            var display = $"Found {files.Length} project file(s) in:\n{projectsFolder}\n\n";
             display += "Use the dropdown above to select a file, or enter a filename manually.";
 
             return display;
@@ -2721,6 +2738,9 @@ namespace Systems.MiniTimeline.UI
 
             // Apply a small margin (e.g. 5%)
             targetZoom *= 0.95f;
+
+            // Clamp zoom to Min and Max Zoom definitions
+            targetZoom = Mathf.Clamp(targetZoom, minZoom, maxZoom);
 
             Debug.Log($"Zoom to fit: Width={availableWidth}, Length={director.Length}, TargetZoom={targetZoom}");
 

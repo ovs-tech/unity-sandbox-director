@@ -1,0 +1,17 @@
+{
+    "name": "Systems.CommandSystem",
+    "rootNamespace": "Systems.CommandSystem",
+    "references": [
+        "Core",
+        "Systems.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

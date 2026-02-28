@@ -313,6 +313,10 @@ namespace Systems.SceneSandbox.Core
         public void SetObjectLibrary(SceneObjectLibrary library)
         {
             _objectLibrary = library;
+            if (_placementSystem != null)
+            {
+                _placementSystem.SetObjectLibrary(library);
+            }
         }
         
         /// <summary>
@@ -362,11 +366,34 @@ namespace Systems.SceneSandbox.Core
         /// </summary>
         private void InitializeDefaultPaths()
         {
-            // FORCE root to be Application.persistentDataPath for cross-platform compatibility
-            // This ensures data is saved to a consistent, writable location on all platforms
-            string rootPath = Application.persistentDataPath;
+            // Prefer the project's persistence system root path when available.
+            // Fall back to Application.persistentDataPath only if the persistence manager is not available.
+            string rootPath = null;
+            try
+            {
+                // Prefer a configured SceneSerializer root if available on this builder
+                if (_sceneSerializer != null && !string.IsNullOrEmpty(_sceneSerializer.RootPath))
+                {
+                    rootPath = _sceneSerializer.RootPath;
+                }
+                else
+                {
+                    var pm = Systems.Persistence.GamePersistenceManager.Instance;
+                    if (pm != null)
+                    {
+                        // Try namespace-aware root first, then generic root
+                        rootPath = pm.GetDataServiceRootPath("SceneSandboxBuilder") ?? pm.GetDataServiceRootPath();
+                    }
+                }
+            }
+            catch { }
 
-            // Always reset paths to use persistentDataPath root
+            if (string.IsNullOrEmpty(rootPath))
+            {
+                rootPath = Application.persistentDataPath;
+            }
+
+            // Reset paths to use persistence-system root
             _defaultSavePath = System.IO.Path.Combine(rootPath, "SceneSandboxBuilder", "SavedScenes");
             _defaultProjectSavePath = System.IO.Path.Combine(rootPath, "SceneSandboxBuilder", "SavedProjects");
 
@@ -580,7 +607,14 @@ namespace Systems.SceneSandbox.Core
                     // Unregister with SceneSerializer
                     _sceneSerializer.UnregisterPlacedObject(objectId);
                 }
-                Destroy(obj);
+#if UNITY_EDITOR
+                if (!UnityEngine.Application.isPlaying)
+                    UnityEngine.Object.DestroyImmediate(obj);
+                else
+                    UnityEngine.Object.Destroy(obj);
+#else
+                UnityEngine.Object.Destroy(obj);
+#endif
 
             });
 
@@ -890,7 +924,14 @@ namespace Systems.SceneSandbox.Core
                     SelectObject(null);
                 }
 
-                Destroy(obj);
+#if UNITY_EDITOR
+                if (!UnityEngine.Application.isPlaying)
+                    UnityEngine.Object.DestroyImmediate(obj);
+                else
+                    UnityEngine.Object.Destroy(obj);
+#else
+                UnityEngine.Object.Destroy(obj);
+#endif
                 _onObjectRemoved?.Invoke(obj);
 
                 return true;
@@ -1051,7 +1092,28 @@ namespace Systems.SceneSandbox.Core
                 return null;
 
             // Update project from runtime state before getting info
-            SandboxProjectSerializer.UpdateProjectFromRuntimeState(currentProject, this);
+            // Inline runtime update (migrated from SandboxProjectSerializer)
+            currentProject.lastModified = System.DateTime.Now;
+            if (_sceneSerializer?.CurrentScene != null)
+            {
+                var activeScene = currentProject.GetActiveScene();
+                if (activeScene != null)
+                {
+                    var index = currentProject.scenes.IndexOf(activeScene);
+                    if (index >= 0)
+                    {
+                        currentProject.scenes[index] = _sceneSerializer.CurrentScene;
+                    }
+                }
+                else
+                {
+                    currentProject.scenes.Add(_sceneSerializer.CurrentScene);
+                    currentProject.activeSceneId = _sceneSerializer.CurrentScene.sceneId;
+                }
+            }
+
+            // Ensure settings reflect builder state
+            UpdateProjectSettingsFromBuilder();
 
             return new SandboxProjectMetadata
             {

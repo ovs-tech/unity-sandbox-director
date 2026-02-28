@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Core.Behaviors.Command;
+using Systems.CommandSystem;
 using Systems.MiniTimeline.Core;
 using UnityEngine;
 
@@ -10,7 +10,7 @@ namespace Systems.MiniTimeline.UI.Commands
     /// Command for editing clip properties (name, start, duration, and clip-specific properties)
     /// Supports undo/redo functionality for all property changes
     /// </summary>
-    public class EditClipCommand : TimelineCommandBase
+    public class EditClipCommand : CommandBase
     {
         private readonly IMiniClip clip;
         
@@ -39,13 +39,13 @@ namespace Systems.MiniTimeline.UI.Commands
             ApplyValues(originalValues);
         }
 
-        public override bool CanMergeWith(ITimelineCommand other)
+        public override bool CanMergeWith(ICommand other)
         {
             // Don't merge property edit commands - each should be a discrete action
             return false;
         }
 
-        public override void MergeWith(ITimelineCommand other)
+        public override void MergeWith(ICommand other)
         {
             // Not implemented since CanMergeWith returns false
         }

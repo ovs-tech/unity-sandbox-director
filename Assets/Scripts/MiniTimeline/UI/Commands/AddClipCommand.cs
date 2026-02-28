@@ -1,4 +1,4 @@
-using Core.Behaviors.Command;
+using Systems.CommandSystem;
 using Systems.MiniTimeline.Core;
 using UnityEngine;
 
@@ -7,7 +7,7 @@ namespace Systems.MiniTimeline.UI.Commands
     /// <summary>
     /// Command to add a clip to a track with undo/redo support
     /// </summary>
-    public class AddClipCommand : TimelineCommandBase
+    public class AddClipCommand : CommandBase
     {
         private readonly MiniTimelineDirector director;
         private readonly string trackId;

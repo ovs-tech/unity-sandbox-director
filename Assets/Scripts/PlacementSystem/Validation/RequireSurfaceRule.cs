@@ -25,7 +25,7 @@ namespace Systems.PlacementSystem.Validation
         [SerializeField, Tooltip("Maximum angle (in degrees) from vertical for a 'flat' surface")]
         private float _maxSurfaceAngle = 30f;
 
-        public override bool CheckRule(Vector3 position, Quaternion rotation, GameObject ghostObject)
+        public override ValidationResult CheckRule(Vector3 position, Quaternion rotation, GameObject ghostObject)
         {
             // Start raycast slightly above the position
             Vector3 rayStart = position + Vector3.up * _raycastStartOffset;
@@ -40,15 +40,15 @@ namespace Systems.PlacementSystem.Validation
                     float angle = Vector3.Angle(hit.normal, Vector3.up);
                     if (angle > _maxSurfaceAngle)
                     {
-                        return false;
+                        return ValidationResult.Failure("Surface is too steep.");
                     }
                 }
 
-                return true;
+                return ValidationResult.Success;
             }
 
             // No valid surface found
-            return false;
+            return ValidationResult.Failure("Valid placement surface not found.");
         }
 
         public override string GetDebugInfo()

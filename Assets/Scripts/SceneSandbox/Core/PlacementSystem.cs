@@ -79,6 +79,11 @@ namespace Systems.SceneSandbox.Core
             _requireSurfaceBelow = requireSurfaceBelow;
         }
 
+        public void SetObjectLibrary(Data.SceneObjectLibrary library)
+        {
+            _objectLibrary = library;
+        }
+
         public void StartPlacement(string objectDataId, Vector2 screenPosition)
         {
             _currentObjectId = objectDataId;
@@ -235,7 +240,14 @@ namespace Systems.SceneSandbox.Core
                         }
                     }
                     
-                    Destroy(obj);
+#if UNITY_EDITOR
+                    if (!UnityEngine.Application.isPlaying)
+                        UnityEngine.Object.DestroyImmediate(obj);
+                    else
+                        UnityEngine.Object.Destroy(obj);
+#else
+                    UnityEngine.Object.Destroy(obj);
+#endif
                 }
                 else
                 {
@@ -662,7 +674,14 @@ namespace Systems.SceneSandbox.Core
                 {
                     if (obj != null)
                     {
-                        Destroy(obj);
+#if UNITY_EDITOR
+                        if (!UnityEngine.Application.isPlaying)
+                            UnityEngine.Object.DestroyImmediate(obj);
+                        else
+                            UnityEngine.Object.Destroy(obj);
+#else
+                        UnityEngine.Object.Destroy(obj);
+#endif
                     }
                 }
             }

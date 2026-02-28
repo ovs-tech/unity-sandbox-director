@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Core.Environment.LightingManager
+namespace Systems.Core.Environment.LightingManager
 {
     [System.Serializable]
     [CreateAssetMenu(fileName = "Lighting Preset", menuName = "Scriptables/Lighting Preset", order = 1)]

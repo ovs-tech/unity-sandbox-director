@@ -18,6 +18,7 @@ namespace PlacementSystem.Tests
         public void SetUp()
         {
             _socketGameObject = new GameObject("TestSocket");
+            _socketGameObject.AddComponent<BoxCollider>();
             _snapManagerGameObject = new GameObject("SnapManager");
             _testSocketType = ScriptableObject.CreateInstance<SocketType>();
         }
@@ -185,9 +186,6 @@ namespace PlacementSystem.Tests
         [Test]
         public void SnapManager_RefreshSocketCache_DoesNotThrow()
         {
-            // Expect log message
-            LogAssert.Expect(LogType.Log, new System.Text.RegularExpressions.Regex("SnapManager: Cached \\d+ sockets"));
-
             // Arrange
             var snapManager = _snapManagerGameObject.AddComponent<SnapManager>();
 

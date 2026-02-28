@@ -7,6 +7,7 @@ using Systems.PlacementSystem.Strategies;
 using Systems.PlacementSystem.Validation;
 using Systems.PlacementSystem.Visualization;
 using Systems.PlacementSystem.Sockets;
+using Systems.PlacementSystem.Core.Components;
 
 namespace PlacementSystem.Tests
 {
@@ -48,28 +49,21 @@ namespace PlacementSystem.Tests
         [Test]
         public void Integration_CompleteSystemSetup_Works()
         {
-            // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Input provider must implement IInputProvider");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must implement IPlacementStrategy");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement validator must implement IPlacementValidator");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must implement IPlacementVisualizer");
-
             // Arrange - Create complete placement system
             var controllerObj = new GameObject("PlacementController");
             controllerObj.transform.parent = _sceneRoot.transform;
 
             var controller = controllerObj.AddComponent<PlacementController>();
             var inputProvider = controllerObj.AddComponent<LegacyInputProvider>();
-            var strategy = controllerObj.AddComponent<GridPlacementStrategy>();
-            var validator = controllerObj.AddComponent<PlacementValidation>();
-            var visualizer = controllerObj.AddComponent<StandardPlacementVisualizer>();
+            var strategy = ScriptableObject.CreateInstance<GridPlacementStrategy>();
+            var visualizer = ScriptableObject.CreateInstance<StandardPlacementVisualizer>();
 
             // Create prefab with validation
             var prefab = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            var placeableObject = prefab.AddComponent<PlaceableObject>();
+            var part = prefab.AddComponent<PlacementPart>();
 
             // Setup controller via reflection
-            SetupController(controller, _camera, inputProvider, strategy, validator, visualizer, prefab);
+            SetupController(controller, _camera, inputProvider, strategy, visualizer, prefab);
 
             // Act - Start placement
             controller.StartPlacement();
@@ -85,9 +79,6 @@ namespace PlacementSystem.Tests
         [Test]
         public void Integration_SocketSnapping_Works()
         {
-            // Expect log message
-            LogAssert.Expect(LogType.Log, new System.Text.RegularExpressions.Regex("SnapManager: Cached \\d+ sockets"));
-
             // Arrange
             var socketType = ScriptableObject.CreateInstance<SocketType>();
             
@@ -95,9 +86,9 @@ namespace PlacementSystem.Tests
             var socketObj = new GameObject("Socket");
             socketObj.transform.parent = _sceneRoot.transform;
             socketObj.transform.position = new Vector3(5, 1, 5);
-            var socket = socketObj.AddComponent<Socket>();
             var socketCollider = socketObj.AddComponent<SphereCollider>();
             socketCollider.radius = 0.5f;
+            var socket = socketObj.AddComponent<Socket>();
             socketObj.layer = LayerMask.NameToLayer("Default");
             SetSocketType(socket, socketType);
 
@@ -139,7 +130,7 @@ namespace PlacementSystem.Tests
             if (collider != null)
                 Object.DestroyImmediate(collider);
 
-            var placeableObject = prefab.AddComponent<PlaceableObject>();
+            var part = prefab.AddComponent<PlacementPart>();
 
             // Create rules with lenient settings
             var clearanceRule = ScriptableObject.CreateInstance<ClearanceRule>();
@@ -149,26 +140,26 @@ namespace PlacementSystem.Tests
             ConfigureClearanceRule(clearanceRule);
             ConfigureRequireSurfaceRule(surfaceRule);
 
-            placeableObject.AddRule(clearanceRule);
-            placeableObject.AddRule(surfaceRule);
+            part.AddRule(clearanceRule);
+            part.AddRule(surfaceRule);
 
             // Act - Validate at valid position (above ground)
-            bool resultValid = placeableObject.ValidatePlacement(
+            var resultValid = part.ValidatePlacement(
                 new Vector3(0, 1.5f, 0),
                 Quaternion.identity,
                 prefab
             );
 
             // Validate at invalid position (in the air, far from ground)
-            bool resultInvalid = placeableObject.ValidatePlacement(
+            var resultInvalid = part.ValidatePlacement(
                 new Vector3(0, 100, 0),
                 Quaternion.identity,
                 prefab
             );
 
             // Assert
-            Assert.IsTrue(resultValid, "Should be valid near ground");
-            Assert.IsFalse(resultInvalid, "Should be invalid in the air");
+            Assert.IsTrue(resultValid.IsValid, "Should be valid near ground");
+            Assert.IsFalse(resultInvalid.IsValid, "Should be invalid in the air");
 
             // Cleanup
             Object.DestroyImmediate(prefab);
@@ -180,19 +171,15 @@ namespace PlacementSystem.Tests
         [Test]
         public void Integration_StrategySwitch_Works()
         {
-            // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Input provider must implement IInputProvider");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must implement IPlacementStrategy");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement validator must implement IPlacementValidator");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must implement IPlacementVisualizer");
-
             // Arrange
             var controllerObj = new GameObject("PlacementController");
             controllerObj.transform.parent = _sceneRoot.transform;
 
             var controller = controllerObj.AddComponent<PlacementController>();
-            var freeStrategy = controllerObj.AddComponent<FreePositionStrategy>();
-            var gridStrategy = controllerObj.AddComponent<GridPlacementStrategy>();
+            var freeStrategy = ScriptableObject.CreateInstance<FreePositionStrategy>();
+            var gridStrategy = ScriptableObject.CreateInstance<GridPlacementStrategy>();
+
+            controller.InitializeForTesting();
 
             // Act - Switch strategies
             controller.SetPlacementStrategy(freeStrategy);
@@ -211,7 +198,7 @@ namespace PlacementSystem.Tests
             // Arrange
             var visualizerObj = new GameObject("Visualizer");
             visualizerObj.transform.parent = _sceneRoot.transform;
-            var visualizer = visualizerObj.AddComponent<StandardPlacementVisualizer>();
+            var visualizer = ScriptableObject.CreateInstance<StandardPlacementVisualizer>();
 
             var ghostObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
             ghostObject.transform.parent = _sceneRoot.transform;
@@ -232,25 +219,18 @@ namespace PlacementSystem.Tests
         [Test]
         public void Integration_CompleteWorkflow_StartPlaceCancel()
         {
-            // Expect dependency error logs
-            LogAssert.Expect(LogType.Error, "PlacementController: Input provider must implement IInputProvider");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement strategy must implement IPlacementStrategy");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement validator must implement IPlacementValidator");
-            LogAssert.Expect(LogType.Error, "PlacementController: Placement visualizer must implement IPlacementVisualizer");
-
             // Arrange - Complete system
             var controllerObj = new GameObject("PlacementController");
             controllerObj.transform.parent = _sceneRoot.transform;
 
             var controller = controllerObj.AddComponent<PlacementController>();
             var inputProvider = controllerObj.AddComponent<LegacyInputProvider>();
-            var strategy = controllerObj.AddComponent<FreePositionStrategy>();
-            var validator = controllerObj.AddComponent<PlacementValidation>();
-            var visualizer = controllerObj.AddComponent<StandardPlacementVisualizer>();
+            var strategy = ScriptableObject.CreateInstance<FreePositionStrategy>();
+            var visualizer = ScriptableObject.CreateInstance<StandardPlacementVisualizer>();
 
             var prefab = GameObject.CreatePrimitive(PrimitiveType.Cube);
             
-            SetupController(controller, _camera, inputProvider, strategy, validator, visualizer, prefab);
+            SetupController(controller, _camera, inputProvider, strategy, visualizer, prefab);
 
             // Act - Full workflow
             Assert.DoesNotThrow(() => controller.StartPlacement());
@@ -268,7 +248,7 @@ namespace PlacementSystem.Tests
         /// </summary>
         private void SetupController(PlacementController controller, Camera cam, 
             LegacyInputProvider input, IPlacementStrategy strat, 
-            PlacementValidation valid, StandardPlacementVisualizer vis, GameObject prefab)
+            StandardPlacementVisualizer vis, GameObject prefab)
         {
             var type = typeof(PlacementController);
             
@@ -276,18 +256,15 @@ namespace PlacementSystem.Tests
                 ?.SetValue(controller, cam);
             type.GetField("_inputProviderComponent", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
                 ?.SetValue(controller, input);
-            type.GetField("_placementStrategyComponent", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                ?.SetValue(controller, strat as MonoBehaviour);
-            type.GetField("_placementValidatorComponent", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                ?.SetValue(controller, valid);
-            type.GetField("_placementVisualizerComponent", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            type.GetField("_placementStrategy", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                ?.SetValue(controller, strat as ScriptableObject);
+            type.GetField("_placementVisualizer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
                 ?.SetValue(controller, vis);
             type.GetField("_objectToPlace", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
                 ?.SetValue(controller, prefab);
 
-            // Trigger Awake
-            type.GetMethod("Awake", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                ?.Invoke(controller, null);
+            // Initialize for testing instead of Awake
+            controller.InitializeForTesting();
         }
 
         /// <summary>
@@ -297,7 +274,10 @@ namespace PlacementSystem.Tests
         {
             var field = typeof(Socket).GetField("_socketType", 
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            field?.SetValue(socket, socketType);
+            if (field != null)
+            {
+                field.SetValue(socket, socketType);
+            }
         }
 
         private void ConfigureClearanceRule(ClearanceRule rule)

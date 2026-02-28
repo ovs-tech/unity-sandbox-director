@@ -1,13 +1,17 @@
 ﻿<Solution>
   <Project Path="Systems.SceneSandbox.csproj" />
-  <Project Path="Core.csproj" />
+  <Project Path="Systems.Core.csproj" />
   <Project Path="Systems.MiniTimeline.csproj" />
   <Project Path="Systems.PlacementSystem.csproj" />
   <Project Path="Tests.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="Systems.CommandSystem.csproj" />
+  <Project Path="Systems.Inventory.csproj" />
+  <Project Path="Systems.Persistence.csproj" />
+  <Project Path="Systems.ObjectPool.Editor.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="Systems.ObjectPool.csproj" />
   <Project Path="Systems.SceneSandbox.Editor.csproj" />
   <Project Path="Systems.MiniTimeline.Editor.csproj" />
   <Project Path="SimpleJSON.csproj" />
-  <Project Path="EditModeTests.csproj" />
 </Solution>

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Systems.MiniTimeline.Core;
-using Core.UI.FormSubmit.Fields;
+using Systems.Core.UI.FormSubmit.Fields;
 
 namespace Systems.MiniTimeline.UI.FormDefinitions
 {

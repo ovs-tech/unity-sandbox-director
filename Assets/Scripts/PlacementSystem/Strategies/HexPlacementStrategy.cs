@@ -7,7 +7,8 @@ namespace Systems.PlacementSystem.Strategies
     /// Hexagonal grid placement strategy.
     /// Snaps objects to a hex grid pattern, useful for strategy games or specific building layouts.
     /// </summary>
-    public class HexPlacementStrategy : MonoBehaviour, IPlacementStrategy
+    [CreateAssetMenu(fileName = "HexPlacementStrategy", menuName = "Placement System/Strategies/Hex Strategy")]
+    public class HexPlacementStrategy : BasePlacementStrategy
     {
         [Header("Hex Grid Settings")]
         [SerializeField, Tooltip("Size of each hexagon (distance from center to corner)")]
@@ -32,7 +33,7 @@ namespace Systems.PlacementSystem.Strategies
             PointyTop
         }
 
-        public Vector3 CalculatePosition(Vector3 rawWorldPos, GameObject ghostObject)
+        public override Vector3 CalculatePosition(Vector3 rawWorldPos, GameObject ghostObject)
         {
             Vector3 relativePos = rawWorldPos - _gridOrigin;
 
@@ -45,7 +46,7 @@ namespace Systems.PlacementSystem.Strategies
             return new Vector3(snappedPos.x, rawWorldPos.y, snappedPos.y) + _gridOrigin;
         }
 
-        public Quaternion CalculateRotation(Quaternion currentRotation)
+        public override Quaternion CalculateRotation(Quaternion currentRotation)
         {
             // Snap to 60-degree increments for hex grids
             Vector3 euler = currentRotation.eulerAngles;
@@ -113,7 +114,7 @@ namespace Systems.PlacementSystem.Strategies
             return new Vector2Int(rq, rr);
         }
 
-        private void OnDrawGizmos()
+        public override void OnDrawGizmos()
         {
             if (!_showGridGizmo)
                 return;

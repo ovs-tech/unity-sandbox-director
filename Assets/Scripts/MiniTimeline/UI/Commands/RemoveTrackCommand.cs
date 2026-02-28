@@ -1,5 +1,5 @@
 using System;
-using Core.Behaviors.Command;
+using Systems.CommandSystem;
 using Systems.MiniTimeline.Core;
 using UnityEngine;
 
@@ -9,7 +9,7 @@ namespace Systems.MiniTimeline.UI.Commands
     /// Command for removing a track from the timeline.
     /// Supports undo/redo operations for track removal.
     /// </summary>
-    public class RemoveTrackCommand : TimelineCommandBase
+    public class RemoveTrackCommand : CommandBase
     {
         private readonly MiniTimelineDirector director;
         private readonly IMiniTrack track;
@@ -87,13 +87,13 @@ namespace Systems.MiniTimeline.UI.Commands
             }
         }
 
-        public override bool CanMergeWith(ITimelineCommand other)
+        public override bool CanMergeWith(ICommand other)
         {
             // Track removal commands should not be merged
             return false;
         }
 
-        public override void MergeWith(ITimelineCommand other)
+        public override void MergeWith(ICommand other)
         {
             // Track removal commands should not be merged
         }

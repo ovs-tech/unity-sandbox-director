@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace Core.UI.FormSubmit.MVVM
+namespace Systems.Core.UI.FormSubmit.MVVM
 {
     /// <summary>
     /// ViewModel exposing bindable properties and commands for form submit UI.

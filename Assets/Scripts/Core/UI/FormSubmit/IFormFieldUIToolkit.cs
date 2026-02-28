@@ -1,7 +1,7 @@
-using Core.UI.FormSubmit.Fields;
+using Systems.Core.UI.FormSubmit.Fields;
 using UnityEngine.UIElements;
 
-namespace Core.UI.FormSubmit
+namespace Systems.Core.UI.FormSubmit
 {
     /// <summary>
     /// Interface for UI Toolkit form field components

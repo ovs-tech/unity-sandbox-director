@@ -1,4 +1,4 @@
-using Core.Behaviors.Command;
+using Systems.CommandSystem;
 using Systems.MiniTimeline.Core;
 
 namespace Systems.MiniTimeline.UI.Commands
@@ -7,7 +7,7 @@ namespace Systems.MiniTimeline.UI.Commands
     /// Command for moving a clip to a new time position
     /// Supports merging for smooth dragging operations
     /// </summary>
-    public class MoveClipCommand : TimelineCommandBase
+    public class MoveClipCommand : CommandBase
     {
         private readonly IMiniClip clip;
         private readonly float oldStartTime;
@@ -32,7 +32,7 @@ namespace Systems.MiniTimeline.UI.Commands
             SetClipStartTime(oldStartTime);
         }
 
-        public override bool CanMergeWith(ITimelineCommand other)
+        public override bool CanMergeWith(ICommand other)
         {
             if (other is MoveClipCommand moveCommand)
             {
@@ -41,7 +41,7 @@ namespace Systems.MiniTimeline.UI.Commands
             return false;
         }
 
-        public override void MergeWith(ITimelineCommand other)
+        public override void MergeWith(ICommand other)
         {
             if (other is MoveClipCommand moveCommand && moveCommand.clip == clip)
             {

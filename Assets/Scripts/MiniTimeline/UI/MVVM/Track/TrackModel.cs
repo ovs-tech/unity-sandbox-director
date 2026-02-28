@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
-using Core.Behaviors.Command;
+using Systems.CommandSystem;
 using Systems.MiniTimeline.Core;
 using Systems.MiniTimeline.UI.Commands;
 
@@ -93,7 +93,7 @@ namespace Systems.MiniTimeline.UI.MVVM.Track
 
             bool stateChanged = _enabled != newEnabled;
             _enabled = newEnabled;
-            if (_track != null && TimelineCommandManager.Instance == null)
+            if (_track != null && CommandManager.Instance == null)
             {
                 _track.Enabled = newEnabled;
             }
@@ -166,11 +166,11 @@ namespace Systems.MiniTimeline.UI.MVVM.Track
 
             // Create and execute command for undo/redo support
             var command = new AddClipCommand(_director, _track.Id, clip);
-            var commandManager = TimelineCommandManager.Instance;
+            var commandManager = CommandManager.Instance;
             
             if (commandManager != null)
             {
-                commandManager.ExecuteCommand(command);
+                commandManager.ExecuteCommand(command, false);
             }
             else
             {
@@ -312,10 +312,10 @@ namespace Systems.MiniTimeline.UI.MVVM.Track
                 return;
             }
             var cmd = new RemoveTrackCommand(_director, _track);
-            var commandManager = TimelineCommandManager.Instance;
+            var commandManager = CommandManager.Instance;
             if (commandManager != null)
             {
-                commandManager.ExecuteCommand(cmd);
+                commandManager.ExecuteCommand(cmd, false);
             }
             else
             {
@@ -324,7 +324,7 @@ namespace Systems.MiniTimeline.UI.MVVM.Track
         }
 
         /// <summary>
-        /// Apply one or more track setting changes via the TimelineCommandManager so they are undoable.
+        /// Apply one or more track setting changes via the CommandManager so they are undoable.
         /// </summary>
         public void ApplySettings(Dictionary<string, object> formData, bool allowMerge = true)
         {
@@ -442,7 +442,7 @@ namespace Systems.MiniTimeline.UI.MVVM.Track
             var oldSettings = CaptureCurrentSettings(newSettings.Keys);
             var command = new UpdateTrackSettingsCommand(_track, oldSettings, newSettings, _director);
 
-            var commandManager = TimelineCommandManager.Instance;
+            var commandManager = CommandManager.Instance;
             if (commandManager != null)
             {
                 commandManager.ExecuteCommand(command, allowMerge);

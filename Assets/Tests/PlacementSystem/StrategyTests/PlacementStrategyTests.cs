@@ -33,7 +33,7 @@ namespace PlacementSystem.Tests
         public void FreePositionStrategy_CalculatePosition_ReturnsOffsetPosition()
         {
             // Arrange
-            var strategy = _strategyGameObject.AddComponent<FreePositionStrategy>();
+            var strategy = ScriptableObject.CreateInstance<FreePositionStrategy>();
             Vector3 inputPosition = new Vector3(1, 2, 3);
 
             // Act
@@ -49,7 +49,7 @@ namespace PlacementSystem.Tests
         public void FreePositionStrategy_CalculateRotation_ReturnsInputRotation()
         {
             // Arrange
-            var strategy = _strategyGameObject.AddComponent<FreePositionStrategy>();
+            var strategy = ScriptableObject.CreateInstance<FreePositionStrategy>();
             Quaternion inputRotation = Quaternion.Euler(0, 45, 0);
 
             // Act
@@ -63,7 +63,7 @@ namespace PlacementSystem.Tests
         public void GridPlacementStrategy_CalculatePosition_SnapsToGrid()
         {
             // Arrange
-            var strategy = _strategyGameObject.AddComponent<GridPlacementStrategy>();
+            var strategy = ScriptableObject.CreateInstance<GridPlacementStrategy>();
             // Set grid size to 1 using reflection
             var gridSizeField = typeof(GridPlacementStrategy).GetField("_gridSize", 
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -83,7 +83,7 @@ namespace PlacementSystem.Tests
         public void GridPlacementStrategy_CalculateRotation_SnapsRotation()
         {
             // Arrange
-            var strategy = _strategyGameObject.AddComponent<GridPlacementStrategy>();
+            var strategy = ScriptableObject.CreateInstance<GridPlacementStrategy>();
             var rotationSnapField = typeof(GridPlacementStrategy).GetField("_rotationSnap", 
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             rotationSnapField.SetValue(strategy, 90f);
@@ -103,7 +103,7 @@ namespace PlacementSystem.Tests
         public void HexPlacementStrategy_CalculatePosition_SnapsToHexGrid()
         {
             // Arrange
-            var strategy = _strategyGameObject.AddComponent<HexPlacementStrategy>();
+            var strategy = ScriptableObject.CreateInstance<HexPlacementStrategy>();
             Vector3 inputPosition = new Vector3(1.5f, 0, 1.5f);
 
             // Act
@@ -120,7 +120,7 @@ namespace PlacementSystem.Tests
         public void HexPlacementStrategy_CalculateRotation_SnapsTo60Degrees()
         {
             // Arrange
-            var strategy = _strategyGameObject.AddComponent<HexPlacementStrategy>();
+            var strategy = ScriptableObject.CreateInstance<HexPlacementStrategy>();
             Quaternion inputRotation = Quaternion.Euler(0, 35, 0);
 
             // Act
@@ -137,7 +137,7 @@ namespace PlacementSystem.Tests
         public void GridPlacementStrategy_WithZeroGridSize_DoesNotThrow()
         {
             // Arrange
-            var strategy = _strategyGameObject.AddComponent<GridPlacementStrategy>();
+            var strategy = ScriptableObject.CreateInstance<GridPlacementStrategy>();
             var gridSizeField = typeof(GridPlacementStrategy).GetField("_gridSize", 
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             gridSizeField.SetValue(strategy, 0.1f); // Very small but not zero
@@ -150,9 +150,9 @@ namespace PlacementSystem.Tests
         public void AllStrategies_ImplementIPlacementStrategy()
         {
             // Arrange & Act
-            var freeStrategy = _strategyGameObject.AddComponent<FreePositionStrategy>();
-            var gridStrategy = _strategyGameObject.AddComponent<GridPlacementStrategy>();
-            var hexStrategy = _strategyGameObject.AddComponent<HexPlacementStrategy>();
+            var freeStrategy = ScriptableObject.CreateInstance<FreePositionStrategy>();
+            var gridStrategy = ScriptableObject.CreateInstance<GridPlacementStrategy>();
+            var hexStrategy = ScriptableObject.CreateInstance<HexPlacementStrategy>();
 
             // Assert
             Assert.IsNotNull(freeStrategy as Systems.PlacementSystem.Core.IPlacementStrategy);

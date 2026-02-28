@@ -3,7 +3,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Core.Helpers
+namespace Systems.Core.Helpers
 {
     /// <summary>
     /// Dynamically controls component properties via string expressions.

@@ -1,0 +1,105 @@
+{
+    "sceneName": "PlacementTestScene",
+    "placedObjects": [
+        {
+            "id": "8648cc4f-a65a-4b89-983c-77cc4992168d",
+            "prefabName": "CubePlacementItem",
+            "position": {
+                "x": -1.916887879371643,
+                "y": 0.05000000074505806,
+                "z": -1.3661932945251465
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.30000001192092898,
+                "y": 0.30000001192092898,
+                "z": 0.30000001192092898
+            },
+            "customName": "CubePlacementItem"
+        },
+        {
+            "id": "0e2ef3dd-6a65-4aab-82be-8e53d16035d6",
+            "prefabName": "CubePlacementItem",
+            "position": {
+                "x": -1.1252000331878663,
+                "y": 0.23000000417232514,
+                "z": 0.7300000190734863
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.30000001192092898,
+                "y": 0.30000001192092898,
+                "z": 0.30000001192092898
+            },
+            "customName": "CubePlacementItem"
+        },
+        {
+            "id": "d3d74d53-0b59-4e6e-a029-73f84b736050",
+            "prefabName": "CubePlacementItem",
+            "position": {
+                "x": -1.3652000427246094,
+                "y": 0.23000000417232514,
+                "z": 0.7300000190734863
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.30000001192092898,
+                "y": 0.30000001192092898,
+                "z": 0.30000001192092898
+            },
+            "customName": "CubePlacementItem"
+        },
+        {
+            "id": "d01673b8-cc3b-457f-8760-133eccc36332",
+            "prefabName": "CubePlacementItem",
+            "position": {
+                "x": -1.6052000522613526,
+                "y": 0.23000000417232514,
+                "z": 0.7300000190734863
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.30000001192092898,
+                "y": 0.30000001192092898,
+                "z": 0.30000001192092898
+            },
+            "customName": "CubePlacementItem"
+        },
+        {
+            "id": "4e32b3ca-6c73-4fef-b69e-0a651f53e2b7",
+            "prefabName": "CubePlacementItem",
+            "position": {
+                "x": -1.5872602462768555,
+                "y": 0.05000000074505806,
+                "z": 1.7391815185546876
+            },
+            "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "scale": {
+                "x": 0.30000001192092898,
+                "y": 0.30000001192092898,
+                "z": 0.30000001192092898
+            },
+            "customName": "CubePlacementItem"
+        }
+    ]
+}
