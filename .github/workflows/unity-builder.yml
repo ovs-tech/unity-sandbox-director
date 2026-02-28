@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        targetPlatform: [StandaloneWindows64]
+        targetPlatform: [StandaloneLinux64]
     steps:
       - name: Free Disk Space
         uses: endersonmenezes/free-disk-space@v3  # Use @main for latest, @v3 for stable
