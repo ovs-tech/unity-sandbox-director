@@ -75,16 +75,20 @@ namespace Systems.SceneSandbox.Core
             }
 
             // Register placement persistence and project persistence with the central SaveLoadSystem if available
-            try {
+            try
+            {
                 var saveSystem = Systems.Persistence.GamePersistenceManager.Instance;
-                if (saveSystem != null) {
+                if (saveSystem != null)
+                {
                     var placementPersistence = new PlacementPersistence(_placementSystem, _currentScene, _currentSceneName);
                     saveSystem.RegisterSubsystem(placementPersistence);
 
                     // Register this serializer as a subsystem to persist project data
                     saveSystem.RegisterSubsystem(this);
                 }
-            } catch (Exception) {
+            }
+            catch (Exception)
+            {
                 // Ignore if SaveLoadSystem not present in some contexts
             }
 
@@ -101,11 +105,10 @@ namespace Systems.SceneSandbox.Core
             string rootPath = null;
             try
             {
-                var pm = Systems.Persistence.GamePersistenceManager.Instance;
+                var pm = GamePersistenceManager.Instance;
                 if (pm != null)
                 {
-                    // Prefer namespace-aware root; fall back to generic data service root only within persistence manager
-                    rootPath = pm.GetDataServiceRootPath(Namespace) ?? pm.GetDataServiceRootPath();
+                    rootPath = pm.GetDataServiceRootPath(this);
                 }
             }
             catch { /* ignore */ }
@@ -269,7 +272,7 @@ namespace Systems.SceneSandbox.Core
         #region ISubsystemPersistence Implementation
 
         // Namespace used by the persistence system for project files
-        public string Namespace => "SceneSandboxProject";
+        public string Namespace => "scenesandbox";
 
         public string PersistentName => _currentProject?.projectName ?? _currentSceneName ?? "scene_project";
 
@@ -427,21 +430,11 @@ namespace Systems.SceneSandbox.Core
                 var pm = GamePersistenceManager.Instance;
                 if (pm != null)
                 {
-                    // Attempt to load via persistence manager using filename as save name
-                    string saveName = System.IO.Path.GetFileNameWithoutExtension(filePath);
                     try
                     {
-                        project = pm.LoadFile<SandboxProjectData>(this, saveName);
+                        project = pm.LoadFile<SandboxProjectData>(this, null, filePath);
                     }
                     catch { project = null; }
-                }
-
-                // Fallback to raw file load if persistence manager not available or load failed
-                if (project == null)
-                {
-                    if (!System.IO.File.Exists(filePath)) return false;
-                    string json = System.IO.File.ReadAllText(filePath);
-                    project = JsonUtility.FromJson<SandboxProjectData>(json);
                 }
 
                 if (project != null)
@@ -511,57 +504,39 @@ namespace Systems.SceneSandbox.Core
             {
                 try
                 {
-                    var saves = pm.ListSaves(Namespace);
+                    var saves = pm.ListSaves();
                     foreach (var s in saves)
                     {
-                        results.Add(new SandboxProjectMetadata
+                        Debug.Log($"[SceneSerializer] Found persistence save: {s}");
+                        var files = pm.ListFiles(this, s);
+                        foreach (var f in files)
                         {
-                            projectName = s,
-                            filePath = s,
-                            created = System.DateTime.MinValue,
-                            lastModified = System.DateTime.MinValue,
-                            description = "",
-                            objectCount = 0,
-                            hasTimelineIntegration = false,
-                            sceneBounds = new UnityEngine.Vector3(20f, 10f, 20f)
-                        });
+                            Debug.Log($"[SceneSerializer] Found file in save '{s}': {f}");
+                            try
+                            {
+                                var proj = pm.LoadFile<SandboxProjectData>(this, s, f);
+                                if (proj != null)
+                                {
+                                    results.Add(new SandboxProjectMetadata
+                                    {
+                                        projectName = proj.projectName,
+                                        filePath = f,
+                                        created = proj.created,
+                                        lastModified = proj.lastModified,
+                                        description = proj.description,
+                                        objectCount = proj.scenes?.Sum(sc => sc.placedObjects?.Count ?? 0) ?? 0,
+                                        hasTimelineIntegration = proj.hasTimelineIntegration,
+                                        sceneBounds = proj.settings?.sceneBounds ?? new UnityEngine.Vector3(20f, 10f, 20f)
+                                    });
+                                }
+                            }
+                            catch { }
+
+                        }
                     }
                 }
                 catch { }
             }
-
-            // Fallback: scan directory for .sbproj files
-            try
-            {
-                if (System.IO.Directory.Exists(_defaultProjectSavePath))
-                {
-                    var files = System.IO.Directory.GetFiles(_defaultProjectSavePath, "*.sbproj");
-                    foreach (var f in files)
-                    {
-                        try
-                        {
-                            string json = System.IO.File.ReadAllText(f);
-                            var proj = JsonUtility.FromJson<SandboxProjectData>(json);
-                            if (proj != null)
-                            {
-                                results.Add(new SandboxProjectMetadata
-                                {
-                                    projectName = proj.projectName,
-                                    filePath = f,
-                                    created = proj.created,
-                                    lastModified = proj.lastModified,
-                                    description = proj.description,
-                                    objectCount = proj.scenes?.Sum(s => s.placedObjects?.Count ?? 0) ?? 0,
-                                    hasTimelineIntegration = proj.hasTimelineIntegration,
-                                    sceneBounds = proj.settings?.sceneBounds ?? new UnityEngine.Vector3(20f, 10f, 20f)
-                                });
-                            }
-                        }
-                        catch { }
-                    }
-                }
-            }
-            catch { }
 
             return results.OrderByDescending(p => p.lastModified).ToList();
         }

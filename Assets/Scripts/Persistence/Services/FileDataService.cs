@@ -13,160 +13,241 @@ namespace Systems.Persistence.Services
         [Header("File Settings")]
         [SerializeField] string fileExtension = "json";
 
+        public enum RootLocation
+        {
+            PersistentData,
+            Assets
+        }
+
+        [Header("Root Path")]
+        [SerializeField]
+        RootLocation rootLocation = RootLocation.PersistentData;
+
+        [Header("Subpath")]
+        [SerializeField]
+        string rootSubfolder = "saves";
+
         string rootPath = "";
 
         public override void Setup()
         {
             base.Setup();
-            ComputeRootPath();
+            InitializeRootPath();
         }
 
-        private void ComputeRootPath()
+        private void InitializeRootPath()
         {
-            rootPath = Path.Combine(Application.persistentDataPath, "saves");
-            if (!Directory.Exists(rootPath)) Directory.CreateDirectory(rootPath);
+            rootPath = rootLocation == RootLocation.PersistentData
+                ? Path.Combine(Application.persistentDataPath, rootSubfolder)
+                : Path.Combine(Application.dataPath, rootSubfolder);
+
+            if (!Directory.Exists(rootPath))
+            {
+                Directory.CreateDirectory(rootPath);
+            }
         }
 
         public override string GetRootPath()
         {
-            if (string.IsNullOrEmpty(rootPath)) ComputeRootPath();
+            if (string.IsNullOrEmpty(rootPath))
+            {
+                InitializeRootPath();
+            }
             return rootPath;
         }
 
-        public override string GetRootPath(string ns)
+        public override void Delete(string saveName)
         {
-            var root = GetRootPath();
-            return string.IsNullOrEmpty(ns) ? root : Path.Combine(root, ns);
-        }
-
-        /// <summary>
-        /// Combines saveName, namespace, and optional fileName to get the full path.
-        /// Result: saves/{saveName}/{ns}/{fileName}.json
-        /// </summary>
-        private string GetPathToFile(string saveName, string ns, string fileName = null)
-        {
-            if (string.IsNullOrEmpty(rootPath)) ComputeRootPath();
-
-            // Root save folder: saves/{saveName}
-            string saveFolder = Path.Combine(rootPath, saveName);
-            if (!Directory.Exists(saveFolder)) Directory.CreateDirectory(saveFolder);
-
-            // Namespace subfolder: saves/{saveName}/{ns}
-            string targetFolder = Path.Combine(saveFolder, ns);
-            if (!Directory.Exists(targetFolder)) Directory.CreateDirectory(targetFolder);
-
-            // If fileName is provided, use it. Otherwise fallback to saveName (backwards compatibility)
-            string actualFileName = string.IsNullOrEmpty(fileName) ? saveName : fileName;
-            return Path.Combine(targetFolder, string.Concat(actualFileName, ".", fileExtension));
-        }
-
-        public override void Save(GameData data, string saveName, bool overwrite = true)
-        {
-            Save(data, saveName, "gamedata", null, overwrite);
-        }
-
-        public override GameData Load(string saveName)
-        {
-            return Load<GameData>(saveName, "gamedata");
-        }
-
-        public override void Delete(string name)
-        {
-            if (string.IsNullOrEmpty(rootPath)) ComputeRootPath();
-            string path = Path.Combine(rootPath, name);
-            if (Directory.Exists(path)) Directory.Delete(path, true);
+            var savePath = Path.Combine(GetRootPath(), saveName);
+            if (Directory.Exists(savePath))
+            {
+                Directory.Delete(savePath, true);
+            }
         }
 
         public override void DeleteAll()
         {
-            if (Directory.Exists(rootPath))
+            var rootDir = GetRootPath();
+            if (Directory.Exists(rootDir))
             {
-                foreach (var dir in Directory.GetDirectories(rootPath))
+                IEnumerable<string> dirs = Directory.GetDirectories(rootDir);
+                foreach (var dir in dirs)
                 {
                     Directory.Delete(dir, true);
                 }
             }
         }
 
+        public override void DeleteFile(string saveName, string ns, string fileName = null)
+        {
+            var filePath = GetFilePath(saveName, ns, fileName);
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+                CleanupEmptyDirectories(Path.GetDirectoryName(filePath));
+            }
+        }
+
+        public override IEnumerable<string> ListFiles(string saveName, string ns)
+        {
+            var nsPath = Path.Combine(GetRootPath(), saveName, ns);
+            if (!Directory.Exists(nsPath))
+            {
+                return Enumerable.Empty<string>();
+            }
+
+            if (string.IsNullOrEmpty(fileExtension))
+            {
+                return Directory.GetFiles(nsPath)
+                    .Select(f => Path.GetFileNameWithoutExtension(f));
+            }
+
+            return Directory.GetFiles(nsPath, $"*.{fileExtension}")
+                .Select(f => Path.GetFileNameWithoutExtension(f));
+        }
+
         public override IEnumerable<string> ListSaves()
         {
-            if (string.IsNullOrEmpty(rootPath)) ComputeRootPath();
-            if (!Directory.Exists(rootPath)) yield break;
-
-            // In folder-per-save structure, each directory in root is a save
-            foreach (string dir in Directory.EnumerateDirectories(rootPath))
+            var rootDir = GetRootPath();
+            if (!Directory.Exists(rootDir))
             {
-                string saveName = Path.GetFileName(dir);
-                // Verify it has a game-data.json
-                if (File.Exists(Path.Combine(dir, "gamedata", "gamedata." + fileExtension)))
-                {
-                    yield return saveName;
-                }
+                return Enumerable.Empty<string>();
             }
+
+            return Directory.GetDirectories(rootDir)
+                .Select(d => Path.GetFileName(d));
         }
 
         public override IEnumerable<string> ListSaves(string ns)
         {
-            // For now, return all saves that have this namespace subfolder.
-            foreach (var saveName in ListSaves())
+            var rootDir = GetRootPath();
+            if (!Directory.Exists(rootDir))
             {
-                string nsFolder = Path.Combine(rootPath, saveName, ns);
-                if (Directory.Exists(nsFolder))
+                return Enumerable.Empty<string>();
+            }
+
+            var saves = new List<string>();
+            foreach (var saveDir in Directory.GetDirectories(rootDir))
+            {
+                var nsPath = Path.Combine(saveDir, ns);
+                if (Directory.Exists(nsPath))
                 {
-                    yield return saveName;
+                    saves.Add(Path.GetFileName(saveDir));
                 }
             }
+            return saves;
         }
 
-        public override void Save<T>(T data, string saveName, string ns, string fileName = null, bool overwrite = true)
+        public override T Load<T>(string saveName)
         {
-            if (serializer == null) throw new InvalidOperationException("FileDataService serializer not set. Call Setup(serializer) before using.");
-            string fileLocation = GetPathToFile(saveName, ns, fileName);
-
-            if (!overwrite && File.Exists(fileLocation))
+            var filePath = GetFilePath(saveName, null, saveName);
+            if (!File.Exists(filePath))
             {
-                throw new IOException($"The file already exists at '{fileLocation}' and cannot be overwritten.");
+                return default;
             }
 
-            File.WriteAllText(fileLocation, serializer.Serialize(data));
+            try
+            {
+                string json = File.ReadAllText(filePath);
+                return serializer.Deserialize<T>(json);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to load {filePath}: {ex.Message}");
+                return default;
+            }
         }
 
         public override T Load<T>(string saveName, string ns, string fileName = null)
         {
-            if (serializer == null) throw new InvalidOperationException("FileDataService serializer not set. Call Setup(serializer) before using.");
-            string fileLocation = GetPathToFile(saveName, ns, fileName);
-
-            if (!File.Exists(fileLocation))
+            var filePath = GetFilePath(saveName, ns, fileName);
+            if (!File.Exists(filePath))
             {
-                throw new ArgumentException($"No persisted file at '{fileLocation}'");
+                return default;
             }
 
-            return serializer.Deserialize<T>(File.ReadAllText(fileLocation));
-        }
-
-        public override IEnumerable<string> ListFiles(string saveName)
-        {
-            if (string.IsNullOrEmpty(rootPath)) ComputeRootPath();
-            string saveFolder = Path.Combine(rootPath, saveName);
-            if (!Directory.Exists(saveFolder)) yield break;
-
-            // Return all subfolders (namespaces) under this save
-            foreach (string dir in Directory.EnumerateDirectories(saveFolder))
+            try
             {
-                yield return Path.GetFileName(dir);
+                string json = File.ReadAllText(filePath);
+                return serializer.Deserialize<T>(json);
             }
-
-            // Also include "gamedata" if game-data.json exists
-            if (File.Exists(Path.Combine(saveFolder, "gamedata", "gamedata." + fileExtension)))
+            catch (Exception ex)
             {
-                yield return "gamedata";
+                Debug.LogError($"Failed to load {filePath}: {ex.Message}");
+                return default;
             }
         }
 
-        public override void DeleteFile(string saveName, string ns, string fileName = null)
+        public override void Save<T>(T data, string saveName, bool overwrite = true)
         {
-            string fileLocation = GetPathToFile(saveName, ns, fileName);
-            if (File.Exists(fileLocation)) File.Delete(fileLocation);
+            Save(data, saveName, null, saveName, overwrite);
+        }
+
+        public override void Save<T>(T data, string saveName, string ns, string fileName = null, bool overwrite = true)
+        {
+            var filePath = GetFilePath(saveName, ns, fileName);
+            var directory = Path.GetDirectoryName(filePath);
+
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            if (File.Exists(filePath) && !overwrite)
+            {
+                Debug.LogWarning($"File {filePath} already exists and overwrite is false");
+                return;
+            }
+
+            try
+            {
+                string json = serializer.Serialize(data);
+                File.WriteAllText(filePath, json);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to save {filePath}: {ex.Message}");
+            }
+        }
+
+        private string GetFilePath(string saveName, string ns, string fileName)
+        {
+            var path = Path.Combine(GetRootPath(), saveName);
+
+            if (!string.IsNullOrEmpty(ns))
+            {
+                path = Path.Combine(path, ns);
+            }
+
+            if (string.IsNullOrEmpty(fileName))
+            {
+                fileName = saveName;
+            }
+
+            var fileNameWithExtension = string.IsNullOrEmpty(fileExtension)
+                ? fileName
+                : $"{fileName}.{fileExtension}";
+            return Path.Combine(path, fileNameWithExtension);
+        }
+
+        private void CleanupEmptyDirectories(string directory)
+        {
+            try
+            {
+                if (Directory.Exists(directory) && Directory.GetFileSystemEntries(directory).Length == 0)
+                {
+                    Directory.Delete(directory);
+                    var parent = Path.GetDirectoryName(directory);
+                    if (parent != GetRootPath())
+                    {
+                        CleanupEmptyDirectories(parent);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"Failed to cleanup directory {directory}: {ex.Message}");
+            }
         }
     }
 }

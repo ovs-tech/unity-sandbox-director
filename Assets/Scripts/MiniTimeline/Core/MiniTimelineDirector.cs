@@ -500,14 +500,6 @@ namespace Systems.MiniTimeline.Core
 
             try
             {
-                // Use provided name or current project name
-                string saveName = string.IsNullOrEmpty(projectName) ? project.name : projectName;
-
-                // Update project name if changed
-                if (projectName != null && projectName != project.name)
-                {
-                    project.name = projectName;
-                }
 
                 // Prefer persistence subsystem when available
                 var mgr = GamePersistenceManager.Instance;
@@ -517,9 +509,9 @@ namespace Systems.MiniTimeline.Core
                     return false;
                 }
 
-                mgr.SaveFile(this, saveName, null, true);
+                mgr.SaveFile(this, null, projectName, true);
                 if (debugMode)
-                    Debug.Log($"[MiniTimelineDirector] Saved project '{saveName}' via GamePersistenceManager");
+                    Debug.Log($"[MiniTimelineDirector] Saved project '{projectName}' via GamePersistenceManager");
 
                 return true;
             }
@@ -546,14 +538,7 @@ namespace Systems.MiniTimeline.Core
                     return false;
                 }
 
-                var files = mgr.ListFiles(projectName);
-                if (files == null || !System.Linq.Enumerable.Contains(files, Namespace))
-                {
-                    Debug.LogWarning($"[MiniTimelineDirector] Persistence save '{projectName}' does not contain a MiniTimelineProject file");
-                    return false;
-                }
-
-                var loadedProject = mgr.LoadFile<MiniTimelineProject>(this, projectName);
+                var loadedProject = mgr.LoadFile<MiniTimelineProject>(this, null, projectName);
                 if (loadedProject != null)
                 {
                     SetProject(loadedProject);
@@ -588,18 +573,15 @@ namespace Systems.MiniTimeline.Core
                 }
 
                 var saves = mgr.ListSaves(this);
-                var list = new System.Collections.Generic.List<string>();
+                var list = new List<string>();
                 if (saves != null)
                 {
                     foreach (var s in saves)
                     {
                         try
                         {
-                            var files = mgr.ListFiles(s);
-                            if (files != null && System.Linq.Enumerable.Contains(files, Namespace))
-                            {
-                                list.Add(s);
-                            }
+                            var files = mgr.ListFiles(this, s);
+                            list.AddRange(files);
                         }
                         catch { }
                     }
@@ -632,7 +614,7 @@ namespace Systems.MiniTimeline.Core
 
                 try
                 {
-                    mgr.DeleteGame(projectName);
+                    mgr.DeleteFile(this, null, projectName);
                     Debug.Log($"[MiniTimelineDirector] Deleted persistence save: {projectName}");
                     return true;
                 }
