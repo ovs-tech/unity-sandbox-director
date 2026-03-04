@@ -1967,6 +1967,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Mini Timeline Director
       objectReference: {fileID: 0}
+    - target: {fileID: 857453676176504041, guid: 5ff9de63dbe2f394ca7ffdf4fe29dd55, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3751378087522260266, guid: 5ff9de63dbe2f394ca7ffdf4fe29dd55, type: 3}
       propertyPath: debugMode
       value: 0
