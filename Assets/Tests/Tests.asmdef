@@ -16,7 +16,8 @@
     "Unity.ResourceManager",
     "Systems.Core",
     "Systems.ObjectPool",
-    "Systems.PlacementSystem.Editor"
+    "Systems.PlacementSystem.Editor",
+    "Systems.Persistence"
   ],
   "includePlatforms": [
     "Editor"

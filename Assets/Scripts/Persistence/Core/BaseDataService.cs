@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Systems.Persistence.Serializers;
 using UnityEngine;
 
@@ -18,6 +20,16 @@ namespace Systems.Persistence.Core
         public abstract T Load<T>(string saveName, string ns, string fileName = null);
         public abstract void Save<T>(T data, string saveName, bool overwrite = true);
         public abstract void Save<T>(T data, string saveName, string ns, string fileName = null, bool overwrite = true);
+
+        public virtual Task SaveAsync<T>(T data, string saveName, string ns, string fileName = null, bool overwrite = true, CancellationToken token = default)
+        {
+            return Task.Run(() => Save(data, saveName, ns, fileName, overwrite), token);
+        }
+
+        public virtual Task<T> LoadAsync<T>(string saveName, string ns, string fileName = null, CancellationToken token = default)
+        {
+            return Task.Run(() => Load<T>(saveName, ns, fileName), token);
+        }
 
         // Optional runtime setup hook for data services that require a serializer or other runtime-only
         // initialization. File-backed implementations use this to receive an `ISerializer` instance.

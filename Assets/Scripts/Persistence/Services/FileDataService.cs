@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Systems.Persistence.Core;
 using UnityEngine;
 
@@ -181,6 +183,63 @@ namespace Systems.Persistence.Services
         public override void Save<T>(T data, string saveName, bool overwrite = true)
         {
             Save(data, saveName, null, saveName, overwrite);
+        }
+
+        public override async Task SaveAsync<T>(T data, string saveName, string ns, string fileName = null, bool overwrite = true, CancellationToken token = default)
+        {
+            var filePath = GetFilePath(saveName, ns, fileName);
+            var directory = Path.GetDirectoryName(filePath);
+
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            if (File.Exists(filePath) && !overwrite)
+            {
+                Debug.LogWarning($"File {filePath} already exists and overwrite is false");
+                return;
+            }
+
+            try
+            {
+                EnsureSerializerInitialized();
+                string json = await Task.Run(() => serializer.Serialize(data), token);
+                await File.WriteAllTextAsync(filePath, json, token);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to save {filePath}: {ex.Message}");
+            }
+        }
+
+        public override async Task<T> LoadAsync<T>(string saveName, string ns, string fileName = null, CancellationToken token = default)
+        {
+            var filePath = GetFilePath(saveName, ns, fileName);
+            if (!File.Exists(filePath))
+            {
+                return default;
+            }
+
+            try
+            {
+                EnsureSerializerInitialized();
+                string json = await File.ReadAllTextAsync(filePath, token);
+                return await Task.Run(() => serializer.Deserialize<T>(json), token);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to load {filePath}: {ex.Message}");
+                return default;
+            }
         }
 
         public override void Save<T>(T data, string saveName, string ns, string fileName = null, bool overwrite = true)
