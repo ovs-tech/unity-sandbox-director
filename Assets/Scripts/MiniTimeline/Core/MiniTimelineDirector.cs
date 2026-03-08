@@ -6,6 +6,7 @@ using Systems.Persistence;
 using Systems.Persistence.Core;
 using Unity.VisualScripting;
 using UnityEngine;
+using System.Collections;
 
 namespace Systems.MiniTimeline.Core
 {
@@ -537,13 +538,15 @@ namespace Systems.MiniTimeline.Core
                     Debug.LogError("[MiniTimelineDirector] GamePersistenceManager not available - cannot load project");
                     return false;
                 }
-
+                Debug.Log($"[MiniTimelineDirector-Perf] start loading project '{projectName}' via GamePersistenceManager");
                 var loadedProject = mgr.LoadFile<MiniTimelineProject>(this, null, projectName);
                 if (loadedProject != null)
                 {
+                    Debug.Log($"[MiniTimelineDirector-Perf] Successfully loaded project '{projectName}' from persistence save");
                     SetProject(loadedProject);
                     if (debugMode)
                         Debug.Log($"[MiniTimelineDirector] Loaded project '{projectName}' via GamePersistenceManager");
+                    Debug.Log($"[MiniTimelineDirector-Perf] finished loading project '{projectName}' via GamePersistenceManager");
                     return true;
                 }
 
@@ -555,6 +558,89 @@ namespace Systems.MiniTimeline.Core
                 Debug.LogError($"[MiniTimelineDirector] Failed to load project: {e.Message}");
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Asynchronously save the current project via GamePersistenceManager.
+        /// </summary>
+        /// <param name="projectName">Name to save as (optional, uses current project name if null)</param>
+        /// <param name="onDone">Completion callback (true on success)</param>
+        public IEnumerator SaveProjectAsync(string projectName = null, Action<bool> onDone = null)
+        {
+            if (project == null)
+            {
+                Debug.LogWarning("[MiniTimelineDirector] Cannot save: No project loaded");
+                onDone?.Invoke(false);
+                yield break;
+            }
+
+            var mgr = GamePersistenceManager.Instance;
+            if (mgr == null)
+            {
+                Debug.LogError("[MiniTimelineDirector] GamePersistenceManager not available - cannot save project");
+                onDone?.Invoke(false);
+                yield break;
+            }
+
+            var task = mgr.SaveFileAsync(this, null, projectName, true);
+            while (!task.IsCompleted)
+            {
+                yield return null;
+            }
+
+            if (task.IsFaulted)
+            {
+                Debug.LogError($"[MiniTimelineDirector] Failed to save project: {task.Exception?.GetBaseException().Message}");
+                onDone?.Invoke(false);
+                yield break;
+            }
+
+            if (debugMode)
+                Debug.Log($"[MiniTimelineDirector] Saved project '{projectName}' via GamePersistenceManager (async)");
+
+            onDone?.Invoke(true);
+        }
+
+        /// <summary>
+        /// Asynchronously load a project via GamePersistenceManager.
+        /// </summary>
+        /// <param name="projectName">Name of the project to load (without extension)</param>
+        /// <param name="onDone">Completion callback (true on success)</param>
+        public IEnumerator LoadProjectAsync(string projectName, Action<bool> onDone = null)
+        {
+            var mgr = GamePersistenceManager.Instance;
+            if (mgr == null)
+            {
+                Debug.LogError("[MiniTimelineDirector] GamePersistenceManager not available - cannot load project");
+                onDone?.Invoke(false);
+                yield break;
+            }
+
+            var task = mgr.LoadFileAsync<MiniTimelineProject>(this, null, projectName);
+            while (!task.IsCompleted)
+            {
+                yield return null;
+            }
+
+            if (task.IsFaulted)
+            {
+                Debug.LogError($"[MiniTimelineDirector] Failed to load project: {task.Exception?.GetBaseException().Message}");
+                onDone?.Invoke(false);
+                yield break;
+            }
+
+            var loadedProject = task.Result;
+            if (loadedProject != null)
+            {
+                SetProject(loadedProject);
+                if (debugMode)
+                    Debug.Log($"[MiniTimelineDirector] Loaded project '{projectName}' via GamePersistenceManager (async)");
+                onDone?.Invoke(true);
+                yield break;
+            }
+
+            Debug.LogWarning($"[MiniTimelineDirector] Failed to load MiniTimelineProject from persistence save '{projectName}'");
+            onDone?.Invoke(false);
         }
 
         /// <summary>

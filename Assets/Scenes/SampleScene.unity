@@ -1586,10 +1586,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 721137537}
     m_Modifications:
-    - target: {fileID: 456038309173846840, guid: 7933494eed015412ca08e861598acc8d, type: 3}
-      propertyPath: ReplaceOnImport
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 4708143195176863050, guid: 7933494eed015412ca08e861598acc8d, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.25840092
@@ -1633,6 +1629,10 @@ PrefabInstance:
     - target: {fileID: 8741286272015652744, guid: 7933494eed015412ca08e861598acc8d, type: 3}
       propertyPath: m_Name
       value: Base Female
+      objectReference: {fileID: 0}
+    - target: {fileID: 8741286272015652744, guid: 7933494eed015412ca08e861598acc8d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1809,10 +1809,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 721137537}
     m_Modifications:
-    - target: {fileID: 456038309173846840, guid: 7933494eed015412ca08e861598acc8d, type: 3}
-      propertyPath: ReplaceOnImport
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 4708143195176863050, guid: 7933494eed015412ca08e861598acc8d, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.8584008
@@ -1856,6 +1852,10 @@ PrefabInstance:
     - target: {fileID: 8741286272015652744, guid: 7933494eed015412ca08e861598acc8d, type: 3}
       propertyPath: m_Name
       value: Base male
+      objectReference: {fileID: 0}
+    - target: {fileID: 8741286272015652744, guid: 7933494eed015412ca08e861598acc8d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
