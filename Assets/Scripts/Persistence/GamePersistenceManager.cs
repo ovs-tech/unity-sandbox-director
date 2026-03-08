@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Systems.Persistence.Core;
 using UnityEngine;
 using UnityEngine.Events;
@@ -415,6 +417,11 @@ namespace Systems.Persistence
         public T LoadFile<T>(string saveName, string ns, string fileName = null)
             => dataService.Load<T>(saveName, ns, fileName);
 
+        public Task SaveFileAsync<T>(T data, string saveName, string ns, string fileName = null, bool overwrite = true, CancellationToken token = default)
+            => dataService.SaveAsync(data, saveName, ns, fileName, overwrite, token);
+        public Task<T> LoadFileAsync<T>(string saveName, string ns, string fileName = null, CancellationToken token = default)
+            => dataService.LoadAsync<T>(saveName, ns, fileName, token);
+
         // Subsystem-aware save/load helpers
         public void SaveFile(ISubsystemPersistence subsystem, string saveName = null, string fileName = null, bool overwrite = true)
         {
@@ -489,6 +496,96 @@ namespace Systems.Persistence
             catch (ArgumentException)
             {
                 // File not found or invalid - return default
+                return default;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"Failed to load subsystem '{subsystem.Namespace}' from save '{loadFrom}': {ex.Message}");
+                return default;
+            }
+        }
+
+        public async Task SaveFileAsync(ISubsystemPersistence subsystem, string saveName = null, string fileName = null, bool overwrite = true, CancellationToken token = default)
+        {
+            if (subsystem == null) throw new ArgumentNullException(nameof(subsystem));
+
+            token.ThrowIfCancellationRequested();
+
+            string saveTo = saveName ?? CurrentSaveName ?? "Default";
+            string fileNameToUse = fileName ?? subsystem.PersistentName;
+
+            try
+            {
+                if (subsystem.Target == PersistenceTarget.Embedded)
+                {
+                    // Embedded payload is stored in gameData and persisted via game-level save.
+                    if (gameData == null) gameData = ScriptableObject.CreateInstance<GameData>();
+
+                    var data = subsystem.GetSaveData();
+                    if (data != null)
+                    {
+                        var json = JsonUtility.ToJson(data);
+                        var existing = gameData.EmbeddedSubsystems.FirstOrDefault(e => e.Key == subsystem.Namespace);
+                        if (existing == null)
+                        {
+                            gameData.EmbeddedSubsystems.Add(new SubsystemDataEntry { Key = subsystem.Namespace, JsonData = json });
+                        }
+                        else
+                        {
+                            existing.JsonData = json;
+                        }
+
+                        dataService.Save(gameData, saveTo);
+                    }
+                }
+                else
+                {
+                    var data = subsystem.GetSaveData();
+                    if (data != null)
+                    {
+                        await dataService.SaveAsync<object>(data, saveTo, subsystem.Namespace, fileNameToUse, overwrite, token);
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to save subsystem '{subsystem.Namespace}': {ex.Message}");
+            }
+        }
+
+        public async Task<T> LoadFileAsync<T>(ISubsystemPersistence subsystem, string saveName = null, string fileName = null, CancellationToken token = default)
+        {
+            if (subsystem == null) throw new ArgumentNullException(nameof(subsystem));
+
+            token.ThrowIfCancellationRequested();
+
+            string loadFrom = saveName ?? CurrentSaveName ?? "Default";
+            string fileNameToUse = fileName ?? subsystem.PersistentName;
+
+            try
+            {
+                if (subsystem.Target == PersistenceTarget.Embedded)
+                {
+                    var entry = gameData?.EmbeddedSubsystems?.FirstOrDefault(e => e.Key == subsystem.Namespace);
+                    if (entry != null && !string.IsNullOrEmpty(entry.JsonData))
+                    {
+                        return (T)JsonUtility.FromJson(entry.JsonData, typeof(T));
+                    }
+                    return default;
+                }
+
+                return await dataService.LoadAsync<T>(loadFrom, subsystem.Namespace, fileNameToUse, token);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (ArgumentException)
+            {
                 return default;
             }
             catch (Exception ex)
