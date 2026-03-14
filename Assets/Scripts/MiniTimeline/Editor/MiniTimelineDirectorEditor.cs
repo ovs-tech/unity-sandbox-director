@@ -344,6 +344,9 @@ namespace Systems.MiniTimeline.Editor
             if (showProjectList)
             {
                 EditorGUILayout.BeginVertical(boxStyle);
+
+                var projectsFolder = director.GetProjectsFolder();
+                var hasProjectsFolder = !string.IsNullOrEmpty(projectsFolder);
                 
                 // Project folder info and actions
                 EditorGUILayout.BeginHorizontal();
@@ -356,13 +359,15 @@ namespace Systems.MiniTimeline.Editor
                     Repaint();
                 }
                 
+                EditorGUI.BeginDisabledGroup(!hasProjectsFolder);
                 if (GUILayout.Button("📁 Open Folder", EditorStyles.miniButton, GUILayout.Width(100)))
                 {
-                    EditorUtility.RevealInFinder(director.GetProjectsFolder());
+                    EditorUtility.RevealInFinder(projectsFolder);
                 }
+                EditorGUI.EndDisabledGroup();
                 EditorGUILayout.EndHorizontal();
                 
-                EditorGUILayout.LabelField(director.GetProjectsFolder(), EditorStyles.miniLabel);
+                EditorGUILayout.LabelField(hasProjectsFolder ? projectsFolder : "(Persistence root unavailable in EditMode)", EditorStyles.miniLabel);
                 
                 EditorGUILayout.Space(5);
                 

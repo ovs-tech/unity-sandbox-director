@@ -295,6 +295,11 @@ namespace Systems.MiniTimeline.Core
 
         private void OnEnable()
         {
+            if (!Application.isPlaying)
+            {
+                return;
+            }
+
             try
             {
                 var mgr = GamePersistenceManager.Instance;
@@ -311,6 +316,11 @@ namespace Systems.MiniTimeline.Core
 
         private void OnDisable()
         {
+            if (!Application.isPlaying)
+            {
+                return;
+            }
+
             try
             {
                 var mgr = GamePersistenceManager.Instance;
@@ -396,26 +406,50 @@ namespace Systems.MiniTimeline.Core
 
         #region Project Management
 
+        private GamePersistenceManager ResolvePersistenceManagerForQueries()
+        {
+            if (Application.isPlaying)
+            {
+                return GamePersistenceManager.Instance;
+            }
+
+            if (GamePersistenceManager.Current != null)
+            {
+                return GamePersistenceManager.Current;
+            }
+
+            return FindFirstObjectByType<GamePersistenceManager>();
+        }
+
         /// <summary>
         /// Get the projects folder path (uses Application.persistentDataPath)
         /// </summary>
         /// <returns>Full path to projects folder</returns>
         public string GetProjectsFolder()
         {
-            // Use persistence data service root path exclusively — no fallback to Application paths
-            var mgr = GamePersistenceManager.Instance;
+            // Use persistence data service root path exclusively - no fallback to Application paths.
+            // In EditMode this avoids auto-creating an unconfigured persistence manager on inspector repaint.
+            var mgr = ResolvePersistenceManagerForQueries();
             if (mgr == null)
             {
-                Debug.LogError("[MiniTimelineDirector] GamePersistenceManager not available - cannot determine projects folder");
-                return null;
+                if (Application.isPlaying)
+                {
+                    Debug.LogError("[MiniTimelineDirector] GamePersistenceManager not available - cannot determine projects folder");
+                }
+
+                return string.Empty;
             }
 
             // Request the data service root path scoped to the MiniTimeline namespace
             var serviceRoot = mgr.GetDataServiceRootPath(this);
             if (string.IsNullOrEmpty(serviceRoot))
             {
-                Debug.LogError("[MiniTimelineDirector] Data service root path not available - cannot determine projects folder");
-                return null;
+                if (Application.isPlaying)
+                {
+                    Debug.LogError("[MiniTimelineDirector] Data service root path not available - cannot determine projects folder");
+                }
+
+                return string.Empty;
             }
 
             if (!Directory.Exists(serviceRoot))
@@ -434,18 +468,14 @@ namespace Systems.MiniTimeline.Core
         /// <returns>Full file path</returns>
         public string GetProjectFilePath(string projectName)
         {
-            // Require the persistence data service root path; no fallback.
-            var mgr = GamePersistenceManager.Instance;
-            if (mgr == null)
+            if (string.IsNullOrEmpty(projectName))
             {
-                Debug.LogError("[MiniTimelineDirector] GamePersistenceManager not available - cannot build project file path");
                 return null;
             }
 
-            var serviceRoot = mgr.GetDataServiceRootPath(this);
+            var serviceRoot = GetProjectsFolder();
             if (string.IsNullOrEmpty(serviceRoot))
             {
-                Debug.LogError("[MiniTimelineDirector] Data service root path not available - cannot build project file path");
                 return null;
             }
 
@@ -651,10 +681,14 @@ namespace Systems.MiniTimeline.Core
         {
             try
             {
-                var mgr = GamePersistenceManager.Instance;
+                var mgr = ResolvePersistenceManagerForQueries();
                 if (mgr == null)
                 {
-                    Debug.LogWarning("[MiniTimelineDirector] GamePersistenceManager not available - no projects listed");
+                    if (Application.isPlaying)
+                    {
+                        Debug.LogWarning("[MiniTimelineDirector] GamePersistenceManager not available - no projects listed");
+                    }
+
                     return new string[0];
                 }
 
