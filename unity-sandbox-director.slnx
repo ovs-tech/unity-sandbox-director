@@ -2,6 +2,7 @@
   <Project Path="Systems.SceneSandbox.csproj" />
   <Project Path="Systems.Core.csproj" />
   <Project Path="Systems.MiniTimeline.csproj" />
+  <Project Path="Sirenix.OdinInspector.Modules.UnityLocalization.Editor.csproj" />
   <Project Path="Systems.PlacementSystem.csproj" />
   <Project Path="Tests.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
@@ -9,7 +10,10 @@
   <Project Path="Systems.Inventory.csproj" />
   <Project Path="Systems.PlacementSystem.Editor.csproj" />
   <Project Path="Systems.Persistence.csproj" />
+  <Project Path="Sirenix.OdinInspector.Modules.Unity.Addressables.csproj" />
   <Project Path="Systems.ObjectPool.Editor.csproj" />
+  <Project Path="Sirenix.OdinInspector.Modules.UnityMathematics.csproj" />
+  <Project Path="Sirenix.OdinInspector.Modules.UnityLocalization.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="Systems.ObjectPool.csproj" />
   <Project Path="Systems.SceneSandbox.Editor.csproj" />
