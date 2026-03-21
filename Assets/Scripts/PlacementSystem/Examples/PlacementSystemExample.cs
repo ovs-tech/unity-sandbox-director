@@ -86,7 +86,7 @@ namespace Systems.PlacementSystem.Examples
         private void SetPlacementTool()
         {
             if (_placementController == null) return;
-            _placementController.SetActiveTool(PlacementController.ToolIds.Placement);
+            _placementController.SetActiveTool(PlacementController.PlacementToolType.Placement);
             if (_placeablePrefabs != null && _placeablePrefabs.Length > 0)
             {
                 _selectedPrefabIndex = Mathf.Clamp(_selectedPrefabIndex, 0, _placeablePrefabs.Length - 1);
@@ -161,25 +161,25 @@ namespace Systems.PlacementSystem.Examples
         public void SetSelectionTool()
         {
             if (_placementController == null) return;
-            _placementController.SetActiveTool(PlacementController.ToolIds.Selection);
+            _placementController.SetActiveTool(PlacementController.PlacementToolType.Selection);
         }
 
         public void SetMoveTool()
         {
             if (_placementController == null) return;
-            _placementController.SetActiveTool(PlacementController.ToolIds.Move);
+            _placementController.SetActiveTool(PlacementController.PlacementToolType.Move);
         }
 
         public void SetRotateTool()
         {
             if (_placementController == null) return;
-            _placementController.SetActiveTool(PlacementController.ToolIds.Rotate);
+            _placementController.SetActiveTool(PlacementController.PlacementToolType.Rotate);
         }
 
         public void SetDeleteTool()
         {
             if (_placementController == null) return;
-            _placementController.SetActiveTool(PlacementController.ToolIds.Delete);
+            _placementController.SetActiveTool(PlacementController.PlacementToolType.Delete);
         }
 
         /// <summary>
