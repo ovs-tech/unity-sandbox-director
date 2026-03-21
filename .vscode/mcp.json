@@ -1,9 +1,22 @@
 {
 	"servers": {
 		"serena": {
-            "command": "uvx",
-            "args": ["--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server", "--context", "ide-assistant", "--project", "${workspaceFolder}"],
-        }
+			"command": "uvx",
+			"args": [
+				"--from",
+				"git+https://github.com/oraios/serena",
+				"serena",
+				"start-mcp-server",
+				"--context",
+				"ide-assistant",
+				"--project",
+				"${workspaceFolder}"
+			],
+		},
+		"gitnexus": {
+      "command": "npx",
+      "args": ["-y", "gitnexus@latest", "mcp"]
+    }
 	},
 	"inputs": []
 }

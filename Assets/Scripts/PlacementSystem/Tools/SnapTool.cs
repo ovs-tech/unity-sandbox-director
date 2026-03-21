@@ -5,7 +5,8 @@ namespace Systems.PlacementSystem.Tools
     /// <summary>
     /// Tool that resolves snap requests using the shared snap manager.
     /// </summary>
-    public class SnapTool : IPlacementTool
+    [CreateAssetMenu(menuName = "Placement System/Tools/Snap Tool")]
+    public class SnapTool : ScriptableObject, IPlacementTool
     {
         private PlacementToolContext _context;
 

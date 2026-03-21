@@ -474,7 +474,7 @@ MonoBehaviour:
   _placeablePrefabs:
   - {fileID: 3460344314111403275, guid: 76ab7585311d047dcbcd1382e7612353, type: 3}
   - {fileID: 1443516544727990350, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
-  _placementController: {fileID: 0}
+  _placementController: {fileID: 1008020062}
   _placementCamera: {fileID: 450753640}
   _selectedPrefabIndex: 1
 --- !u!4 &1008020061
@@ -519,25 +519,28 @@ MonoBehaviour:
   OnToolChangedEvent:
     m_PersistentCalls:
       m_Calls: []
-  _placementCamera: {fileID: 0}
+  _placementCamera: {fileID: 450753640}
   _placementSurface:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 64
   _objectToPlace: {fileID: 0}
-  _inputProviderComponent: {fileID: 0}
-  _placementStrategy: {fileID: 0}
-  _placementVisualizer: {fileID: 0}
-  _snapManager: {fileID: 0}
+  _inputProviderComponent: {fileID: 1008020067}
+  _placementStrategy: {fileID: 11400000, guid: 1e1856a911ddddf4ebe1c88a56335557, type: 2}
+  _placementVisualizer: {fileID: 11400000, guid: 167bf68618432c248a1b05370ca449ce, type: 2}
+  _placementValidatorAsset: {fileID: 11400000, guid: a8a03b2bc088a4ae6a45ceac9b54e339, type: 2}
+  _allowPlacementWithoutPart: 1
+  _snapManager: {fileID: 1008020063}
+  _toolset: {fileID: 11400000, guid: a52018a6ab7554c83911ec2c6d498f3f, type: 2}
   _maxRaycastDistance: 100
   _rotationSnapDegrees: 90
   _rotationIncrement: 90
   _makeObjectsSelectable: 1
   _selectionLayer:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 1
   _selectionMovementSurface:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 64
   _allowMultiSelection: 0
   _requireModifierForMultiSelect: 1
   _moveSelectedWithPointer: 1
@@ -1117,9 +1120,33 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 97332369802419674, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
+      propertyPath: m_TagString
+      value: Socket
+      objectReference: {fileID: 0}
+    - target: {fileID: 804901305500025761, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
+      propertyPath: m_TagString
+      value: Socket
+      objectReference: {fileID: 0}
     - target: {fileID: 1443516544727990350, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
       propertyPath: m_Name
       value: CubePlacementItem
+      objectReference: {fileID: 0}
+    - target: {fileID: 1801303410086813298, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
+      propertyPath: m_TagString
+      value: Socket
+      objectReference: {fileID: 0}
+    - target: {fileID: 2973839670544950683, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
+      propertyPath: m_TagString
+      value: Socket
+      objectReference: {fileID: 0}
+    - target: {fileID: 3905946267964829621, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
+      propertyPath: m_TagString
+      value: Socket
+      objectReference: {fileID: 0}
+    - target: {fileID: 6835737588431740126, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
+      propertyPath: m_TagString
+      value: Socket
       objectReference: {fileID: 0}
     - target: {fileID: 7494065892650909874, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1160,6 +1187,10 @@ PrefabInstance:
     - target: {fileID: 7494065892650909874, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7781271585353725598, guid: af251d6a5a7b14b38b1fba7acd045743, type: 3}
+      propertyPath: m_TagString
+      value: Socket
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

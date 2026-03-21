@@ -31,6 +31,7 @@ namespace Systems.PlacementSystem.Tests
             public bool IsRotateActionTriggered() => _rotateTriggered;
             public bool IsDeleteActionTriggered() => false;
             public Vector2 GetPointerPosition() => _pointerPos;
+            public bool IsMultiSelectModifierHeld() => false;
         }
         #pragma warning restore 0649
 

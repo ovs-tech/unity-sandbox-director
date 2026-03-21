@@ -22,6 +22,7 @@ namespace Systems.PlacementSystem.Tests
             public bool IsRotateActionTriggered() => RotateTriggered;
             public bool IsDeleteActionTriggered() => DeleteTriggered;
             public Vector2 GetPointerPosition() => Vector2.zero;
+            public bool IsMultiSelectModifierHeld() => false;
         }
 
         [SetUp]

@@ -7,7 +7,8 @@ namespace Systems.PlacementSystem.Tools
     /// <summary>
     /// Tool for selection input and shared selection state management.
     /// </summary>
-    public class SelectionTool : IPlacementTool
+    [CreateAssetMenu(menuName = "Placement System/Tools/Selection Tool")]
+    public class SelectionTool : ScriptableObject, IPlacementTool
     {
         private PlacementToolContext _context;
 
@@ -156,10 +157,7 @@ namespace Systems.PlacementSystem.Tools
 
         private bool IsMultiSelectModifierHeld()
         {
-            return UnityEngine.Input.GetKey(KeyCode.LeftControl) ||
-                   UnityEngine.Input.GetKey(KeyCode.RightControl) ||
-                   UnityEngine.Input.GetKey(KeyCode.LeftCommand) ||
-                   UnityEngine.Input.GetKey(KeyCode.RightCommand);
+            return _context?.InputProvider != null && _context.InputProvider.IsMultiSelectModifierHeld();
         }
     }
 }

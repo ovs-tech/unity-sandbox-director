@@ -85,9 +85,14 @@ namespace Systems.PlacementSystem.Examples
 
         private void SetPlacementTool()
         {
+            if (_placementController == null) return;
             _placementController.SetActiveTool(PlacementController.PlacementToolType.Placement);
-            _placementController.SetObjectToPlace(_placeablePrefabs[_selectedPrefabIndex]);
-            _placementController.StartPlacement();
+            if (_placeablePrefabs != null && _placeablePrefabs.Length > 0)
+            {
+                _selectedPrefabIndex = Mathf.Clamp(_selectedPrefabIndex, 0, _placeablePrefabs.Length - 1);
+                _placementController.SetObjectToPlace(_placeablePrefabs[_selectedPrefabIndex]);
+                _placementController.StartPlacement();
+            }
         }
 
         /// <summary>
@@ -149,26 +154,31 @@ namespace Systems.PlacementSystem.Examples
         /// </summary>
         public void CancelPlacement()
         {
+            if (_placementController == null) return;
             _placementController.CancelPlacement();
         }
 
         public void SetSelectionTool()
         {
+            if (_placementController == null) return;
             _placementController.SetActiveTool(PlacementController.PlacementToolType.Selection);
         }
 
         public void SetMoveTool()
         {
+            if (_placementController == null) return;
             _placementController.SetActiveTool(PlacementController.PlacementToolType.Move);
         }
 
         public void SetRotateTool()
         {
+            if (_placementController == null) return;
             _placementController.SetActiveTool(PlacementController.PlacementToolType.Rotate);
         }
 
         public void SetDeleteTool()
         {
+            if (_placementController == null) return;
             _placementController.SetActiveTool(PlacementController.PlacementToolType.Delete);
         }
 
@@ -183,7 +193,8 @@ namespace Systems.PlacementSystem.Examples
             _selectedPrefabIndex = (_selectedPrefabIndex + 1) % _placeablePrefabs.Length;
 
             // If placement is active, switch to new prefab
-            _placementController.SetObjectToPlace(_placeablePrefabs[_selectedPrefabIndex]);
+            if (_placementController != null)
+                _placementController.SetObjectToPlace(_placeablePrefabs[_selectedPrefabIndex]);
         }
 
         /// <summary>

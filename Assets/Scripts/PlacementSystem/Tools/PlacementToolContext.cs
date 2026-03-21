@@ -28,6 +28,7 @@ namespace Systems.PlacementSystem.Tools
         public PlacementSelectionState SelectionState { get; }
         public SelectionTool SelectionTool { get; }
         public ToolStateRegistry ToolStates { get; }
+        public ICommandExecutor CommandExecutor { get; }
 
         public PlacementToolContext(
             IInputProvider inputProvider,
@@ -58,7 +59,8 @@ namespace Systems.PlacementSystem.Tools
                 selectionMovementSurface: -1,
                 selectionState: null,
                 selectionTool: null,
-                toolStates: null)
+                toolStates: null,
+                commandExecutor: null)
         {
         }
 
@@ -80,7 +82,8 @@ namespace Systems.PlacementSystem.Tools
             LayerMask selectionMovementSurface,
             PlacementSelectionState selectionState,
             SelectionTool selectionTool,
-            ToolStateRegistry toolStates)
+            ToolStateRegistry toolStates,
+            ICommandExecutor commandExecutor = null)
         {
             InputProvider = inputProvider;
             PlacementStrategy = placementStrategy;
@@ -100,6 +103,7 @@ namespace Systems.PlacementSystem.Tools
             SelectionState = selectionState ?? new PlacementSelectionState();
             SelectionTool = selectionTool;
             ToolStates = toolStates ?? new ToolStateRegistry();
+            CommandExecutor = commandExecutor ?? new DefaultCommandExecutor();
         }
     }
 

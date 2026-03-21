@@ -6,7 +6,8 @@ namespace Systems.PlacementSystem.Tools
     /// <summary>
     /// Tool for deleting selected objects on delete input.
     /// </summary>
-    public class DeleteTool : IPlacementTool
+    [CreateAssetMenu(menuName = "Placement System/Tools/Delete Tool")]
+    public class DeleteTool : ScriptableObject, IPlacementTool
     {
         private PlacementToolContext _context;
 
@@ -35,7 +36,7 @@ namespace Systems.PlacementSystem.Tools
                 if (obj != null)
                 {
                     var cmd = new DeleteObjectCommand(obj, _context.SnapManager);
-                    Systems.CommandSystem.CommandManager.Instance.ExecuteCommand(cmd, false, Systems.CommandSystem.CommandManager.DEFAULT_NAMESPACE);
+                    _context.CommandExecutor.Execute(cmd, false, Systems.CommandSystem.CommandManager.DEFAULT_NAMESPACE);
                 }
             }
 

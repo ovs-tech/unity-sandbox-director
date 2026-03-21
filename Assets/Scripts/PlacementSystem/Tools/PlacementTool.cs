@@ -10,7 +10,8 @@ namespace Systems.PlacementSystem.Tools
     /// Handles raycast-based placement, socket snapping, validation, and visual feedback.
     /// This is a plain C# class (not MonoBehaviour) that receives the ghost object from the caller.
     /// </summary>
-    public class PlacementTool : IPlacementTool
+    [CreateAssetMenu(menuName = "Placement System/Tools/Placement Tool")]
+    public class PlacementTool : ScriptableObject, IPlacementTool
     {
         private GameObject _ghostObject;
         private PlacementToolContext _context;
@@ -43,12 +44,6 @@ namespace Systems.PlacementSystem.Tools
         /// Carries no object since nothing was placed; only confirmation needs the reference.
         /// </summary>
         public System.Action OnPlacementCancelled { get; set; }
-
-        public PlacementTool()
-        {
-            _currentRotationAngle = 0f;
-            _placementSurface = -1;
-        }
 
         public void OnEnter(PlacementToolContext context)
         {
@@ -186,7 +181,7 @@ namespace Systems.PlacementSystem.Tools
                 _nearestSocket
             );
 
-            Systems.CommandSystem.CommandManager.Instance.ExecuteCommand(placeCommand, false, Systems.CommandSystem.CommandManager.DEFAULT_NAMESPACE);
+            _context.CommandExecutor.Execute(placeCommand, false, Systems.CommandSystem.CommandManager.DEFAULT_NAMESPACE);
 
             // Retrieve created instance from the command and pass to callback
             var created = placeCommand.Instance;

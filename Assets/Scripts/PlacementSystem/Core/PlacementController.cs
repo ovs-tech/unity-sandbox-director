@@ -43,7 +43,7 @@ namespace Systems.PlacementSystem.Core
 
         [Header("System Components")]
         [SerializeField, Tooltip("Reference to the input provider component")]
-        private MonoBehaviour _inputProviderComponent;
+        private BaseInputProvider _inputProviderComponent;
 
         [SerializeField, Tooltip("Reference to the placement strategy asset")]
         private BasePlacementStrategy _placementStrategy;
@@ -51,8 +51,17 @@ namespace Systems.PlacementSystem.Core
         [SerializeField, Tooltip("Reference to the placement visualizer asset")]
         private BasePlacementVisualizer _placementVisualizer;
 
+        [SerializeField, Tooltip("Optional ScriptableObject validator asset")]
+        private BasePlacementValidator _placementValidatorAsset;
+
+        [SerializeField, Tooltip("When false, default validation fails if PlacementPart is missing")]
+        private bool _allowPlacementWithoutPart = true;
+
         [SerializeField, Tooltip("Reference to the snap manager (optional)")]
         private SnapManager _snapManager;
+
+        [SerializeField, Tooltip("PlacementToolset asset — defines tools, dependencies, and handles SetActiveTool() calls")]
+        private PlacementToolset _toolset;
 
         [Header("Placement Settings")]
         [SerializeField, Tooltip("Maximum raycast distance")]
@@ -84,6 +93,7 @@ namespace Systems.PlacementSystem.Core
         private bool _moveSelectedWithPointer = true;
 
         private IInputProvider _inputProvider;
+        private IPlacementValidator _placementValidator;
 
         private PlacementToolContext _toolContext;
         private PlacementSelectionState _selectionState;
@@ -98,8 +108,11 @@ namespace Systems.PlacementSystem.Core
 
         private void Awake()
         {
-            _inputProvider = _inputProviderComponent as IInputProvider;
-            var placementValidator = new Validation.DefaultPlacementValidator();
+            _inputProvider = _inputProviderComponent;
+            _placementValidator = ResolvePlacementValidator();
+
+            if (_toolset != null)
+                _toolset.OnSetActiveToolRequested += HandleToolsetActiveToolRequested;
 
             if (_inputProvider == null)
             {
@@ -117,30 +130,7 @@ namespace Systems.PlacementSystem.Core
             if (_placementCamera == null)
                 _placementCamera = Camera.main;
 
-            _selectionState = new PlacementSelectionState();
-            ToolManager = new ToolManager();
-
-            var placementTool = new PlacementTool();
-            var selectionTool = new SelectionTool();
-            var snapTool = new SnapTool();
-            var moveTool = new MoveTool();
-            var rotateTool = new RotateTool();
-            var deleteTool = new DeleteTool();
-
-            ToolManager.RegisterTool(PlacementToolType.Placement, placementTool);
-            ToolManager.RegisterTool(PlacementToolType.Selection, selectionTool);
-            ToolManager.RegisterTool(PlacementToolType.Snap, snapTool);
-            ToolManager.RegisterTool(PlacementToolType.Move, moveTool);
-            ToolManager.RegisterTool(PlacementToolType.Rotate, rotateTool);
-            ToolManager.RegisterTool(PlacementToolType.Delete, deleteTool);
-
-            RebuildToolContext();
-
-            placementTool.OnPlacementConfirmed = HandlePlacementConfirmed;
-            placementTool.OnPlacementCancelled = HandlePlacementCancelled;
-            placementTool.OnPlacementFailed = HandlePlacementFailed;
-
-            SetActiveTool(PlacementToolType.Selection);
+            InitializeTooling();
 
             // Register a persistence adapter if SaveLoadSystem is available
             try
@@ -158,6 +148,12 @@ namespace Systems.PlacementSystem.Core
             }
         }
 
+        private void OnDestroy()
+        {
+            if (_toolset != null)
+                _toolset.OnSetActiveToolRequested -= HandleToolsetActiveToolRequested;
+        }
+
         private void Update()
         {
             ToolManager.HandleInput();
@@ -166,30 +162,53 @@ namespace Systems.PlacementSystem.Core
 
         public void InitializeForTesting()
         {
+            _inputProvider = _inputProviderComponent;
+            _placementValidator = ResolvePlacementValidator();
+            InitializeTooling();
+        }
+
+        private void InitializeTooling()
+        {
             _selectionState = new PlacementSelectionState();
             ToolManager = new ToolManager();
 
-            var placementTool = new PlacementTool();
-            var selectionTool = new SelectionTool();
-            var snapTool = new SnapTool();
-            var moveTool = new MoveTool();
-            var rotateTool = new RotateTool();
-            var deleteTool = new DeleteTool();
+            if (!RegisterToolsFromToolset())
+            {
+                Debug.LogError("PlacementController: no tools registered from PlacementToolset. Configure Toolset entries before runtime.");
+            }
 
-            ToolManager.RegisterTool(PlacementToolType.Placement, placementTool);
-            ToolManager.RegisterTool(PlacementToolType.Selection, selectionTool);
-            ToolManager.RegisterTool(PlacementToolType.Snap, snapTool);
-            ToolManager.RegisterTool(PlacementToolType.Move, moveTool);
-            ToolManager.RegisterTool(PlacementToolType.Rotate, rotateTool);
-            ToolManager.RegisterTool(PlacementToolType.Delete, deleteTool);
+            var placementTool = ToolManager.GetTool(PlacementToolType.Placement) as PlacementTool;
+            if (placementTool != null)
+            {
+                placementTool.OnPlacementConfirmed = HandlePlacementConfirmed;
+                placementTool.OnPlacementCancelled = HandlePlacementCancelled;
+                placementTool.OnPlacementFailed = HandlePlacementFailed;
+            }
 
-            placementTool.OnPlacementConfirmed = HandlePlacementConfirmed;
-            placementTool.OnPlacementCancelled = HandlePlacementCancelled;
-            placementTool.OnPlacementFailed = HandlePlacementFailed;
-
-            SetActiveTool(PlacementToolType.Selection);
-            
             RebuildToolContext();
+            SetActiveTool(PlacementToolType.Selection);
+        }
+
+        private bool RegisterToolsFromToolset()
+        {
+            if (_toolset == null || _toolset.Tools == null || _toolset.Tools.Count == 0)
+                return false;
+
+            bool anyRegistered = false;
+            for (int i = 0; i < _toolset.Tools.Count; i++)
+            {
+                var entry = _toolset.Tools[i];
+                if (entry == null)
+                    continue;
+
+                if (_toolset.TryGetTool(entry.ToolType, out var tool))
+                {
+                    ToolManager.RegisterTool(entry.ToolType, tool);
+                    anyRegistered = true;
+                }
+            }
+
+            return anyRegistered;
         }
 
         /// <summary>
@@ -259,31 +278,36 @@ namespace Systems.PlacementSystem.Core
 
         public void SetActiveTool(PlacementToolType toolType)
         {
-            switch (toolType)
+            if (_toolset != null && _toolset.TryBuildPipeline(toolType, out var pipeline) && pipeline.Length > 0)
             {
-                case PlacementToolType.Placement:
-                    SetToolStack(PlacementToolType.Snap, PlacementToolType.Placement);
-                    break;
-                case PlacementToolType.Selection:
-                    SetToolStack(PlacementToolType.Selection);
-                    break;
-                case PlacementToolType.Snap:
-                    SetToolStack(PlacementToolType.Snap);
-                    break;
-                case PlacementToolType.Move:
-                    SetToolStack(PlacementToolType.Selection, PlacementToolType.Snap, PlacementToolType.Move);
-                    break;
-                case PlacementToolType.Rotate:
-                    SetToolStack(PlacementToolType.Selection, PlacementToolType.Rotate);
-                    break;
-                case PlacementToolType.Delete:
-                    SetToolStack(PlacementToolType.Selection, PlacementToolType.Delete);
-                    break;
-                default:
-                    SetToolStack(PlacementToolType.Selection);
-                    break;
+                SetToolStack(pipeline);
+                OnToolChangedEvent?.Invoke(toolType);
+                return;
             }
-            OnToolChangedEvent?.Invoke(toolType);
+
+            Debug.LogWarning($"PlacementController: unable to resolve pipeline for '{toolType}'. Check PlacementToolset tool dependencies.");
+        }
+
+        public void SetActiveTool(string toolName)
+        {
+            if (string.IsNullOrWhiteSpace(toolName))
+            {
+                Debug.LogWarning("PlacementController: tool name is null or empty.");
+                return;
+            }
+
+            if (!Enum.TryParse(toolName, true, out PlacementToolType parsedTool))
+            {
+                Debug.LogWarning($"PlacementController: unknown tool '{toolName}'.");
+                return;
+            }
+
+            SetActiveTool(parsedTool);
+        }
+
+        private void HandleToolsetActiveToolRequested(PlacementToolType toolType)
+        {
+            SetActiveTool(toolType);
         }
 
         public void SetToolStack(params PlacementToolType[] toolTypes)
@@ -296,7 +320,7 @@ namespace Systems.PlacementSystem.Core
             _toolContext = new PlacementToolContext(
                 _inputProvider,
                 _placementStrategy,
-                new Validation.DefaultPlacementValidator(),
+                _placementValidator,
                 _placementVisualizer,
                 _snapManager,
                 _placementCamera,
@@ -317,6 +341,16 @@ namespace Systems.PlacementSystem.Core
             ToolManager.InitializeContext(_toolContext);
         }
 
+        private IPlacementValidator ResolvePlacementValidator()
+        {
+            if (_placementValidatorAsset != null)
+                return _placementValidatorAsset;
+
+            Debug.LogWarning("PlacementController: no validator asset assigned. Falling back to DefaultPlacementValidator.");
+
+            return new Validation.DefaultPlacementValidator(_allowPlacementWithoutPart, searchInChildren: true);
+        }
+
         /// <summary>
         /// Changes the placement strategy at runtime.
         /// </summary>
@@ -326,10 +360,16 @@ namespace Systems.PlacementSystem.Core
             RebuildToolContext();
         }
 
+        public void SetPlacementValidator(IPlacementValidator validator)
+        {
+            _placementValidator = validator ?? new Validation.DefaultPlacementValidator(_allowPlacementWithoutPart, searchInChildren: true);
+            RebuildToolContext();
+        }
+
         /// <summary>
-        /// Exposes the input provider component for modules like SelectionManager.
+        /// Exposes the input provider for modules like SelectionManager.
         /// </summary>
-        public MonoBehaviour InputProviderComponent => _inputProviderComponent;
+        public IInputProvider InputProviderComponent => _inputProvider;
 
         /// <summary>
         /// Exposes the placement camera for modules like SelectionManager.

@@ -5,7 +5,8 @@ namespace Systems.PlacementSystem.Tools
     /// <summary>
     /// Tool for rotating the primary selection by rotation increment.
     /// </summary>
-    public class RotateTool : IPlacementTool
+    [CreateAssetMenu(menuName = "Placement System/Tools/Rotate Tool")]
+    public class RotateTool : ScriptableObject, IPlacementTool
     {
         private PlacementToolContext _context;
 
@@ -34,7 +35,7 @@ namespace Systems.PlacementSystem.Tools
             var fromRot = selected.transform.rotation;
             var toRot = fromRot * Quaternion.Euler(0, _context.RotationIncrementDegrees, 0);
             var cmd = new RotateObjectCommand(selected, fromRot, toRot);
-            Systems.CommandSystem.CommandManager.Instance.ExecuteCommand(cmd, true, Systems.CommandSystem.CommandManager.DEFAULT_NAMESPACE);
+            _context.CommandExecutor.Execute(cmd, true, Systems.CommandSystem.CommandManager.DEFAULT_NAMESPACE);
         }
 
         public void Tick()

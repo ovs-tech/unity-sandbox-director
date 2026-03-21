@@ -12,7 +12,7 @@ namespace Systems.PlacementSystem.Input
     /// Demonstrates how the same interface can support different input backends.
     /// Note: Requires the Input System package to be installed.
     /// </summary>
-    public class NewInputSystemProvider : MonoBehaviour, IInputProvider
+    public class NewInputSystemProvider : BaseInputProvider
     {
 #if ENABLE_INPUT_SYSTEM && false
         [Header("Input Action References")]
@@ -51,7 +51,7 @@ namespace Systems.PlacementSystem.Input
             _deleteAction?.action.Disable();
         }
 
-        public Vector2 GetPointerPosition()
+        public override Vector2 GetPointerPosition()
         {
             if (_pointerPositionAction != null && _pointerPositionAction.action.enabled)
             {
@@ -62,50 +62,66 @@ namespace Systems.PlacementSystem.Input
             return (Vector2)UnityEngine.Input.mousePosition;
         }
 
-        public bool IsPlaceActionTriggered()
+        public override bool IsPlaceActionTriggered()
         {
             return _placeAction != null && _placeAction.action.WasPressedThisFrame();
         }
 
-        public bool IsCancelActionTriggered()
+        public override bool IsCancelActionTriggered()
         {
             return _cancelAction != null && _cancelAction.action.WasPressedThisFrame();
         }
 
-        public bool IsRotateActionTriggered()
+        public override bool IsRotateActionTriggered()
         {
             return _rotateAction != null && _rotateAction.action.WasPressedThisFrame();
         }
 
-        public bool IsDeleteActionTriggered()
+        public override bool IsDeleteActionTriggered()
         {
             return _deleteAction != null && _deleteAction.action.WasPressedThisFrame();
         }
+
+        public override bool IsMultiSelectModifierHeld()
+        {
+            return Keyboard.current != null && (Keyboard.current.leftCtrlKey.isPressed ||
+                                                Keyboard.current.rightCtrlKey.isPressed ||
+                                                Keyboard.current.leftCommandKey.isPressed ||
+                                                Keyboard.current.rightCommandKey.isPressed);
+        }
 #else
         // Fallback implementation if Input System package is not installed
-        public Vector2 GetPointerPosition()
+        public override Vector2 GetPointerPosition()
         {
             return UnityEngine.Input.mousePosition;
         }
 
-        public bool IsPlaceActionTriggered()
+        public override bool IsPlaceActionTriggered()
         {
             return UnityEngine.Input.GetMouseButtonDown(0);
         }
 
-        public bool IsCancelActionTriggered()
+        public override bool IsCancelActionTriggered()
         {
             return UnityEngine.Input.GetMouseButtonDown(1) || UnityEngine.Input.GetKeyDown(KeyCode.Escape);
         }
 
-        public bool IsRotateActionTriggered()
+        public override bool IsRotateActionTriggered()
         {
             return UnityEngine.Input.GetKeyDown(KeyCode.R);
         }
 
-        public bool IsDeleteActionTriggered()
+        public override bool IsDeleteActionTriggered()
         {
             return UnityEngine.Input.GetKeyDown(KeyCode.Delete);
+        }
+
+        public override bool IsMultiSelectModifierHeld()
+        {
+            return UnityEngine.Input.GetKey(KeyCode.LeftControl) ||
+                   UnityEngine.Input.GetKey(KeyCode.RightControl) ||
+                   UnityEngine.Input.GetKey(KeyCode.LeftCommand) ||
+                   UnityEngine.Input.GetKey(KeyCode.RightCommand);
         }
 #endif
     }
