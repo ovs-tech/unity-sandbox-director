@@ -14,6 +14,7 @@ namespace Systems.PlacementSystem.Tools
     public class PlacementTool : ScriptableObject, IPlacementTool
     {
         private GameObject _ghostObject;
+        private PlacementPart _ghostPart;
         private PlacementToolContext _context;
         private float _currentRotationAngle;
         private Socket _nearestSocket;
@@ -48,11 +49,18 @@ namespace Systems.PlacementSystem.Tools
         public void OnEnter(PlacementToolContext context)
         {
             _context = context;
-            _ghostObject = null;
-            _currentRotationAngle = 0f;
-            _nearestSocket = null;
-            _lastValidPosition = Vector3.zero;
-            _lastValidRotation = Quaternion.identity;
+
+            // Re-entrant context refreshes can call OnEnter without a matching OnExit.
+            // Preserve active placement state when a ghost is already present.
+            if (_ghostObject == null)
+            {
+                _currentRotationAngle = 0f;
+                _nearestSocket = null;
+                _lastValidPosition = Vector3.zero;
+                _lastValidRotation = Quaternion.identity;
+                _ghostPart = null;
+            }
+
             _placementSurface = _context != null ? _context.PlacementSurface : -1;
         }
 
@@ -62,7 +70,14 @@ namespace Systems.PlacementSystem.Tools
         /// </summary>
         public void SetupPlacement(GameObject ghostObject, GameObject objectToPrefab, bool makeSelectable = true)
         {
+            if (ghostObject == null)
+            {
+                Debug.LogWarning("PlacementTool: SetupPlacement called with a null ghost object.");
+                return;
+            }
+
             _ghostObject = ghostObject;
+            _ghostPart = _ghostObject.GetComponent<PlacementPart>();
             _objectToPrefab = objectToPrefab ?? ghostObject;
             _makeObjectsSelectable = makeSelectable;
 
@@ -78,10 +93,7 @@ namespace Systems.PlacementSystem.Tools
 
         public void OnExit()
         {
-            if (_context?.PlacementVisualizer != null)
-            {
-                _context.PlacementVisualizer.Cleanup();
-            }
+            CleanupGhost();
 
             if (_context != null)
             {
@@ -91,7 +103,8 @@ namespace Systems.PlacementSystem.Tools
             }
 
             _context = null;
-            _ghostObject = null;
+            _ghostPart = null;
+            _objectToPrefab = null;
             _nearestSocket = null;
         }
 
@@ -224,6 +237,7 @@ namespace Systems.PlacementSystem.Tools
                 _ghostObject = null;
             }
 
+            _ghostPart = null;
             _nearestSocket = null;
         }
 
@@ -296,9 +310,8 @@ namespace Systems.PlacementSystem.Tools
             }
 
             Quaternion baseRotation = Quaternion.Euler(0, _currentRotationAngle, 0);
-            var part = _ghostObject.GetComponent<PlacementPart>();
-            var socketType = part != null ? part.RequiredSocketType : null;
-            float snapRange = part != null ? part.SnapRange : 0f;
+            var socketType = _ghostPart != null ? _ghostPart.RequiredSocketType : null;
+            float snapRange = _ghostPart != null ? _ghostPart.SnapRange : 0f;
 
             snapState.SetRequest(_ghostObject, hit.point, baseRotation, socketType, snapRange);
         }

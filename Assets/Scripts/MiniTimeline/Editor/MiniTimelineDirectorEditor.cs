@@ -51,6 +51,16 @@ namespace Systems.MiniTimeline.Editor
         private bool showDebugInfo = false;
         private Dictionary<string, bool> clipDataFoldouts = new Dictionary<string, bool>();
         
+        // Clip detail form state (inline editing, replaces DrawTrackInfo content)
+        private bool isEditingClip = false;
+        private IMiniTrack editingTrack = null;
+        private IMiniClip editingClip = null;
+        private string editingClipType = "";
+        private string formClipId = "";
+        private float formStartTime = 0f;
+        private float formDuration = 1f;
+        private bool isCreateMode = false;
+        
         // Styles
         private GUIStyle headerStyle;
         private GUIStyle buttonStyle;
@@ -330,6 +340,25 @@ namespace Systems.MiniTimeline.Editor
                     {
                         QuickLoad();
                     }
+                    EditorGUILayout.EndHorizontal();
+                }
+
+                // Close project (only shown when a project is loaded)
+                if (director.Project != null)
+                {
+                    EditorGUILayout.Space(5);
+                    EditorGUILayout.LabelField("Current Project", EditorStyles.boldLabel);
+
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField($"Loaded: {director.Project.name}", EditorStyles.miniLabel);
+                    GUILayout.FlexibleSpace();
+                    var oldBg = GUI.backgroundColor;
+                    GUI.backgroundColor = new Color(1f, 0.5f, 0.5f);
+                    if (GUILayout.Button("Close Project", EditorStyles.miniButton, GUILayout.Width(100)))
+                    {
+                        CloseProject();
+                    }
+                    GUI.backgroundColor = oldBg;
                     EditorGUILayout.EndHorizontal();
                 }
                 
@@ -810,6 +839,13 @@ namespace Systems.MiniTimeline.Editor
         
         private void DrawTrackInfo()
         {
+            // If editing a clip, show the form instead of the track list
+            if (isEditingClip)
+            {
+                DrawClipDetailForm();
+                return;
+            }
+            
             showTrackInfo = EditorGUILayout.Foldout(showTrackInfo, $"Track Information ({director.Tracks.Count} tracks)", true);
             
             if (showTrackInfo)
@@ -1034,7 +1070,7 @@ namespace Systems.MiniTimeline.Editor
                                     
                                     EditorGUILayout.BeginVertical(clipBoxStyle);
                                     
-                                    // Clip header with type indicator and delete button
+                                    // Clip header with type indicator, edit button, and delete button
                                     EditorGUILayout.BeginHorizontal();
                                     
                                     // Clip type icon
@@ -1049,6 +1085,12 @@ namespace Systems.MiniTimeline.Editor
                                     EditorGUILayout.LabelField(clip.Id, EditorStyles.boldLabel);
                                     
                                     GUILayout.FlexibleSpace();
+                                    
+                                    // Edit button
+                                    if (GUILayout.Button("✎ Edit", EditorStyles.miniButton, GUILayout.Width(60)))
+                                    {
+                                        EditClip(track, clip);
+                                    }
                                     
                                     // Delete button
                                     GUI.backgroundColor = new Color(1f, 0.5f, 0.5f);
@@ -1065,8 +1107,16 @@ namespace Systems.MiniTimeline.Editor
                                     
                                     // Timeline visualization bar
                                     DrawClipTimelineBar(clip, maxTime);
-                                    
+
                                     EditorGUILayout.Space(3);
+
+                                    // Clip type info
+                                    EditorGUILayout.BeginHorizontal();
+                                    EditorGUILayout.LabelField($"Type: {clip.GetType().Name}", EditorStyles.miniLabel, GUILayout.Width(200));
+                                    GUILayout.FlexibleSpace();
+                                    EditorGUILayout.EndHorizontal();
+                                    
+                                    EditorGUILayout.Space(2);
                                     
                                     // Clip timing properties
                                     EditorGUILayout.BeginHorizontal();
@@ -1148,6 +1198,200 @@ namespace Systems.MiniTimeline.Editor
                 
                 EditorGUILayout.EndVertical();
             }
+        }
+        
+        private void DrawClipDetailForm()
+        {
+            EditorGUILayout.LabelField(isCreateMode ? "Create Clip" : "Edit Clip", EditorStyles.boldLabel);
+            EditorGUILayout.Space(5);
+
+            // Display clip type
+            GUI.backgroundColor = new Color(0.8f, 0.8f, 1f);
+            EditorGUILayout.HelpBox($"Type: {editingClipType}", MessageType.Info);
+            GUI.backgroundColor = Color.white;
+
+            EditorGUILayout.Space(10);
+
+            // Clip ID field
+            EditorGUILayout.LabelField("Clip ID", EditorStyles.boldLabel);
+            formClipId = EditorGUILayout.TextField(formClipId);
+            EditorGUILayout.Space(5);
+
+            // Start time field
+            EditorGUILayout.LabelField("Start Time (seconds)", EditorStyles.boldLabel);
+            if (isCreateMode)
+            {
+                formStartTime = EditorGUILayout.FloatField(formStartTime);
+            }
+            else
+            {
+                EditorGUILayout.LabelField(formStartTime.ToString("F2"), EditorStyles.textField);
+                EditorGUILayout.HelpBox("Start time is read-only for existing clips. Delete and recreate to change.", MessageType.Info);
+            }
+            EditorGUILayout.Space(5);
+
+            // Duration field
+            EditorGUILayout.LabelField("Duration (seconds)", EditorStyles.boldLabel);
+            if (isCreateMode)
+            {
+                formDuration = EditorGUILayout.FloatField(formDuration);
+            }
+            else
+            {
+                EditorGUILayout.LabelField(formDuration.ToString("F2"), EditorStyles.textField);
+                EditorGUILayout.HelpBox("Duration is read-only for existing clips. Delete and recreate to change.", MessageType.Info);
+            }
+            EditorGUILayout.Space(15);
+
+            // Validation
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Status:", EditorStyles.boldLabel);
+
+            if (string.IsNullOrWhiteSpace(formClipId))
+            {
+                EditorGUILayout.LabelField("⚠ Clip ID required", EditorStyles.helpBox);
+            }
+            else if (formDuration <= 0)
+            {
+                EditorGUILayout.LabelField("⚠ Duration must be > 0", EditorStyles.helpBox);
+            }
+            else
+            {
+                EditorGUILayout.LabelField("✓ Ready to submit", EditorStyles.helpBox);
+            }
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.Space(10);
+
+            // Buttons
+            EditorGUILayout.BeginHorizontal();
+
+            bool canSubmit = !string.IsNullOrWhiteSpace(formClipId) && formDuration > 0;
+
+            GUI.backgroundColor = new Color(0.3f, 0.7f, 0.3f);
+            GUI.enabled = canSubmit;
+            if (GUILayout.Button(isCreateMode ? "✓ Create" : "✓ Update", GUILayout.Height(30)))
+            {
+                if (isCreateMode)
+                {
+                    CreateClipFromForm();
+                }
+                else
+                {
+                    UpdateClipFromForm();
+                }
+                isEditingClip = false;
+            }
+            GUI.enabled = true;
+            GUI.backgroundColor = Color.white;
+
+            GUI.backgroundColor = new Color(1f, 0.5f, 0.5f);
+            if (GUILayout.Button("✕ Cancel", GUILayout.Height(30)))
+            {
+                isEditingClip = false;
+            }
+            GUI.backgroundColor = Color.white;
+
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private void CreateClipFromForm()
+        {
+            if (director == null || editingTrack == null) return;
+
+            IMiniClip newClip = null;
+            switch (editingClipType)
+            {
+                case "AnimClip":
+                    newClip = new Tracks.AnimClip
+                    {
+                        Id = formClipId,
+                        Start = formStartTime,
+                        Duration = formDuration,
+                        speed = 1f,
+                        wrapMode = Tracks.AnimWrapMode.Once,
+                        weight = 1f
+                    };
+                    break;
+                case "AnimatorClip":
+                    newClip = new Tracks.AnimatorClip
+                    {
+                        Id = formClipId,
+                        Start = formStartTime,
+                        Duration = formDuration
+                    };
+                    break;
+                case "MorphKeyClip":
+                    newClip = new Tracks.MorphKeyClip
+                    {
+                        Id = formClipId,
+                        Start = formStartTime,
+                        Duration = formDuration
+                    };
+                    break;
+                case "MovementClip":
+                    newClip = new Tracks.MovementClip
+                    {
+                        Id = formClipId,
+                        Start = formStartTime,
+                        Duration = formDuration
+                    };
+                    break;
+                case "SignalClip":
+                    newClip = new Tracks.SignalClip
+                    {
+                        Id = formClipId,
+                        Start = formStartTime,
+                        Duration = formDuration
+                    };
+                    break;
+                case "CinemachineClip":
+                    newClip = new Tracks.CinemachineClip
+                    {
+                        Id = formClipId,
+                        Start = formStartTime,
+                        Duration = formDuration,
+                        shotType = Tracks.CinemachineShotType.EyeLevel
+                    };
+                    break;
+                case "NavMeshMovementClip":
+                    newClip = new Tracks.NavMeshMovementClip
+                    {
+                        Id = formClipId,
+                        Start = formStartTime,
+                        Duration = formDuration,
+                        hasPosition = true,
+                        startPosition = Vector3.zero,
+                        endPosition = Vector3.zero,
+                        hasSpeed = false,
+                        startSpeed = 3.5f,
+                        endSpeed = 3.5f,
+                        animationCurve = Tracks.CameraAnimationCurve.Linear
+                    };
+                    break;
+                default:
+                    Debug.LogWarning($"[MiniTimelineDirectorEditor] Unknown clip type: {editingClipType}");
+                    newClip = new Tracks.AnimClip
+                    {
+                        Id = formClipId,
+                        Start = formStartTime,
+                        Duration = formDuration
+                    };
+                    break;
+            }
+
+            if (newClip != null && director.AddClip(newClip, editingTrack.Id))
+            {
+                director.MarkDirty();
+                Debug.Log($"[MiniTimelineDirectorEditor] Created {editingClipType} '{formClipId}' on track '{editingTrack.Id}'");
+                Repaint();
+            }
+        }
+
+        private void UpdateClipFromForm()
+        {
+            if (editingClip == null) return;
+            Debug.Log($"[MiniTimelineDirectorEditor] Edit mode for {editingClipType} '{editingClip.Id}' - use main inspector to modify detailed properties");
         }
         
         private void DrawDebugInfo()
@@ -1702,13 +1946,16 @@ namespace Systems.MiniTimeline.Editor
                 MiniTimelineConstants.TRACK_EXPRESSION,
                 MiniTimelineConstants.TRACK_MOVEMENT,
                 MiniTimelineConstants.TRACK_SIGNAL,
+                MiniTimelineConstants.TRACK_CINEMACHINE,
+                "NavMeshMovementTrack",
                 MiniTimelineConstants.TRACK_UMA_WARDROBE,
                 MiniTimelineConstants.TRACK_UMA_EXPRESSION
             };
             
             foreach (var trackType in trackTypes)
             {
-                menu.AddItem(new GUIContent(GetFriendlyTrackName(trackType)), false, () => AddTrack(trackType));
+                var capturedType = trackType; // Capture for closure
+                menu.AddItem(new GUIContent(GetFriendlyTrackName(capturedType)), false, () => AddTrack(capturedType));
             }
             
             menu.ShowAsContext();
@@ -1725,6 +1972,8 @@ namespace Systems.MiniTimeline.Editor
                 MiniTimelineConstants.TRACK_SIGNAL => "Signal Track",
                 MiniTimelineConstants.TRACK_AUDIO => "Audio Track",
                 MiniTimelineConstants.TRACK_EXPRESSION => "Expression Track",
+                MiniTimelineConstants.TRACK_CINEMACHINE => "Cinemachine Track",
+                "NavMeshMovementTrack" => "NavMesh Movement Track",
                 MiniTimelineConstants.TRACK_UMA_WARDROBE => "UMA Wardrobe Track",
                 MiniTimelineConstants.TRACK_UMA_EXPRESSION => "UMA Expression Track",
                 _ => trackType + " Track"
@@ -1738,12 +1987,75 @@ namespace Systems.MiniTimeline.Editor
                 EditorUtility.DisplayDialog("No Project", "No project loaded. Create or load a project first.", "OK");
                 return;
             }
-            
-            // Track creation is not fully implemented in the editor yet
-            // The AddTrack method requires a concrete IMiniTrack instance
-            // which would need to be instantiated based on the track type
-            Debug.Log($"[MiniTimelineDirectorEditor] AddTrack: Runtime track creation not fully implemented for type '{trackType}'");
-            Repaint();
+
+            var track = CreateTrackInstance(trackType);
+            if (track == null)
+            {
+                EditorUtility.DisplayDialog(
+                    "Unsupported Track Type",
+                    $"Cannot create track of type '{GetFriendlyTrackName(trackType)}'.\n\nThe track type is defined but may require additional plugins (e.g. UMA) to be installed.",
+                    "OK");
+                return;
+            }
+
+            if (director.AddTrack(track))
+            {
+                director.MarkDirty();
+                Debug.Log($"[MiniTimelineDirectorEditor] Added '{GetFriendlyTrackName(trackType)}' with id '{track.Id}'");
+                Repaint();
+            }
+        }
+
+        private IMiniTrack CreateTrackInstance(string trackType)
+        {
+            var trackId = $"track_{trackType}_{Guid.NewGuid().ToString().Substring(0, 6)}";
+
+            switch (trackType)
+            {
+                case MiniTimelineConstants.TRACK_ANIM:
+                    return new Tracks.AnimTrack { Id = trackId, Name = "Animation Track", Enabled = true };
+
+                case MiniTimelineConstants.TRACK_ANIMATOR:
+                    return new Tracks.AnimatorTrack { Id = trackId, Name = "Animator Track", Enabled = true };
+
+                case MiniTimelineConstants.TRACK_MORPH:
+                    return new Tracks.MorphTrack { Id = trackId, Name = "Morph Track", Enabled = true };
+
+                case MiniTimelineConstants.TRACK_MOVEMENT:
+                    return new Tracks.MovementTrack { Id = trackId, Name = "Movement Track", Enabled = true };
+
+                case MiniTimelineConstants.TRACK_SIGNAL:
+                    return new Tracks.SignalTrack { Id = trackId, Name = "Signal Track", Enabled = true };
+
+                case MiniTimelineConstants.TRACK_CINEMACHINE:
+                    return new Tracks.CinemachineTrack { Id = trackId, Name = "Cinemachine Track", Enabled = true };
+
+                case "NavMeshMovementTrack":
+                    return new Tracks.NavMeshMovementTrack { Id = trackId, Name = "NavMesh Movement Track", Enabled = true };
+
+                default:
+                    // Try dynamic resolution for UMA and other plugin tracks
+                    var type = TypeResolver.ResolveType(trackType);
+                    if (type != null && typeof(IMiniTrack).IsAssignableFrom(type))
+                    {
+                        try
+                        {
+                            var instance = System.Activator.CreateInstance(type) as IMiniTrack;
+                            if (instance != null)
+                            {
+                                type.GetProperty("Id")?.SetValue(instance, trackId);
+                                type.GetProperty("Name")?.SetValue(instance, GetFriendlyTrackName(trackType));
+                                type.GetProperty("Enabled")?.SetValue(instance, true);
+                                return instance;
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogError($"[MiniTimelineDirectorEditor] Failed to instantiate track type '{trackType}': {e.Message}");
+                        }
+                    }
+                    return null;
+            }
         }
         
         private void RemoveTrack(IMiniTrack track)
@@ -1959,67 +2271,304 @@ namespace Systems.MiniTimeline.Editor
         private void ShowAddClipMenu(IMiniTrack track)
         {
             var menu = new GenericMenu();
-            
-            // Get track type to determine appropriate clip types
             var trackType = GetTrackType(track);
-            
-            menu.AddItem(new GUIContent("Simple Clip (Default)"), false, () => AddSimpleClip(track));
-            
-            // Add track-specific clip creation options based on track type
+
             switch (trackType)
             {
-                case MiniTimelineConstants.TRACK_SIGNAL:
-                    menu.AddItem(new GUIContent("Signal Clip"), false, () => AddSignalClip(track));
+                case MiniTimelineConstants.TRACK_ANIM:
+                    menu.AddItem(new GUIContent("Animation Clip"), false, () => ShowClipDetailForm(track, "AnimClip"));
                     break;
+
+                case MiniTimelineConstants.TRACK_ANIMATOR:
+                    menu.AddItem(new GUIContent("Animator Clip"), false, () => ShowClipDetailForm(track, "AnimatorClip"));
+                    break;
+
+                case MiniTimelineConstants.TRACK_MORPH:
+                    menu.AddItem(new GUIContent("Morph Key Clip"), false, () => ShowClipDetailForm(track, "MorphKeyClip"));
+                    break;
+
                 case MiniTimelineConstants.TRACK_MOVEMENT:
-                    menu.AddItem(new GUIContent("Movement Clip"), false, () => AddMovementClip(track));
+                    menu.AddItem(new GUIContent("Movement Clip"), false, () => ShowClipDetailForm(track, "MovementClip"));
+                    break;
+
+                case MiniTimelineConstants.TRACK_SIGNAL:
+                    menu.AddItem(new GUIContent("Signal Clip"), false, () => ShowClipDetailForm(track, "SignalClip"));
+                    break;
+
+                case MiniTimelineConstants.TRACK_CINEMACHINE:
+                    menu.AddItem(new GUIContent("Cinemachine Clip"), false, () => ShowClipDetailForm(track, "CinemachineClip"));
+                    break;
+
+                case MiniTimelineConstants.TRACK_NAV_MESH_MOVEMENT:
+                    menu.AddItem(new GUIContent("NavMesh Movement Clip"), false, () => ShowClipDetailForm(track, "NavMeshMovementClip"));
+                    break;
+
+                default:
+                    // Fallback for UMA or unknown track types
+                    menu.AddItem(new GUIContent("Generic Clip"), false, () => ShowClipDetailForm(track, "GenericClip"));
                     break;
             }
-            
+
             menu.ShowAsContext();
         }
-        
+
+        /// <summary>Opens the clip detail form inline (replaces DrawTrackInfo content).</summary>
+        private void ShowClipDetailForm(IMiniTrack track, string clipType)
+        {
+            isEditingClip = true;
+            isCreateMode = true;
+            editingTrack = track;
+            editingClip = null;
+            editingClipType = clipType;
+
+            // Auto-generate clip ID
+            formClipId = $"clip_{Guid.NewGuid().ToString().Substring(0, 8)}";
+
+            // Auto-position after last clip
+            float nextStart = 0f;
+            var clips = track.GetClips();
+            if (clips != null && clips.Any())
+            {
+                nextStart = clips.Max(c => c.Start + c.Duration);
+            }
+            formStartTime = nextStart;
+            formDuration = 1f;
+        }
+
+        /// <summary>Opens the clip detail form inline to edit an existing clip.</summary>
+        private void EditClip(IMiniTrack track, IMiniClip clip)
+        {
+            if (clip == null || track == null) return;
+
+            isEditingClip = true;
+            isCreateMode = false;
+            editingTrack = track;
+            editingClip = clip;
+            editingClipType = clip.GetType().Name;
+            formClipId = clip.Id;
+            formStartTime = clip.Start;
+            formDuration = clip.Duration;
+        }
+
         private string GetTrackType(IMiniTrack track)
         {
             if (track == null) return "";
             return track.GetType().Name;
         }
-        
-        private void AddSimpleClip(IMiniTrack track)
+
+        /// <summary>Returns the start time placed after the last existing clip on the track.</summary>
+        private float GetNextClipStartTime(IMiniTrack track, float defaultDuration = 1f)
+        {
+            var clips = track.GetClips();
+            return clips != null && clips.Any() ? clips.Max(c => c.Start + c.Duration) : 0f;
+        }
+
+        private void AddAnimClip(IMiniTrack track)
         {
             if (director.Project == null || track == null) return;
-            
-            var clips = track.GetClips();
-            if (clips == null) return;
-            
-            // Create a simple clip with default properties
-            var clipId = $"clip_{Guid.NewGuid().ToString().Substring(0, 8)}";
-            var startTime = clips.Count() > 0 ? clips.Max(c => c.Start + c.Duration) : 0f;
-            
-            Debug.Log($"[MiniTimelineDirectorEditor] AddSimpleClip: Runtime clip creation not fully implemented for track '{track.Id}'");
-            Repaint();
+
+            var clip = new Tracks.AnimClip
+            {
+                Id = $"clip_{Guid.NewGuid().ToString().Substring(0, 8)}",
+                Start = GetNextClipStartTime(track),
+                Duration = 1f,
+                speed = 1f,
+                wrapMode = Tracks.AnimWrapMode.Once,
+                weight = 1f
+            };
+
+            if (director.AddClip(clip, track.Id))
+            {
+                director.MarkDirty();
+                Debug.Log($"[MiniTimelineDirectorEditor] Added AnimClip '{clip.Id}' to track '{track.Id}'");
+                Repaint();
+            }
         }
-        
-        private void AddSignalClip(IMiniTrack track)
+
+        private void AddAnimatorClip(IMiniTrack track)
         {
             if (director.Project == null || track == null) return;
-            
-            var clips = track.GetClips();
-            if (clips == null) return;
-            
-            Debug.Log($"[MiniTimelineDirectorEditor] AddSignalClip: Runtime clip creation not fully implemented for track '{track.Id}'");
-            Repaint();
+
+            var clip = new Tracks.AnimatorClip
+            {
+                Id = $"clip_{Guid.NewGuid().ToString().Substring(0, 8)}",
+                Start = GetNextClipStartTime(track),
+                Duration = 1f,
+                fadeIn = 0f,
+                fadeOut = 0f,
+                blendMode = Tracks.AnimatorBlendMode.Override
+            };
+
+            if (director.AddClip(clip, track.Id))
+            {
+                director.MarkDirty();
+                Debug.Log($"[MiniTimelineDirectorEditor] Added AnimatorClip '{clip.Id}' to track '{track.Id}'");
+                Repaint();
+            }
         }
-        
+
+        private void AddMorphKeyClip(IMiniTrack track)
+        {
+            if (director.Project == null || track == null) return;
+
+            var clip = new Tracks.MorphKeyClip
+            {
+                Id = $"clip_{Guid.NewGuid().ToString().Substring(0, 8)}",
+                Start = GetNextClipStartTime(track),
+                Duration = 1f,
+                blendMode = Tracks.MorphBlendMode.Additive,
+                weight = 1f
+            };
+
+            if (director.AddClip(clip, track.Id))
+            {
+                director.MarkDirty();
+                Debug.Log($"[MiniTimelineDirectorEditor] Added MorphKeyClip '{clip.Id}' to track '{track.Id}'");
+                Repaint();
+            }
+        }
+
         private void AddMovementClip(IMiniTrack track)
         {
             if (director.Project == null || track == null) return;
-            
+
+            var clip = new Tracks.MovementClip
+            {
+                Id = $"clip_{Guid.NewGuid().ToString().Substring(0, 8)}",
+                Start = GetNextClipStartTime(track),
+                Duration = 1f,
+                mode = Tracks.MovementMode.Direct,
+                hasPosition = true,
+                startPosition = Vector3.zero,
+                endPosition = Vector3.zero,
+                hasRotation = false,
+                animationCurve = Tracks.CameraAnimationCurve.Linear
+            };
+
+            if (director.AddClip(clip, track.Id))
+            {
+                director.MarkDirty();
+                Debug.Log($"[MiniTimelineDirectorEditor] Added MovementClip '{clip.Id}' to track '{track.Id}'");
+                Repaint();
+            }
+        }
+
+        private void AddSignalClip(IMiniTrack track)
+        {
+            if (director.Project == null || track == null) return;
+
+            // Signals are placed at current time or after the last signal marker
             var clips = track.GetClips();
-            if (clips == null) return;
-            
-            Debug.Log($"[MiniTimelineDirectorEditor] AddMovementClip: Runtime clip creation not fully implemented for track '{track.Id}'");
-            Repaint();
+            float startTime = clips != null && clips.Any() ? clips.Max(c => c.Start) + 0.5f : 0f;
+
+            var clip = new Tracks.SignalClip
+            {
+                Id = $"clip_{Guid.NewGuid().ToString().Substring(0, 8)}",
+                Start = startTime,
+                // Duration stays 0 (set by SignalClip constructor)
+                eventId = "OnSignal",
+                payload = "",
+                edge = Tracks.EventTriggerEdge.OnEnter,
+                fireOnScrub = false
+            };
+
+            if (director.AddClip(clip, track.Id))
+            {
+                director.MarkDirty();
+                Debug.Log($"[MiniTimelineDirectorEditor] Added SignalClip '{clip.Id}' to track '{track.Id}'");
+                Repaint();
+            }
+        }
+
+        private void AddCinemachineClip(IMiniTrack track)
+        {
+            if (director.Project == null || track == null) return;
+
+            var clip = new Tracks.CinemachineClip
+            {
+                Id = $"clip_{Guid.NewGuid().ToString().Substring(0, 8)}",
+                Start = GetNextClipStartTime(track),
+                Duration = 1f,
+                shotType = Tracks.CinemachineShotType.EyeLevel
+            };
+
+            if (director.AddClip(clip, track.Id))
+            {
+                director.MarkDirty();
+                Debug.Log($"[MiniTimelineDirectorEditor] Added CinemachineClip '{clip.Id}' to track '{track.Id}'");
+                Repaint();
+            }
+        }
+
+        private void AddNavMeshMovementClip(IMiniTrack track)
+        {
+            if (director.Project == null || track == null) return;
+
+            var clip = new Tracks.NavMeshMovementClip
+            {
+                Id = $"clip_{Guid.NewGuid().ToString().Substring(0, 8)}",
+                Start = GetNextClipStartTime(track),
+                Duration = 1f,
+                hasPosition = true,
+                startPosition = Vector3.zero,
+                endPosition = Vector3.zero,
+                hasSpeed = false,
+                startSpeed = 3.5f,
+                endSpeed = 3.5f,
+                animationCurve = Tracks.CameraAnimationCurve.Linear
+            };
+
+            if (director.AddClip(clip, track.Id))
+            {
+                director.MarkDirty();
+                Debug.Log($"[MiniTimelineDirectorEditor] Added NavMeshMovementClip '{clip.Id}' to track '{track.Id}'");
+                Repaint();
+            }
+        }
+
+        private void AddSimpleClip(IMiniTrack track)
+        {
+            if (director.Project == null || track == null) return;
+
+            // Fallback: try to instantiate a clip using reflection based on the track's generic type argument
+            var trackType = track.GetType();
+            var baseType = trackType.BaseType;
+            while (baseType != null && (!baseType.IsGenericType || baseType.GetGenericTypeDefinition() != typeof(MiniTrackBase<>)))
+            {
+                baseType = baseType.BaseType;
+            }
+
+            if (baseType != null)
+            {
+                var clipType = baseType.GetGenericArguments()[0];
+                if (!clipType.IsInterface && !clipType.IsAbstract && typeof(MiniClipBase).IsAssignableFrom(clipType))
+                {
+                    try
+                    {
+                        var clip = System.Activator.CreateInstance(clipType) as MiniClipBase;
+                        if (clip != null)
+                        {
+                            clip.Id = $"clip_{Guid.NewGuid().ToString().Substring(0, 8)}";
+                            clip.Start = GetNextClipStartTime(track);
+                            clip.Duration = 1f;
+
+                            if (director.AddClip(clip, track.Id))
+                            {
+                                director.MarkDirty();
+                                Debug.Log($"[MiniTimelineDirectorEditor] Added {clipType.Name} '{clip.Id}' to track '{track.Id}'");
+                                Repaint();
+                                return;
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError($"[MiniTimelineDirectorEditor] Failed to create clip for track '{track.Id}': {e.Message}");
+                    }
+                }
+            }
+
+            Debug.LogWarning($"[MiniTimelineDirectorEditor] AddSimpleClip: Could not determine clip type for track '{track.Id}' ({trackType.Name})");
         }
         
         private void RemoveClip(IMiniTrack track, IMiniClip clip)

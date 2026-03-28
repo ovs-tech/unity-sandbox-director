@@ -12,3 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c58c76edd86314124917fe2a54e09892, type: 3}
   m_Name: Snap Tool
   m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Tools.SnapTool
+  _maxStableSnapDistance: 0.5

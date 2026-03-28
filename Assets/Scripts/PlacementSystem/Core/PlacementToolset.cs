@@ -15,11 +15,11 @@ namespace Systems.PlacementSystem.Core
         [Serializable]
         public class ToolEntry
         {
-            public PlacementController.PlacementToolType ToolType;
+            public string ToolType;
             [Tooltip("ScriptableObject implementing IPlacementTool")]
             public ScriptableObject ToolAsset;
             [Tooltip("Tools that must run before this one")]
-            public List<PlacementController.PlacementToolType> Dependencies = new List<PlacementController.PlacementToolType>();
+            public List<string> Dependencies = new List<string>();
 
             public IPlacementTool AsPlacementTool => ToolAsset as IPlacementTool;
         }
@@ -27,89 +27,91 @@ namespace Systems.PlacementSystem.Core
         [SerializeField, Tooltip("Registered tools and dependency graph")]
         private List<ToolEntry> _tools = new List<ToolEntry>();
 
-        public event Action<PlacementController.PlacementToolType> OnSetActiveToolRequested;
+        public event Action<string> OnSetActiveToolRequested;
 
         public IReadOnlyList<ToolEntry> Tools => _tools;
 
         public void SetActiveTool(string toolName)
         {
-            if (string.IsNullOrWhiteSpace(toolName))
+            var normalizedToolName = NormalizeToolName(toolName);
+            if (string.IsNullOrEmpty(normalizedToolName))
             {
                 Debug.LogWarning("PlacementToolset: tool name is null or empty.");
                 return;
             }
 
-            if (!Enum.TryParse(toolName.Trim(), true, out PlacementController.PlacementToolType parsedTool))
-            {
-                Debug.LogWarning($"PlacementToolset: unknown tool '{toolName}'.");
-                return;
-            }
-
-            SetActiveTool(parsedTool);
+            OnSetActiveToolRequested?.Invoke(normalizedToolName);
         }
 
-        public void SetActiveTool(PlacementController.PlacementToolType toolType)
-        {
-            OnSetActiveToolRequested?.Invoke(toolType);
-        }
-
-        public bool TryGetTool(PlacementController.PlacementToolType toolType, out IPlacementTool tool)
+        public bool TryGetTool(string toolType, out IPlacementTool tool)
         {
             tool = null;
+            var normalizedToolType = NormalizeToolName(toolType);
+            if (string.IsNullOrEmpty(normalizedToolType))
+                return false;
+
             var byType = BuildMap();
-            if (!byType.TryGetValue(toolType, out var entry))
+            if (!byType.TryGetValue(normalizedToolType, out var entry))
                 return false;
 
             tool = entry.AsPlacementTool;
             if (tool == null)
             {
-                Debug.LogWarning($"PlacementToolset: entry '{toolType}' is missing a valid IPlacementTool asset.");
+                Debug.LogWarning($"PlacementToolset: entry '{normalizedToolType}' is missing a valid IPlacementTool asset.");
                 return false;
             }
 
             return true;
         }
 
-        public bool TryBuildPipeline(PlacementController.PlacementToolType activeTool, out PlacementController.PlacementToolType[] pipeline)
+        public bool TryBuildPipeline(string activeTool, out string[] pipeline)
         {
-            pipeline = Array.Empty<PlacementController.PlacementToolType>();
+            pipeline = Array.Empty<string>();
 
-            var byType = BuildMap();
-            if (!byType.ContainsKey(activeTool))
+            var normalizedActiveTool = NormalizeToolName(activeTool);
+            if (string.IsNullOrEmpty(normalizedActiveTool))
                 return false;
 
-            var ordered = new List<PlacementController.PlacementToolType>();
-            var visited = new HashSet<PlacementController.PlacementToolType>();
-            var recursion = new HashSet<PlacementController.PlacementToolType>();
+            var byType = BuildMap();
+            if (!byType.ContainsKey(normalizedActiveTool))
+                return false;
 
-            if (!ResolveDependencies(activeTool, byType, visited, recursion, ordered))
+            var ordered = new List<string>();
+            var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var recursion = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            if (!ResolveDependencies(normalizedActiveTool, byType, visited, recursion, ordered))
                 return false;
 
             pipeline = ordered.ToArray();
             return pipeline.Length > 0;
         }
 
-        private Dictionary<PlacementController.PlacementToolType, ToolEntry> BuildMap()
+        private Dictionary<string, ToolEntry> BuildMap()
         {
-            var map = new Dictionary<PlacementController.PlacementToolType, ToolEntry>();
+            var map = new Dictionary<string, ToolEntry>(StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < _tools.Count; i++)
             {
                 var entry = _tools[i];
                 if (entry == null)
                     continue;
 
-                map[entry.ToolType] = entry;
+                var normalizedToolType = NormalizeToolName(entry.ToolType);
+                if (string.IsNullOrEmpty(normalizedToolType))
+                    continue;
+
+                map[normalizedToolType] = entry;
             }
 
             return map;
         }
 
         private bool ResolveDependencies(
-            PlacementController.PlacementToolType tool,
-            Dictionary<PlacementController.PlacementToolType, ToolEntry> byType,
-            HashSet<PlacementController.PlacementToolType> visited,
-            HashSet<PlacementController.PlacementToolType> recursion,
-            List<PlacementController.PlacementToolType> ordered)
+            string tool,
+            Dictionary<string, ToolEntry> byType,
+            HashSet<string> visited,
+            HashSet<string> recursion,
+            List<string> ordered)
         {
             if (visited.Contains(tool))
                 return true;
@@ -128,7 +130,11 @@ namespace Systems.PlacementSystem.Core
 
             for (int i = 0; i < entry.Dependencies.Count; i++)
             {
-                if (!ResolveDependencies(entry.Dependencies[i], byType, visited, recursion, ordered))
+                var dependency = NormalizeToolName(entry.Dependencies[i]);
+                if (string.IsNullOrEmpty(dependency))
+                    continue;
+
+                if (!ResolveDependencies(dependency, byType, visited, recursion, ordered))
                     return false;
             }
 
@@ -136,6 +142,11 @@ namespace Systems.PlacementSystem.Core
             visited.Add(tool);
             ordered.Add(tool);
             return true;
+        }
+
+        private static string NormalizeToolName(string toolName)
+        {
+            return string.IsNullOrWhiteSpace(toolName) ? null : toolName.Trim();
         }
     }
 }

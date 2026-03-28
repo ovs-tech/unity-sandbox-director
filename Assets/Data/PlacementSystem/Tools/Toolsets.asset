@@ -13,21 +13,26 @@ MonoBehaviour:
   m_Name: Toolsets
   m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Core.PlacementToolset
   _tools:
-  - ToolType: 1
+  - ToolType: Selection
     ToolAsset: {fileID: 11400000, guid: 931855f42a5324f9a8c7daf96636ebce, type: 2}
-    Dependencies: 
-  - ToolType: 0
-    ToolAsset: {fileID: 11400000, guid: 7665104baeb564c659dbfdb9e80c8771, type: 2}
-    Dependencies: 03000000
-  - ToolType: 2
+    Dependencies: []
+  - ToolType: Snap
     ToolAsset: {fileID: 11400000, guid: 0c0bb98e089e54f27a9f10c2f4c78a90, type: 2}
-    Dependencies: 01000000
-  - ToolType: 3
+    Dependencies:
+    - Selection
+  - ToolType: Move
     ToolAsset: {fileID: 11400000, guid: 5b5c3ed1b44df4cd5bcef54a8f23c6fb, type: 2}
-    Dependencies: 02000000
-  - ToolType: 4
+    Dependencies:
+    - Snap
+  - ToolType: Placement
+    ToolAsset: {fileID: 11400000, guid: 7665104baeb564c659dbfdb9e80c8771, type: 2}
+    Dependencies:
+    - Move
+  - ToolType: Rotate
     ToolAsset: {fileID: 11400000, guid: 2c4b9af1b2fb141e18147f845c5eb025, type: 2}
-    Dependencies: 01000000
-  - ToolType: 5
+    Dependencies:
+    - Selection
+  - ToolType: Delete
     ToolAsset: {fileID: 11400000, guid: cc882fe8a2e154fbc904ddb72a0508da, type: 2}
-    Dependencies: 01000000
+    Dependencies:
+    - Selection

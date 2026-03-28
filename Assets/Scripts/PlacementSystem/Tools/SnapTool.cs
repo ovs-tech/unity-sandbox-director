@@ -8,6 +8,9 @@ namespace Systems.PlacementSystem.Tools
     [CreateAssetMenu(menuName = "Placement System/Tools/Snap Tool")]
     public class SnapTool : ScriptableObject, IPlacementTool
     {
+        [SerializeField, Tooltip("Optional cap for snap distance to keep movement stable. Set <= 0 to use per-part SnapRange only.")]
+        private float _maxStableSnapDistance = 0f;
+
         private PlacementToolContext _context;
 
         public void OnEnter(PlacementToolContext context)
@@ -44,12 +47,24 @@ namespace Systems.PlacementSystem.Tools
                 return;
             }
 
+            float effectiveSnapRange = snapState.SnapRange;
+            if (_maxStableSnapDistance > 0f)
+            {
+                effectiveSnapRange = Mathf.Min(effectiveSnapRange, _maxStableSnapDistance);
+            }
+
+            if (effectiveSnapRange <= 0f)
+            {
+                snapState.ClearSnap();
+                return;
+            }
+
             // Sticky snap logic: if already snapped, only break if request moved beyond snap range
             if (snapState.HasSnap)
             {
                 float distanceFromSnappedSocket = Vector3.Distance(snapState.RequestPosition, snapState.SnappedPosition);
 
-                if (distanceFromSnappedSocket <= snapState.SnapRange)
+                if (distanceFromSnappedSocket <= effectiveSnapRange)
                 {
                     // Still within range, maintain the snap
                     return;
@@ -64,7 +79,7 @@ namespace Systems.PlacementSystem.Tools
             var socket = _context.SnapManager.FindNearestSocket(
                 snapState.RequestPosition,
                 snapState.RequiredSocketType,
-                snapState.SnapRange
+                effectiveSnapRange
             );
 
             if (socket != null)

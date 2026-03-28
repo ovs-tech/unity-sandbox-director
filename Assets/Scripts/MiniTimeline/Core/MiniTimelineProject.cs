@@ -230,6 +230,7 @@ namespace Systems.MiniTimeline.Core
         public const string TRACK_UMA_WARDROBE = "UmaWardrobeTrack";
         public const string TRACK_UMA_EXPRESSION = "UMAExpressionTrack";
         public const string TRACK_CINEMACHINE = "CinemachineTrack";
+        public const string TRACK_NAV_MESH_MOVEMENT = "NavMeshMovementTrack";
 
         // Asset reference prefixes
         public const string ASSET_ADDRESSABLE = "addr:";

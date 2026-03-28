@@ -392,6 +392,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cded085d155cde949b60f67a11dbc3bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  version: 2
+  globalVolume: 0
   mode: 2
   size: {x: 20, y: 6, z: 20}
   overrideRendererFilters: 0
@@ -422,8 +424,6 @@ MonoBehaviour:
     e33: 1
   cachedHashCode: 288411912
   fillEmptySpaces: 0
-  version: 2
-  globalVolume: 0
 --- !u!4 &884071956
 Transform:
   m_ObjectHideFlags: 0
@@ -439,6 +439,74 @@ Transform:
   m_Children: []
   m_Father: {fileID: 59383918}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &979256138
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 979256141}
+  - component: {fileID: 979256140}
+  - component: {fileID: 979256139}
+  m_Layer: 0
+  m_Name: MiniTimelineDirector
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &979256139
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 979256138}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d74afd1dd40d45ae80574afe032de33, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Systems.MiniTimeline::Systems.MiniTimeline.Core.BindableObjectManager
+--- !u!114 &979256140
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 979256138}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8f524a58effd4d5aa3a7395f55a3246, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Systems.MiniTimeline::Systems.MiniTimeline.Core.MiniTimelineDirector
+  length: 12
+  playbackSpeed: 1
+  loop: 0
+  playOnAwake: 0
+  autoLoadFirstProject: 0
+  autoCreateEmptyProject: 0
+  defaultProjectName: New Timeline Project
+  defaultProjectLength: 10
+  defaultFrameRate: 30
+  bindableObjectManager: {fileID: 979256139}
+  debugMode: 0
+--- !u!4 &979256141
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 979256138}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.73456, y: -0.5, z: 1.2967}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1008020058
 GameObject:
   m_ObjectHideFlags: 0
@@ -451,6 +519,7 @@ GameObject:
   - component: {fileID: 1008020060}
   - component: {fileID: 1008020062}
   - component: {fileID: 1008020063}
+  - component: {fileID: 1008020068}
   - component: {fileID: 1008020067}
   m_Layer: 0
   m_Name: PlacementSystem
@@ -530,7 +599,7 @@ MonoBehaviour:
   _placementValidatorAsset: {fileID: 11400000, guid: a8a03b2bc088a4ae6a45ceac9b54e339, type: 2}
   _allowPlacementWithoutPart: 1
   _snapManager: {fileID: 1008020063}
-  _toolset: {fileID: 11400000, guid: a52018a6ab7554c83911ec2c6d498f3f, type: 2}
+  _toolManager: {fileID: 1008020068}
   _maxRaycastDistance: 100
   _rotationSnapDegrees: 90
   _rotationIncrement: 90
@@ -562,7 +631,7 @@ MonoBehaviour:
   _socketTag: Socket
   _useTagDetection: 1
   _maxSocketChecksPerFrame: 50
-  _enableSocketCaching: 0
+  _enableSocketCaching: 1
 --- !u!114 &1008020067
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -580,6 +649,19 @@ MonoBehaviour:
   _rotateKey: 114
   _deleteKey: 127
   _alternativeCancelKey: 27
+--- !u!114 &1008020068
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1008020058}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e766f14b464fdb47ba01d93af343e4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Core.ToolManager
+  _toolset: {fileID: 11400000, guid: a52018a6ab7554c83911ec2c6d498f3f, type: 2}
 --- !u!1 &1045504573
 GameObject:
   m_ObjectHideFlags: 19
@@ -862,7 +944,7 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1659505970839723442}
   m_Enabled: 1
-  serializedVersion: 12
+  serializedVersion: 13
   m_Type: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 30
@@ -914,7 +996,7 @@ Light:
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 0
   m_ForceVisible: 0
-  m_ShadowRadius: 0.025
+  m_ShapeRadius: 0.025
   m_ShadowAngle: 0
   m_LightUnit: 0
   m_LuxAtDistance: 1
@@ -1488,7 +1570,7 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 927598970997111942}
   m_Enabled: 1
-  serializedVersion: 12
+  serializedVersion: 13
   m_Type: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1.98
@@ -1540,7 +1622,7 @@ Light:
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
-  m_ShadowRadius: 0.025
+  m_ShapeRadius: 0.025
   m_ShadowAngle: 0
   m_LightUnit: 0
   m_LuxAtDistance: 1
@@ -2559,7 +2641,7 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1935158662385014115}
   m_Enabled: 1
-  serializedVersion: 12
+  serializedVersion: 13
   m_Type: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 15
@@ -2611,7 +2693,7 @@ Light:
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
-  m_ShadowRadius: 0.025
+  m_ShapeRadius: 0.025
   m_ShadowAngle: 0
   m_LightUnit: 0
   m_LuxAtDistance: 1
@@ -3510,7 +3592,7 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8598119875628110629}
   m_Enabled: 1
-  serializedVersion: 12
+  serializedVersion: 13
   m_Type: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 7.5
@@ -3562,7 +3644,7 @@ Light:
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
-  m_ShadowRadius: 0.025
+  m_ShapeRadius: 0.025
   m_ShadowAngle: 0
   m_LightUnit: 0
   m_LuxAtDistance: 1
@@ -4463,5 +4545,6 @@ SceneRoots:
   - {fileID: 1522427161}
   - {fileID: 1276148452}
   - {fileID: 1008020061}
-  - {fileID: 1043612671569015473}
   - {fileID: 867402198}
+  - {fileID: 979256141}
+  - {fileID: 1043612671569015473}

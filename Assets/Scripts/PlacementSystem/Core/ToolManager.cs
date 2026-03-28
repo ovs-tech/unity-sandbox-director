@@ -8,15 +8,62 @@ namespace Systems.PlacementSystem.Core
     /// Manages the pipeline of active placement tools.
     /// Replaces the hardcoded tool instantiation in PlacementController.
     /// </summary>
-    public class ToolManager
+    public class ToolManager : MonoBehaviour
     {
-        private readonly Dictionary<PlacementController.PlacementToolType, IPlacementTool> _toolRegistry 
-            = new Dictionary<PlacementController.PlacementToolType, IPlacementTool>();
+        [SerializeField, Tooltip("PlacementToolset asset defining tool entries and dependencies")]
+        private PlacementToolset _toolset;
+
+        private readonly Dictionary<string, IPlacementTool> _toolRegistry
+            = new Dictionary<string, IPlacementTool>(System.StringComparer.OrdinalIgnoreCase);
             
         private readonly List<IPlacementTool> _activeTools = new List<IPlacementTool>();
         private PlacementToolContext _context;
 
         public ToolStateRegistry ToolStates { get; } = new ToolStateRegistry();
+
+        public void SubscribeToToolsetRequests(System.Action<string> handler)
+        {
+            if (_toolset == null || handler == null)
+                return;
+
+            _toolset.OnSetActiveToolRequested += handler;
+        }
+
+        public void UnsubscribeFromToolsetRequests(System.Action<string> handler)
+        {
+            if (_toolset == null || handler == null)
+                return;
+
+            _toolset.OnSetActiveToolRequested -= handler;
+        }
+
+        public bool RegisterToolsFromToolset()
+        {
+            if (_toolset == null || _toolset.Tools == null || _toolset.Tools.Count == 0)
+                return false;
+
+            bool anyRegistered = false;
+            for (int i = 0; i < _toolset.Tools.Count; i++)
+            {
+                var entry = _toolset.Tools[i];
+                if (entry == null)
+                    continue;
+
+                if (_toolset.TryGetTool(entry.ToolType, out var tool))
+                {
+                    RegisterTool(entry.ToolType, tool);
+                    anyRegistered = true;
+                }
+            }
+
+            return anyRegistered;
+        }
+
+        public bool TryBuildPipeline(string activeTool, out string[] pipeline)
+        {
+            pipeline = System.Array.Empty<string>();
+            return _toolset != null && _toolset.TryBuildPipeline(activeTool, out pipeline);
+        }
 
         public void InitializeContext(PlacementToolContext context)
         {
@@ -24,22 +71,28 @@ namespace Systems.PlacementSystem.Core
             RefreshActiveToolContexts();
         }
 
-        public void RegisterTool(PlacementController.PlacementToolType type, IPlacementTool tool)
+        public void RegisterTool(string type, IPlacementTool tool)
         {
-            _toolRegistry[type] = tool;
+            if (string.IsNullOrWhiteSpace(type) || tool == null)
+                return;
+
+            _toolRegistry[type.Trim()] = tool;
         }
 
-        public bool HasTool(PlacementController.PlacementToolType type)
+        public bool HasTool(string type)
         {
-            return _toolRegistry.ContainsKey(type);
+            return !string.IsNullOrWhiteSpace(type) && _toolRegistry.ContainsKey(type.Trim());
         }
 
-        public IPlacementTool GetTool(PlacementController.PlacementToolType type)
+        public IPlacementTool GetTool(string type)
         {
-            return _toolRegistry.TryGetValue(type, out var tool) ? tool : null;
+            if (string.IsNullOrWhiteSpace(type))
+                return null;
+
+            return _toolRegistry.TryGetValue(type.Trim(), out var tool) ? tool : null;
         }
 
-        public void SetPipeline(params PlacementController.PlacementToolType[] toolTypes)
+        public void SetPipeline(params string[] toolTypes)
         {
             if (toolTypes == null || toolTypes.Length == 0)
                 return;
