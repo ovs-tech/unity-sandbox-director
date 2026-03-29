@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using UnityEditor;
 using Systems.MiniTimeline.Core;
@@ -82,11 +83,25 @@ namespace Systems.MiniTimeline.Editor
         private string formClipId = "";
         private float formStartTime = 0f;
         private float formDuration = 1f;
+        private readonly List<ClipDetailField> formClipDetailFields = new List<ClipDetailField>();
+        private readonly Dictionary<string, object> formClipDetailValues = new Dictionary<string, object>();
+        private readonly Dictionary<string, bool> formClipDetailGroupFoldouts = new Dictionary<string, bool>();
+        private string formClipDetailInfoMessage = string.Empty;
         private bool isCreateMode = false;
         private string formTrackId = "";
         private string formTrackBindKey = "";
         private bool formTrackEnabled = true;
         private EvaluateMode formTrackEvaluateMode = EvaluateMode.Continuous;
+
+        private sealed class ClipDetailField
+        {
+            public string Name;
+            public string Label;
+            public string Group;
+            public FieldInfo Field;
+            public int SortPriority;
+            public int DeclarationOrder;
+        }
         
         // Styles
         private GUIStyle headerStyle;
@@ -1433,6 +1448,7 @@ namespace Systems.MiniTimeline.Editor
             // Duration field
             EditorGUILayout.LabelField("Duration (seconds)", EditorStyles.boldLabel);
             formDuration = EditorGUILayout.FloatField(formDuration);
+            DrawClipDynamicDetailsSection();
             EditorGUILayout.Space(15);
 
             // Validation
@@ -1491,89 +1507,19 @@ namespace Systems.MiniTimeline.Editor
         {
             if (director == null || editingTrack == null) return;
 
-            IMiniClip newClip = null;
-            switch (editingClipType)
-            {
-                case "AnimClip":
-                    newClip = new Tracks.AnimClip
-                    {
-                        Id = formClipId,
-                        Start = formStartTime,
-                        Duration = formDuration,
-                        speed = 1f,
-                        wrapMode = Tracks.AnimWrapMode.Once,
-                        weight = 1f
-                    };
-                    break;
-                case "AnimatorClip":
-                    newClip = new Tracks.AnimatorClip
-                    {
-                        Id = formClipId,
-                        Start = formStartTime,
-                        Duration = formDuration
-                    };
-                    break;
-                case "MorphKeyClip":
-                    newClip = new Tracks.MorphKeyClip
-                    {
-                        Id = formClipId,
-                        Start = formStartTime,
-                        Duration = formDuration
-                    };
-                    break;
-                case "MovementClip":
-                    newClip = new Tracks.MovementClip
-                    {
-                        Id = formClipId,
-                        Start = formStartTime,
-                        Duration = formDuration
-                    };
-                    break;
-                case "SignalClip":
-                    newClip = new Tracks.SignalClip
-                    {
-                        Id = formClipId,
-                        Start = formStartTime,
-                        Duration = formDuration
-                    };
-                    break;
-                case "CinemachineClip":
-                    newClip = new Tracks.CinemachineClip
-                    {
-                        Id = formClipId,
-                        Start = formStartTime,
-                        Duration = formDuration,
-                        shotType = Tracks.CinemachineShotType.EyeLevel
-                    };
-                    break;
-                case "NavMeshMovementClip":
-                    newClip = new Tracks.NavMeshMovementClip
-                    {
-                        Id = formClipId,
-                        Start = formStartTime,
-                        Duration = formDuration,
-                        hasPosition = true,
-                        startPosition = Vector3.zero,
-                        endPosition = Vector3.zero,
-                        hasSpeed = false,
-                        startSpeed = 3.5f,
-                        endSpeed = 3.5f,
-                        animationCurve = Tracks.CameraAnimationCurve.Linear
-                    };
-                    break;
-                default:
-                    Debug.LogWarning($"[MiniTimelineDirectorEditor] Unknown clip type: {editingClipType}");
-                    newClip = new Tracks.AnimClip
-                    {
-                        Id = formClipId,
-                        Start = formStartTime,
-                        Duration = formDuration
-                    };
-                    break;
-            }
+            var newClip = CreateClipInstanceByType(editingClipType);
 
             if (newClip != null)
             {
+                if (newClip is MiniClipBase newClipBase)
+                {
+                    newClipBase.Id = formClipId;
+                    newClipBase.Start = Mathf.Max(0f, formStartTime);
+                    newClipBase.Duration = Mathf.Max(0.01f, formDuration);
+                }
+
+                ApplyDynamicDetailValuesToClip(newClip);
+
                 RegisterUndo("Add Timeline Clip");
                 if (director.AddClip(newClip, editingTrack.Id))
                 {
@@ -1612,6 +1558,7 @@ namespace Systems.MiniTimeline.Editor
                 clipBase.Id = formClipId;
                 clipBase.Start = Mathf.Max(0f, formStartTime);
                 clipBase.Duration = Mathf.Max(0.01f, formDuration);
+                ApplyDynamicDetailValuesToClip(editingClip);
 
                 director.MarkDirty();
                 MarkEditorDirty();
@@ -2184,6 +2131,10 @@ namespace Systems.MiniTimeline.Editor
             editingClipType = string.Empty;
             editingTrackType = string.Empty;
             isCreateMode = false;
+            formClipDetailFields.Clear();
+            formClipDetailValues.Clear();
+            formClipDetailGroupFoldouts.Clear();
+            formClipDetailInfoMessage = string.Empty;
         }
 
         private void ShowTrackDetailForm(string trackType)
@@ -2735,6 +2686,7 @@ namespace Systems.MiniTimeline.Editor
             }
             formStartTime = nextStart;
             formDuration = 1f;
+            InitializeDynamicClipDetailState(clipType, null);
         }
 
         /// <summary>Opens the clip detail form inline to edit an existing clip.</summary>
@@ -2751,6 +2703,337 @@ namespace Systems.MiniTimeline.Editor
             formClipId = clip.Id;
             formStartTime = clip.Start;
             formDuration = clip.Duration;
+            InitializeDynamicClipDetailState(editingClipType, clip);
+        }
+
+        private void DrawClipDynamicDetailsSection()
+        {
+            if (formClipDetailFields.Count == 0)
+            {
+                if (!string.IsNullOrEmpty(formClipDetailInfoMessage))
+                {
+                    EditorGUILayout.HelpBox(formClipDetailInfoMessage, MessageType.Info);
+                }
+                return;
+            }
+
+            EditorGUILayout.Space(8);
+            EditorGUILayout.LabelField("Clip Properties", EditorStyles.boldLabel);
+
+            var groups = formClipDetailFields
+                .GroupBy(f => f.Group)
+                .OrderBy(g => g.Key == "Other" ? 1 : 0)
+                .ThenBy(g => g.Key);
+
+            foreach (var group in groups)
+            {
+                if (!formClipDetailGroupFoldouts.ContainsKey(group.Key))
+                {
+                    formClipDetailGroupFoldouts[group.Key] = true;
+                }
+
+                formClipDetailGroupFoldouts[group.Key] = EditorGUILayout.Foldout(formClipDetailGroupFoldouts[group.Key], group.Key, true);
+                if (!formClipDetailGroupFoldouts[group.Key])
+                {
+                    continue;
+                }
+
+                EditorGUI.indentLevel++;
+                foreach (var field in group.OrderBy(f => f.SortPriority).ThenBy(f => f.DeclarationOrder))
+                {
+                    DrawDynamicClipField(field);
+                }
+                EditorGUI.indentLevel--;
+                EditorGUILayout.Space(2);
+            }
+
+            if (!string.IsNullOrEmpty(formClipDetailInfoMessage))
+            {
+                EditorGUILayout.HelpBox(formClipDetailInfoMessage, MessageType.Info);
+            }
+        }
+
+        private void DrawDynamicClipField(ClipDetailField field)
+        {
+            if (field == null || field.Field == null)
+            {
+                return;
+            }
+
+            if (!formClipDetailValues.TryGetValue(field.Name, out var value))
+            {
+                value = GetDefaultValue(field.Field.FieldType);
+                formClipDetailValues[field.Name] = value;
+            }
+
+            var fieldType = field.Field.FieldType;
+
+            if (fieldType == typeof(bool))
+            {
+                formClipDetailValues[field.Name] = EditorGUILayout.Toggle(field.Label, value is bool boolValue && boolValue);
+                return;
+            }
+
+            if (fieldType == typeof(int))
+            {
+                formClipDetailValues[field.Name] = EditorGUILayout.IntField(field.Label, value is int intValue ? intValue : 0);
+                return;
+            }
+
+            if (fieldType == typeof(float))
+            {
+                formClipDetailValues[field.Name] = EditorGUILayout.FloatField(field.Label, value is float floatValue ? floatValue : 0f);
+                return;
+            }
+
+            if (fieldType == typeof(Vector3))
+            {
+                formClipDetailValues[field.Name] = EditorGUILayout.Vector3Field(field.Label, value is Vector3 vector3Value ? vector3Value : Vector3.zero);
+                return;
+            }
+
+            if (fieldType == typeof(Quaternion))
+            {
+                var currentQuaternion = value is Quaternion quaternionValue ? quaternionValue : Quaternion.identity;
+                var eulerAngles = EditorGUILayout.Vector3Field(field.Label, currentQuaternion.eulerAngles);
+                formClipDetailValues[field.Name] = Quaternion.Euler(eulerAngles);
+                return;
+            }
+
+            if (fieldType.IsEnum)
+            {
+                var enumValue = value as Enum;
+                if (enumValue == null)
+                {
+                    enumValue = (Enum)Enum.GetValues(fieldType).GetValue(0);
+                }
+
+                formClipDetailValues[field.Name] = EditorGUILayout.EnumPopup(field.Label, enumValue);
+                return;
+            }
+
+            EditorGUILayout.LabelField($"{field.Label}:", $"Unsupported type ({fieldType.Name})", EditorStyles.miniLabel);
+        }
+
+        private void InitializeDynamicClipDetailState(string clipType, IMiniClip sourceClip)
+        {
+            formClipDetailFields.Clear();
+            formClipDetailValues.Clear();
+            formClipDetailGroupFoldouts.Clear();
+            formClipDetailInfoMessage = string.Empty;
+
+            var clipTypeRuntime = ResolveClipRuntimeType(clipType);
+            if (clipTypeRuntime == null)
+            {
+                formClipDetailInfoMessage = "No dynamic details available for this clip type.";
+                return;
+            }
+
+            var workingSource = sourceClip ?? CreateClipInstanceByType(clipType);
+            var fields = clipTypeRuntime.GetFields(BindingFlags.Public | BindingFlags.Instance)
+                .Where(f => !f.IsStatic)
+                .Where(f => f.Name != nameof(IMiniClip.Id) && f.Name != nameof(IMiniClip.Start) && f.Name != nameof(IMiniClip.Duration))
+                .OrderBy(f => f.MetadataToken)
+                .ToList();
+
+            if (fields.Count == 0)
+            {
+                formClipDetailInfoMessage = "This clip type does not expose editable public fields.";
+                return;
+            }
+
+            var unsupportedCount = 0;
+            foreach (var field in fields)
+            {
+                var supported = IsDynamicFieldTypeSupported(field.FieldType);
+                if (!supported)
+                {
+                    unsupportedCount++;
+                }
+
+                var clipField = new ClipDetailField
+                {
+                    Name = field.Name,
+                    Label = ToInspectorLabel(field.Name),
+                    Group = InferGroupName(field.Name),
+                    Field = field,
+                    SortPriority = GetFieldSortPriority(field.Name),
+                    DeclarationOrder = field.MetadataToken
+                };
+
+                formClipDetailFields.Add(clipField);
+
+                var rawValue = workingSource != null ? field.GetValue(workingSource) : null;
+                formClipDetailValues[field.Name] = rawValue ?? GetDefaultValue(field.FieldType);
+            }
+
+            if (unsupportedCount > 0)
+            {
+                formClipDetailInfoMessage =
+                    $"{unsupportedCount} field(s) use unsupported types and are shown as read-only hints. " +
+                    "Fallback rendering is otherwise automatic for all supported fields.";
+            }
+        }
+
+        private void ApplyDynamicDetailValuesToClip(IMiniClip clip)
+        {
+            if (clip == null || formClipDetailFields.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var detailField in formClipDetailFields)
+            {
+                if (detailField?.Field == null || !detailField.Field.IsPublic)
+                {
+                    continue;
+                }
+
+                if (!formClipDetailValues.TryGetValue(detailField.Name, out var value))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    detailField.Field.SetValue(clip, value);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"[MiniTimelineDirectorEditor] Failed setting clip field '{detailField.Name}': {ex.Message}");
+                }
+            }
+        }
+
+        private IMiniClip CreateClipInstanceByType(string clipType)
+        {
+            switch (clipType)
+            {
+                case "AnimClip":
+                    return new Tracks.AnimClip
+                    {
+                        speed = 1f,
+                        wrapMode = Tracks.AnimWrapMode.Once,
+                        weight = 1f
+                    };
+                case "AnimatorClip":
+                    return new Tracks.AnimatorClip();
+                case "MorphKeyClip":
+                    return new Tracks.MorphKeyClip();
+                case "MovementClip":
+                    return new Tracks.MovementClip();
+                case "SignalClip":
+                    return new Tracks.SignalClip();
+                case "CinemachineClip":
+                    return new Tracks.CinemachineClip
+                    {
+                        shotType = Tracks.CinemachineShotType.EyeLevel
+                    };
+                case "NavMeshMovementClip":
+                    return new Tracks.NavMeshMovementClip
+                    {
+                        hasPosition = true,
+                        startPosition = Vector3.zero,
+                        endPosition = Vector3.zero,
+                        hasSpeed = false,
+                        startSpeed = 3.5f,
+                        endSpeed = 3.5f,
+                        animationCurve = Tracks.CameraAnimationCurve.Linear
+                    };
+                default:
+                    Debug.LogWarning($"[MiniTimelineDirectorEditor] Unknown clip type: {clipType}, using AnimClip fallback.");
+                    return new Tracks.AnimClip();
+            }
+        }
+
+        private Type ResolveClipRuntimeType(string clipType)
+        {
+            switch (clipType)
+            {
+                case "AnimClip":
+                    return typeof(Tracks.AnimClip);
+                case "AnimatorClip":
+                    return typeof(Tracks.AnimatorClip);
+                case "MorphKeyClip":
+                    return typeof(Tracks.MorphKeyClip);
+                case "MovementClip":
+                    return typeof(Tracks.MovementClip);
+                case "SignalClip":
+                    return typeof(Tracks.SignalClip);
+                case "CinemachineClip":
+                    return typeof(Tracks.CinemachineClip);
+                case "NavMeshMovementClip":
+                    return typeof(Tracks.NavMeshMovementClip);
+                default:
+                    if (editingClip != null)
+                    {
+                        return editingClip.GetType();
+                    }
+                    return null;
+            }
+        }
+
+        private bool IsDynamicFieldTypeSupported(Type fieldType)
+        {
+            return fieldType == typeof(bool) ||
+                   fieldType == typeof(int) ||
+                   fieldType == typeof(float) ||
+                   fieldType == typeof(Vector3) ||
+                     fieldType == typeof(Quaternion) ||
+                   fieldType.IsEnum;
+        }
+
+        private object GetDefaultValue(Type fieldType)
+        {
+            if (fieldType == typeof(bool)) return false;
+            if (fieldType == typeof(int)) return 0;
+            if (fieldType == typeof(float)) return 0f;
+            if (fieldType == typeof(Vector3)) return Vector3.zero;
+            if (fieldType == typeof(Quaternion)) return Quaternion.identity;
+            if (fieldType.IsEnum)
+            {
+                var enumValues = Enum.GetValues(fieldType);
+                return enumValues.Length > 0 ? enumValues.GetValue(0) : Activator.CreateInstance(fieldType);
+            }
+
+            return fieldType.IsValueType ? Activator.CreateInstance(fieldType) : null;
+        }
+
+        private string InferGroupName(string fieldName)
+        {
+            if (string.IsNullOrEmpty(fieldName)) return "Other";
+
+            if (fieldName.StartsWith("has", StringComparison.Ordinal) && fieldName.Length > 3)
+            {
+                return ToInspectorLabel(fieldName.Substring(3));
+            }
+
+            if (fieldName.StartsWith("start", StringComparison.Ordinal) && fieldName.Length > 5)
+            {
+                return ToInspectorLabel(fieldName.Substring(5));
+            }
+
+            if (fieldName.StartsWith("end", StringComparison.Ordinal) && fieldName.Length > 3)
+            {
+                return ToInspectorLabel(fieldName.Substring(3));
+            }
+
+            return "Other";
+        }
+
+        private int GetFieldSortPriority(string fieldName)
+        {
+            if (string.IsNullOrEmpty(fieldName)) return 99;
+            if (fieldName.StartsWith("has", StringComparison.Ordinal)) return 0;
+            if (fieldName.StartsWith("start", StringComparison.Ordinal)) return 1;
+            if (fieldName.StartsWith("end", StringComparison.Ordinal)) return 2;
+            return 50;
+        }
+
+        private string ToInspectorLabel(string rawName)
+        {
+            if (string.IsNullOrEmpty(rawName)) return string.Empty;
+            return ObjectNames.NicifyVariableName(rawName);
         }
 
         private string GetTrackType(IMiniTrack track)
