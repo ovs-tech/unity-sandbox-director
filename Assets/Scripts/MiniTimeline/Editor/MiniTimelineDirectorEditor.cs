@@ -1448,10 +1448,7 @@ namespace Systems.MiniTimeline.Editor
             // Duration field
             EditorGUILayout.LabelField("Duration (seconds)", EditorStyles.boldLabel);
             formDuration = EditorGUILayout.FloatField(formDuration);
-<<<<<<< HEAD
             DrawClipDynamicDetailsSection();
-=======
->>>>>>> 9e9c0f80 (feat(gitnexus): add GitNexus CLI commands and skills for code analysis, debugging, exploring, impact analysis, and refactoring)
             EditorGUILayout.Space(15);
 
             // Validation
@@ -1514,7 +1511,6 @@ namespace Systems.MiniTimeline.Editor
 
             if (newClip != null)
             {
-<<<<<<< HEAD
                 if (newClip is MiniClipBase newClipBase)
                 {
                     newClipBase.Id = formClipId;
@@ -1524,8 +1520,6 @@ namespace Systems.MiniTimeline.Editor
 
                 ApplyDynamicDetailValuesToClip(newClip);
 
-=======
->>>>>>> 9e9c0f80 (feat(gitnexus): add GitNexus CLI commands and skills for code analysis, debugging, exploring, impact analysis, and refactoring)
                 RegisterUndo("Add Timeline Clip");
                 if (director.AddClip(newClip, editingTrack.Id))
                 {
@@ -1564,10 +1558,7 @@ namespace Systems.MiniTimeline.Editor
                 clipBase.Id = formClipId;
                 clipBase.Start = Mathf.Max(0f, formStartTime);
                 clipBase.Duration = Mathf.Max(0.01f, formDuration);
-<<<<<<< HEAD
                 ApplyDynamicDetailValuesToClip(editingClip);
-=======
->>>>>>> 9e9c0f80 (feat(gitnexus): add GitNexus CLI commands and skills for code analysis, debugging, exploring, impact analysis, and refactoring)
 
                 director.MarkDirty();
                 MarkEditorDirty();
@@ -2140,13 +2131,10 @@ namespace Systems.MiniTimeline.Editor
             editingClipType = string.Empty;
             editingTrackType = string.Empty;
             isCreateMode = false;
-<<<<<<< HEAD
             formClipDetailFields.Clear();
             formClipDetailValues.Clear();
             formClipDetailGroupFoldouts.Clear();
             formClipDetailInfoMessage = string.Empty;
-=======
->>>>>>> 9e9c0f80 (feat(gitnexus): add GitNexus CLI commands and skills for code analysis, debugging, exploring, impact analysis, and refactoring)
         }
 
         private void ShowTrackDetailForm(string trackType)
