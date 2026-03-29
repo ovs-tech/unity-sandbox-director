@@ -1,12 +1,12 @@
 {
   "repoPath": "/Users/er-lap-mpm4-023/Documents/Projects/externals/unity/unity-sandbox-director",
-  "lastCommit": "c308c32e14a253bcdfab585c5aa1b346a40a361f",
-  "indexedAt": "2026-03-18T10:01:19.623Z",
+  "lastCommit": "ad510ddbcc57341eb0047453ed907211660f6eac",
+  "indexedAt": "2026-03-29T02:37:32.146Z",
   "stats": {
-    "files": 5141,
-    "nodes": 9799,
-    "edges": 23602,
-    "communities": 393,
+    "files": 5326,
+    "nodes": 12065,
+    "edges": 27941,
+    "communities": 533,
     "processes": 300,
     "embeddings": 0
   }
