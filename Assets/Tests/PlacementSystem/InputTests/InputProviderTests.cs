@@ -123,6 +123,14 @@ namespace PlacementSystem.Tests
             Assert.DoesNotThrow(() => inputProvider.IsPlaceActionTriggered());
             Assert.DoesNotThrow(() => inputProvider.IsCancelActionTriggered());
             Assert.DoesNotThrow(() => inputProvider.IsRotateActionTriggered());
+            Assert.DoesNotThrow(() => inputProvider.IsMultiSelectModifierHeld());
+        }
+
+        [Test]
+        public void LegacyInputProvider_MultiSelectModifierMethod_ReturnsBool()
+        {
+            var inputProvider = _inputProviderGameObject.AddComponent<LegacyInputProvider>();
+            Assert.DoesNotThrow(() => inputProvider.IsMultiSelectModifierHeld());
         }
 
         [Test]

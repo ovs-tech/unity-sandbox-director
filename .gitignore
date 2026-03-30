@@ -99,3 +99,11 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+.gitnexus/
+
+.agent/
+.agents/
+
+# Dolt database files (added by bd init)
+.dolt/
+*.db

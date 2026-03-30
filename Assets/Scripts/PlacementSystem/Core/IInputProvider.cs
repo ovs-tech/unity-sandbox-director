@@ -32,5 +32,10 @@ namespace Systems.PlacementSystem.Core
         /// Checks if the delete action was triggered this frame (e.g., Delete key).
         /// </summary>
         bool IsDeleteActionTriggered();
+
+        /// <summary>
+        /// Checks if the multi-select modifier is currently held (e.g., Ctrl/Cmd).
+        /// </summary>
+        bool IsMultiSelectModifierHeld();
     }
 }

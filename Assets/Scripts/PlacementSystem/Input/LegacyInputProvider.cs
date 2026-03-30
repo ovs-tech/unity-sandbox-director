@@ -7,7 +7,7 @@ namespace Systems.PlacementSystem.Input
     /// Input provider implementation using Unity's Legacy Input Manager.
     /// Provides abstraction over Input.GetMouseButton, Input.GetKey, etc.
     /// </summary>
-    public class LegacyInputProvider : MonoBehaviour, IInputProvider
+    public class LegacyInputProvider : BaseInputProvider
     {
         [Header("Input Configuration")]
         [SerializeField, Tooltip("Key code for place action")]
@@ -25,30 +25,31 @@ namespace Systems.PlacementSystem.Input
         [SerializeField, Tooltip("Alternative cancel key")]
         private KeyCode _alternativeCancelKey = KeyCode.Escape;
 
-        public Vector2 GetPointerPosition()
+        public override Vector2 GetPointerPosition()
         {
             return UnityEngine.Input.mousePosition;
         }
 
-        public bool IsPlaceActionTriggered()
+        public override bool IsPlaceActionTriggered()
         {
             return UnityEngine.Input.GetKeyDown(_placeKey);
         }
 
-        public bool IsCancelActionTriggered()
+        public override bool IsCancelActionTriggered()
         {
             return UnityEngine.Input.GetKeyDown(_cancelKey) || 
                    UnityEngine.Input.GetKeyDown(_alternativeCancelKey);
         }
 
-        public bool IsRotateActionTriggered()
+        public override bool IsRotateActionTriggered()
         {
             return UnityEngine.Input.GetKeyDown(_rotateKey);
         }
 
-        public bool IsDeleteActionTriggered()
+        public override bool IsDeleteActionTriggered()
         {
             return UnityEngine.Input.GetKeyDown(_deleteKey);
         }
+
     }
 }

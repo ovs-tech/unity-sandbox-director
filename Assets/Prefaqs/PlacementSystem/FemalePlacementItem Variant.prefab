@@ -77,8 +77,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e781e1b4ff09443c384807f49638be57, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Systems.PlacementSystem::Systems.PlacementSystem.Validation.PlaceableObject
+  _model: {fileID: 3460344314111403275}
+  _preview: {fileID: 5678215987281040380, guid: 4a6a36b39f3da4dbeaa891e7372bd891, type: 3}
   _placementRules:
   - {fileID: 11400000, guid: f721b1ecd52b04ae2a80dd15f97ee72b, type: 2}
-  - {fileID: 11400000, guid: 003468ee0cd024144acff3457ba60eea, type: 2}
   _requiredSocketType: {fileID: 0}
   _snapRange: 2

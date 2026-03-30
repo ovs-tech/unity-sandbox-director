@@ -14,6 +14,14 @@ namespace PlacementSystem.Tests
     /// </summary>
     public class PlacementControllerTests
     {
+        private class StubValidatorAsset : BasePlacementValidator
+        {
+            public override ValidationResult IsPlacementValid(Vector3 position, Quaternion rotation, GameObject ghostObject)
+            {
+                return ValidationResult.Success;
+            }
+        }
+
         private GameObject _controllerGameObject;
         private GameObject _prefab;
         private Camera _camera;
@@ -187,6 +195,29 @@ namespace PlacementSystem.Tests
 
             // Act & Assert
             Assert.DoesNotThrow(() => controller.StartPlacement());
+        }
+
+        [Test]
+        public void PlacementController_UsesConfiguredValidatorAsset_WhenProvided()
+        {
+            var controller = _controllerGameObject.AddComponent<PlacementController>();
+            var validatorAsset = ScriptableObject.CreateInstance<StubValidatorAsset>();
+
+            SetupControllerDependencies(controller);
+
+            var validatorAssetField = typeof(PlacementController).GetField("_placementValidatorAsset",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            validatorAssetField.SetValue(controller, validatorAsset);
+
+            controller.InitializeForTesting();
+
+            var runtimeValidatorField = typeof(PlacementController).GetField("_placementValidator",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var resolvedValidator = runtimeValidatorField.GetValue(controller);
+
+            Assert.AreSame(validatorAsset, resolvedValidator);
+
+            Object.DestroyImmediate(validatorAsset);
         }
 
         /// <summary>

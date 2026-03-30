@@ -5,6 +5,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Systems.MiniTimeline.Core;
+using Systems.Persistence;
 
 #if !UNITY_INCLUDE_TESTS
 namespace UnityEngine.TestTools
@@ -35,6 +36,17 @@ namespace MiniTimeline.Core.Tests
             if (_gameObject != null)
             {
                 Object.DestroyImmediate(_gameObject);
+            }
+
+            // Ensure singleton-style persistence objects created during a test
+            // do not leak into subsequent tests.
+            var managers = Object.FindObjectsByType<GamePersistenceManager>(FindObjectsSortMode.None);
+            foreach (var manager in managers)
+            {
+                if (manager != null)
+                {
+                    Object.DestroyImmediate(manager.gameObject);
+                }
             }
         }
 
@@ -227,6 +239,29 @@ namespace MiniTimeline.Core.Tests
 
             // Assert
             Assert.AreEqual(1.5f, time);
+        }
+
+        [Test]
+        public void GetProjectsFolder_DoesNotAutoCreatePersistenceManager_InEditMode()
+        {
+            // Ensure no manager exists at the start of this assertion.
+            var existing = Object.FindObjectsByType<GamePersistenceManager>(FindObjectsSortMode.None);
+            foreach (var manager in existing)
+            {
+                if (manager != null)
+                {
+                    Object.DestroyImmediate(manager.gameObject);
+                }
+            }
+
+            string projectsFolder = _director.GetProjectsFolder();
+            Assert.IsTrue(string.IsNullOrEmpty(projectsFolder));
+
+            var managersAfter = Object.FindObjectsByType<GamePersistenceManager>(FindObjectsSortMode.None);
+            Assert.AreEqual(0, managersAfter.Length,
+                "GetProjectsFolder should not auto-create GamePersistenceManager during edit-time calls.");
+
+            LogAssert.NoUnexpectedReceived();
         }
 
         // Mocks

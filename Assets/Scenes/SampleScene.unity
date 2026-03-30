@@ -1031,6 +1031,7 @@ Transform:
   - {fileID: 825780174}
   - {fileID: 1267942208}
   - {fileID: 1855739783}
+  - {fileID: 1013508163}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &825780173
@@ -1044,7 +1045,6 @@ GameObject:
   - component: {fileID: 825780174}
   - component: {fileID: 825780176}
   - component: {fileID: 825780180}
-  - component: {fileID: 825780177}
   - component: {fileID: 825780175}
   - component: {fileID: 825780179}
   - component: {fileID: 825780181}
@@ -1131,23 +1131,6 @@ MonoBehaviour:
       BarrelClipping: 0.25
       Anamorphism: 0
   BlendHint: 0
---- !u!114 &825780177
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 825780173}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 68bb026fafb42b14791938953eaace77, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineBasicMultiChannelPerlin
-  NoiseProfile: {fileID: 11400000, guid: 46965f9cbaf525742a6da4c2172a99cd, type: 2}
-  PivotOffset: {x: 0, y: 0, z: 0}
-  AmplitudeGain: 1
-  FrequencyGain: 1
-  m_NoiseOffsets: {x: -336.48477, y: 63.160522, z: -389.9525}
 --- !u!114 &825780179
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1218,7 +1201,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 825780173}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 625c14eee3ad46c99df7c7c891ef668a, type: 3}
   m_Name: 
@@ -1419,6 +1402,58 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: -944628639613478452, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
   m_ActionId: 6417d5ae-fb20-4ffa-a9bb-09c1d687589d
+--- !u!1 &1013508162
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1013508163}
+  - component: {fileID: 1013508164}
+  m_Layer: 0
+  m_Name: GamePersistenceManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1013508163
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1013508162}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 721137537}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1013508164
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1013508162}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f138f5017fc0445aea14dee610c8083f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Systems.Persistence::Systems.Persistence.GamePersistenceManager
+  UnparentOnAwake: 1
+  gameData: {fileID: 11400000, guid: f9d055ffddb4d41e880e9898a8639086, type: 2}
+  dataService: {fileID: 11400000, guid: 12897f982c9ad40a7842536fb9473b41, type: 2}
+  AutoSaveEnabled: 0
+  AutoSaveIntervalSeconds: 60
+  OnDataLoaded:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1037213786 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 857453676176504041, guid: 5ff9de63dbe2f394ca7ffdf4fe29dd55, type: 3}
@@ -1533,10 +1568,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 721137537}
     m_Modifications:
-    - target: {fileID: 456038309173846840, guid: 7933494eed015412ca08e861598acc8d, type: 3}
-      propertyPath: ReplaceOnImport
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 4708143195176863050, guid: 7933494eed015412ca08e861598acc8d, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.25840092
@@ -1580,6 +1611,10 @@ PrefabInstance:
     - target: {fileID: 8741286272015652744, guid: 7933494eed015412ca08e861598acc8d, type: 3}
       propertyPath: m_Name
       value: Base Female
+      objectReference: {fileID: 0}
+    - target: {fileID: 8741286272015652744, guid: 7933494eed015412ca08e861598acc8d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1748,57 +1783,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: -944628639613478452, guid: 411bb38de150c48b29fcd991ffc628dc, type: 3}
   m_ActionId: aa6f8ee9-42fd-4638-a74c-1d0819e4a695
---- !u!1 &1466803523
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1466803525}
-  - component: {fileID: 1466803524}
-  m_Layer: 0
-  m_Name: GamePersistenceManagerAutoCreated
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1466803524
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1466803523}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f138f5017fc0445aea14dee610c8083f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Systems.Persistence::Systems.Persistence.GamePersistenceManager
-  UnparentOnAwake: 1
-  gameData:
-    Name: 
-    CurrentLevelName: 
-  dataService: {fileID: 11400000, guid: 12897f982c9ad40a7842536fb9473b41, type: 2}
-  AutoSaveEnabled: 0
-  AutoSaveIntervalSeconds: 60
---- !u!4 &1466803525
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1466803523}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1855739782
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1807,10 +1791,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 721137537}
     m_Modifications:
-    - target: {fileID: 456038309173846840, guid: 7933494eed015412ca08e861598acc8d, type: 3}
-      propertyPath: ReplaceOnImport
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 4708143195176863050, guid: 7933494eed015412ca08e861598acc8d, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.8584008
@@ -1854,6 +1834,10 @@ PrefabInstance:
     - target: {fileID: 8741286272015652744, guid: 7933494eed015412ca08e861598acc8d, type: 3}
       propertyPath: m_Name
       value: Base male
+      objectReference: {fileID: 0}
+    - target: {fileID: 8741286272015652744, guid: 7933494eed015412ca08e861598acc8d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1964,6 +1948,10 @@ PrefabInstance:
     - target: {fileID: 857453676176504041, guid: 5ff9de63dbe2f394ca7ffdf4fe29dd55, type: 3}
       propertyPath: m_Name
       value: Mini Timeline Director
+      objectReference: {fileID: 0}
+    - target: {fileID: 857453676176504041, guid: 5ff9de63dbe2f394ca7ffdf4fe29dd55, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3751378087522260266, guid: 5ff9de63dbe2f394ca7ffdf4fe29dd55, type: 3}
       propertyPath: debugMode
@@ -2357,4 +2345,3 @@ SceneRoots:
   - {fileID: 721137537}
   - {fileID: 2098805397}
   - {fileID: 160561601}
-  - {fileID: 1466803525}

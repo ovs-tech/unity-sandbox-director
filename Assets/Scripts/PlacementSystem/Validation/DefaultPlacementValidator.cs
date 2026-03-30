@@ -11,19 +11,30 @@ namespace Systems.PlacementSystem.Validation
     /// </summary>
     public class DefaultPlacementValidator : IPlacementValidator
     {
+        private readonly bool _allowPlacementWithoutPart;
+        private readonly bool _searchInChildren;
+
+        public DefaultPlacementValidator(bool allowPlacementWithoutPart = true, bool searchInChildren = true)
+        {
+            _allowPlacementWithoutPart = allowPlacementWithoutPart;
+            _searchInChildren = searchInChildren;
+        }
+
         public ValidationResult IsPlacementValid(Vector3 position, Quaternion rotation, GameObject ghostObject)
         {
             if (ghostObject == null)
                 return ValidationResult.Failure("Ghost object is null.");
 
             // Get the Part component from the ghost
-            var part = ghostObject.GetComponent<PlacementPart>();
+            var part = _searchInChildren
+                ? ghostObject.GetComponentInChildren<PlacementPart>(true)
+                : ghostObject.GetComponent<PlacementPart>();
 
             if (part == null)
             {
-                // If no Part component, assume placement is valid
-                // (object has no specific validation requirements)
-                return ValidationResult.Success;
+                return _allowPlacementWithoutPart
+                    ? ValidationResult.Success
+                    : ValidationResult.Failure("PlacementPart not found on ghost object.");
             }
 
             // Validate using the object's rules

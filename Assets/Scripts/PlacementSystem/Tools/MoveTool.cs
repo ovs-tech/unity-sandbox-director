@@ -7,7 +7,8 @@ namespace Systems.PlacementSystem.Tools
     /// <summary>
     /// Tool for moving the primary selection with pointer input.
     /// </summary>
-    public class MoveTool : IPlacementTool
+    [CreateAssetMenu(menuName = "Placement System/Tools/Move Tool")]
+    public class MoveTool : ScriptableObject, IPlacementTool
     {
         private PlacementToolContext _context;
         private GameObject _movingObject;
@@ -166,7 +167,7 @@ namespace Systems.PlacementSystem.Tools
                 var toPos = movedObject.transform.position;
                 var toRot = movedObject.transform.rotation;
                 var cmd = new MoveObjectCommand(movedObject, _startPosition, _startRotation, toPos, toRot);
-                Systems.CommandSystem.CommandManager.Instance.ExecuteCommand(cmd, true, Systems.CommandSystem.CommandManager.DEFAULT_NAMESPACE);
+                _context.CommandExecutor.Execute(cmd, true, Systems.CommandSystem.CommandManager.DEFAULT_NAMESPACE);
                 OnMoveConfirmed?.Invoke(movedObject);
             }
 

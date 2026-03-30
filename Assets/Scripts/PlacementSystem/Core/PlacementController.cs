@@ -14,14 +14,14 @@ namespace Systems.PlacementSystem.Core
     /// </summary>
     public class PlacementController : MonoBehaviour
     {
-        public enum PlacementToolType
+        public static class ToolIds
         {
-            Placement,
-            Selection,
-            Snap,
-            Move,
-            Rotate,
-            Delete
+            public const string Placement = "Placement";
+            public const string Selection = "Selection";
+            public const string Snap = "Snap";
+            public const string Move = "Move";
+            public const string Rotate = "Rotate";
+            public const string Delete = "Delete";
         }
 
         [Header("Events")]
@@ -29,7 +29,7 @@ namespace Systems.PlacementSystem.Core
         public UnityEngine.Events.UnityEvent<GameObject> OnPlacementSuccessEvent;
         public UnityEngine.Events.UnityEvent<string> OnPlacementFailedEvent;
         public UnityEngine.Events.UnityEvent OnPlacementCancelledEvent;
-        public UnityEngine.Events.UnityEvent<PlacementToolType> OnToolChangedEvent;
+        public UnityEngine.Events.UnityEvent<string> OnToolChangedEvent;
 
         [Header("Dependencies")]
         [SerializeField, Tooltip("The camera used for raycasting")]
@@ -43,7 +43,7 @@ namespace Systems.PlacementSystem.Core
 
         [Header("System Components")]
         [SerializeField, Tooltip("Reference to the input provider component")]
-        private MonoBehaviour _inputProviderComponent;
+        private BaseInputProvider _inputProviderComponent;
 
         [SerializeField, Tooltip("Reference to the placement strategy asset")]
         private BasePlacementStrategy _placementStrategy;
@@ -51,8 +51,17 @@ namespace Systems.PlacementSystem.Core
         [SerializeField, Tooltip("Reference to the placement visualizer asset")]
         private BasePlacementVisualizer _placementVisualizer;
 
+        [SerializeField, Tooltip("Optional ScriptableObject validator asset")]
+        private BasePlacementValidator _placementValidatorAsset;
+
+        [SerializeField, Tooltip("When false, default validation fails if PlacementPart is missing")]
+        private bool _allowPlacementWithoutPart = true;
+
         [SerializeField, Tooltip("Reference to the snap manager (optional)")]
         private SnapManager _snapManager;
+
+        [SerializeField, Tooltip("Reference to the ToolManager component")]
+        private ToolManager _toolManager;
 
         [Header("Placement Settings")]
         [SerializeField, Tooltip("Maximum raycast distance")]
@@ -84,11 +93,12 @@ namespace Systems.PlacementSystem.Core
         private bool _moveSelectedWithPointer = true;
 
         private IInputProvider _inputProvider;
+        private IPlacementValidator _placementValidator;
 
         private PlacementToolContext _toolContext;
         private PlacementSelectionState _selectionState;
 
-        public ToolManager ToolManager { get; private set; }
+        public ToolManager ToolManager => _toolManager;
 
         private GameObject _currentGhost;
         private bool _isPlacementActive;
@@ -98,8 +108,15 @@ namespace Systems.PlacementSystem.Core
 
         private void Awake()
         {
-            _inputProvider = _inputProviderComponent as IInputProvider;
-            var placementValidator = new Validation.DefaultPlacementValidator();
+            _inputProvider = _inputProviderComponent;
+            _placementValidator = ResolvePlacementValidator();
+
+            if (_toolManager == null)
+                _toolManager = GetComponent<ToolManager>();
+            if (_toolManager == null)
+                _toolManager = gameObject.AddComponent<ToolManager>();
+
+            _toolManager.SubscribeToToolsetRequests(HandleToolsetActiveToolRequested);
 
             if (_inputProvider == null)
             {
@@ -117,30 +134,7 @@ namespace Systems.PlacementSystem.Core
             if (_placementCamera == null)
                 _placementCamera = Camera.main;
 
-            _selectionState = new PlacementSelectionState();
-            ToolManager = new ToolManager();
-
-            var placementTool = new PlacementTool();
-            var selectionTool = new SelectionTool();
-            var snapTool = new SnapTool();
-            var moveTool = new MoveTool();
-            var rotateTool = new RotateTool();
-            var deleteTool = new DeleteTool();
-
-            ToolManager.RegisterTool(PlacementToolType.Placement, placementTool);
-            ToolManager.RegisterTool(PlacementToolType.Selection, selectionTool);
-            ToolManager.RegisterTool(PlacementToolType.Snap, snapTool);
-            ToolManager.RegisterTool(PlacementToolType.Move, moveTool);
-            ToolManager.RegisterTool(PlacementToolType.Rotate, rotateTool);
-            ToolManager.RegisterTool(PlacementToolType.Delete, deleteTool);
-
-            RebuildToolContext();
-
-            placementTool.OnPlacementConfirmed = HandlePlacementConfirmed;
-            placementTool.OnPlacementCancelled = HandlePlacementCancelled;
-            placementTool.OnPlacementFailed = HandlePlacementFailed;
-
-            SetActiveTool(PlacementToolType.Selection);
+            InitializeTooling();
 
             // Register a persistence adapter if SaveLoadSystem is available
             try
@@ -158,38 +152,53 @@ namespace Systems.PlacementSystem.Core
             }
         }
 
+        private void OnDestroy()
+        {
+            _toolManager?.Clear();
+            _toolManager?.UnsubscribeFromToolsetRequests(HandleToolsetActiveToolRequested);
+        }
+
         private void Update()
         {
+            if (_toolManager == null)
+                return;
+
             ToolManager.HandleInput();
             ToolManager.Tick();
         }
 
         public void InitializeForTesting()
         {
+            _inputProvider = _inputProviderComponent;
+            _placementValidator = ResolvePlacementValidator();
+            InitializeTooling();
+        }
+
+        private void InitializeTooling()
+        {
             _selectionState = new PlacementSelectionState();
-            ToolManager = new ToolManager();
 
-            var placementTool = new PlacementTool();
-            var selectionTool = new SelectionTool();
-            var snapTool = new SnapTool();
-            var moveTool = new MoveTool();
-            var rotateTool = new RotateTool();
-            var deleteTool = new DeleteTool();
+            if (_toolManager == null)
+            {
+                Debug.LogError("PlacementController: ToolManager component is missing.");
+                return;
+            }
 
-            ToolManager.RegisterTool(PlacementToolType.Placement, placementTool);
-            ToolManager.RegisterTool(PlacementToolType.Selection, selectionTool);
-            ToolManager.RegisterTool(PlacementToolType.Snap, snapTool);
-            ToolManager.RegisterTool(PlacementToolType.Move, moveTool);
-            ToolManager.RegisterTool(PlacementToolType.Rotate, rotateTool);
-            ToolManager.RegisterTool(PlacementToolType.Delete, deleteTool);
+            if (!ToolManager.RegisterToolsFromToolset())
+            {
+                Debug.LogError("PlacementController: no tools registered from PlacementToolset. Configure Toolset entries before runtime.");
+            }
 
-            placementTool.OnPlacementConfirmed = HandlePlacementConfirmed;
-            placementTool.OnPlacementCancelled = HandlePlacementCancelled;
-            placementTool.OnPlacementFailed = HandlePlacementFailed;
+            var placementTool = ToolManager.GetTool(ToolIds.Placement) as PlacementTool;
+            if (placementTool != null)
+            {
+                placementTool.OnPlacementConfirmed = HandlePlacementConfirmed;
+                placementTool.OnPlacementCancelled = HandlePlacementCancelled;
+                placementTool.OnPlacementFailed = HandlePlacementFailed;
+            }
 
-            SetActiveTool(PlacementToolType.Selection);
-            
             RebuildToolContext();
+            SetActiveTool(ToolIds.Selection);
         }
 
         /// <summary>
@@ -200,12 +209,12 @@ namespace Systems.PlacementSystem.Core
             if (_objectToPlace == null || _currentGhost != null)
                 return;
 
-            SetActiveTool(PlacementToolType.Placement);
+            SetActiveTool(ToolIds.Placement);
 
             _currentGhost = Instantiate(_objectToPlace);
             _currentGhost.name = $"{_objectToPlace.name}_Ghost";
 
-            var placementTool = ToolManager.GetTool(PlacementToolType.Placement) as PlacementTool;
+            var placementTool = ToolManager.GetTool(ToolIds.Placement) as PlacementTool;
             placementTool?.SetupPlacement(_currentGhost, _objectToPlace, _makeObjectsSelectable);
             _isPlacementActive = true;
             OnPlacementStartedEvent?.Invoke(_currentGhost);
@@ -219,7 +228,7 @@ namespace Systems.PlacementSystem.Core
             if (_currentGhost == null)
                 return;
 
-            var placementTool = ToolManager.GetTool(PlacementToolType.Placement) as PlacementTool;
+            var placementTool = ToolManager.GetTool(ToolIds.Placement) as PlacementTool;
             placementTool?.CancelPlacement();
             _currentGhost = null;
             _isPlacementActive = false;
@@ -230,7 +239,7 @@ namespace Systems.PlacementSystem.Core
         /// </summary>
         public void ConfirmPlacement()
         {
-            var placementTool = ToolManager.GetTool(PlacementToolType.Placement) as PlacementTool;
+            var placementTool = ToolManager.GetTool(ToolIds.Placement) as PlacementTool;
             placementTool?.ConfirmPlacement();
         }
 
@@ -257,36 +266,31 @@ namespace Systems.PlacementSystem.Core
             OnPlacementFailedEvent?.Invoke(reason);
         }
 
-        public void SetActiveTool(PlacementToolType toolType)
+        public void SetActiveTool(string toolName)
         {
-            switch (toolType)
+            if (string.IsNullOrWhiteSpace(toolName))
             {
-                case PlacementToolType.Placement:
-                    SetToolStack(PlacementToolType.Snap, PlacementToolType.Placement);
-                    break;
-                case PlacementToolType.Selection:
-                    SetToolStack(PlacementToolType.Selection);
-                    break;
-                case PlacementToolType.Snap:
-                    SetToolStack(PlacementToolType.Snap);
-                    break;
-                case PlacementToolType.Move:
-                    SetToolStack(PlacementToolType.Selection, PlacementToolType.Snap, PlacementToolType.Move);
-                    break;
-                case PlacementToolType.Rotate:
-                    SetToolStack(PlacementToolType.Selection, PlacementToolType.Rotate);
-                    break;
-                case PlacementToolType.Delete:
-                    SetToolStack(PlacementToolType.Selection, PlacementToolType.Delete);
-                    break;
-                default:
-                    SetToolStack(PlacementToolType.Selection);
-                    break;
+                Debug.LogWarning("PlacementController: tool name is null or empty.");
+                return;
             }
-            OnToolChangedEvent?.Invoke(toolType);
+
+            var normalizedToolName = toolName.Trim();
+            if (_toolManager != null && _toolManager.TryBuildPipeline(normalizedToolName, out var pipeline) && pipeline.Length > 0)
+            {
+                SetToolStack(pipeline);
+                OnToolChangedEvent?.Invoke(normalizedToolName);
+                return;
+            }
+
+            Debug.LogWarning($"PlacementController: unable to resolve pipeline for '{normalizedToolName}'. Check PlacementToolset tool dependencies.");
         }
 
-        public void SetToolStack(params PlacementToolType[] toolTypes)
+        private void HandleToolsetActiveToolRequested(string toolName)
+        {
+            SetActiveTool(toolName);
+        }
+
+        public void SetToolStack(params string[] toolTypes)
         {
             ToolManager.SetPipeline(toolTypes);
         }
@@ -296,7 +300,7 @@ namespace Systems.PlacementSystem.Core
             _toolContext = new PlacementToolContext(
                 _inputProvider,
                 _placementStrategy,
-                new Validation.DefaultPlacementValidator(),
+                _placementValidator,
                 _placementVisualizer,
                 _snapManager,
                 _placementCamera,
@@ -310,11 +314,21 @@ namespace Systems.PlacementSystem.Core
                 _selectionLayer,
                 _selectionMovementSurface,
                 _selectionState,
-                ToolManager.GetTool(PlacementToolType.Selection) as SelectionTool,
+                ToolManager.GetTool(ToolIds.Selection) as SelectionTool,
                 ToolManager.ToolStates
             );
 
             ToolManager.InitializeContext(_toolContext);
+        }
+
+        private IPlacementValidator ResolvePlacementValidator()
+        {
+            if (_placementValidatorAsset != null)
+                return _placementValidatorAsset;
+
+            Debug.LogWarning("PlacementController: no validator asset assigned. Falling back to DefaultPlacementValidator.");
+
+            return new Validation.DefaultPlacementValidator(_allowPlacementWithoutPart, searchInChildren: true);
         }
 
         /// <summary>
@@ -326,10 +340,16 @@ namespace Systems.PlacementSystem.Core
             RebuildToolContext();
         }
 
+        public void SetPlacementValidator(IPlacementValidator validator)
+        {
+            _placementValidator = validator ?? new Validation.DefaultPlacementValidator(_allowPlacementWithoutPart, searchInChildren: true);
+            RebuildToolContext();
+        }
+
         /// <summary>
-        /// Exposes the input provider component for modules like SelectionManager.
+        /// Exposes the input provider for modules like SelectionManager.
         /// </summary>
-        public MonoBehaviour InputProviderComponent => _inputProviderComponent;
+        public IInputProvider InputProviderComponent => _inputProvider;
 
         /// <summary>
         /// Exposes the placement camera for modules like SelectionManager.
@@ -341,7 +361,7 @@ namespace Systems.PlacementSystem.Core
         /// </summary>
         public void HandleSelectionClick(GameObject selected)
         {
-            var selectionTool = ToolManager.GetTool(PlacementToolType.Selection) as SelectionTool;
+            var selectionTool = ToolManager.GetTool(ToolIds.Selection) as SelectionTool;
             if (selectionTool == null)
                 return;
 
@@ -354,7 +374,7 @@ namespace Systems.PlacementSystem.Core
         /// </summary>
         public void DeselectAll()
         {
-            var selectionTool = ToolManager.GetTool(PlacementToolType.Selection) as SelectionTool;
+            var selectionTool = ToolManager.GetTool(ToolIds.Selection) as SelectionTool;
             if (selectionTool == null)
                 return;
 
