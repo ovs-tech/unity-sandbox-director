@@ -8,7 +8,8 @@ class LoginNavigationScreen : NavigationScreen
 
   public LoginNavigationScreen(VisualTreeAsset uxmlAsset, NavHost host)
   {
-    Add(uxmlAsset.CloneTree());
+    style.flexDirection = FlexDirection.Column;
+    uxmlAsset.CloneTree(this);
   }
 
   public override void OnEnter(NavController controller, NavDestination destination, Argument[] args)

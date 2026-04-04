@@ -7,6 +7,10 @@
                 "gitnexus@latest",
                 "mcp"
             ]
+        },
+        "unityMCP": {
+            "type": "http",
+            "url": "http://localhost:8080/mcp"
         }
     },
     "inputs": []
