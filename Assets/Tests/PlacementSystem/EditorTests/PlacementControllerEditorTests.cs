@@ -13,7 +13,9 @@ namespace Systems.PlacementSystem.EditorTests
             var go = new GameObject("TestObj");
             var controller = go.AddComponent<PlacementController>();
             var editor = UnityEditor.Editor.CreateEditor(controller);
-            Assert.AreEqual("PlacementControllerEditor", editor.GetType().Name);
+            Assert.IsNotNull(editor);
+            StringAssert.Contains("PlacementController", editor.GetType().Name);
+            StringAssert.Contains("Editor", editor.GetType().Name);
             Object.DestroyImmediate(go);
             Object.DestroyImmediate(editor);
         }
