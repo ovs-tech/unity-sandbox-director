@@ -24,6 +24,17 @@ namespace Systems.PlacementSystem.Core
             Delete
         }
 
+        // Backward-compatible aliases for older tests and callers.
+        public static class ToolIds
+        {
+            public const PlacementToolType Placement = PlacementToolType.Placement;
+            public const PlacementToolType Selection = PlacementToolType.Selection;
+            public const PlacementToolType Snap = PlacementToolType.Snap;
+            public const PlacementToolType Move = PlacementToolType.Move;
+            public const PlacementToolType Rotate = PlacementToolType.Rotate;
+            public const PlacementToolType Delete = PlacementToolType.Delete;
+        }
+
         [Header("Events")]
         public UnityEngine.Events.UnityEvent<GameObject> OnPlacementStartedEvent;
         public UnityEngine.Events.UnityEvent<GameObject> OnPlacementSuccessEvent;
@@ -95,10 +106,13 @@ namespace Systems.PlacementSystem.Core
         private IInputProvider _inputProvider;
         private IPlacementValidator _placementValidator;
 
+        [SerializeField, Tooltip("Optional ToolManager component. If missing, one is added at runtime.")]
+        private ToolManager _toolManager;
+
         private PlacementToolContext _toolContext;
         private PlacementSelectionState _selectionState;
 
-        public ToolManager ToolManager { get; private set; }
+        public ToolManager ToolManager => _toolManager;
 
         private GameObject _currentGhost;
         private bool _isPlacementActive;
@@ -156,8 +170,11 @@ namespace Systems.PlacementSystem.Core
 
         private void Update()
         {
-            ToolManager.HandleInput();
-            ToolManager.Tick();
+            if (_toolManager == null)
+                return;
+
+            _toolManager.HandleInput();
+            _toolManager.Tick();
         }
 
         public void InitializeForTesting()
@@ -170,14 +187,19 @@ namespace Systems.PlacementSystem.Core
         private void InitializeTooling()
         {
             _selectionState = new PlacementSelectionState();
-            ToolManager = new ToolManager();
+
+            if (_toolManager == null)
+                _toolManager = GetComponent<ToolManager>();
+
+            if (_toolManager == null)
+                _toolManager = gameObject.AddComponent<ToolManager>();
 
             if (!RegisterToolsFromToolset())
             {
                 Debug.LogError("PlacementController: no tools registered from PlacementToolset. Configure Toolset entries before runtime.");
             }
 
-            var placementTool = ToolManager.GetTool(PlacementToolType.Placement) as PlacementTool;
+            var placementTool = _toolManager.GetTool(PlacementToolType.Placement) as PlacementTool;
             if (placementTool != null)
             {
                 placementTool.OnPlacementConfirmed = HandlePlacementConfirmed;
@@ -191,6 +213,9 @@ namespace Systems.PlacementSystem.Core
 
         private bool RegisterToolsFromToolset()
         {
+            if (_toolManager != null && _toolManager.RegisterToolsFromToolset())
+                return true;
+
             if (_toolset == null || _toolset.Tools == null || _toolset.Tools.Count == 0)
                 return false;
 
@@ -203,7 +228,7 @@ namespace Systems.PlacementSystem.Core
 
                 if (_toolset.TryGetTool(entry.ToolType, out var tool))
                 {
-                    ToolManager.RegisterTool(entry.ToolType, tool);
+                    _toolManager.RegisterTool(entry.ToolType, tool);
                     anyRegistered = true;
                 }
             }
@@ -278,7 +303,7 @@ namespace Systems.PlacementSystem.Core
 
         public void SetActiveTool(PlacementToolType toolType)
         {
-            if (_toolset != null && _toolset.TryBuildPipeline(toolType, out var pipeline) && pipeline.Length > 0)
+            if (_toolManager != null && _toolManager.TryBuildPipeline(toolType, out var pipeline) && pipeline.Length > 0)
             {
                 SetToolStack(pipeline);
                 OnToolChangedEvent?.Invoke(toolType);
@@ -312,7 +337,7 @@ namespace Systems.PlacementSystem.Core
 
         public void SetToolStack(params PlacementToolType[] toolTypes)
         {
-            ToolManager.SetPipeline(toolTypes);
+            _toolManager?.SetPipeline(toolTypes);
         }
 
         private void RebuildToolContext()
@@ -334,11 +359,11 @@ namespace Systems.PlacementSystem.Core
                 _selectionLayer,
                 _selectionMovementSurface,
                 _selectionState,
-                ToolManager.GetTool(PlacementToolType.Selection) as SelectionTool,
-                ToolManager.ToolStates
+                _toolManager.GetTool(PlacementToolType.Selection) as SelectionTool,
+                _toolManager.ToolStates
             );
 
-            ToolManager.InitializeContext(_toolContext);
+            _toolManager.InitializeContext(_toolContext);
         }
 
         private IPlacementValidator ResolvePlacementValidator()
@@ -381,7 +406,7 @@ namespace Systems.PlacementSystem.Core
         /// </summary>
         public void HandleSelectionClick(GameObject selected)
         {
-            var selectionTool = ToolManager.GetTool(PlacementToolType.Selection) as SelectionTool;
+            var selectionTool = _toolManager.GetTool(PlacementToolType.Selection) as SelectionTool;
             if (selectionTool == null)
                 return;
 
@@ -394,7 +419,7 @@ namespace Systems.PlacementSystem.Core
         /// </summary>
         public void DeselectAll()
         {
-            var selectionTool = ToolManager.GetTool(PlacementToolType.Selection) as SelectionTool;
+            var selectionTool = _toolManager.GetTool(PlacementToolType.Selection) as SelectionTool;
             if (selectionTool == null)
                 return;
 

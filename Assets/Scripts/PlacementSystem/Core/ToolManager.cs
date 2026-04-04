@@ -13,15 +13,15 @@ namespace Systems.PlacementSystem.Core
         [SerializeField, Tooltip("PlacementToolset asset defining tool entries and dependencies")]
         private PlacementToolset _toolset;
 
-        private readonly Dictionary<string, IPlacementTool> _toolRegistry
-            = new Dictionary<string, IPlacementTool>(System.StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<PlacementController.PlacementToolType, IPlacementTool> _toolRegistry
+            = new Dictionary<PlacementController.PlacementToolType, IPlacementTool>();
             
         private readonly List<IPlacementTool> _activeTools = new List<IPlacementTool>();
         private PlacementToolContext _context;
 
         public ToolStateRegistry ToolStates { get; } = new ToolStateRegistry();
 
-        public void SubscribeToToolsetRequests(System.Action<string> handler)
+        public void SubscribeToToolsetRequests(System.Action<PlacementController.PlacementToolType> handler)
         {
             if (_toolset == null || handler == null)
                 return;
@@ -29,7 +29,7 @@ namespace Systems.PlacementSystem.Core
             _toolset.OnSetActiveToolRequested += handler;
         }
 
-        public void UnsubscribeFromToolsetRequests(System.Action<string> handler)
+        public void UnsubscribeFromToolsetRequests(System.Action<PlacementController.PlacementToolType> handler)
         {
             if (_toolset == null || handler == null)
                 return;
@@ -59,9 +59,9 @@ namespace Systems.PlacementSystem.Core
             return anyRegistered;
         }
 
-        public bool TryBuildPipeline(string activeTool, out string[] pipeline)
+        public bool TryBuildPipeline(PlacementController.PlacementToolType activeTool, out PlacementController.PlacementToolType[] pipeline)
         {
-            pipeline = System.Array.Empty<string>();
+            pipeline = System.Array.Empty<PlacementController.PlacementToolType>();
             return _toolset != null && _toolset.TryBuildPipeline(activeTool, out pipeline);
         }
 
@@ -71,28 +71,25 @@ namespace Systems.PlacementSystem.Core
             RefreshActiveToolContexts();
         }
 
-        public void RegisterTool(string type, IPlacementTool tool)
+        public void RegisterTool(PlacementController.PlacementToolType type, IPlacementTool tool)
         {
-            if (string.IsNullOrWhiteSpace(type) || tool == null)
+            if (tool == null)
                 return;
 
-            _toolRegistry[type.Trim()] = tool;
+            _toolRegistry[type] = tool;
         }
 
-        public bool HasTool(string type)
+        public bool HasTool(PlacementController.PlacementToolType type)
         {
-            return !string.IsNullOrWhiteSpace(type) && _toolRegistry.ContainsKey(type.Trim());
+            return _toolRegistry.ContainsKey(type);
         }
 
-        public IPlacementTool GetTool(string type)
+        public IPlacementTool GetTool(PlacementController.PlacementToolType type)
         {
-            if (string.IsNullOrWhiteSpace(type))
-                return null;
-
-            return _toolRegistry.TryGetValue(type.Trim(), out var tool) ? tool : null;
+            return _toolRegistry.TryGetValue(type, out var tool) ? tool : null;
         }
 
-        public void SetPipeline(params string[] toolTypes)
+        public void SetPipeline(params PlacementController.PlacementToolType[] toolTypes)
         {
             if (toolTypes == null || toolTypes.Length == 0)
                 return;
