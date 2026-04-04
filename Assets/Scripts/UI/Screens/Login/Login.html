@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ero Director - Login</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {primary: "#ffb2bb", "background-light": "#f8f6f6", "background-dark": "#221016", error: "#ffb4ab", "inverse-surface": "#fbdbdd", "surface-tint": "#ffb2bb", "on-background": "#fbdbdd", outline: "#ac888b", "on-primary-fixed": "#400012", "outline-variant": "#5c3f42", "secondary-fixed-dim": "#ffb2bb", "on-error": "#690005", "on-primary-container": "#5a001d", "surface-container-high": "#382527", "on-secondary": "#670022", "error-container": "#93000a", "on-secondary-fixed": "#400012", "inverse-primary": "#bd0045", "on-secondary-fixed-variant": "#8a1536", "secondary-fixed": "#ffd9dd", "tertiary-container": "#ef671f", background: "#1f0f11", "surface-container-low": "#281719", "on-tertiary-container": "#4d1900", "tertiary-fixed": "#ffdbcd", "secondary-container": "#8e1838", tertiary: "#ffb596", "on-surface-variant": "#e5bdc0", "surface-variant": "#442f32", secondary: "#ffb2bb", "surface-container": "#2d1b1d", surface: "#1f0f11", "primary-container": "#ff4f76", "on-tertiary": "#581e00", "on-error-container": "#ffdad6", "primary-fixed-dim": "#ffb2bb", "on-tertiary-fixed": "#360f00", "on-primary-fixed-variant": "#910033", "surface-container-highest": "#442f32", "on-surface": "#fbdbdd", "primary-fixed": "#ffd9dd", "on-tertiary-fixed-variant": "#7d2d00", "on-secondary-container": "#ff9caa", "tertiary-fixed-dim": "#ffb596", "surface-bright": "#493436", "surface-dim": "#1f0f11", "inverse-on-surface": "#3f2b2d", "surface-container-lowest": "#190a0c", "on-primary": "#670022"}, fontFamily: {display: "Inter", body: ["Inter"], headline: ["Inter"], label: ["Inter"]}, borderRadius: {DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px"}}}};</script>
+<style>.glass-input {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-input:focus-within {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #ec135b;
+            box-shadow: 0 0 15px rgba(236, 19, 91, 0.2);
+        }input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active{
+            -webkit-box-shadow: 0 0 0 30px #2a151d inset !important;
+            -webkit-text-fill-color: white !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased selection:bg-primary selection:text-white text-white">
+<div class="relative flex min-h-screen w-full flex-col overflow-hidden">
+<div class="absolute inset-0 z-0 h-full w-full bg-cover bg-center bg-no-repeat transition-transform duration-[20s] hover:scale-105" data-alt="Abstract dark photography studio lighting setup with purple and red hues" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAKeUvnc-QanZ-lzSyUnGfPMJ4CSQd32Zg-S_azy6epSF1j6FYu9_XOfpv5kb60aBU2Pgy5qcOQz9apEzDlelh9HPBj_kA7OPz2VhP80OqYJAfTxcBWpEHaHp3YwlT8VbOIRSYpHatFxQxOJpY9Dg2n9U-db5aKSkHTlAZ-Gf727_4v5jqwhse4g8okbQdppfUPWXVMYmjcb0ri4SV3FprtDZQTg4CdqzVgkCLhdd9Hz_AxLQwkHNWEVaEPA_RSwyNHciWlZfNe9gA');">
+</div>
+<div class="absolute inset-0 z-10 bg-gradient-to-b from-[#221016]/70 via-[#221016]/80 to-[#221016]"></div>
+<div class="relative z-20 flex h-full flex-grow flex-col justify-between px-6 py-8 pb-10 sm:px-8">
+<div class="flex flex-col items-center pt-10">
+<div class="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-rose-900 shadow-[0_0_20px_rgba(236,19,91,0.5)]">
+<span class="material-symbols-outlined text-3xl text-white">movie_filter</span>
+</div>
+<h1 class="text-center text-2xl font-extrabold uppercase leading-none tracking-tight text-white drop-shadow-xl sm:text-3xl">
+                Ero <span class="text-primary">Director</span>
+</h1>
+</div>
+<div class="flex w-full flex-col gap-6">
+<div class="mb-2 text-center">
+<h2 class="text-xl font-bold text-white">Welcome Back</h2>
+<p class="text-sm font-medium text-white/50">Log in to continue your production.</p>
+</div>
+<form action="#" class="flex flex-col gap-5" onsubmit="event.preventDefault()">
+<div class="group space-y-1.5">
+<label class="ml-1 text-xs font-bold uppercase tracking-wider text-gray-400" for="username">Username or Email</label>
+<div class="glass-input relative flex items-center rounded-xl transition-all duration-300">
+<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+<span class="material-symbols-outlined text-[20px] text-gray-400 group-focus-within:text-primary">person</span>
+</div>
+<input autocomplete="username" class="block w-full rounded-xl border-0 bg-transparent py-4 pl-12 pr-4 text-white placeholder:text-gray-600 focus:ring-0 sm:text-sm sm:leading-6" id="username" placeholder="Director@studio.com" type="text"/>
+</div>
+</div>
+<div class="group space-y-1.5">
+<label class="ml-1 text-xs font-bold uppercase tracking-wider text-gray-400" for="password">Password</label>
+<div class="glass-input relative flex items-center rounded-xl transition-all duration-300">
+<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+<span class="material-symbols-outlined text-[20px] text-gray-400 group-focus-within:text-primary">lock</span>
+</div>
+<input autocomplete="current-password" class="block w-full rounded-xl border-0 bg-transparent py-4 pl-12 pr-12 text-white placeholder:text-gray-600 focus:ring-0 sm:text-sm sm:leading-6" id="password" placeholder="••••••••" type="password"/>
+<button class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-white focus:outline-none" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility_off</span>
+</button>
+</div>
+<div class="flex justify-end pt-1">
+<a class="text-xs font-medium text-gray-400 transition-colors hover:text-primary hover:underline" href="#">
+                            Forgot Password?
+                        </a>
+</div>
+</div>
+<button class="relative mt-4 flex w-full items-center justify-center overflow-hidden rounded-xl bg-primary px-6 py-4 text-center font-display text-lg font-bold uppercase tracking-wide text-white shadow-[0_4px_20px_rgba(236,19,91,0.4)] transition-all duration-300 hover:bg-rose-600 hover:shadow-[0_6px_25px_rgba(236,19,91,0.6)] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none">
+<span class="mr-2">Login</span>
+<span class="material-symbols-outlined text-[22px]">login</span>
+<div class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform hover:animate-[shimmer_1s_infinite]"></div>
+</button>
+</form>
+</div>
+<div class="flex flex-col items-center gap-6 pt-4">
+<a class="group relative flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white/80 transition-all hover:bg-white/5 hover:text-white" href="#">
+<span>New Director?</span>
+<span class="text-primary underline decoration-primary decoration-2 underline-offset-4 group-hover:text-rose-400">Create Account</span>
+</a>
+<div class="flex items-center gap-2 opacity-30">
+<span class="material-symbols-outlined text-xs text-white">verified_user</span>
+<span class="text-[10px] text-white uppercase tracking-widest">Secure Connection</span>
+</div>
+</div>
+</div>
+</div>
+<style>
+        @keyframes shimmer {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+    </style>
+</body></html>

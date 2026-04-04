@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ui="UnityEngine.UIElements"
+    xmlns:uie="UnityEditor.UIElements"
+    xsi:noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd"
+>
+    <ui:VisualElement
+        name="login-root"
+        style="position: relative; flex-grow: 1; min-height: 100%; background-color: rgb(34, 16, 22);"
+    >
+        <ui:VisualElement
+            name="background-image"
+            style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; background-color: rgb(46, 24, 34);"
+        />
+
+        <ui:VisualElement
+            name="background-overlay"
+            style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; background-color: rgba(24, 10, 14, 0.58);"
+        />
+
+        <ui:VisualElement
+            name="content"
+            style="position: relative; flex-grow: 1; justify-content: space-between; padding-left: 24px; padding-right: 24px; padding-top: 24px; padding-bottom: 28px;"
+        >
+            <ui:VisualElement
+                name="top-section"
+                style="flex-direction: row; justify-content: flex-end;"
+            >
+                <ui:VisualElement
+                    name="vr-ar-badge"
+                    style="flex-direction: row; align-items: center; gap: 6px; padding-left: 12px; padding-right: 12px; padding-top: 6px; padding-bottom: 6px; border-top-left-radius: 18px; border-top-right-radius: 18px; border-bottom-left-radius: 18px; border-bottom-right-radius: 18px; background-color: rgba(236, 19, 91, 0.20);"
+                >
+                    <ui:Label name="vr-ar-badge-icon" text="AR" style="font-size: 10px; color: rgb(255, 178, 187); -unity-font-style: bold;" />
+                    <ui:Label name="vr-ar-badge-text" text="VR/AR Ready" style="font-size: 11px; color: rgb(255, 255, 255); -unity-font-style: bold;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement
+                name="middle-section"
+                style="align-items: center; justify-content: center; padding-top: 72px;"
+            >
+                <ui:VisualElement
+                    name="logo-icon-wrap"
+                    style="width: 64px; height: 64px; align-items: center; justify-content: center; border-top-left-radius: 16px; border-top-right-radius: 16px; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; background-color: rgb(236, 19, 91);"
+                >
+                    <ui:Label name="logo-icon" text="FILM" style="font-size: 12px; color: rgb(255, 255, 255); -unity-font-style: bold;" />
+                </ui:VisualElement>
+
+                <ui:Label name="title-main" text="Ero Director" style="margin-top: 16px; font-size: 44px; color: rgb(255, 255, 255); -unity-font-style: bold; unity-text-align: middle-center;" />
+
+                <ui:Label
+                    name="tagline"
+                    text="Your Vision. Your Scene. Your Rules."
+                    style="margin-top: 8px; max-width: 300px; font-size: 16px; color: rgba(255, 255, 255, 0.88); unity-text-align: middle-center;"
+                />
+            </ui:VisualElement>
+
+            <ui:VisualElement
+                name="bottom-section"
+                style="margin-top: auto; gap: 16px; padding-top: 48px;"
+            >
+                <ui:Toggle
+                    name="age-gate-toggle"
+                    text="I confirm I am over 18 years of age."
+                    value="false"
+                    style="font-size: 13px; color: rgb(235, 220, 223);"
+                />
+
+                <ui:Button
+                    name="start-directing-button"
+                    text="Start Directing"
+                    style="height: 54px; border-top-left-radius: 12px; border-top-right-radius: 12px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; background-color: rgb(236, 19, 91); color: rgb(255, 255, 255); -unity-font-style: bold;"
+                />
+
+                <ui:VisualElement
+                    name="secondary-actions"
+                    style="align-items: center; gap: 8px;"
+                >
+                    <ui:Button
+                        name="login-link-button"
+                        text="Already a Director? Login"
+                        style="height: 28px; background-color: rgba(255, 255, 255, 0); color: rgba(255, 255, 255, 0.78); border-top-width: 0; border-right-width: 0; border-bottom-width: 0; border-left-width: 0;"
+                    />
+
+                    <ui:VisualElement name="privacy-row" style="flex-direction: row; align-items: center; gap: 4px; opacity: 0.55;">
+                        <ui:Label name="privacy-lock" text="LOCK" style="font-size: 10px; color: rgb(255, 255, 255);" />
+                        <ui:Label name="privacy-text" text="Secure &amp; Private" style="font-size: 10px; color: rgb(255, 255, 255); -unity-font-style: bold;" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
