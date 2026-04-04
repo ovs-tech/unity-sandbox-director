@@ -22,7 +22,7 @@
                 <ui:VisualElement name="secondary-actions" style="align-items: center; gap: 8px;">
                     <appui:Button name="login-link-button" title="Already a Director? Login" style="height: 28px; background-color: rgba(255, 255, 255, 0); color: rgba(255, 255, 255, 0.78); border-top-width: 0; border-right-width: 0; border-bottom-width: 0; border-left-width: 0;"/>
                     <ui:VisualElement name="privacy-row" style="flex-direction: row; align-items: center; gap: 4px; opacity: 0.55;">
-                        <appui:Text name="privacy-lock" text="LOCK" style="font-size: 10px; color: rgb(255, 255, 255);"/>
+                        <appui:Icon name="privacy-lock" text="LOCK" icon-name="lock-icon" style="font-size: 10px; color: rgb(255, 255, 255);"/>
                         <appui:Text name="privacy-text" text="Secure &amp; Private" style="font-size: 10px; color: rgb(255, 255, 255); -unity-font-style: bold;"/>
                     </ui:VisualElement>
                 </ui:VisualElement>
