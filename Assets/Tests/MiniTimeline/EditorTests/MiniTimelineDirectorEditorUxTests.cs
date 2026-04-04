@@ -1,7 +1,9 @@
 using System.Reflection;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.TestTools;
 using Systems.MiniTimeline.Core;
 
 namespace Systems.MiniTimeline.EditorTests
@@ -59,6 +61,8 @@ namespace Systems.MiniTimeline.EditorTests
                 Name = "Track",
                 Enabled = true
             };
+
+            LogAssert.Expect(LogType.Error, new Regex(@"\[MovementTrack\] Target object for track 'track_editor_ux' is not a Transform, GameObject, or Component"));
             _director.AddTrack(track);
 
             var clip = new Tracks.MovementClip
