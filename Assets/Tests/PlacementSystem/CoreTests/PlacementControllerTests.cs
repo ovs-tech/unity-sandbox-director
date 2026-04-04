@@ -1,9 +1,11 @@
 using NUnit.Framework;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Systems.PlacementSystem.Core;
 using Systems.PlacementSystem.Input;
 using Systems.PlacementSystem.Strategies;
+using Systems.PlacementSystem.Tools;
 using Systems.PlacementSystem.Validation;
 using Systems.PlacementSystem.Visualization;
 
@@ -247,8 +249,50 @@ namespace PlacementSystem.Tests
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             visualizerField.SetValue(controller, visualizer);
 
+            // Ensure a ToolManager exists for tooling initialization in tests
+            var toolManager = _controllerGameObject.AddComponent<ToolManager>();
+            var toolManagerField = typeof(PlacementController).GetField("_tool_manager",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (toolManagerField == null)
+            {
+                // Fallback to field name used in code
+                toolManagerField = typeof(PlacementController).GetField("_toolManager",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            }
+            toolManagerField.SetValue(controller, toolManager);
+
+            ConfigureToolManager(toolManager);
+
             // Initialize for testing instead of Awake
             controller.InitializeForTesting();
+        }
+
+        private static void ConfigureToolManager(ToolManager toolManager)
+        {
+            var toolset = ScriptableObject.CreateInstance<PlacementToolset>();
+            var selectionTool = ScriptableObject.CreateInstance<SelectionTool>();
+            var placementTool = ScriptableObject.CreateInstance<PlacementTool>();
+
+            var entries = new List<PlacementToolset.ToolEntry>
+            {
+                new PlacementToolset.ToolEntry
+                {
+                    ToolType = PlacementController.ToolIds.Selection,
+                    ToolAsset = selectionTool
+                },
+                new PlacementToolset.ToolEntry
+                {
+                    ToolType = PlacementController.ToolIds.Placement,
+                    ToolAsset = placementTool
+                }
+            };
+
+            var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+            var toolsField = typeof(PlacementToolset).GetField("_tools", flags);
+            toolsField.SetValue(toolset, entries);
+
+            var toolsetField = typeof(ToolManager).GetField("_toolset", flags);
+            toolsetField.SetValue(toolManager, toolset);
         }
     }
 }

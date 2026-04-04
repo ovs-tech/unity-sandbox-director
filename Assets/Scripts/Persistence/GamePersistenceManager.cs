@@ -427,6 +427,12 @@ namespace Systems.Persistence
         {
             if (subsystem == null) throw new ArgumentNullException(nameof(subsystem));
 
+            if (dataService == null)
+            {
+                Debug.LogError($"Failed to save subsystem '{subsystem.Namespace}': dataService not configured");
+                return;
+            }
+
             string saveTo = saveName ?? CurrentSaveName ?? "Default";
             string fileNameToUse = fileName ?? subsystem.PersistentName;
 
@@ -508,6 +514,12 @@ namespace Systems.Persistence
         public async Task SaveFileAsync(ISubsystemPersistence subsystem, string saveName = null, string fileName = null, bool overwrite = true, CancellationToken token = default)
         {
             if (subsystem == null) throw new ArgumentNullException(nameof(subsystem));
+
+            if (dataService == null)
+            {
+                Debug.LogError($"Failed to save subsystem '{subsystem.Namespace}': dataService not configured");
+                return;
+            }
 
             token.ThrowIfCancellationRequested();
 
