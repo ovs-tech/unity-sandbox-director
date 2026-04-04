@@ -10,6 +10,7 @@ public class AppNavigationManager : MonoBehaviour
 
   void Start()
   {
+    Debug.Log("AppNavigationManager Start");
     var navHost = new NavHost();
     navHost.navController.SetGraph(graphAsset);
     navHost.visualController = new AppNavVisualController();
