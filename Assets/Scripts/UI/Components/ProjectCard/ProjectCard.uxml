@@ -1,0 +1,9 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd">
+  <VisualElement class="ProjectCard">
+    <VisualElement name="card-image" class="card-image" />
+    <VisualElement class="card-body">
+      <Label name="project-name">Project Name</Label>
+      <Label name="project-meta">meta info</Label>
+    </VisualElement>
+  </VisualElement>
+</ui:UXML>

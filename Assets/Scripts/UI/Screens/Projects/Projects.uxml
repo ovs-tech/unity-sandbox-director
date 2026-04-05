@@ -1,0 +1,22 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:appui="Unity.AppUI.UI" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Scripts/UI/Screens/Projects/Projects.uss?fileID=7433441132597879392&amp;guid=41ae49905d1973c4f888811ffca8fd5c&amp;type=3#Projects"/>
+
+    <!-- Top App Bar -->
+    <ui:VisualElement name="projects-root" class="projects-root">
+        <ui:VisualElement name="top-appbar" class="top-appbar">
+            <ui:VisualElement class="brand-row">
+                <ui:VisualElement class="avatar"/>
+                <ui:Label text="Studio Projects" class="title"/>
+            </ui:VisualElement>
+            <appui:Button name="privacy-mode-button" title="" class="icon-button"/>
+        </ui:VisualElement>
+
+        <!-- Search & Filters are provided by ListProjectPage -->
+        <ui:VisualElement name="list-project-page-container" />
+
+        <!-- Project Grid moved to ListProjectPage -->
+
+        <!-- Floating Action Button -->
+        <appui:Button name="new-production-button" title="New Production" class="fab"/>
+    </ui:VisualElement>
+</ui:UXML>

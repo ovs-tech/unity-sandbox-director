@@ -1,5 +1,32 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7486950325857458241
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 819e9866b5cc41e7ac482ba5fe89e09b, type: 3}
+  m_Name: projects
+  m_EditorClassIdentifier: Unity.AppUI.Navigation::Unity.AppUI.Navigation.NavDestination
+  m_Position: {x: 942.37164, y: 685.8067}
+  m_Guid: aa6bb2e18c7671446900349637ae6a4c
+  m_Parent: {fileID: -4952072261124363356}
+  m_Actions: []
+  m_Label: Projects
+  m_TemplateSettings:
+    rid: 1230969362336710941
+  m_Arguments: []
+  references:
+    version: 2
+    RefIds:
+    - rid: 1230969362336710941
+      type: {class: ProjectsDestinationTemplate, ns: Systems.UI, asm: Systems.UI}
+      data:
+        m_UxmlAsset: {fileID: 9197481963319205126, guid: d0fe5ecdd3aa4ed4f9581f1666ad5d31, type: 3}
 --- !u!114 &-4952072261124363356
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18,6 +45,33 @@ MonoBehaviour:
   m_Actions: []
   m_Label: 
   m_StartDestination: {fileID: 8927357766182048842}
+--- !u!114 &-3015877856226548867
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78073c03d6154685bf631e4ad244b9b8, type: 3}
+  m_Name: go_to_projects
+  m_EditorClassIdentifier: Unity.AppUI.Navigation::Unity.AppUI.Navigation.NavAction
+  m_Position: {x: 242, y: 624.6667}
+  m_Guid: 52e925b3-d889-4fdd-a036-54323dcd5d1f
+  m_Destination: {fileID: -7486950325857458241}
+  m_Options:
+    m_PopUpToStrategy: 0
+    m_PopUpToRoute: {fileID: 0}
+    m_PopUpToInclusive: 0
+    m_EnterAnim: 0
+    m_ExitAnim: 0
+    m_PopEnterAnim: 0
+    m_PopExitAnim: 0
+    m_PopUpToSaveState: 0
+    m_RestoreState: 0
+    m_LaunchSingleTop: 0
+  m_DefaultArguments: []
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35,6 +89,37 @@ MonoBehaviour:
   - {fileID: 8927357766182048842}
   - {fileID: 2153947912494338995}
   - {fileID: 4883722385814664163}
+  - {fileID: 1278620207171056842}
+  - {fileID: 5600927429121450824}
+  - {fileID: -3015877856226548867}
+  - {fileID: -7486950325857458241}
+--- !u!114 &1278620207171056842
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78073c03d6154685bf631e4ad244b9b8, type: 3}
+  m_Name: go_to_register
+  m_EditorClassIdentifier: Unity.AppUI.Navigation::Unity.AppUI.Navigation.NavAction
+  m_Position: {x: 1330.6666, y: -64.66667}
+  m_Guid: 80a7fc59-2cd9-47ba-9909-d06c7d915ea1
+  m_Destination: {fileID: 5600927429121450824}
+  m_Options:
+    m_PopUpToStrategy: 0
+    m_PopUpToRoute: {fileID: 0}
+    m_PopUpToInclusive: 0
+    m_EnterAnim: 3
+    m_ExitAnim: 4
+    m_PopEnterAnim: 3
+    m_PopExitAnim: 4
+    m_PopUpToSaveState: 0
+    m_RestoreState: 0
+    m_LaunchSingleTop: 0
+  m_DefaultArguments: []
 --- !u!114 &2153947912494338995
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -50,16 +135,17 @@ MonoBehaviour:
   m_Position: {x: 761.5, y: 134.5}
   m_Guid: dfc26a89e1c584fa1a63003d462ab9e3
   m_Parent: {fileID: -4952072261124363356}
-  m_Actions: []
+  m_Actions:
+  - {fileID: 1278620207171056842}
   m_Label: Login
   m_TemplateSettings:
-    rid: 1676378198598484834
+    rid: 1230969362336710940
   m_Arguments: []
   references:
     version: 2
     RefIds:
-    - rid: 1676378198598484834
-      type: {class: LoginDestinationTemplate, ns: , asm: Assembly-CSharp}
+    - rid: 1230969362336710940
+      type: {class: LoginDestinationTemplate, ns: Systems.UI, asm: Systems.UI}
       data:
         m_UxmlAsset: {fileID: 9197481963319205126, guid: db9525fd46a154615ac5add07ca18115, type: 3}
 --- !u!114 &4883722385814664163
@@ -74,7 +160,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78073c03d6154685bf631e4ad244b9b8, type: 3}
   m_Name: go_to_login
   m_EditorClassIdentifier: Unity.AppUI.Navigation::Unity.AppUI.Navigation.NavAction
-  m_Position: {x: 388.5, y: 98.5}
+  m_Position: {x: 357.33334, y: -64.66667}
   m_Guid: 9f6d717e-6cf2-4b16-949e-befa3f3ef022
   m_Destination: {fileID: 2153947912494338995}
   m_Options:
@@ -89,6 +175,33 @@ MonoBehaviour:
     m_RestoreState: 0
     m_LaunchSingleTop: 0
   m_DefaultArguments: []
+--- !u!114 &5600927429121450824
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 819e9866b5cc41e7ac482ba5fe89e09b, type: 3}
+  m_Name: register
+  m_EditorClassIdentifier: Unity.AppUI.Navigation::Unity.AppUI.Navigation.NavDestination
+  m_Position: {x: 1626.6666, y: 333.33334}
+  m_Guid: 76813040d2b6f0642922add1379a6fae
+  m_Parent: {fileID: -4952072261124363356}
+  m_Actions: []
+  m_Label: Register
+  m_TemplateSettings:
+    rid: 1230969362336710942
+  m_Arguments: []
+  references:
+    version: 2
+    RefIds:
+    - rid: 1230969362336710942
+      type: {class: RegisterDestinationTemplate, ns: Systems.UI, asm: Systems.UI}
+      data:
+        m_UxmlAsset: {fileID: 9197481963319205126, guid: 1004b521a7ccc4f7ca852e9cb0aa5cd2, type: 3}
 --- !u!114 &8927357766182048842
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -106,14 +219,15 @@ MonoBehaviour:
   m_Parent: {fileID: -4952072261124363356}
   m_Actions:
   - {fileID: 4883722385814664163}
+  - {fileID: -3015877856226548867}
   m_Label: Welcome
   m_TemplateSettings:
-    rid: 1676378198598484833
+    rid: 1230969362336710939
   m_Arguments: []
   references:
     version: 2
     RefIds:
-    - rid: 1676378198598484833
-      type: {class: WelcomeDestinationTemplate, ns: , asm: Assembly-CSharp}
+    - rid: 1230969362336710939
+      type: {class: WelcomeDestinationTemplate, ns: Systems.UI, asm: Systems.UI}
       data:
         m_UxmlAsset: {fileID: 9197481963319205126, guid: 9e08f59f4232144b888104ea95403a53, type: 3}
