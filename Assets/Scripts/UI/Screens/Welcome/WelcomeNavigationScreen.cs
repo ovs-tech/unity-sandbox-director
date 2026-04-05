@@ -1,12 +1,13 @@
 using Unity.AppUI.Navigation;
 using UnityEngine.Scripting;
 using UnityEngine.UIElements;
+using AppUIButton = Unity.AppUI.UI.Button;
 
 [Preserve]
 class WelcomeNavigationScreen : NavigationScreen
 {
   private readonly NavHost host;
-  private Button loginButton;
+  private AppUIButton loginButton;
 
   public WelcomeNavigationScreen(VisualTreeAsset uxmlAsset, NavHost host)
   {
@@ -18,7 +19,7 @@ class WelcomeNavigationScreen : NavigationScreen
   {
     base.OnEnter(controller, destination, args);
 
-    this.loginButton = this.Q<Button>("login-link-button");
+    this.loginButton = this.Q<AppUIButton>("login-link-button");
     loginButton.clicked += () =>
     {
       host.navController.Navigate("login");

@@ -1,0 +1,38 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:appui="Unity.AppUI.UI" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Style src="Register.uss" />
+    <ui:VisualElement name="register-root" class="register-root">
+        <ui:VisualElement name="background-image" class="background-image"/>
+        <ui:VisualElement name="background-overlay" class="background-overlay"/>
+        <ui:VisualElement name="content" class="content">
+            <ui:VisualElement name="header" class="header">
+                <ui:VisualElement name="logo-icon-wrap" class="logo-icon-wrap">
+                    <ui:Label name="logo-icon" text="FILM" class="logo-icon"/>
+                </ui:VisualElement>
+                <ui:Label name="title-main" text="Create Account" class="title-main"/>
+                <ui:Label name="subtitle" text="Join the studio and start directing." class="subtitle"/>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="form-container" class="form-container">
+                <ui:TextField name="email" label="Email" class="input email-input" />
+                <ui:TextField name="password" label="Password" class="input password-input" />
+                <ui:TextField name="password_confirm" label="Confirm Password" class="input confirm-input" />
+
+                <ui:VisualElement class="checks">
+                    <appui:Toggle name="age-check" label="I am 18 years of age or older." value="false" class="check" />
+                    <appui:Toggle name="tos-check" label="I agree to the Terms of Service and Privacy Policy." value="false" class="check" />
+                </ui:VisualElement>
+
+                <appui:Button name="register-button" title="Register" class="register-button" scale="large" />
+
+                <ui:VisualElement class="secondary-row">
+                    <appui:Button name="login-link-button" title="Already a Director? Login" class="login-link-button" scale="medium" />
+                    <ui:VisualElement name="privacy-row" class="privacy-row">
+                        <appui:Icon name="privacy-lock" text="LOCK" icon-name="lock-icon" class="privacy-lock" scale="medium"/>
+                        <ui:Label name="privacy-text" text="Secure Registration" class="privacy-text"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
