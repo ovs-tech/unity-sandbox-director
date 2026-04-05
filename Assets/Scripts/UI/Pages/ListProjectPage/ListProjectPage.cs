@@ -1,18 +1,13 @@
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-using UnityEngine.Scripting;
 using UnityEngine.UIElements;
 using Unity.AppUI.UI;
 using System.ComponentModel;
-using System;
 using AppUIButton = Unity.AppUI.UI.Button;
 
 namespace Systems.UI
 {
-    [Preserve]
-    public class ListProjectPage : VisualElement
+    [UxmlFilePath("Assets/Scripts/UI/Pages/ListProjectPage/ListProjectPage.uxml", UxmlFilePathType.AssetDatabase)]
+    public partial class ListProjectPage : VisualElement
     {
         readonly ListProjectViewModel m_ViewModel;
 
@@ -20,22 +15,10 @@ namespace Systems.UI
         SearchBar m_SearchTextField;
         AppUIButton m_CreateProjectButton;
 
-        const string k_ResourceName = "ListProjectPage";
-        const string k_ResourcePathAlt = "UI/Pages/ListProjectPage/ListProjectPage";
-        const string k_AssetPath = "Assets/Scripts/UI/Pages/ListProjectPage/ListProjectPage.uxml";
-
         public ListProjectPage(ListProjectViewModel viewModel)
         {
             m_ViewModel = viewModel;
-            var tree = Resources.Load<VisualTreeAsset>(k_ResourceName) ?? Resources.Load<VisualTreeAsset>(k_ResourcePathAlt);
-#if UNITY_EDITOR
-            if (tree == null)
-                tree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(k_AssetPath);
-#endif
-
-            if (tree != null)
-                tree.CloneTree(this);
-
+            UxmlCloneTree();
             InitializeComponent();
             m_ViewModel.PropertyChanged += OnPropertyChanged;
             RefreshProjectList();
