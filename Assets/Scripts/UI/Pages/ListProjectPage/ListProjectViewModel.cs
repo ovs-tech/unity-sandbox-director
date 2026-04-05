@@ -28,9 +28,14 @@ namespace Systems.UI
             m_Subscription = m_StoreService.store.Subscribe(SelectAppSlice, OnStateChanged);
         }
 
-        private void OnStateChanged(ListProjectState state)
+        async void OnStateChanged(ListProjectState state)
         {
             Debug.Log("Redux state has changed:\n" + state);
+            if(state.projects != Projects)
+            {
+                Projects = state.projects;
+                await SearchInternal(state.searchInput, CancellationToken.None);
+            }
         }
 
         ListProjectState SelectAppSlice(PartitionedState state)
@@ -38,7 +43,7 @@ namespace Systems.UI
             return state.Get<ListProjectState>(m_StoreService.sliceName);
         }
 
-        // [ICommand]
+        [ICommand]
         async Task SearchProject(string input, CancellationToken cancellationToken)
         {
             m_StoreService.store.Dispatch(ListProjectActions.setSearchInput, input);
@@ -48,7 +53,7 @@ namespace Systems.UI
         async Task SearchInternal(string input, CancellationToken cancellationToken)
         {
             var result = new List<Project>();
-            foreach (var project in m_Projects)
+            foreach (var project in Projects)
             {
                 if (string.IsNullOrEmpty(input) || project.name.Contains(input))
                 {
@@ -58,7 +63,13 @@ namespace Systems.UI
             // Simulate a network request
             await Task.Delay(300, cancellationToken);
 
-            m_FilteredProjects = result.ToArray();
+            FilteredProjects = result.ToArray();
+        }
+
+        [ICommand]
+        async Task CreateNewProject(string input, CancellationToken cancellationToken)
+        {
+            m_StoreService.store.Dispatch(ListProjectActions.createProject, input);
         }
     }
 }

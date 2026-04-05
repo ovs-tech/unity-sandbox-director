@@ -1,12 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:appui="Unity.AppUI.UI" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd">
-    <Style src="project://database/Assets/Scripts/UI/Pages/ListProjectPage/ListProjectPage.uss?fileID=0&amp;guid=00000000000000000000000000000000&amp;type=3#ListProjectPage"/>
-
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:appui="Unity.AppUI.UI" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Scripts/UI/Pages/ListProjectPage/ListProjectPage.uss?fileID=7433441132597879392&amp;guid=9713870d3cbf3774b81d03eeaed5f7e9&amp;type=3#ListProjectPage"/>
     <ui:VisualElement name="list-project-root" class="search-filters">
         <ui:VisualElement class="search-row">
-            <appui:TextField name="search-field" class="search-field"/>
+            <appui:SearchBar name="search-field"/>
         </ui:VisualElement>
-
         <ui:VisualElement class="chips-row">
             <appui:Button title="All" class="chip chip-primary"/>
             <appui:Button title="VR Mode" class="chip"/>
@@ -14,13 +11,7 @@
             <appui:Button title="Standard" class="chip"/>
             <appui:Button title="Drafts" class="chip"/>
         </ui:VisualElement>
-
-        <!-- Projects grid moved here -->
-        <ui:ScrollView name="projects-scroll" class="projects-scroll">
-            <ui:VisualElement class="projects-grid">
-                    <!-- Example project card (repeat/populate from code) -->
-                    <ProjectCard project-name="Late Night Scene 01" project-meta="2h ago · 3 Actors" />
-                </ui:VisualElement>
-        </ui:ScrollView>
+        <ui:ListView name="list-project"/>
+        <appui:Button name="create-project-button" title="New Production" class="fab"/>
     </ui:VisualElement>
 </ui:UXML>

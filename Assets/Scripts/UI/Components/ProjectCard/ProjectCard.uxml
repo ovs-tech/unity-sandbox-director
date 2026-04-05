@@ -1,9 +1,18 @@
-<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd">
-  <VisualElement class="ProjectCard">
-    <VisualElement name="card-image" class="card-image" />
-    <VisualElement class="card-body">
-      <Label name="project-name">Project Name</Label>
-      <Label name="project-meta">meta info</Label>
-    </VisualElement>
-  </VisualElement>
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Scripts/UI/Components/ProjectCard/ProjectCard.uss?fileID=7433441132597879392&amp;guid=d5a482384461e734aaec6a55a1d63433&amp;type=3#ProjectCard"/>
+    <ui:VisualElement class="ProjectCard">
+        <ui:VisualElement name="card-image" class="card-image"/>
+        <ui:VisualElement class="card-body">
+            <ui:Label name="project-name">
+                <Bindings>
+                    <ui:DataBinding property="text" data-source-path="name" binding-mode="ToTarget"/>
+                </Bindings>
+            </ui:Label>
+            <ui:Label name="project-meta">
+                <Bindings>
+                    <ui:DataBinding property="text" data-source-path="meta" binding-mode="ToTarget"/>
+                </Bindings>
+            </ui:Label>
+        </ui:VisualElement>
+    </ui:VisualElement>
 </ui:UXML>

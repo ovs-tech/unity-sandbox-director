@@ -77,3 +77,15 @@
     color: rgba(255,255,255,0.6);
 }
 
+.fab {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translate3d(-50%,0,0);
+    height: 56px;
+    padding-left: 20px;
+    padding-right: 20px;
+    border-radius: 28px;
+    background-color: rgb(255,79,118);
+    color: rgb(255,255,255);
+}
