@@ -179,7 +179,7 @@
       }
     },
     "com.unity.dt.app-ui": {
-      "version": "2.1.8",
+      "version": "2.2.0-pre.7",
       "depth": 0,
       "source": "registry",
       "dependencies": {

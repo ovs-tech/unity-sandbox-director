@@ -30,7 +30,6 @@ namespace Systems.UI
 
         async void OnStateChanged(ListProjectState state)
         {
-            Debug.Log("Redux state has changed:\n" + state);
             if(state.projects != Projects)
             {
                 Projects = state.projects;
