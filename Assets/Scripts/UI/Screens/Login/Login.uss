@@ -1,0 +1,237 @@
+.login-root {
+    position: relative;
+    flex-grow: 1;
+    min-height: 100%;
+    background-color: rgb(31, 15, 17);
+    overflow: hidden;
+}
+
+.background-base {
+    position: absolute;
+    left: -120px;
+    top: -96px;
+    width: 360px;
+    height: 360px;
+    border-top-left-radius: 180px;
+    border-top-right-radius: 180px;
+    border-bottom-left-radius: 180px;
+    border-bottom-right-radius: 180px;
+    background-color: rgba(189, 0, 69, 0.28);
+}
+
+.background-accent {
+    position: absolute;
+    right: -100px;
+    top: 140px;
+    width: 280px;
+    height: 280px;
+    border-radius: 140px;
+    background-color: rgba(239, 103, 31, 0.18);
+}
+
+.background-shadow {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(24, 10, 14, 0.62);
+}
+
+.content {
+    position: relative;
+    flex-grow: 1;
+    justify-content: space-between;
+    padding: 32px 24px 36px 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+.brand-section {
+    align-items: center;
+    padding-top: 28px;
+}
+
+.brand-icon-wrap {
+    width: 48px;
+    height: 48px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background-color: rgb(255, 79, 118);
+}
+
+.brand-icon {
+    font-size: 11px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+}
+
+.brand-title {
+    margin-top: 12px;
+    font-size: 28px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+}
+
+.form-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.welcome-copy {
+    align-items: center;
+    gap: 6px;
+}
+
+.welcome-title {
+    font-size: 24px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+}
+
+.welcome-subtitle {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.58);
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.username-group,
+.password-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.username-label,
+.password-label {
+    margin-left: 2px;
+    font-size: 11px;
+    color: rgb(172, 136, 139);
+    -unity-font-style: bold;
+    letter-spacing: 1.2px;
+}
+
+.username-shell,
+.password-shell {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    min-height: 58px;
+    padding-left: 14px;
+    padding-right: 14px;
+    border-radius: 12px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.10);
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.username-icon,
+.password-icon {
+    width: 22px;
+    margin-right: 12px;
+    font-size: 16px;
+    color: rgb(172, 136, 139);
+}
+
+.username-field,
+.password-field {
+    flex-grow: 1;
+    color: rgb(255, 255, 255);
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+}
+
+.password-visibility-button {
+    min-width: 58px;
+    height: 30px;
+    margin-left: 8px;
+    color: rgba(255, 255, 255, 0.72);
+    background-color: rgba(255, 255, 255, 0);
+    border-width: 0;
+    font-size: 10px;
+    -unity-font-style: bold;
+}
+
+.forgot-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    padding-top: 4px;
+}
+
+.forgot-password-button {
+    height: 24px;
+    padding-left: 0;
+    padding-right: 0;
+    color: rgb(172, 136, 139);
+    background-color: rgba(255, 255, 255, 0);
+    border-width: 0;
+    font-size: 11px;
+}
+
+.login-button {
+    height: 58px;
+    margin-top: 8px;
+    border-radius: 12px;
+    background-color: rgb(255, 79, 118);
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+    font-size: 18px;
+    border-width: 0;
+}
+
+.bottom-section {
+    align-items: center;
+    gap: 18px;
+    padding-top: 20px;
+}
+
+.signup-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+}
+
+.signup-prefix {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.create-account-button {
+    height: 24px;
+    padding-left: 0;
+    padding-right: 0;
+    color: rgb(255, 178, 187);
+    background-color: rgba(255, 255, 255, 0);
+    border-width: 0;
+    -unity-font-style: bold;
+    font-size: 12px;
+}
+
+.security-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.38;
+}
+
+.security-icon {
+    font-size: 9px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+}
+
+.security-text {
+    font-size: 10px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+}

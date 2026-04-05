@@ -8,7 +8,6 @@ class LoginNavigationScreen : NavigationScreen
 
   public LoginNavigationScreen(VisualTreeAsset uxmlAsset, NavHost host)
   {
-    style.flexDirection = FlexDirection.Column;
     uxmlAsset.CloneTree(this);
   }
 
