@@ -15,8 +15,5 @@
         <ui:VisualElement name="list-project-page-container" />
 
         <!-- Project Grid moved to ListProjectPage -->
-
-        <!-- Floating Action Button -->
-        <appui:Button name="new-production-button" title="New Production" class="fab"/>
     </ui:VisualElement>
 </ui:UXML>
