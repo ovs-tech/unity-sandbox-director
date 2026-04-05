@@ -3,6 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:ui="UnityEngine.UIElements"
     xmlns:uie="UnityEditor.UIElements"
+    xmlns:appui="Unity.AppUI.UI"
     xsi:noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd"
 >
     <ui:VisualElement
@@ -128,9 +129,9 @@
                                 style="flex-grow: 1; color: rgb(255, 255, 255); background-color: rgba(0, 0, 0, 0); border-top-width: 0; border-right-width: 0; border-bottom-width: 0; border-left-width: 0;"
                             />
 
-                            <ui:Button
+                            <appui:Button
                                 name="password-visibility-button"
-                                text="SHOW"
+                                title="SHOW"
                                 style="min-width: 58px; height: 30px; margin-left: 8px; color: rgba(255, 255, 255, 0.72); background-color: rgba(255, 255, 255, 0); border-top-width: 0; border-right-width: 0; border-bottom-width: 0; border-left-width: 0; font-size: 10px; -unity-font-style: bold;"
                             />
                         </ui:VisualElement>
@@ -139,17 +140,17 @@
                             name="forgot-row"
                             style="flex-direction: row; justify-content: flex-end; padding-top: 4px;"
                         >
-                            <ui:Button
+                            <appui:Button
                                 name="forgot-password-button"
-                                text="Forgot Password?"
+                                title="Forgot Password?"
                                 style="height: 24px; padding-left: 0; padding-right: 0; color: rgb(172, 136, 139); background-color: rgba(255, 255, 255, 0); border-top-width: 0; border-right-width: 0; border-bottom-width: 0; border-left-width: 0; font-size: 11px;"
                             />
                         </ui:VisualElement>
                     </ui:VisualElement>
 
-                    <ui:Button
+                    <appui:Button
                         name="login-button"
-                        text="LOGIN"
+                        title="LOGIN"
                         style="height: 58px; margin-top: 8px; border-top-left-radius: 12px; border-top-right-radius: 12px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; background-color: rgb(255, 79, 118); color: rgb(255, 255, 255); -unity-font-style: bold; font-size: 18px;"
                     />
                 </ui:VisualElement>
@@ -169,9 +170,9 @@
                         style="font-size: 12px; color: rgba(255, 255, 255, 0.72);"
                     />
 
-                    <ui:Button
+                    <appui:Button
                         name="create-account-button"
-                        text="Create Account"
+                        title="Create Account"
                         style="height: 24px; padding-left: 0; padding-right: 0; color: rgb(255, 178, 187); background-color: rgba(255, 255, 255, 0); border-top-width: 0; border-right-width: 0; border-bottom-width: 0; border-left-width: 0; -unity-font-style: bold; font-size: 12px;"
                     />
                 </ui:VisualElement>
@@ -180,9 +181,11 @@
                     name="security-row"
                     style="flex-direction: row; align-items: center; gap: 6px; opacity: 0.38;"
                 >
-                    <ui:Label
-                        name="security-icon"
+                    <appui:Icon
+                        name="security-lock"
                         text="LOCK"
+                        icon-name="lock-icon"
+                        class="security-icon"
                         style="font-size: 9px; color: rgb(255, 255, 255); -unity-font-style: bold;"
                     />
 

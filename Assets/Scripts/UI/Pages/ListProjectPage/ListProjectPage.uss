@@ -1,0 +1,79 @@
+.search-filters {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.search-row {
+    display: flex;
+}
+
+.search-field {
+    flex-grow: 1;
+    height: 36px;
+    border-radius: 10px;
+    padding-left: 10px;
+    background-color: rgba(255,255,255,0.03);
+    color: rgb(251,219,221);
+}
+
+.chips-row {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    overflow: hidden;
+}
+
+.chip {
+    height: 32px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 10px;
+    background-color: rgba(255,255,255,0.03);
+    color: rgb(219,189,192);
+}
+
+.chip-primary {
+    background-color: rgb(255,178,187);
+    color: rgb(31,15,17);
+}
+
+.projects-scroll {
+    flex-grow: 1;
+}
+
+.projects-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px;
+}
+
+.project-card {
+    width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+    border-radius: 12px;
+    background-color: rgba(255,255,255,0.03);
+}
+
+.card-image {
+    height: 176px;
+    border-radius: 8px;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.card-title {
+    font-size: 14px;
+    color: rgb(251,219,221);
+    -unity-font-style: bold;
+}
+
+.card-meta {
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+}
+

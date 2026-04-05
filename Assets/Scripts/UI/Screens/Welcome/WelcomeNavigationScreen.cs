@@ -1,28 +1,38 @@
 using Unity.AppUI.Navigation;
+using Unity.AppUI.Navigation.Generated;
 using UnityEngine.Scripting;
 using UnityEngine.UIElements;
-using AppUIButton = Unity.AppUI.UI.Button;
+using AppUIButton =Unity.AppUI.UI.Button;
 
-[Preserve]
-class WelcomeNavigationScreen : NavigationScreen
+namespace Systems.UI
 {
-  private readonly NavHost host;
-  private AppUIButton loginButton;
-
-  public WelcomeNavigationScreen(VisualTreeAsset uxmlAsset, NavHost host)
-  {
-    this.host = host;
-    uxmlAsset.CloneTree(this);
-  }
-
-  public override void OnEnter(NavController controller, NavDestination destination, Argument[] args)
-  {
-    base.OnEnter(controller, destination, args);
-
-    this.loginButton = this.Q<AppUIButton>("login-link-button");
-    loginButton.clicked += () =>
+    [Preserve]
+    class WelcomeNavigationScreen : NavigationScreen
     {
-      host.navController.Navigate("login");
-    };
-  }
+        private readonly NavHost host;
+        private readonly AppUIButton loginButton;
+        private readonly AppUIButton startButton;
+
+        public WelcomeNavigationScreen(VisualTreeAsset uxmlAsset, NavHost host)
+        {
+            this.host = host;
+            uxmlAsset.CloneTree(this);
+
+            this.loginButton = this.Q<AppUIButton>("login-link-button");
+            this.startButton = this.Q<AppUIButton>("start-directing-button");
+        }
+
+        public override void OnEnter(NavController controller, NavDestination destination, Argument[] args)
+        {
+            base.OnEnter(controller, destination, args);
+            loginButton.clicked += () =>
+            {
+                host.navController.Navigate(Actions.go_to_login);
+            };
+            startButton.clicked += () =>
+            {
+                host.navController.Navigate(Actions.go_to_projects);
+            };
+        }
+    }
 }

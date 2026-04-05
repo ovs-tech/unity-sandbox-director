@@ -3,39 +3,42 @@ using UnityEngine.Scripting;
 using UnityEngine.UIElements;
 using AppUIButton = Unity.AppUI.UI.Button;
 
-[Preserve]
-class RegisterNavigationScreen : NavigationScreen
+namespace Systems.UI
 {
-    private readonly NavHost host;
-    private AppUIButton registerButton;
-    private AppUIButton loginButton;
-
-    public RegisterNavigationScreen(VisualTreeAsset uxmlAsset, NavHost host)
+    [Preserve]
+    class RegisterNavigationScreen : NavigationScreen
     {
-        this.host = host;
-        uxmlAsset.CloneTree(this);
-    }
+        private readonly NavHost host;
+        private readonly AppUIButton registerButton;
+        private readonly AppUIButton loginButton;
 
-    public override void OnEnter(NavController controller, NavDestination destination, Argument[] args)
-    {
-        base.OnEnter(controller, destination, args);
-
-        this.registerButton = this.Q<AppUIButton>("register-button");
-        if (registerButton != null)
+        public RegisterNavigationScreen(VisualTreeAsset uxmlAsset, NavHost host)
         {
-            registerButton.clicked += () =>
-            {
-                host.navController.Navigate("welcome");
-            };
+            this.host = host;
+            uxmlAsset.CloneTree(this);
+
+            this.registerButton = this.Q<AppUIButton>("register-button");
+            this.loginButton = this.Q<AppUIButton>("login-link-button");
         }
 
-        this.loginButton = this.Q<AppUIButton>("login-link-button");
-        if (loginButton != null)
+        public override void OnEnter(NavController controller, NavDestination destination, Argument[] args)
         {
-            loginButton.clicked += () =>
+            base.OnEnter(controller, destination, args);
+            if (registerButton != null)
             {
-                host.navController.Navigate("login");
-            };
+                registerButton.clicked += () =>
+                {
+                    host.navController.Navigate("welcome");
+                };
+            }
+
+            if (loginButton != null)
+            {
+                loginButton.clicked += () =>
+                {
+                    host.navController.Navigate("login");
+                };
+            }
         }
     }
 }

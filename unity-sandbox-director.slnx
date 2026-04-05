@@ -6,6 +6,7 @@
   <Project Path="Systems.PlacementSystem.csproj" />
   <Project Path="Tests.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="Systems.UI.csproj" />
   <Project Path="Systems.CommandSystem.csproj" />
   <Project Path="Unity.AppUI.Samples.MVVMRedux.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />

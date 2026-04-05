@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 namespace Systems.UI
 {
     [Serializable]
-    class RegisterDestinationTemplate : NavDestinationTemplate
+    public class ProjectsDestinationTemplate : NavDestinationTemplate
     {
         [SerializeField]
         [Tooltip("The UXML asset to instantiate when the destination is reached.")]
@@ -14,7 +14,7 @@ namespace Systems.UI
 
         public override INavigationScreen CreateScreen(NavHost host)
         {
-            var screen = new RegisterNavigationScreen(m_UxmlAsset, host);
+            var screen = new ProjectsNavigationScreen(m_UxmlAsset, host);
             return screen;
         }
     }

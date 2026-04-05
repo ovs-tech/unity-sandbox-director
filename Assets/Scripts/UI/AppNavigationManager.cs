@@ -2,27 +2,29 @@ using UnityEngine;
 using Unity.AppUI.Navigation;
 using UnityEngine.UIElements;
 
-public class AppNavigationManager : MonoBehaviour
+namespace Systems.UI
 {
-  public UIDocument uiDocument;
-
-  public NavGraphViewAsset graphAsset;
-
-  void Start()
-  {
-    Debug.Log("AppNavigationManager Start");
-    var navHost = new NavHost();
-    navHost.navController.SetGraph(graphAsset);
-    navHost.visualController = new AppNavVisualController();
-
-    var panel = new Unity.AppUI.UI.Panel
+    public class AppNavigationManager : MonoBehaviour
     {
-      scale = "large"
-    };
-    uiDocument.rootVisualElement.Add(panel);
-    panel.StretchToParentSize();
+        public UIDocument uiDocument;
 
-    panel.Add(navHost);
-    navHost.StretchToParentSize();
-  }
+        public NavGraphViewAsset graphAsset;
+
+        void Start()
+        {
+            var navHost = new NavHost();
+            navHost.navController.SetGraph(graphAsset);
+            navHost.visualController = new AppNavVisualController();
+
+            var panel = new Unity.AppUI.UI.Panel
+            {
+                scale = "large"
+            };
+            uiDocument.rootVisualElement.Add(panel);
+            panel.StretchToParentSize();
+
+            panel.Add(navHost);
+            navHost.StretchToParentSize();
+        }
+    }
 }
