@@ -1,6 +1,6 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:appui="Unity.AppUI.UI" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/Scripts/UI/Pages/ListProjectPage/ListProjectPage.uss?fileID=7433441132597879392&amp;guid=9713870d3cbf3774b81d03eeaed5f7e9&amp;type=3#ListProjectPage"/>
-    <ui:VisualElement name="list-project-root" class="search-filters">
+    <ui:VisualElement name="list-project-root" class="list-project-root">
         <ui:VisualElement class="search-row">
             <appui:SearchBar name="search-field"/>
         </ui:VisualElement>
@@ -11,7 +11,7 @@
             <appui:Button title="Standard" class="chip"/>
             <appui:Button title="Drafts" class="chip"/>
         </ui:VisualElement>
-        <ui:ListView name="list-project"/>
+        <ui:ListView name="list-project" class="list-project"/>
         <appui:Button name="create-project-button" title="New Production" class="fab"/>
     </ui:VisualElement>
 </ui:UXML>
