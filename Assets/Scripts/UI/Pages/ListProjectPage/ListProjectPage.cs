@@ -56,6 +56,7 @@ namespace Systems.UI
             m_CreateProjectButton.clicked += OnCreateProjectButtonClicked;
 
             m_ProjectListView = this.Q<ListView>("list-project");
+            m_ProjectListView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
             m_ProjectListView.bindItem = BindItem;
             m_ProjectListView.makeItem = MakeItem;
             m_ProjectListView.unbindItem = UnbindItem;

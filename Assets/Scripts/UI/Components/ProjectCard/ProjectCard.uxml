@@ -1,18 +1,22 @@
 <ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/Scripts/UI/Components/ProjectCard/ProjectCard.uss?fileID=7433441132597879392&amp;guid=d5a482384461e734aaec6a55a1d63433&amp;type=3#ProjectCard"/>
-    <ui:VisualElement class="ProjectCard">
+    <ui:VisualElement name="card-media" class="card-media">
         <ui:VisualElement name="card-image" class="card-image"/>
-        <ui:VisualElement class="card-body">
-            <ui:Label name="project-name">
-                <Bindings>
-                    <ui:DataBinding property="text" data-source-path="name" binding-mode="ToTarget"/>
-                </Bindings>
-            </ui:Label>
-            <ui:Label name="project-meta">
-                <Bindings>
-                    <ui:DataBinding property="text" data-source-path="meta" binding-mode="ToTarget"/>
-                </Bindings>
-            </ui:Label>
-        </ui:VisualElement>
+        <ui:VisualElement name="card-gradient" class="card-gradient"/>
+        <ui:Label name="card-badge" class="card-badge" text=""/>
+        <ui:Button name="card-menu-button" class="card-menu-button" text="⋮"/>
+    </ui:VisualElement>
+
+    <ui:VisualElement class="card-content">
+        <ui:Label name="project-name" class="project-name">
+            <Bindings>
+                <ui:DataBinding property="text" data-source-path="name" binding-mode="ToTarget"/>
+            </Bindings>
+        </ui:Label>
+        <ui:Label name="project-meta" class="project-meta">
+            <Bindings>
+                <ui:DataBinding property="text" data-source-path="meta" binding-mode="ToTarget"/>
+            </Bindings>
+        </ui:Label>
     </ui:VisualElement>
 </ui:UXML>

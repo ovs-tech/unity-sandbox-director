@@ -26,7 +26,12 @@ namespace Systems.UI
 
         private void BindDataContext()
         {
+            if (m_ProjectCard == null)
+                return;
+
             m_ProjectCard.dataSource = m_ViewModel?.Project;
+            m_ProjectCard.SetBadge(string.Empty, false);
+            m_ProjectCard.SetMenuVisible(true);
         }
     }
 }

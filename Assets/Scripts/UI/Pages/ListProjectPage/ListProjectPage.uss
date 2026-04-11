@@ -1,8 +1,8 @@
-.search-filters {
+.list-project-root {
     padding: 12px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    flex-grow: 1;
 }
 
 .search-row {
@@ -14,14 +14,13 @@
     height: 36px;
     border-radius: 10px;
     padding-left: 10px;
-    background-color: rgba(255,255,255,0.03);
-    color: rgb(251,219,221);
+    background-color: rgba(255, 255, 255, 0.03);
+    color: rgb(251, 219, 221);
 }
 
 .chips-row {
     display: flex;
     flex-direction: row;
-    gap: 8px;
     overflow: hidden;
 }
 
@@ -30,13 +29,13 @@
     padding-left: 10px;
     padding-right: 10px;
     border-radius: 10px;
-    background-color: rgba(255,255,255,0.03);
-    color: rgb(219,189,192);
+    background-color: rgba(255, 255, 255, 0.03);
+    color: rgb(219, 189, 192);
 }
 
 .chip-primary {
-    background-color: rgb(255,178,187);
-    color: rgb(31,15,17);
+    background-color: rgb(255, 178, 187);
+    color: rgb(31, 15, 17);
 }
 
 .projects-scroll {
@@ -46,7 +45,6 @@
 .projects-grid {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
     padding: 12px;
 }
 
@@ -54,38 +52,57 @@
     width: 220px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
     padding: 8px;
     border-radius: 12px;
-    background-color: rgba(255,255,255,0.03);
+    background-color: rgba(255, 255, 255, 0.03);
 }
 
 .card-image {
     height: 176px;
     border-radius: 8px;
-    background-color: rgba(0,0,0,0.4);
+    background-color: rgba(0, 0, 0, 0.4);
 }
 
 .card-title {
     font-size: 14px;
-    color: rgb(251,219,221);
+    color: rgb(251, 219, 221);
     -unity-font-style: bold;
 }
 
 .card-meta {
     font-size: 11px;
-    color: rgba(255,255,255,0.6);
+    color: rgba(255, 255, 255, 0.6);
 }
 
 .fab {
     position: absolute;
     bottom: 20px;
     left: 50%;
-    transform: translate3d(-50%,0,0);
     height: 56px;
     padding-left: 20px;
     padding-right: 20px;
     border-radius: 28px;
-    background-color: rgb(255,79,118);
-    color: rgb(255,255,255);
+    background-color: rgb(255, 79, 118);
+    color: rgb(255, 255, 255);
+}
+
+.list-project {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.list-project .unity-scroll-view__content-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.list-project .unity-list-view__item {
+    min-width: 50%;
+    max-width: 50%;
+    width: 50%;
+    padding-left: 6px;
+    padding-right: 6px;
+    margin-bottom: 12px;
+    border-bottom-width: 0;
+    background-color: rgba(0, 0, 0, 0);
 }
