@@ -15,11 +15,11 @@
 - **Tutorial videos** – sẽ được cập nhật trong `Docs/Tutorials` (YouTube link sẽ tới).
 
 ## 🗺️ Roadmap (playful & filmmaker‑focused)
-| Milestone | ETA | What you’ll see |
+| Milestone | ETA | What you'll see |
 |---|---|---|
-| **Prototype** | Q2 2026 | Scene builder + basic MiniTimeline |
-| **Alpha** | Q4 2026 | Character animations, lighting tools, export video |
-| **Beta** | Q2 2027 | Workshop marketplace, multiplayer co‑direct |
+| **Prototype** | Q2 2026 | Scene builder + basic MiniTimeline |
+| **Alpha** | Q4 2026 | Character animations, lighting tools, export video |
+| **Beta** | Q2 2027 | Workshop marketplace, multiplayer co‑direct |
 | **Full Release** | 2027 | DLC packs, education license |
 
 ## 🤝 Contribute
@@ -27,7 +27,7 @@
 - Look for **good‑first‑issue** labels to get started quickly.
 
 ## 📣 Community
-Join our Discord (link in `Docs/Community.md`) để chia sẻ scene, nhận feedback, và tham gia **Scene Challenges** mỗi tháng!
+Join our Discord: https://discord.gg/s6nURrJNe để chia sẻ scene, nhận feedback, và tham gia **Scene Challenges** mỗi tháng!
 
 ---
 
