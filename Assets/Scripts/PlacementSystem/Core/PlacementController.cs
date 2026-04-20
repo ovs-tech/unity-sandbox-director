@@ -100,7 +100,7 @@ namespace Systems.PlacementSystem.Core
 
         public ToolManager ToolManager => _toolManager;
 
-        private GameObject _currentGhost;
+        private GameObject _ghostPreview;
         private bool _isPlacementActive;
 
         // Tracked placed objects for persistence
@@ -206,18 +206,18 @@ namespace Systems.PlacementSystem.Core
         /// </summary>
         public void StartPlacement()
         {
-            if (_objectToPlace == null || _currentGhost != null)
+            if (_objectToPlace == null || _ghostPreview != null)
                 return;
 
             SetActiveTool(ToolIds.Placement);
 
-            _currentGhost = Instantiate(_objectToPlace);
-            _currentGhost.name = $"{_objectToPlace.name}_Ghost";
+            _ghostPreview = Instantiate(_objectToPlace);
+            _ghostPreview.name = $"{_objectToPlace.name}_Ghost";
 
             var placementTool = ToolManager.GetTool(ToolIds.Placement) as PlacementTool;
-            placementTool?.SetupPlacement(_currentGhost, _objectToPlace, _makeObjectsSelectable);
+            placementTool?.SetupPlacement(_ghostPreview, _objectToPlace, _makeObjectsSelectable);
             _isPlacementActive = true;
-            OnPlacementStartedEvent?.Invoke(_currentGhost);
+            OnPlacementStartedEvent?.Invoke(_ghostPreview);
         }
 
         /// <summary>
@@ -225,12 +225,12 @@ namespace Systems.PlacementSystem.Core
         /// </summary>
         public void CancelPlacement()
         {
-            if (_currentGhost == null)
+            if (_ghostPreview == null)
                 return;
 
             var placementTool = ToolManager.GetTool(ToolIds.Placement) as PlacementTool;
             placementTool?.CancelPlacement();
-            _currentGhost = null;
+            _ghostPreview = null;
             _isPlacementActive = false;
         }
 
@@ -245,7 +245,7 @@ namespace Systems.PlacementSystem.Core
 
         private void HandlePlacementConfirmed(GameObject placedObject)
         {
-            _currentGhost = null;
+            _ghostPreview = null;
             _isPlacementActive = false;
             // Register the placed object for persistence and notify listeners
             RegisterPlacedObject(placedObject);
@@ -256,7 +256,7 @@ namespace Systems.PlacementSystem.Core
 
         private void HandlePlacementCancelled()
         {
-            _currentGhost = null;
+            _ghostPreview = null;
             _isPlacementActive = false;
             OnPlacementCancelledEvent?.Invoke();
         }
@@ -392,10 +392,10 @@ namespace Systems.PlacementSystem.Core
 
         private void OnDrawGizmos()
         {
-            if (_isPlacementActive && _currentGhost != null)
+            if (_isPlacementActive && _ghostPreview != null)
             {
                 Gizmos.color = Color.yellow;
-                Gizmos.DrawWireSphere(_currentGhost.transform.position, 0.3f);
+                Gizmos.DrawWireSphere(_ghostPreview.transform.position, 0.3f);
             }
 
             _placementStrategy?.OnDrawGizmos();

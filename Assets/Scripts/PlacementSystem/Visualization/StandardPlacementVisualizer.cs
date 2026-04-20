@@ -29,7 +29,7 @@ namespace Systems.PlacementSystem.Visualization
         private float _transparency = 0.5f;
 
         // Runtime state
-        private GameObject _currentGhost;
+        private GameObject _ghostPreview;
         private List<Renderer> _ghostRenderers = new List<Renderer>();
         private List<Material> _originalMaterials = new List<Material>();
         private List<Material> _ghostMaterials = new List<Material>();
@@ -47,17 +47,17 @@ namespace Systems.PlacementSystem.Visualization
         {
             if (ghostObject == null) return;
             
-            if (_currentGhost != null || _ghostMaterials.Count > 0)
+            if (_ghostPreview != null || _ghostMaterials.Count > 0)
                 Cleanup();
 
-            _currentGhost = ghostObject;
+            _ghostPreview = ghostObject;
 
-            if (_currentGhost == null)
+            if (_ghostPreview == null)
                 return;
 
             // Get all renderers in the ghost object
             _ghostRenderers.Clear();
-            _ghostRenderers.AddRange(_currentGhost.GetComponentsInChildren<Renderer>());
+            _ghostRenderers.AddRange(_ghostPreview.GetComponentsInChildren<Renderer>());
 
             // Store original materials and create ghost materials
             _originalMaterials.Clear();
@@ -99,7 +99,7 @@ namespace Systems.PlacementSystem.Visualization
 
         public override void UpdateVisual(bool isValid)
         {
-            if (_currentGhost == null || _ghostMaterials.Count == 0)
+            if (_ghostPreview == null || _ghostMaterials.Count == 0)
                 return;
 
             // Update material colors based on validity
@@ -132,7 +132,7 @@ namespace Systems.PlacementSystem.Visualization
             _ghostMaterials.Clear();
             _ghostRenderers.Clear();
             _originalMaterials.Clear();
-            _currentGhost = null;
+            _ghostPreview = null;
         }
 
         /// <summary>
