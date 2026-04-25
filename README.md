@@ -1,18 +1,20 @@
+[English](README.md) | [Tiếng Việt](README.vi.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [한국어](README.ko.md)
+
 # 🎬 Director Simulator: Scene Builder
 
-**Unity Sandbox Director** – một công cụ sandbox trong Unity cho phép bạn **đóng vai đạo diễn** ngay trong trình Unity Editor. Xây dựng môi trường, đặt nhân vật, định vị camera, ghi lại cảnh và chia sẻ. Dành cho **filmmakers, game‑makers, và giáo viên** muốn tạo cinematic nhanh, không cần kinh nghiệm dựng phim.
+**Unity Sandbox Director** – a sandbox tool in Unity that allows you to **play the role of a director** right within the Unity Editor. Build environments, place characters, position cameras, record scenes, and share them. Designed for **filmmakers, game-makers, and educators** who want to create cinematics quickly without prior video editing experience.
 
 ---
 
 ## 🚀 Quick Start
-1. Clone repo và mở trong Unity 2021.3+ (URP được đề xuất).
-2. Mở `Window → Placement System → Prefab Creator` để tạo prefab đầu tiên.
-3. Dùng **MiniTimeline** (cửa sổ `Tools → Mini Timeline`) để tạo animation, camera‑move và export video.
-4. Nhấn **Play** trong Unity, bố trí scene và `Ctrl+S` để lưu project (JSON sẽ được ghi trong `SavedProjects/`).
+1. Clone the repo and open it in Unity 2021.3+ (URP recommended).
+2. Open `Window → Placement System → Prefab Creator` to create your first prefab.
+3. Use **MiniTimeline** (`Tools → Mini Timeline` window) to create animations, camera moves, and export video.
+4. Press **Play** in Unity, arrange your scene, and press `Ctrl+S` to save the project (JSON will be written to `SavedProjects/`).
 
 ## 📚 Documentation
-- **Docs folder** – chi tiết GDD, hệ thống Placement, MiniTimeline, async persistence, v.v.
-- **Tutorial videos** – sẽ được cập nhật trong `Docs/Tutorials` (YouTube link sẽ tới).
+- **Docs folder** – details on GDD, Placement system, MiniTimeline, async persistence, etc.
+- **Tutorial videos** – to be updated in `Docs/Tutorials` (YouTube link coming soon).
 
 ## 🗺️ Roadmap (playful & filmmaker‑focused)
 | Milestone | ETA | What you'll see |
@@ -27,7 +29,7 @@
 - Look for **good‑first‑issue** labels to get started quickly.
 
 ## 📣 Community
-Join our Discord: https://discord.gg/s6nURrJNe để chia sẻ scene, nhận feedback, và tham gia **Scene Challenges** mỗi tháng!
+Join our Discord: https://discord.gg/s6nURrJNe to share scenes, get feedback, and participate in monthly **Scene Challenges**!
 
 ---
 
