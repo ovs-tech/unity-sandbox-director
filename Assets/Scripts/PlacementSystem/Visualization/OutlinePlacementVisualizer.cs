@@ -47,7 +47,7 @@ namespace Systems.PlacementSystem.Visualization
         }
 
         // Runtime state
-        private GameObject _ghostObject;
+        private GameObject _ghostPreview;
         private Material _outlineMaterial;
         private bool _isValid = true;
         private float _pulseTime = 0f;
@@ -61,10 +61,10 @@ namespace Systems.PlacementSystem.Visualization
             if (ghostObject == null)
                 return;
 
-            if (_ghostObject != null || _outlineMaterial != null)
+            if (_ghostPreview != null || _outlineMaterial != null)
                 Cleanup();
 
-            _ghostObject = ghostObject;
+            _ghostPreview = ghostObject;
 
             // Create outline material
             // Note: This requires a custom outline shader or post-processing effect
@@ -76,7 +76,7 @@ namespace Systems.PlacementSystem.Visualization
             _outlineMaterial = new Material(shader ?? Shader.Find("Standard"));
 
             // Assign outline material to ghost renderers (append as extra material)
-            _renderers = _ghostObject.GetComponentsInChildren<Renderer>();
+            _renderers = _ghostPreview.GetComponentsInChildren<Renderer>();
             _originalMaterials.Clear();
             foreach (var r in _renderers)
             {
@@ -105,7 +105,7 @@ namespace Systems.PlacementSystem.Visualization
         {
             _isValid = isValid;
 
-            if (_ghostObject == null)
+            if (_ghostPreview == null)
                 return;
 
 
@@ -174,7 +174,7 @@ namespace Systems.PlacementSystem.Visualization
                 _outlineMaterial = null;
             }
 
-            _ghostObject = null;
+            _ghostPreview = null;
         }
     }
 }

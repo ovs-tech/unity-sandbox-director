@@ -13,7 +13,7 @@ namespace Systems.PlacementSystem.Tools
     [CreateAssetMenu(menuName = "Placement System/Tools/Placement Tool")]
     public class PlacementTool : ScriptableObject, IPlacementTool
     {
-        private GameObject _ghostObject;
+        private GameObject _ghostPreview;
         private PlacementPart _ghostPart;
         private PlacementToolContext _context;
         private float _currentRotationAngle;
@@ -52,7 +52,7 @@ namespace Systems.PlacementSystem.Tools
 
             // Re-entrant context refreshes can call OnEnter without a matching OnExit.
             // Preserve active placement state when a ghost is already present.
-            if (_ghostObject == null)
+            if (_ghostPreview == null)
             {
                 _currentRotationAngle = 0f;
                 _nearestSocket = null;
@@ -76,19 +76,19 @@ namespace Systems.PlacementSystem.Tools
                 return;
             }
 
-            _ghostObject = ghostObject;
-            _ghostPart = _ghostObject.GetComponent<PlacementPart>();
+            _ghostPreview = ghostObject;
+            _ghostPart = _ghostPreview.GetComponent<PlacementPart>();
             _objectToPrefab = objectToPrefab ?? ghostObject;
             _makeObjectsSelectable = makeSelectable;
 
             // Initialize visualizer on ghost
             if (_context?.PlacementVisualizer != null)
             {
-                _context.PlacementVisualizer.Initialize(_ghostObject);
+                _context.PlacementVisualizer.Initialize(_ghostPreview);
             }
 
             // Disable physics components on ghost
-            DisablePhysicsOnGhost(_ghostObject);
+            DisablePhysicsOnGhost(_ghostPreview);
         }
 
         public void OnExit()
@@ -114,7 +114,7 @@ namespace Systems.PlacementSystem.Tools
                 return;
 
             var snapState = _context.ToolStates.GetOrCreate<SnapToolState>();
-            if (_context.InputProvider == null || _ghostObject == null)
+            if (_context.InputProvider == null || _ghostPreview == null)
             {
                 snapState.ClearRequest();
                 return;
@@ -147,7 +147,7 @@ namespace Systems.PlacementSystem.Tools
 
         public void Tick()
         {
-            if (_context?.InputProvider == null || _ghostObject == null)
+            if (_context?.InputProvider == null || _ghostPreview == null)
                 return;
 
             UpdateGhostPosition();
@@ -165,14 +165,14 @@ namespace Systems.PlacementSystem.Tools
         /// </summary>
         public void ConfirmPlacement()
         {
-            if (_ghostObject == null || _context == null)
+            if (_ghostPreview == null || _context == null)
                 return;
 
             // Validate final placement
             var result = _context.PlacementValidator.IsPlacementValid(
-                _ghostObject.transform.position,
-                _ghostObject.transform.rotation,
-                _ghostObject
+                _ghostPreview.transform.position,
+                _ghostPreview.transform.rotation,
+                _ghostPreview
             );
 
             if (!result.IsValid)
@@ -182,8 +182,8 @@ namespace Systems.PlacementSystem.Tools
             }
 
             // Use command system to perform placement so it's undoable
-            var pos = _ghostObject.transform.position;
-            var rot = _ghostObject.transform.rotation;
+            var pos = _ghostPreview.transform.position;
+            var rot = _ghostPreview.transform.rotation;
 
             var placeCommand = new PlaceObjectCommand(
                 _objectToPrefab,
@@ -211,7 +211,7 @@ namespace Systems.PlacementSystem.Tools
         /// </summary>
         public void CancelPlacement()
         {
-            if (_ghostObject == null)
+            if (_ghostPreview == null)
                 return;
 
             CleanupGhost();
@@ -228,13 +228,13 @@ namespace Systems.PlacementSystem.Tools
                 _context.PlacementVisualizer.Cleanup();
             }
 
-            if (_ghostObject != null)
+            if (_ghostPreview != null)
             {
                 if (Application.isPlaying)
-                    Object.Destroy(_ghostObject);
+                    Object.Destroy(_ghostPreview);
                 else
-                    Object.DestroyImmediate(_ghostObject);
-                _ghostObject = null;
+                    Object.DestroyImmediate(_ghostPreview);
+                _ghostPreview = null;
             }
 
             _ghostPart = null;
@@ -265,17 +265,17 @@ namespace Systems.PlacementSystem.Tools
             }
             else if (_context.PlacementStrategy != null)
             {
-                targetPosition = _context.PlacementStrategy.CalculatePosition(targetPosition, _ghostObject);
+                targetPosition = _context.PlacementStrategy.CalculatePosition(targetPosition, _ghostPreview);
                 targetRotation = _context.PlacementStrategy.CalculateRotation(targetRotation);
             }
 
-            _ghostObject.transform.position = targetPosition;
-            _ghostObject.transform.rotation = targetRotation;
+            _ghostPreview.transform.position = targetPosition;
+            _ghostPreview.transform.rotation = targetRotation;
 
             var result = _context.PlacementValidator.IsPlacementValid(
                 targetPosition,
                 targetRotation,
-                _ghostObject
+                _ghostPreview
             );
 
             _context.PlacementVisualizer?.UpdateVisual(result.IsValid);
@@ -294,7 +294,7 @@ namespace Systems.PlacementSystem.Tools
 
             var snapState = _context.ToolStates.GetOrCreate<SnapToolState>();
 
-            if (_ghostObject == null || _context.PlacementCamera == null)
+            if (_ghostPreview == null || _context.PlacementCamera == null)
             {
                 snapState.ClearRequest();
                 return;
@@ -313,7 +313,7 @@ namespace Systems.PlacementSystem.Tools
             var socketType = _ghostPart != null ? _ghostPart.RequiredSocketType : null;
             float snapRange = _ghostPart != null ? _ghostPart.SnapRange : 0f;
 
-            snapState.SetRequest(_ghostObject, hit.point, baseRotation, socketType, snapRange);
+            snapState.SetRequest(_ghostPreview, hit.point, baseRotation, socketType, snapRange);
         }
 
         /// <summary>
