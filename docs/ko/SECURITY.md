@@ -1,4 +1,4 @@
-[English](SECURITY.md) | [Tiếng Việt](docs/vi/SECURITY.md) | [中文](docs/zh/SECURITY.md) | [日本語](docs/ja/SECURITY.md) | [한국어](docs/ko/SECURITY.md)
+[English](../../SECURITY.md) | [Tiếng Việt](../vi/SECURITY.md) | [中文](../zh/SECURITY.md) | [日本語](../ja/SECURITY.md) | [한국어](../ko/SECURITY.md)
 
 # Security Policy
 
