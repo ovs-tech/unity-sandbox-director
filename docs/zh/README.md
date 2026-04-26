@@ -24,6 +24,10 @@
 | **Beta 版** | 2027年第二季度 | 创意工坊市场、多人联合执导 |
 | **正式发布** | 2027年 | DLC 包、教育许可 |
 
+
+## 📄 许可证 (License)
+本项目采用 GNU General Public License v3.0 许可证。任何衍生作品也必须采用 GPL v3 许可证。
+
 ## 🤝 贡献 (Contribute)
 - 查看 `CONTRIBUTING.md` 了解如何设置开发环境、运行测试和提交 PR。
 - 寻找 **good‑first‑issue** 标签以快速入门。
