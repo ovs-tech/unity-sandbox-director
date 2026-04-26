@@ -24,6 +24,10 @@
 | **Beta** | Q2 2027 | Workshop marketplace, multiplayer co‑direct |
 | **Full Release** | 2027 | DLC packs, education license |
 
+
+## 📄 License (Giấy phép)
+Dự án này được cấp phép theo GNU General Public License v3.0. Bất kỳ sản phẩm phái sinh nào cũng phải được cấp phép theo GPL v3.
+
 ## 🤝 Contribute
 - Check the `CONTRIBUTING.md` for how to set up the dev environment, run tests, and submit PRs.
 - Look for **good‑first‑issue** labels to get started quickly.
