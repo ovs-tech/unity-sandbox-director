@@ -1,60 +1,60 @@
 [English](../../SECURITY.md) | [Tiếng Việt](../vi/SECURITY.md) | [中文](../zh/SECURITY.md) | [日本語](../ja/SECURITY.md) | [한국어](../ko/SECURITY.md)
 
-# Security Policy
+# 보안 정책
 
-## Reporting a Vulnerability
+## 취약점 보고
 
-We take security seriously. If you discover a security vulnerability in Director Simulator: Scene Builder, please report it responsibly.
+우리는 보안을 매우 중요하게 생각합니다. Director Simulator: Scene Builder에서 보안 취약점을 발견하면 책임감 있게 보고해 주시기 바랍니다.
 
-### How to Report
+### 보고 방법
 
-**Please do NOT open a public GitHub issue for security vulnerabilities.**
+**보안 취약점에 대해 공개 GitHub issue를 생성하지 마십시오.**
 
-Instead, report security issues via:
+대신 다음을 통해 보안 문제를 보고해 주십시오:
 
-1. **Email:** lai.vu@siduko.com (preferred)
-2. **GitHub Security Advisory:** https://github.com/siduko/unity-sandbox-director/security/advisories/new
+1. **이메일:** lai.vu@siduko.com (권장)
+2. **GitHub 보안 권고:** https://github.com/siduko/unity-sandbox-director/security/advisories/new
 
-### What to Include
+### 포함할 내용
 
-Please provide:
-- Description of the vulnerability
-- Steps to reproduce
-- Potential impact
-- Suggested fix (if you have one)
+다음을 제공해 주십시오:
+- 취약점 설명
+- 재현 단계
+- 잠재적 영향
+- 제안된 수정 사항(있는 경우)
 
-### Response Timeline
+### 응답 타임라인
 
-- **Initial Response:** Within 48 hours
-- **Status Update:** Within 7 days
-- **Fix Timeline:** Depends on severity (critical issues prioritized)
+- **초기 응답:** 48시간 이내
+- **상태 업데이트:** 7일 이내
+- **수정 타임라인:** 심각도에 따라 다름(심각한 문제 우선)
 
-### Disclosure Policy
+### 공개 정책
 
-- We will acknowledge your report within 48 hours
-- We will work with you to understand and fix the issue
-- We will credit you in the security advisory (unless you prefer to remain anonymous)
-- We ask that you do not publicly disclose the vulnerability until we have released a fix
+- 48시간 이내에 보고서를 확인합니다
+- 문제를 이해하고 수정하기 위해 협력할 것입니다
+- 보안 권고에 크레딧을 포함합니다(익명을 원하지 않는 경우)
+- 수정 사항을 배포하기 전까지 취약점을 공개하지 않기를 요청합니다
 
-## Supported Versions
+## 지원되는 버전
 
-| Version | Supported          |
+| 버전 | 지원 여부 |
 | ------- | ------------------ |
 | 0.1.x   | :white_check_mark: |
 | < 0.1   | :x:                |
 
-## Security Best Practices
+## 보안 모범 사례
 
-When using Director Simulator:
-- Keep Unity and dependencies up to date
-- Do not commit sensitive data (API keys, tokens) to the repository
-- Review third-party assets before importing
-- Use `.gitignore` to exclude build artifacts and local config files
+Director Simulator 사용 시:
+- Unity 및 종속성을 최신 상태로 유지하십시오
+- 민감한 데이터(API 키, 토큰)를 리포지토리에 커밋하지 마십시오
+- 가져오기 전에 타사 에셋을 검토하십시오
+- `.gitignore`를 사용하여 빌드 아티팩트 및 로컬 구성 파일을 제외하십시오
 
-## Known Issues
+## 알려진 문제
 
-None at this time.
+현재 없습니다.
 
 ---
 
-Thank you for helping keep Director Simulator and our community safe! 🎬🔒
+Director Simulator와 우리 커뮤니티를 안전하게 유지하는 데 도움을 주셔서 감사합니다! 🎬🔒
