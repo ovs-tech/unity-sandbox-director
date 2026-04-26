@@ -1,4 +1,4 @@
-[English](CODE_OF_CONDUCT.md) | [Tiếng Việt](CODE_OF_CONDUCT.vi.md) | [中文](CODE_OF_CONDUCT.zh.md) | [日本語](CODE_OF_CONDUCT.ja.md) | [한국어](CODE_OF_CONDUCT.ko.md)
+[English](CODE_OF_CONDUCT.md) | [Tiếng Việt](docs/vi/CODE_OF_CONDUCT.md) | [中文](docs/zh/CODE_OF_CONDUCT.md) | [日本語](docs/ja/CODE_OF_CONDUCT.md) | [한국어](docs/ko/CODE_OF_CONDUCT.md)
 
 # 🎬 Code of Conduct – Director Simulator Community
 

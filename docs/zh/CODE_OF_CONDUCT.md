@@ -1,4 +1,4 @@
-[English](CODE_OF_CONDUCT.md) | [Tiếng Việt](CODE_OF_CONDUCT.vi.md) | [中文](CODE_OF_CONDUCT.zh.md) | [日本語](CODE_OF_CONDUCT.ja.md) | [한국어](CODE_OF_CONDUCT.ko.md)
+[English](../../CODE_OF_CONDUCT.md) | [Tiếng Việt](../vi/CODE_OF_CONDUCT.md) | [中文](../zh/CODE_OF_CONDUCT.md) | [日本語](../ja/CODE_OF_CONDUCT.md) | [한국어](../ko/CODE_OF_CONDUCT.md)
 
 # 🎬 行为准则 – Director Simulator 社区
 
