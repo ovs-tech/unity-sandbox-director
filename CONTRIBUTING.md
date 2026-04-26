@@ -1,4 +1,4 @@
-[English](CONTRIBUTING.md) | [Tiếng Việt](CONTRIBUTING.vi.md) | [中文](CONTRIBUTING.zh.md) | [日本語](CONTRIBUTING.ja.md) | [한국어](CONTRIBUTING.ko.md)
+[English](CONTRIBUTING.md) | [Tiếng Việt](docs/vi/CONTRIBUTING.md) | [中文](docs/zh/CONTRIBUTING.md) | [日本語](docs/ja/CONTRIBUTING.md) | [한국어](docs/ko/CONTRIBUTING.md)
 
 # 🎥 Contributing to Director Simulator: Scene Builder
 

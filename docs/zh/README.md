@@ -1,4 +1,4 @@
-[English](README.md) | [Tiếng Việt](README.vi.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [한국어](README.ko.md)
+[English](../../README.md) | [Tiếng Việt](../vi/README.md) | [中文](../zh/README.md) | [日本語](../ja/README.md) | [한국어](../ko/README.md)
 
 # 🎬 导演模拟器：场景构建器 (Director Simulator: Scene Builder)
 
