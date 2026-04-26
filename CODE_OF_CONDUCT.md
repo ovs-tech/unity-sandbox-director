@@ -1,37 +1,39 @@
+[English](CODE_OF_CONDUCT.md) | [Tiếng Việt](CODE_OF_CONDUCT.vi.md) | [中文](CODE_OF_CONDUCT.zh.md) | [日本語](CODE_OF_CONDUCT.ja.md) | [한국어](CODE_OF_CONDUCT.ko.md)
+
 # 🎬 Code of Conduct – Director Simulator Community
 
-Chào mừng bạn đến với cộng đồng Director Simulator! Chúng mình tin rằng một cộng đồng **thân thiện, tôn trọng, và sáng tạo** sẽ giúp mọi người cùng phát triển. Dưới đây là những quy tắc cơ bản để giữ vibe "filmmaker-friendly" và playful.
+Welcome to the Director Simulator community! We believe that a **friendly, respectful, and creative** community will help everyone grow together. Below are the basic rules to maintain a "filmmaker-friendly" and playful vibe.
 
 ---
 
-## ✨ Nguyên tắc chính
-1. **Tôn trọng nhau** – Không phân biệt đối xử, bắt nạt, hoặc quấy rối dưới bất kỳ hình thức nào.
-2. **Mang tính xây dựng** – Feedback nên cụ thể, tích cực, và giúp người khác cải thiện.
-3. **Chia sẻ cởi mở** – Khuyến khích học hỏi, hỏi đáp, và giúp đỡ người mới.
-4. **Giữ an toàn** – Không chia sẻ thông tin cá nhân, nội dung nhạy cảm, hoặc vi phạm bản quyền.
-5. **Vui vẻ & sáng tạo** – Hãy là chính mình, thử nghiệm, và tận hưởng quá trình làm phim!
+## ✨ Core Principles
+1. **Respect each other** – No discrimination, bullying, or harassment of any kind.
+2. **Be constructive** – Feedback should be specific, positive, and help others improve.
+3. **Share openly** – Encourage learning, asking questions, and helping newcomers.
+4. **Stay safe** – Do not share personal information, sensitive content, or violate copyrights.
+5. **Have fun & be creative** – Be yourself, experiment, and enjoy the filmmaking process!
 
 ---
 
-## 🚫 Hành vi không chấp nhận
-- Ngôn từ thù địch, phân biệt chủng tộc, giới tính, tôn giáo, hoặc xu hướng tính dục.
-- Spam, trolling, hoặc cố ý gây rối.
-- Đăng nội dung người lớn, bạo lực, hoặc vi phạm pháp luật.
-- Xúc phạm cá nhân hoặc tấn công người khác.
+## 🚫 Unacceptable Behavior
+- Hate speech, racism, sexism, religious discrimination, or discrimination based on sexual orientation.
+- Spam, trolling, or intentional disruption.
+- Posting adult content, violence, or illegal content.
+- Personal insults or attacking others.
 
 ---
 
-## 🛡️ Báo cáo vi phạm
-Nếu bạn thấy hành vi vi phạm, hãy báo cho **maintainer** qua:
-- Discord: `@moderator` hoặc `@maintainer`
-- Email: [sẽ cập nhật]
+## 🛡️ Reporting Violations
+If you see a violation, please report it to a **maintainer** via:
+- Discord: `@moderator` or `@maintainer`
+- Email: [to be updated]
 - GitHub Issue (private): tag `@maintainer`
 
-Chúng mình sẽ xử lý trong 48h và giữ bí mật thông tin người báo.
+We will process it within 48 hours and keep the reporter's information confidential.
 
 ---
 
-## 🎭 Tinh thần cộng đồng
+## 🎭 Community Spirit
 > "Be the director of your own story — and help others direct theirs."
 
-Hãy cùng nhau xây dựng một cộng đồng nơi mọi người đều có thể **sáng tạo, học hỏi, và tỏa sáng**. Cảm ơn bạn đã là một phần của Director Simulator! 🌟
+Let's build a community together where everyone can **create, learn, and shine**. Thank you for being a part of Director Simulator! 🌟
