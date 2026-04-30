@@ -1,0 +1,155 @@
+{
+    "type": "race",
+    "name": "Genesis8Female",
+    "hipHeight": 1.0563889741897583,
+    "meshes": [
+        "Genesis8Female.Shape_Arms",
+        "Genesis8Female.Shape_Cornea",
+        "Genesis8Female.Shape_Ears",
+        "Genesis8Female.Shape_EyeMoisture",
+        "Genesis8Female.Shape_EyeSocket",
+        "Genesis8Female.Shape_Face",
+        "Genesis8Female.Shape_Fingernails",
+        "Genesis8Female.Shape_Irises",
+        "Genesis8Female.Shape_Legs",
+        "Genesis8Female.Shape_Lips",
+        "Genesis8Female.Shape_Mouth",
+        "Genesis8Female.Shape_Pupils",
+        "Genesis8Female.Shape_Sclera",
+        "Genesis8Female.Shape_Teeth",
+        "Genesis8Female.Shape_Toenails",
+        "Genesis8Female.Shape_Torso",
+        "Genesis8FemaleEyelashes.Shape_Eyelashes",
+        "Genesis8FemaleEyelashes.Shape_EyeMoisture.001"
+    ],
+    "overlays": [
+        "Teeth",
+        "Mouth",
+        "Toenails",
+        "Legs",
+        "Ears",
+        "Torso",
+        "Arms",
+        "Eyelashes",
+        "Irises",
+        "EyeMoisture",
+        "Fingernails",
+        "Face",
+        "Lips",
+        "Pupils",
+        "EyeSocket",
+        "Sclera",
+        "Cornea",
+        "EyeMoisture.001"
+    ],
+    "slots": [
+        {
+            "name": "Genesis8Female.Shape_Arms",
+            "mesh": "Genesis8Female.Shape_Arms",
+            "overlay": "Arms",
+            "wardrobeSlot": ""
+        },
+        {
+            "name": "Genesis8Female.Shape_Cornea",
+            "mesh": "Genesis8Female.Shape_Cornea",
+            "overlay": "Cornea",
+            "wardrobeSlot": ""
+        },
+        {
+            "name": "Genesis8Female.Shape_Ears",
+            "mesh": "Genesis8Female.Shape_Ears",
+            "overlay": "Ears",
+            "wardrobeSlot": ""
+        },
+        {
+            "name": "Genesis8Female.Shape_EyeMoisture",
+            "mesh": "Genesis8Female.Shape_EyeMoisture",
+            "overlay": "EyeMoisture",
+            "wardrobeSlot": ""
+        },
+        {
+            "name": "Genesis8Female.Shape_EyeSocket",
+            "mesh": "Genesis8Female.Shape_EyeSocket",
+            "overlay": "EyeSocket",
+            "wardrobeSlot": ""
+        },
+        {
+            "name": "Genesis8Female.Shape_Face",
+            "mesh": "Genesis8Female.Shape_Face",
+            "overlay": "Face",
+            "wardrobeSlot": ""
+        },
+        {
+            "name": "Genesis8Female.Shape_Fingernails",
+            "mesh": "Genesis8Female.Shape_Fingernails",
+            "overlay": "Fingernails",
+            "wardrobeSlot": ""
+        },
+        {
+            "name": "Genesis8Female.Shape_Irises",
+            "mesh": "Genesis8Female.Shape_Irises",
+            "overlay": "Irises",
+            "wardrobeSlot": ""
+        },
+        {
+            "name": "Genesis8Female.Shape_Legs",
+            "mesh": "Genesis8Female.Shape_Legs",
+            "overlay": "Legs",
+            "wardrobeSlot": ""
+        },
+        {
+            "name": "Genesis8Female.Shape_Lips",
+            "mesh": "Genesis8Female.Shape_Lips",
+            "overlay": "Lips",
+            "wardrobeSlot": ""
+        },
+        {
+            "name": "Genesis8Female.Shape_Mouth",
+            "mesh": "Genesis8Female.Shape_Mouth",
+            "overlay": "Mouth",
+            "wardrobeSlot": ""
+        },
+        {
+            "name": "Genesis8Female.Shape_Pupils",
+            "mesh": "Genesis8Female.Shape_Pupils",
+            "overlay": "Pupils",
+            "wardrobeSlot": ""
+        },
+        {
+            "name": "Genesis8Female.Shape_Sclera",
+            "mesh": "Genesis8Female.Shape_Sclera",
+            "overlay": "Sclera",
+            "wardrobeSlot": ""
+        },
+        {
+            "name": "Genesis8Female.Shape_Teeth",
+            "mesh": "Genesis8Female.Shape_Teeth",
+            "overlay": "Teeth",
+            "wardrobeSlot": ""
+        },
+        {
+            "name": "Genesis8Female.Shape_Toenails",
+            "mesh": "Genesis8Female.Shape_Toenails",
+            "overlay": "Toenails",
+            "wardrobeSlot": ""
+        },
+        {
+            "name": "Genesis8Female.Shape_Torso",
+            "mesh": "Genesis8Female.Shape_Torso",
+            "overlay": "Torso",
+            "wardrobeSlot": ""
+        },
+        {
+            "name": "Genesis8FemaleEyelashes.Shape_Eyelashes",
+            "mesh": "Genesis8FemaleEyelashes.Shape_Eyelashes",
+            "overlay": "Eyelashes",
+            "wardrobeSlot": ""
+        },
+        {
+            "name": "Genesis8FemaleEyelashes.Shape_EyeMoisture.001",
+            "mesh": "Genesis8FemaleEyelashes.Shape_EyeMoisture.001",
+            "overlay": "EyeMoisture.001",
+            "wardrobeSlot": ""
+        }
+    ]
+}

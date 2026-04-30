@@ -1,0 +1,61 @@
+{
+    "type": "cloth",
+    "compatibleRaces": [
+        "Genesis8Female"
+    ],
+    "meshes": [
+        "bag_8423.Shape",
+        "Gloves_3324.Shape",
+        "Heels_4146.Shape",
+        "holster_2549.Shape",
+        "Shirt_8385.Shape",
+        "Skirt_12902.Shape"
+    ],
+    "overlays": [
+        "bag",
+        "heels",
+        "metal",
+        "Gloves",
+        "Holster",
+        "shirt",
+        "skirt"
+    ],
+    "slots": [
+        {
+            "name": "Genesis8Female_Claire.bag_8423.Shape",
+            "mesh": "bag_8423.Shape",
+            "overlay": "bag",
+            "wardrobeSlot": "None"
+        },
+        {
+            "name": "Genesis8Female_Claire.Gloves_3324.Shape",
+            "mesh": "Gloves_3324.Shape",
+            "overlay": "Gloves",
+            "wardrobeSlot": "None"
+        },
+        {
+            "name": "Genesis8Female_Claire.Heels_4146.Shape",
+            "mesh": "Heels_4146.Shape",
+            "overlay": "heels",
+            "wardrobeSlot": "None"
+        },
+        {
+            "name": "Genesis8Female_Claire.holster_2549.Shape",
+            "mesh": "holster_2549.Shape",
+            "overlay": "Holster",
+            "wardrobeSlot": "None"
+        },
+        {
+            "name": "Genesis8Female_Claire.Shirt_8385.Shape",
+            "mesh": "Shirt_8385.Shape",
+            "overlay": "shirt",
+            "wardrobeSlot": "None"
+        },
+        {
+            "name": "Genesis8Female_Claire.Skirt_12902.Shape",
+            "mesh": "Skirt_12902.Shape",
+            "overlay": "skirt",
+            "wardrobeSlot": "None"
+        }
+    ]
+}
