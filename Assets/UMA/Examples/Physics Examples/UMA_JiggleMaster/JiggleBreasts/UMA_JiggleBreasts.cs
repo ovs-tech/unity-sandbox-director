@@ -21,6 +21,9 @@ namespace UMA.Examples
 		public bool _breastSquashAndStretch = true;
 		public float _breastFrontStretch = 0.2f;
 		public float _breastSideStretch = 0.15f;
+		public bool _overrideExtraRotation = false;
+		public Vector3 _extraRotationOverrideLeft = Vector3.zero;
+		public Vector3 _extraRotationOverrideRight = Vector3.zero;
 
 		//merely a confirmation that the avatar has been created and jiggle bones are required
 		private bool _initialized;
@@ -135,7 +138,7 @@ namespace UMA.Examples
 						else if (_skeleton == "Daz")
 						{
 							// Daz pectoral bone orientation differs from UMA/o3n. Keep it close to UMA defaults with a small side offset.
-							// _jiggler.ExtraRotation = IsLeftBreastBone(bone.name) ? new Vector3(67, 5, -90) : new Vector3(67, -5, -90);
+							_jiggler.ExtraRotation = IsLeftBreastBone(bone.name) ? new Vector3(180, 180, -180) : new Vector3(180, 180, -180);
 						}
 						UpdateJiggleBone(_jiggler);
 					}
@@ -212,6 +215,17 @@ namespace UMA.Examples
 				jiggler.FrontStretch = _breastFrontStretch;
 				jiggler.SideStretch = _breastSideStretch;
 				jiggler.AnatomyScaleFactor = _dna["breastSize"].Get() * 2;
+				if (_overrideExtraRotation)
+				{
+					if (IsLeftBreastBone(jiggler.Bone.name))
+					{
+						jiggler.ExtraRotation = _extraRotationOverrideLeft;
+					}
+					else if (IsRightBreastBone(jiggler.Bone.name))
+					{
+						jiggler.ExtraRotation = _extraRotationOverrideRight;
+					}
+				}
 				InitializeBone(jiggler);
 			}
 		}
@@ -355,6 +369,9 @@ namespace UMA.Examples
 			ujb._breastSquashAndStretch = _breastSquashAndStretch;
 			ujb._breastFrontStretch = _breastFrontStretch;
 			ujb._breastSideStretch = _breastSideStretch;
+			ujb._overrideExtraRotation = _overrideExtraRotation;
+			ujb._extraRotationOverrideLeft = _extraRotationOverrideLeft;
+			ujb._extraRotationOverrideRight = _extraRotationOverrideRight;
 		}
 	}
 }

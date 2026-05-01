@@ -24,12 +24,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1589969537021848}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &114813453997285572
 MonoBehaviour:
@@ -43,11 +44,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb90f032b376b62419f45154a3b24b22, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _breastStiffness: 0
-  _breastMass: 1
-  _breastDamping: 0
+  _breastStiffness: 0.15
+  _breastMass: 0.9
+  _breastDamping: 1
   _breastGravity: 0.75
   _breastSquashAndStretch: 1
-  _breastFrontStretch: 1
-  _breastSideStretch: 1
+  _breastFrontStretch: 0.2
+  _breastSideStretch: 0.15
+  _overrideExtraRotation: 1
+  _extraRotationOverrideLeft: {x: 180, y: 180, z: -180}
+  _extraRotationOverrideRight: {x: 180, y: 180, z: -180}
   _jigglers: []

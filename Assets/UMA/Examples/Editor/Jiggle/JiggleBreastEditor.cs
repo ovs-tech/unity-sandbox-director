@@ -24,6 +24,13 @@ namespace UMA
 				myScript._breastFrontStretch = EditorGUILayout.FloatField("Breast Front Stretch (0-1):", Mathf.Clamp(myScript._breastFrontStretch, 0, 1));
 				myScript._breastSideStretch = EditorGUILayout.FloatField("Breast Side Stretch (0-1):", Mathf.Clamp(myScript._breastSideStretch, 0, 1));
 			}
+			GUILayout.Label("");
+			myScript._overrideExtraRotation = GUILayout.Toggle(myScript._overrideExtraRotation, "Override Extra Rotation?");
+			if (myScript._overrideExtraRotation)
+			{
+				myScript._extraRotationOverrideLeft = EditorGUILayout.Vector3Field("Left Extra Rotation Override:", myScript._extraRotationOverrideLeft);
+				myScript._extraRotationOverrideRight = EditorGUILayout.Vector3Field("Right Extra Rotation Override:", myScript._extraRotationOverrideRight);
+			}
 			if (GUI.changed)
 			{
 				for (int i = 0; i < myScript._jigglers.Count; i++)
