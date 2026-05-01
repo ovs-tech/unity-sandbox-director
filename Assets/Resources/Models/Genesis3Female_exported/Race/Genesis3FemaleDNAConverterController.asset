@@ -1,68 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-2633694044866365561
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c3ac2aa42c9f4de41a32fbd9228196b5, type: 3}
-  m_Name: BonePoseDNAConverters
-  m_EditorClassIdentifier: 
-  masterWeight:
-    _masterWeightType: 0
-    _globalWeight: 1
-    _DNAForWeight:
-      _calcOption: 0
-      _dnaName: 
-      _dnaNameHash: 0
-      _evaluator:
-        _name: Raw
-        _graph:
-          serializedVersion: 2
-          m_Curve:
-          - serializedVersion: 3
-            time: 0
-            value: 0
-            inSlope: 0
-            outSlope: 1
-            tangentMode: 0
-            weightedMode: 0
-            inWeight: 0.33333334
-            outWeight: 0.33333334
-          - serializedVersion: 3
-            time: 0.5
-            value: 0.5
-            inSlope: 1
-            outSlope: 1
-            tangentMode: 0
-            weightedMode: 0
-            inWeight: 0.33333334
-            outWeight: 0.33333334
-          - serializedVersion: 3
-            time: 1
-            value: 1
-            inSlope: 1
-            outSlope: 0
-            tangentMode: 0
-            weightedMode: 0
-            inWeight: 0.33333334
-            outWeight: 0.33333334
-          m_PreInfinity: 2
-          m_PostInfinity: 2
-          m_RotationOrder: 4
-      _multiplier: 1
-      _initialized: 1
-  _converterController: {fileID: 11400000}
-  _poseDNAConverters:
-  - _poseToApply: {fileID: 11400000, guid: f004547071b307944be306265a81937b, type: 2}
-    _startingPoseWeight: 1
-    _modifyingDNA:
-      _dnaEvaluators: []
-      _aggregationMethod: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -78,7 +15,7 @@ MonoBehaviour:
   _dnaAsset: {fileID: 11400000, guid: cb653e87e560c4e5f87ba5d70abebeb4, type: 2}
   _plugins:
   - {fileID: 1016403146826040291}
-  - {fileID: -2633694044866365561}
+  - {fileID: 3923734086819392435}
   _overallModifiers:
     _adjustScale: 1
     _adjustHeight: 1
@@ -13634,3 +13571,66 @@ MonoBehaviour:
       _max: 0
     _umaDNA:
       dnaTypeHash: 1932961400
+--- !u!114 &3923734086819392435
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3ac2aa42c9f4de41a32fbd9228196b5, type: 3}
+  m_Name: BonePoseDNAConverters
+  m_EditorClassIdentifier: UMA_Core::UMA.BonePoseDNAConverterPlugin
+  masterWeight:
+    _masterWeightType: 0
+    _globalWeight: 0
+    _DNAForWeight:
+      _calcOption: 0
+      _dnaName: 
+      _dnaNameHash: 0
+      _evaluator:
+        _name: Raw
+        _graph:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 1
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.5
+            value: 0.5
+            inSlope: 1
+            outSlope: 1
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 1
+            inSlope: 1
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      _multiplier: 1
+      _initialized: 1
+  _converterController: {fileID: 11400000}
+  _poseDNAConverters:
+  - _poseToApply: {fileID: 11400000, guid: a9cd25303042de1418223a1dac573236, type: 2}
+    _startingPoseWeight: 1
+    _modifyingDNA:
+      _dnaEvaluators: []
+      _aggregationMethod: 0

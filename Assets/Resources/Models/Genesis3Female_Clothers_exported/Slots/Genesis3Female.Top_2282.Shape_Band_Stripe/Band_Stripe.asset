@@ -24,7 +24,7 @@ MonoBehaviour:
   textureList:
   - {fileID: 2800000, guid: 881a096bdf6139142a3171ffa9568346, type: 3}
   - {fileID: 2800000, guid: 8e18f7e3c5230324bb3c1ef95b3f35ec, type: 3}
-  - {fileID: 0}
+  - {fileID: 2800000, guid: 1c17b8a1f9e186e4f9fdf9ab70c9670a, type: 3}
   - {fileID: 0}
   overlayBlend: 00000000
   tags: []
