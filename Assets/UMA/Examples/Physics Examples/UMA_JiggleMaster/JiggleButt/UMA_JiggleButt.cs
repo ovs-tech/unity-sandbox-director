@@ -67,6 +67,16 @@ namespace UMA.Examples
 		private float _sideStretch = 0.15f;
 		private float _frontStretch = 0.2f;
 
+		private static bool IsLeftGluteBone(string boneName)
+		{
+			return boneName == "LeftGluteus" || boneName == "GluteusAdjust_L" || boneName == "lGluteus" || boneName == "l_gluteus";
+		}
+
+		private static bool IsRightGluteBone(string boneName)
+		{
+			return boneName == "RightGluteus" || boneName == "GluteusAdjust_R" || boneName == "rGluteus" || boneName == "r_gluteus";
+		}
+
 		void Awake() {
 			Init();
 		}
@@ -102,7 +112,7 @@ namespace UMA.Examples
 				_renderer = GetComponentInChildren<SkinnedMeshRenderer>();
 				foreach (Transform bone in _renderer.bones) {
 					//we are seeking by bone names so need the corresponding bone name from our supported skeletons
-					if (bone.name == "LeftGluteus" || bone.name == "RightGluteus" || bone.name == "GluteusAdjust_L" || bone.name == "GluteusAdjust_R") {
+					if (IsLeftGluteBone(bone.name) || IsRightGluteBone(bone.name)) {
 						_jiggler = new JiggleElement();
 						_jigglers.Add(_jiggler);
 						_jiggler.Bone = bone;
@@ -115,6 +125,10 @@ namespace UMA.Examples
 						else if (bone.name == "GluteusAdjust_L" || bone.name == "GluteusAdjust_R") {
 							_jiggler.UpDirection = new Vector3(-1, 0, 0);
 							_jiggler.ExtraRotation = new Vector3(-90, 0, 90);
+						}
+						else if (bone.name == "lGluteus" || bone.name == "rGluteus" || bone.name == "l_gluteus" || bone.name == "r_gluteus") {
+							_jiggler.UpDirection = new Vector3(1, 0, 0);
+							_jiggler.ExtraRotation = _gender == "female" ? new Vector3(-67, 180, -90) : new Vector3(20, 45, -90);
 						}
 						UpdateJiggleBone(_jiggler);
 					}
@@ -165,6 +179,16 @@ namespace UMA.Examples
 				case "o3n Female":
 					_gender = "female";
 					return "o3n";
+				case "Genesis3Female":
+				case "Genesis8Female":
+				case "Genesis9Female":
+					_gender = "female";
+					return "Daz";
+				case "Genesis3Male":
+				case "Genesis8Male":
+				case "Genesis9Male":
+					_gender = "male";
+					return "Daz";
 				default:
 					return "other";
 			}
@@ -176,7 +200,7 @@ namespace UMA.Examples
 		}
 
 		public void UpdateJiggleBone(JiggleElement jiggler) {
-			if (jiggler.Bone.name == "LeftGluteus" || jiggler.Bone.name == "RightGluteus" || jiggler.Bone.name == "GluteusAdjust_L" || jiggler.Bone.name == "GluteusAdjust_R") {
+			if (IsLeftGluteBone(jiggler.Bone.name) || IsRightGluteBone(jiggler.Bone.name)) {
 				jiggler.Stiffness = _buttStiffness;
 				jiggler.Mass = _buttMass;
 				jiggler.Damping = _buttDamping;
@@ -185,7 +209,7 @@ namespace UMA.Examples
 				jiggler.FrontStretch = _buttFrontStretch;
 				jiggler.SideStretch = _buttSideStretch;
 				jiggler.AnatomyScaleFactor = _dna["gluteusSize"].Get() *2;
-				InitializeBone(_jiggler);
+				InitializeBone(jiggler);
 			}
 		}
 

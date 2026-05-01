@@ -65,6 +65,16 @@ namespace UMA.Examples
 		private float _sideStretch = 0.15f;
 		private float _frontStretch = 0.2f;
 
+		private static bool IsLeftBreastBone(string boneName)
+		{
+			return boneName == "LeftOuterBreast" || boneName == "PectoralAdjust_L" || boneName == "lPectoral" || boneName == "l_pectoral";
+		}
+
+		private static bool IsRightBreastBone(string boneName)
+		{
+			return boneName == "RightOuterBreast" || boneName == "PectoralAdjust_R" || boneName == "rPectoral" || boneName == "r_pectoral";
+		}
+
 		void Awake()
 		{
 			Init();
@@ -106,7 +116,7 @@ namespace UMA.Examples
 				foreach (Transform bone in _renderer.bones)
 				{
 					//we are seeking by bone names so need the corresponding bone name from our supported skeletons
-					if (bone.name == "LeftOuterBreast" || bone.name == "RightOuterBreast" || bone.name == "PectoralAdjust_L" || bone.name == "PectoralAdjust_R")
+					if (IsLeftBreastBone(bone.name) || IsRightBreastBone(bone.name))
 					{
 						_jiggler = new JiggleElement();
 						_jigglers.Add(_jiggler);
@@ -121,6 +131,11 @@ namespace UMA.Examples
 						else if (_skeleton == "o3n")
 						{
 							_jiggler.ExtraRotation = bone.name == "PectoralAdjust_L" ? new Vector3(45, 0, -67) : new Vector3(45, 0, -113);
+						}
+						else if (_skeleton == "Daz")
+						{
+							// Daz pectoral bone orientation differs from UMA/o3n. Keep it close to UMA defaults with a small side offset.
+							// _jiggler.ExtraRotation = IsLeftBreastBone(bone.name) ? new Vector3(67, 5, -90) : new Vector3(67, -5, -90);
 						}
 						UpdateJiggleBone(_jiggler);
 					}
@@ -167,6 +182,13 @@ namespace UMA.Examples
 					return "o3n";
 				case "o3n Female":
 					return "o3n";
+				case "Genesis3Female":
+				case "Genesis3Male":
+				case "Genesis8Female":
+				case "Genesis8Male":
+				case "Genesis9Female":
+				case "Genesis9Male":
+					return "Daz";
 				default:
 					return "other";
 			}
@@ -180,7 +202,7 @@ namespace UMA.Examples
 
 		public void UpdateJiggleBone(JiggleElement jiggler)
 		{
-			if (jiggler.Bone.name == "LeftOuterBreast" || jiggler.Bone.name == "RightOuterBreast" || jiggler.Bone.name == "PectoralAdjust_L" || jiggler.Bone.name == "PectoralAdjust_R")
+			if (IsLeftBreastBone(jiggler.Bone.name) || IsRightBreastBone(jiggler.Bone.name))
 			{
 				jiggler.Stiffness = _breastStiffness;
 				jiggler.Mass = _breastMass;
@@ -190,7 +212,7 @@ namespace UMA.Examples
 				jiggler.FrontStretch = _breastFrontStretch;
 				jiggler.SideStretch = _breastSideStretch;
 				jiggler.AnatomyScaleFactor = _dna["breastSize"].Get() * 2;
-				InitializeBone(_jiggler);
+				InitializeBone(jiggler);
 			}
 		}
 
