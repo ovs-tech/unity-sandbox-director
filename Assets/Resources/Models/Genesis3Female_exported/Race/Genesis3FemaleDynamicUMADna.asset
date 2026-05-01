@@ -1,0 +1,78 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28add7ad4625f8748a81d045544985b2, type: 3}
+  m_Name: Genesis3FemaleDynamicUMADna
+  m_EditorClassIdentifier: 
+  dnaTypeHash: 1932961400
+  lastKnownAssetPath: Assets/Resources/Models/Genesis3Female_exported/Race/Genesis3FemaleDynamicUMADna.asset
+  lastKnownDuplicateAssetPath: Assets/Resources/Models/Genesis3Female_exported/Race/Genesis3FemaleDynamicUMADna
+    1.asset
+  lastKnownInstanceID: -730762
+  Names:
+  - armLength
+  - armWidth
+  - belly
+  - bodyFitness
+  - breastCleavage
+  - breastSize
+  - cheekPosition
+  - cheekSize
+  - chinPosition
+  - chinPronounced
+  - chinSize
+  - earsPosition
+  - earsRotation
+  - earsSize
+  - ElfOrAlien
+  - eyeRotation
+  - eyeSize
+  - eyeSpacing
+  - eyeSymmetry
+  - feetSize
+  - forearmLength
+  - forearmWidth
+  - foreheadPosition
+  - foreheadSize
+  - gluteusSize
+  - handsSize
+  - headSize
+  - headWidth
+  - height
+  - jawsPosition
+  - jawsSize
+  - legSeparation
+  - legsSize
+  - lipsSize
+  - lowCheekPosition
+  - lowCheekPronounced
+  - lowerMuscle
+  - lowerWeight
+  - MaleAlienHead
+  - MaleEarsMorph
+  - mandibleSize
+  - mouthSize
+  - neckThickness
+  - noseCurve
+  - noseFlatten
+  - noseInclination
+  - nosePosition
+  - nosePronounced
+  - noseSize
+  - noseWidth
+  - pigtails
+  - skinBlueness
+  - skinGreenness
+  - skinRedness
+  - upperMuscle
+  - upperWeight
+  - waist
+  - WheelSize

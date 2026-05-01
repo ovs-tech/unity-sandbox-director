@@ -159,6 +159,8 @@ namespace UMA.Examples
 				case "HumanFemale2":
 					_gender = "female";
 					return "Standard";
+				case "Genesis3Female":
+					return "Standard";
 				case "o3n Male":
 					_gender = "male";
 					return "o3n";

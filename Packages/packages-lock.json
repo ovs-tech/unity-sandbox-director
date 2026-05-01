@@ -20,6 +20,14 @@
       },
       "hash": "940831fe8a474e92b96a5c183298b45843cf067e"
     },
+    "com.ovstudio.umaconverter": {
+      "version": "file:/Users/er-lap-mpm4-023/Documents/Projects/externals/CC2UMAConverter/UmaConverterUnity",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.2.1"
+      }
+    },
     "com.unity.2d.common": {
       "version": "13.0.1",
       "depth": 1,

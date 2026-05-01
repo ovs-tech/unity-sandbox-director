@@ -137,6 +137,8 @@ namespace UMA.Examples
 					return "Standard";
 				case "HumanFemale2":
 					return "Standard";
+				case "Genesis3Female":
+					return "Standard";
 				case "o3n Male":
 					return "o3n";
 				case "o3n Female":

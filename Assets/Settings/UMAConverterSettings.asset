@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b58ffbd59bdd16d468ea3abce0033801, type: 3}
+  m_Name: UMAConverterSettings
+  m_EditorClassIdentifier: Assembly-CSharp-Editor::UMAConverter.UMAConverterSettings
+  addToGlobalLibrary: 1
+  defaultMaterial: {fileID: 11400000, guid: 69c80227cbe18344da419d7d88bafffa, type: 2}
+  transparentMaterial: {fileID: 11400000, guid: c5c1d525787351f44b5b0291bc2cfb2c, type: 2}
+  referenceDynamicDnaAsset: {fileID: 11400000, guid: a1502ce9ef533aa42a647fe4052e15f8, type: 2}
+  referenceDnaConverterController: {fileID: 11400000, guid: 9d2d3a48c48fa624c900cbb6bd543607, type: 2}
+  referenceDynamicDnaRanges: {fileID: 11400000, guid: 655edb9c656899b449c9e6380c26b281, type: 2}
+  removeMeshAfterCreating: 0
