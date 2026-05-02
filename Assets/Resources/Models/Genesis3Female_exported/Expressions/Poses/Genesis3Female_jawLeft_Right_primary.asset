@@ -15,8 +15,8 @@ MonoBehaviour:
   poses:
   - bone: lowerJaw
     hash: -690926163
-    position: {x: -0.00000011920929, y: 0, z: 0}
-    rotation: {x: 0.00000007090117, y: -0.000000102305265, z: -0.05417862, w: 0.9987571}
+    position: {x: 0.004309013, y: 0.0000010728836, z: 0.000000024214387}
+    rotation: {x: 0.00000006524086, y: 0, z: 0, w: 1}
     scale: {x: 1, y: 1, z: 1}
     category: jawLeft_Right
   tweenPoses: []

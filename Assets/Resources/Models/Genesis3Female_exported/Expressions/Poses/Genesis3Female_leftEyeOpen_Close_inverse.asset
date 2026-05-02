@@ -13,11 +13,17 @@ MonoBehaviour:
   m_Name: Genesis3Female_leftEyeOpen_Close_inverse
   m_EditorClassIdentifier: UMA_Core::UMA.PoseTools.UMABonePose
   poses:
-  - bone: lEye
-    hash: -440365084
-    position: {x: -0.00000011920929, y: 0, z: 0}
-    rotation: {x: -0.000000046488456, y: 0.000000084291244, z: -3.4635938e-12, w: 1}
-    scale: {x: 0.9999999, y: 1, z: 1.0048622}
-    category: leftEyeOpen_Close
+  - bone: lEyelidUpper
+    hash: -1903571207
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: -0.043619387, y: 0, z: 0, w: 0.99904823}
+    scale: {x: 1, y: 1, z: 1}
+    category: 
+  - bone: lEyelidLower
+    hash: -296981946
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0.013089596, y: 0, z: 0, w: 0.99991435}
+    scale: {x: 1, y: 1, z: 1}
+    category: 
   tweenPoses: []
   tweenWeights: []

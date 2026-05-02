@@ -15,14 +15,14 @@ MonoBehaviour:
   poses:
   - bone: lBrowInner
     hash: 927720257
-    position: {x: -0.00000011920929, y: 0, z: 0}
-    rotation: {x: -0.000000046488456, y: 0.000000084291244, z: -3.4635938e-12, w: 1}
-    scale: {x: 1, y: 1, z: 1.0005479}
+    position: {x: 0.007924326, y: -0.00000011920929, z: 0.000000044703484}
+    rotation: {x: -2.9932458e-19, y: 0.000000084291905, z: -3.551048e-12, w: 1}
+    scale: {x: 1, y: 1, z: 1}
     category: browsIn
   - bone: rBrowInner
     hash: 237785626
-    position: {x: 0, y: 0, z: 0}
-    rotation: {x: 0.00000024007446, y: -0.000000091421136, z: 0.030024135, w: 0.99956846}
+    position: {x: -0.007924326, y: 0, z: 0.000000044703484}
+    rotation: {x: -0.09293753, y: -0.0027916732, z: 0.029894507, w: 0.995253}
     scale: {x: 1, y: 1, z: 1}
     category: browsIn
   tweenPoses: []

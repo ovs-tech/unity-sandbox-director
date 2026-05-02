@@ -16,19 +16,19 @@ MonoBehaviour:
   - bone: lBrowInner
     hash: 927720257
     position: {x: -0.00000011920929, y: 0, z: 0}
-    rotation: {x: -0.000000026643832, y: 0.06357363, z: 0.0000000016288012, w: 0.99797714}
+    rotation: {x: -0.000000026643832, y: 0.0000000016288014, z: 0.063573636, w: 0.99797714}
     scale: {x: 1, y: 1, z: 1.0000002}
     category: leftBrowUp_Down
   - bone: lBrowMid
     hash: 472953218
     position: {x: 0, y: 0, z: 0}
-    rotation: {x: -0.0000000017016558, y: 0.07874023, z: -9.423173e-10, w: 0.99689525}
+    rotation: {x: -0.0000000017016555, y: -9.423172e-10, z: 0.07874023, w: 0.9968952}
     scale: {x: 0.99999976, y: 1, z: 1}
     category: leftBrowUp_Down
   - bone: lBrowOuter
     hash: 782426329
     position: {x: 0.00014898926, y: -0.00000015943078, z: -0.0000014007092}
-    rotation: {x: 0.00000045295272, y: 0.0000000011758696, z: 0.000000007605921, w: 1}
+    rotation: {x: 0.00000045295272, y: 0.000000007605921, z: 0.0000000011758697, w: 1}
     scale: {x: 0.9999999, y: 0.9999999, z: 1}
     category: leftBrowUp_Down
   tweenPoses: []

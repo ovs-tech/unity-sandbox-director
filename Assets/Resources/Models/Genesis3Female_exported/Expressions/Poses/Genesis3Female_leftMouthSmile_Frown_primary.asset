@@ -13,50 +13,50 @@ MonoBehaviour:
   m_Name: Genesis3Female_leftMouthSmile_Frown_primary
   m_EditorClassIdentifier: UMA_Core::UMA.PoseTools.UMABonePose
   poses:
-  - bone: LeftCheek
-    hash: 1397141478
+  - bone: lCheekUpper
+    hash: -378200179
     position: {x: -0.000051937997, y: -0.001883084, z: 0.0034130067}
     rotation: {x: 0.00000032715525, y: 0.00000004034442, z: -0.00000003828322, w: 1.0000002}
     scale: {x: 0.9999999, y: 0.99999976, z: 0.9999999}
     category: 
-  - bone: LeftLipsSuperiorMiddle
-    hash: -1900485368
+  - bone: lLipUpperInner
+    hash: -318420760
     position: {x: -0.00056211837, y: -0.004370004, z: -0.0027877837}
     rotation: {x: 0.00000025431007, y: -0.0013837259, z: -0.00000034763113, w: 0.99999917}
     scale: {x: 1.0000002, y: 0.99999976, z: 0.9999999}
     category: 
-  - bone: LeftLowCheek
-    hash: 1716905425
+  - bone: lCheekLower
+    hash: -1984906446
     position: {x: -0.0009523183, y: -0.008014072, z: 0.008692019}
     rotation: {x: -0.000000004929709, y: 0.00000004266795, z: -0.00000008391146, w: 1}
     scale: {x: 1, y: 1, z: 1.0000002}
     category: 
-  - bone: LipsSuperior
-    hash: -1089081410
+  - bone: LipUpperMiddle
+    hash: -741693195
     position: {x: -0.0012385137, y: 1.2369128e-10, z: -0.00047905743}
     rotation: {x: 0.00000003434044, y: -0.0016424892, z: 2.8664546e-10, w: 0.9999987}
     scale: {x: 1.0000001, y: 1, z: 1.0000001}
     category: 
-  - bone: LeftLips
-    hash: 1620479899
+  - bone: lLipCorner
+    hash: -2073325903
     position: {x: 0.023525983, y: 0.01835606, z: 0.008036897}
     rotation: {x: 0.000000010933152, y: 9.597123e-10, z: -0.0000000046503574, w: 1}
     scale: {x: 0.99999964, y: 1, z: 0.9999999}
     category: 
-  - bone: LeftLipsInferior
-    hash: -2082379262
+  - bone: lLipLowerInner
+    hash: 1325557363
     position: {x: 0.0050200447, y: 0.005966753, z: 0.0015676897}
     rotation: {x: 0.000000007036756, y: -0.000000043382595, z: -0.00000002307435, w: 1}
     scale: {x: 0.99999976, y: 0.99999964, z: 1}
     category: 
-  - bone: LipsInferior
-    hash: -499586065
+  - bone: LipLowerMiddle
+    hash: -1263147753
     position: {x: 0.0010566786, y: -0.000027910028, z: 0.0022629797}
     rotation: {x: -0.0000000014076558, y: -0.00000002937703, z: 2.7436362e-10, w: 1.0000001}
     scale: {x: 0.9999999, y: 1, z: 1}
     category: 
-  - bone: NoseBase
-    hash: -1184023893
+  - bone: MidNoseBridge
+    hash: -2016599255
     position: {x: 0.000031936914, y: -7.275958e-12, z: 0.00000047683716}
     rotation: {x: 0.000000024434215, y: -9.436896e-16, z: -7.446267e-14, w: 1}
     scale: {x: 1, y: 1, z: 1.0000001}

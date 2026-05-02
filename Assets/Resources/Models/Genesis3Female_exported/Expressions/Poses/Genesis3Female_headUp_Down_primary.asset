@@ -15,8 +15,8 @@ MonoBehaviour:
   poses:
   - bone: head
     hash: -1477183844
-    position: {x: 0.00000011175871, y: -2.6645353e-15, z: -0.000000007450581}
-    rotation: {x: -0.000000019556765, y: -0.25903717, z: 2.30854e-15, w: 0.9660235}
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0.28964615, y: 0.0000000014668794, z: 0.000000004847412, w: 0.95714796}
     scale: {x: 1, y: 1, z: 1}
     category: headUp_Down
   tweenPoses: []

@@ -12,6 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01b68d44e3ab744b98027a983d66b345, type: 3}
   m_Name: Genesis3Female_mouthNarrow_Pucker_primary
   m_EditorClassIdentifier: UMA_Core::UMA.PoseTools.UMABonePose
-  poses: []
+  poses:
+  - bone: lLipCorner
+    hash: -2073325903
+    position: {x: -0.01, y: 0, z: 0.01}
+    rotation: {x: 0, y: 0, z: 0, w: 1}
+    scale: {x: 1, y: 1, z: 1}
+    category: 
   tweenPoses: []
   tweenWeights: []

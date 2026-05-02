@@ -16,13 +16,13 @@ MonoBehaviour:
   - bone: rBrowInner
     hash: 237785626
     position: {x: -0.00000011920929, y: 0, z: 0}
-    rotation: {x: -0.00000017187233, y: -0.042230435, z: -0.000000006364609, w: 0.99910784}
+    rotation: {x: 0.00000017187234, y: 0.000000006364637, z: 0.04223059, w: -0.9991079}
     scale: {x: 0.9999995, y: 0.9999999, z: 1}
     category: rightBrowUp_Down
   - bone: rBrowMid
     hash: 1963037339
     position: {x: -0.000000007450581, y: 0, z: 0}
-    rotation: {x: 0.00000014792208, y: -0.075817116, z: 0.000000016833884, w: 0.99712175}
+    rotation: {x: -0.00000014792208, y: -0.00000001683389, z: 0.07581715, w: -0.99712175}
     scale: {x: 1.0000002, y: 0.99999994, z: 0.99999976}
     category: rightBrowUp_Down
   - bone: rBrowOuter

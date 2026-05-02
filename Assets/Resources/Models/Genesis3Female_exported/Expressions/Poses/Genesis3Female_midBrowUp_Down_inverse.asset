@@ -13,22 +13,22 @@ MonoBehaviour:
   m_Name: Genesis3Female_midBrowUp_Down_inverse
   m_EditorClassIdentifier: UMA_Core::UMA.PoseTools.UMABonePose
   poses:
-  - bone: LeftEyebrowLow
-    hash: 2129323926
+  - bone: lBrowInner
+    hash: 927720257
     position: {x: 0.00049340725, y: -0.0000010831282, z: -0.00015258789}
-    rotation: {x: -0.00012855398, y: -0.037706934, z: 0.0078794155, w: 0.99941534}
+    rotation: {x: 0.00012853448, y: -0.007878176, z: 0.037701085, w: -0.999258}
     scale: {x: 1, y: 1, z: 1}
     category: 
-  - bone: NoseTop
-    hash: 463827395
+  - bone: CenterBrow
+    hash: -856505162
     position: {x: 0.0060434267, y: 0.00009564994, z: -0.00064629316}
-    rotation: {x: 0.00000013728744, y: -0.060367804, z: 0.000000007735319, w: 0.99814177}
+    rotation: {x: -0.00000013729216, y: -0.000000007735585, z: 0.060369868, w: -0.9981761}
     scale: {x: 1, y: 1, z: 1}
     category: 
-  - bone: RightEyebrowLow
-    hash: -1640515339
+  - bone: rBrowInner
+    hash: 237785626
     position: {x: 0.00049343705, y: 0.0000010831282, z: -0.00015258044}
-    rotation: {x: 0.00012903166, y: -0.03770685, z: -0.0078793885, w: 0.99941534}
+    rotation: {x: -0.00012911303, y: 0.007878154, z: 0.03770108, w: -0.999258}
     scale: {x: 1, y: 1, z: 1}
     category: 
   tweenPoses: []

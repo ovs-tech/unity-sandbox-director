@@ -16,7 +16,7 @@ MonoBehaviour:
   - bone: rEye
     hash: 1426501448
     position: {x: -0.0000000021883917, y: 3.907985e-14, z: 0.00000011375178}
-    rotation: {x: -1.5969315e-10, y: 5.6677444e-11, z: 0.3347376, w: 0.9428379}
+    rotation: {x: -1.5961396e-10, y: 0.33457163, z: 5.6649345e-11, w: 0.94237036}
     scale: {x: 1, y: 1, z: 1}
     category: rightEyeIn_Out
   tweenPoses: []
