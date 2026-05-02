@@ -43,15 +43,49 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cb90f032b376b62419f45154a3b24b22, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: UMA_Examples::UMA.Examples.UMA_JiggleBreasts
   _breastStiffness: 0.15
-  _breastMass: 0.9
-  _breastDamping: 1
+  _breastMass: 0.95
+  _breastDamping: 0.15
   _breastGravity: 0.75
   _breastSquashAndStretch: 1
-  _breastFrontStretch: 0.2
-  _breastSideStretch: 0.15
+  _breastFrontStretch: 0
+  _breastSideStretch: 0
   _overrideExtraRotation: 1
-  _extraRotationOverrideLeft: {x: 180, y: 180, z: -180}
+  _extraRotationOverrideLeft: {x: 180, y: 200, z: -180}
   _extraRotationOverrideRight: {x: 180, y: 180, z: -180}
-  _jigglers: []
+  _jigglers:
+  - Bone: {fileID: 0}
+    BoneType: breast
+    BoneAxis: {x: 0, y: 0, z: 1}
+    UpDirection: {x: -1, y: 0, z: 0}
+    ExtraRotation: {x: 180, y: 180, z: -180}
+    Stiffness: 0.15
+    Mass: 0.95
+    Damping: 0.15
+    Gravity: 0.75
+    SquashAndStretch: 1
+    SideStretch: 0
+    FrontStretch: 0
+    AnatomyScaleFactor: 1.9504465
+    Force: {x: NaN, y: NaN, z: NaN}
+    Velocity: {x: NaN, y: NaN, z: NaN}
+    Acceleration: {x: NaN, y: NaN, z: NaN}
+    DynamicPosition: {x: NaN, y: NaN, z: NaN}
+  - Bone: {fileID: 0}
+    BoneType: breast
+    BoneAxis: {x: 0, y: 0, z: 1}
+    UpDirection: {x: -1, y: 0, z: 0}
+    ExtraRotation: {x: 180, y: 200, z: -180}
+    Stiffness: 0.15
+    Mass: 0.95
+    Damping: 0.15
+    Gravity: 0.75
+    SquashAndStretch: 1
+    SideStretch: 0
+    FrontStretch: 0
+    AnatomyScaleFactor: 1.9504465
+    Force: {x: NaN, y: NaN, z: NaN}
+    Velocity: {x: NaN, y: NaN, z: NaN}
+    Acceleration: {x: NaN, y: NaN, z: NaN}
+    DynamicPosition: {x: NaN, y: NaN, z: NaN}

@@ -9,6 +9,19 @@ namespace UMA
 	public class JiggleBreastEditor : Editor
 	{
 
+		private static void ApplySettings(UMA_JiggleBreasts jiggle)
+		{
+			if (jiggle == null)
+			{
+				return;
+			}
+
+			for (int i = 0; i < jiggle._jigglers.Count; i++)
+			{
+				jiggle.UpdateJiggleBone(jiggle._jigglers[i]);
+			}
+		}
+
 		public override void OnInspectorGUI()
 		{
 			var myScript = target as UMA_JiggleBreasts;
@@ -31,12 +44,16 @@ namespace UMA
 				myScript._extraRotationOverrideLeft = EditorGUILayout.Vector3Field("Left Extra Rotation Override:", myScript._extraRotationOverrideLeft);
 				myScript._extraRotationOverrideRight = EditorGUILayout.Vector3Field("Right Extra Rotation Override:", myScript._extraRotationOverrideRight);
 			}
+
+			if (GUILayout.Button("Apply Runtime Settings"))
+			{
+				ApplySettings(myScript);
+				EditorUtility.SetDirty(target);
+			}
+
 			if (GUI.changed)
 			{
-				for (int i = 0; i < myScript._jigglers.Count; i++)
-				{
-					myScript.UpdateJiggleBone(myScript._jigglers[i]);
-				}
+				ApplySettings(myScript);
 				EditorUtility.SetDirty(target);
 			}
 		}
