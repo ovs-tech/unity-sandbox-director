@@ -16,7 +16,7 @@ MonoBehaviour:
   - bone: rMid1
     hash: 990354020
     position: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0, z: 0, w: 1}
+    rotation: {x: 0, y: -0, z: 0, w: -1}
     scale: {x: 1, y: 1, z: 1}
     category: rightPoint
   - bone: rRing1
@@ -28,7 +28,7 @@ MonoBehaviour:
   - bone: rPinky1
     hash: 1315923395
     position: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0, z: 0, w: 1}
+    rotation: {x: 0, y: -0, z: 0, w: -1}
     scale: {x: 1, y: 1, z: 1}
     category: rightPoint
   tweenPoses: []

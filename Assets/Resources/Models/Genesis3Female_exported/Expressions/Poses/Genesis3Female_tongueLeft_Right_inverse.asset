@@ -12,6 +12,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01b68d44e3ab744b98027a983d66b345, type: 3}
   m_Name: Genesis3Female_tongueLeft_Right_inverse
   m_EditorClassIdentifier: UMA_Core::UMA.PoseTools.UMABonePose
-  poses: []
+  poses:
+  - bone: tongue01
+    hash: -1253058860
+    position: {x: 0.0000002644956, y: -0.000000028128852, z: 0.000000718981}
+    rotation: {x: -0.000000015479, y: -0.000000002675249, z: 0.08654703, w: 0.99628735}
+    scale: {x: 0.9999992, y: 1.0000004, z: 0.9999999}
+    category: tongueLeft_Right
+  - bone: tongue02
+    hash: 742819694
+    position: {x: 0, y: -0.0000000016175719, z: -0.000000100730034}
+    rotation: {x: 0.00000003696312, y: -0.0000000057965663, z: -0.17353867, w: 0.98527116}
+    scale: {x: 1.0000001, y: 0.99999946, z: 1.0000001}
+    category: tongueLeft_Right
+  - bone: tongue03
+    hash: 1531033592
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0, w: 1}
+    scale: {x: 1, y: 1, z: 1}
+    category: tongueLeft_Right
   tweenPoses: []
   tweenWeights: []

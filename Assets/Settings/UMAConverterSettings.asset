@@ -18,4 +18,5 @@ MonoBehaviour:
   referenceDynamicDnaAsset: {fileID: 11400000, guid: a1502ce9ef533aa42a647fe4052e15f8, type: 2}
   referenceDnaConverterController: {fileID: 11400000, guid: 9d2d3a48c48fa624c900cbb6bd543607, type: 2}
   referenceDynamicDnaRanges: {fileID: 11400000, guid: 655edb9c656899b449c9e6380c26b281, type: 2}
+  referenceExpressionSet: {fileID: 11400000, guid: 5912431641bbc4d858ffd8e14168c56a, type: 2}
   removeMeshAfterCreating: 0

@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: Genesis3FemaleDynamicUMADna
   m_EditorClassIdentifier: 
   dnaTypeHash: 1932961400
-  lastKnownAssetPath: Assets/Resources/Models/Genesis3Female_exported/Race/Genesis3FemaleDynamicUMADna.asset
-  lastKnownDuplicateAssetPath: Assets/Resources/Models/Genesis3Female_exported/Race/Genesis3FemaleDynamicUMADna
+  lastKnownAssetPath: Assets/UMA/Content/Core/HumanFemale/DNA/DNANames/HumanFemaleDynamicDnaAsset.asset
+  lastKnownDuplicateAssetPath: Assets/UMA/Content/Core/HumanFemale/DNA/DNANames/HumanFemaleDynamicDnaAsset
     1.asset
-  lastKnownInstanceID: -1297874
+  lastKnownInstanceID: 87072
   Names:
   - armLength
   - armWidth

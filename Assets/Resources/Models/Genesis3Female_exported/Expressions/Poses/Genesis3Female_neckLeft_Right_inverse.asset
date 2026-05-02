@@ -15,8 +15,8 @@ MonoBehaviour:
   poses:
   - bone: neckLower
     hash: 1001908892
-    position: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0, z: 0, w: 1}
+    position: {x: 0.00000023841858, y: 5.3290705e-15, z: 0.000000004870457}
+    rotation: {x: -0.34276855, y: -0.000000038889837, z: -0.000000023192557, w: 0.93981}
     scale: {x: 1, y: 1, z: 1}
     category: neckLeft_Right
   tweenPoses: []

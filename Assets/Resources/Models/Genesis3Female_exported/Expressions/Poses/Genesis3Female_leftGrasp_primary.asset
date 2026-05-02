@@ -22,20 +22,20 @@ MonoBehaviour:
   - bone: lMid1
     hash: -455625849
     position: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0, z: 0, w: 1}
+    rotation: {x: 0.03481227, y: -0.56432617, z: -0.05078498, w: 0.8232527}
     scale: {x: 1, y: 1, z: 1}
     category: leftGrasp
   - bone: lRing1
     hash: -215854640
     position: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0, z: 0, w: 1}
-    scale: {x: 1, y: 1, z: 1}
+    rotation: {x: 0, y: 0.70710677, z: 0, w: -0.70710677}
+    scale: {x: 1, y: 1, z: 1.4}
     category: leftGrasp
   - bone: lPinky1
     hash: 2039382608
     position: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0, z: 0, w: 1}
-    scale: {x: 1, y: 1, z: 1}
+    rotation: {x: 0, y: 0.6001412, z: 0, w: -0.7998941}
+    scale: {x: 1, y: 1, z: 1.2}
     category: leftGrasp
   tweenPoses: []
   tweenWeights: []

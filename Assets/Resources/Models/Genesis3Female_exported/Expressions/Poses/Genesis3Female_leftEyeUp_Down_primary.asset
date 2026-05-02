@@ -15,8 +15,8 @@ MonoBehaviour:
   poses:
   - bone: lEye
     hash: -440365084
-    position: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0, z: 0, w: 1}
+    position: {x: -8.729373e-10, y: 7.1054274e-15, z: 0.00000012118329}
+    rotation: {x: 0.00000001946093, y: 0.257768, z: -2.8561517e-14, w: 0.9662068}
     scale: {x: 1, y: 1, z: 1}
     category: leftEyeUp_Down
   tweenPoses: []

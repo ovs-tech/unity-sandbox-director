@@ -16,25 +16,25 @@ MonoBehaviour:
   - bone: rIndex1
     hash: -1532094801
     position: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0, z: 0, w: 1}
+    rotation: {x: 0.03481227, y: 0.56432617, z: -0.05078498, w: -0.8232527}
     scale: {x: 1, y: 1, z: 1}
     category: rightGrasp
   - bone: rMid1
     hash: 990354020
     position: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0, z: 0, w: 1}
-    scale: {x: 1, y: 1, z: 1}
+    rotation: {x: 0, y: -0.70710677, z: 0, w: 0.70710677}
+    scale: {x: 1, y: 1, z: 1.4}
     category: rightGrasp
   - bone: rRing1
     hash: -889310661
     position: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0, z: 0, w: 1}
-    scale: {x: 1, y: 1, z: 1}
+    rotation: {x: 0, y: -0.6001412, z: 0, w: 0.7998941}
+    scale: {x: 1, y: 1, z: 1.2}
     category: rightGrasp
   - bone: rPinky1
     hash: 1315923395
     position: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0, z: 0, w: 1}
+    rotation: {x: 0, y: -0.47792563, z: 0, w: 0.8784003}
     scale: {x: 1, y: 1, z: 1}
     category: rightGrasp
   tweenPoses: []

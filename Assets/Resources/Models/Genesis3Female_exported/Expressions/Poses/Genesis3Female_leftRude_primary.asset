@@ -22,14 +22,14 @@ MonoBehaviour:
   - bone: lRing1
     hash: -215854640
     position: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0, z: 0, w: 1}
-    scale: {x: 1, y: 1, z: 1}
+    rotation: {x: 0.08157148, y: -0.6840781, z: -0.08582324, w: 0.7197345}
+    scale: {x: 1, y: 1, z: 1.06}
     category: leftRude
   - bone: lPinky1
     hash: 2039382608
     position: {x: 0, y: 0, z: 0}
-    rotation: {x: 0, y: 0, z: 0, w: 1}
-    scale: {x: 1, y: 1, z: 1}
+    rotation: {x: 0, y: 0.5704986, z: 0, w: -0.8212986}
+    scale: {x: 0.91, y: 1, z: 1.6}
     category: leftRude
   tweenPoses: []
   tweenWeights: []
