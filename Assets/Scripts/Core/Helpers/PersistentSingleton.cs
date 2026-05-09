@@ -9,16 +9,22 @@ public class PersistentSingleton<T> : MonoBehaviour where T : Component
   public static T Current => instance;
 
   protected static T instance;
+  private static bool _isQuitting;
 
   public static T Instance
   {
     get
     {
+      if (_isQuitting)
+      {
+        return null;
+      }
+
       if (instance == null)
       {
         try
         {
-          instance = FindFirstObjectByType<T>();
+          instance = FindAnyObjectByType<T>();
           if (instance == null)
           {
             GameObject obj = new GameObject();
@@ -38,7 +44,16 @@ public class PersistentSingleton<T> : MonoBehaviour where T : Component
     }
   }
 
-  protected virtual void Awake() => InitializeSingleton();
+  protected virtual void Awake()
+  {
+    _isQuitting = false;
+    InitializeSingleton();
+  }
+
+  protected virtual void OnApplicationQuit()
+  {
+    _isQuitting = true;
+  }
 
   protected virtual void InitializeSingleton()
   {

@@ -136,7 +136,7 @@ namespace Systems.Persistence
 
                 // Find all MonoBehaviours that implement ISubsystemPersistence
                 var found = new List<ISubsystemPersistence>();
-                var monos = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
+                var monos = FindObjectsByType<MonoBehaviour>();
                 foreach (var m in monos)
                 {
                     if (m is ISubsystemPersistence s)
@@ -214,7 +214,7 @@ namespace Systems.Persistence
 
         void Bind<T, TData>(TData data) where T : MonoBehaviour, IBind<TData> where TData : ISaveable, new()
         {
-            var entity = FindObjectsByType<T>(FindObjectsSortMode.None).FirstOrDefault();
+            var entity = FindObjectsByType<T>().FirstOrDefault();
             if (entity != null)
             {
                 if (data == null)
@@ -227,7 +227,7 @@ namespace Systems.Persistence
 
         void Bind<T, TData>(List<TData> datas) where T : MonoBehaviour, IBind<TData> where TData : ISaveable, new()
         {
-            var entities = FindObjectsByType<T>(FindObjectsSortMode.None);
+            var entities = FindObjectsByType<T>();
 
             foreach (var entity in entities)
             {

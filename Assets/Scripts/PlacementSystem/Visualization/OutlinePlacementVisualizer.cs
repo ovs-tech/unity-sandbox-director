@@ -12,9 +12,11 @@ namespace Systems.PlacementSystem.Visualization
     public class OutlinePlacementVisualizer : BasePlacementVisualizer
     {
         [Header("Outline Settings")]
+#pragma warning disable CS0414
         [SerializeField, Tooltip("Outline width")]
         [Range(0f, 0.1f)]
         private float _outlineWidth = 0.03f;
+#pragma warning restore CS0414
 
         [SerializeField, Tooltip("Valid placement outline color")]
         private Color _validOutlineColor = Color.green;

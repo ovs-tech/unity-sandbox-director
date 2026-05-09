@@ -162,7 +162,7 @@ namespace Systems.SceneSandbox.Core
 
         private void OnEnable()
         {
-            _camera = Camera.main ?? FindFirstObjectByType<Camera>();
+            _camera = Camera.main ?? FindAnyObjectByType<Camera>();
 
             if (string.IsNullOrEmpty(_objectId))
             {
@@ -1057,7 +1057,7 @@ namespace Systems.SceneSandbox.Core
                 if (Time.realtimeSinceStartup - _lastCameraSearchTime > k_CameraSearchInterval)
                 {
                     _lastCameraSearchTime = Time.realtimeSinceStartup;
-                    _camera = Camera.main ?? FindFirstObjectByType<Camera>();
+                    _camera = Camera.main ?? FindAnyObjectByType<Camera>();
                 }
 
                 if (_camera == null)

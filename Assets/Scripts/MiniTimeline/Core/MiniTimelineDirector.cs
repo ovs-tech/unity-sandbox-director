@@ -418,7 +418,7 @@ namespace Systems.MiniTimeline.Core
                 return GamePersistenceManager.Current;
             }
 
-            return FindFirstObjectByType<GamePersistenceManager>();
+            return FindAnyObjectByType<GamePersistenceManager>();
         }
 
         /// <summary>

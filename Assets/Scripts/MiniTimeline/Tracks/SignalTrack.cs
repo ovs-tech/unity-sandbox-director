@@ -40,7 +40,7 @@ namespace Systems.MiniTimeline.Tracks
 		protected override void OnEvaluate(float time, bool scrub)
 		{
 			// Get the director to access previous time
-			var director = UnityEngine.Object.FindFirstObjectByType<MiniTimelineDirector>();
+			var director = UnityEngine.Object.FindAnyObjectByType<MiniTimelineDirector>();
 			if (director == null) return;
 
 			float previousTime = director.PreviousTime;

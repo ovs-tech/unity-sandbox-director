@@ -176,10 +176,10 @@ namespace PlacementSystem.Tests
 
             // Act
             controller.StartPlacement();
-            int countAfterFirst = Object.FindObjectsByType<GameObject>(FindObjectsSortMode.None).Length;
+            int countAfterFirst = Object.FindObjectsByType<GameObject>().Length;
             
             controller.StartPlacement(); // Second call should be ignored
-            int countAfterSecond = Object.FindObjectsByType<GameObject>(FindObjectsSortMode.None).Length;
+            int countAfterSecond = Object.FindObjectsByType<GameObject>().Length;
         
             // Assert
             Assert.AreEqual(countAfterFirst, countAfterSecond, "Multiple start calls should not create multiple ghosts");

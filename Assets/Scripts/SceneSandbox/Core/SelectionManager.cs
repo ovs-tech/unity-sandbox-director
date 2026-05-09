@@ -36,7 +36,9 @@ namespace Systems.SceneSandbox.Core
 
         // Transform mode state
         private readonly List<TransformableItem> _activeTransformItems = new List<TransformableItem>();
+#pragma warning disable CS0414
         private TransformableItem _currentActiveTransformItem;
+#pragma warning restore CS0414
 
         // Properties
         public bool AutoEditOnSelect => _autoEditOnSelect;

@@ -35,7 +35,7 @@ namespace Systems.Inventory
             if (invData == null) return;
 
             // Bind to all inventory instances in scene
-            var inventories = UnityEngine.Object.FindObjectsByType<Inventory>(UnityEngine.FindObjectsSortMode.None);
+            var inventories = UnityEngine.Object.FindObjectsByType<Inventory>();
             foreach (var inv in inventories)
             {
                 inv.Bind(invData);

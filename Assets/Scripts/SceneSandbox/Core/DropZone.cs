@@ -168,7 +168,7 @@ namespace Systems.SceneSandbox.Core
             else
             {
                 // Use the screen position to calculate world position
-                Camera camera = Camera.main ?? FindFirstObjectByType<Camera>();
+                Camera camera = Camera.main ?? FindAnyObjectByType<Camera>();
                 if (camera != null)
                 {
                     Ray ray = camera.ScreenPointToRay(screenPosition);

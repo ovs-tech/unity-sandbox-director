@@ -3,27 +3,9 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 
-public class TabView : VisualElement
+[UxmlElement]
+public partial class TabView : VisualElement
 {
-  public new class UxmlFactory : UxmlFactory<TabView, UxmlTraits> { }
-  public new class UxmlTraits : VisualElement.UxmlTraits
-  {
-    UxmlChildElementDescription allowedChildren = new UxmlChildElementDescription(typeof(TabElement));
-    public override IEnumerable<UxmlChildElementDescription> uxmlChildElementsDescription
-    {
-      get
-      {
-        yield return allowedChildren;
-      }
-    }
-
-    public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
-    {
-      base.Init(ve, bag, cc);
-      TabView tab = ve as TabView;
-      tab.CheckForTabs();
-    }
-  }
   
   private const string USS_PATH = "Core/UI/Core/Components/TabView/TabView";
 

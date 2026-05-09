@@ -14,8 +14,10 @@ namespace Systems.PlacementSystem.Strategies
         [SerializeField, Tooltip("Offset from surface (useful to prevent z-fighting)")]
         private float _surfaceOffset = 0.05f;
 
+#pragma warning disable CS0414
         [SerializeField, Tooltip("Align to surface normal")]
         private bool _alignToSurface = false;
+#pragma warning restore CS0414
 
         public override Vector3 CalculatePosition(Vector3 rawWorldPos, GameObject ghostObject)
         {

@@ -118,7 +118,7 @@ namespace Systems.PlacementSystem.Sockets
             _registeredSockets.Clear();
 
             // Find all Socket components in the scene
-            _registeredSockets.AddRange(FindObjectsByType<Socket>(FindObjectsSortMode.None));
+            _registeredSockets.AddRange(FindObjectsByType<Socket>());
 
             _socketsCached = true;
         }

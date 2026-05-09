@@ -280,7 +280,7 @@ namespace Systems.MiniTimeline.Core
         /// <returns>All BindableObject components found in the scene</returns>
         public static BindableObject[] DiscoverAll()
         {
-            return Object.FindObjectsByType<BindableObject>(FindObjectsSortMode.None);
+            return Object.FindObjectsByType<BindableObject>();
         }
         
         /// <summary>
@@ -290,7 +290,7 @@ namespace Systems.MiniTimeline.Core
         /// <returns>BindableObject components that have any of the specified tags</returns>
         public static BindableObject[] DiscoverByTags(params string[] tags)
         {
-            var allBindables = Object.FindObjectsByType<BindableObject>(FindObjectsSortMode.None);
+            var allBindables = Object.FindObjectsByType<BindableObject>();
             return allBindables.Where(b => b.HasAnyTag(tags)).ToArray();
         }
         

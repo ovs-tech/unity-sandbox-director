@@ -221,7 +221,7 @@ namespace Systems.PlacementSystem.Examples
             }
 
             // Register with SnapManager (create one if missing)
-            var snapManager = FindFirstObjectByType<SnapManager>();
+            var snapManager = FindAnyObjectByType<SnapManager>();
             if (snapManager == null)
             {
                 var smObj = new GameObject("SnapManager");

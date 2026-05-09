@@ -68,8 +68,10 @@ namespace Systems.SceneSandbox.Core
         [Header("Raycast & Input Settings")]
         [SerializeField] private float _maxRaycastDistance = 1000f;
         [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0052:Remove unread private members")]
+#pragma warning disable CS0414
         [SerializeField] private float _dragThreshold = 5f;
         [SerializeField] private float _doubleClickTime = 0.3f;
+#pragma warning restore CS0414
         [SerializeField] private bool _enableHotkeys = true;
 
         [Header("Placement Settings")]
@@ -94,11 +96,13 @@ namespace Systems.SceneSandbox.Core
 
         [Header("Placement Preview Settings")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0052:Remove unread private members")]
+#pragma warning disable CS0414
         [SerializeField] private bool _showGridSnapIndicator = true;
         [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0052:Remove unread private members")]
         [SerializeField] private bool _showSurfaceNormal = true;
         [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0052:Remove unread private members")]
         [SerializeField] private float _surfaceNormalLength = 1f;
+#pragma warning restore CS0414
 
         [Header("Selection & Edit Settings")]
         [SerializeField] private bool _autoEditOnSelect = true; // Auto start edit mode when object selected
@@ -113,9 +117,11 @@ namespace Systems.SceneSandbox.Core
         [SerializeField] private int _placementCost = 10; // Placeholder for future resource system
 
         [Header("Transform Input Settings")]
+#pragma warning disable CS0414
         [SerializeField] private float _rotationSensitivity = 1.0f; // Degrees per pixel
         [SerializeField] private float _scaleSensitivity = 0.01f; // Scale units per pixel
         [SerializeField] private float _scrollScaleSensitivity = 0.1f; // Scale units per scroll notch
+#pragma warning restore CS0414
         [SerializeField] private float _rotationSnapDegrees = 15f; // Snap increment for rotation when grid snapping is enabled
         [SerializeField] private Vector3 _minScale = new Vector3(0.1f, 0.1f, 0.1f);
         [SerializeField] private Vector3 _maxScale = new Vector3(10f, 10f, 10f);
@@ -457,7 +463,7 @@ namespace Systems.SceneSandbox.Core
         private void InitializeComponents()
         {
             // Get or create scene camera
-            _sceneCamera = Camera.main ?? FindFirstObjectByType<Camera>();
+            _sceneCamera = Camera.main ?? FindAnyObjectByType<Camera>();
 
             // Create scene root if not assigned
             if (_sceneRoot == null)

@@ -511,14 +511,14 @@ namespace Systems.MiniTimeline.UI.FormDefinitions
             var bindingKeys = new List<string>();
             
             // Try to get binding context from the current timeline director
-            var director = UnityEngine.Object.FindFirstObjectByType<MiniTimelineDirector>();
+            var director = UnityEngine.Object.FindAnyObjectByType<MiniTimelineDirector>();
             if (director?.BindingContext != null)
             {
                 bindingKeys.AddRange(director.BindingContext.GetKeys());
             }
             
             // Also check for BindableObjects in the scene to suggest their type names
-            var bindableObjects = UnityEngine.Object.FindObjectsByType<BindableObject>(UnityEngine.FindObjectsSortMode.None);
+            var bindableObjects = UnityEngine.Object.FindObjectsByType<BindableObject>();
             foreach (var bindableObj in bindableObjects)
             {
                 string typeName = bindableObj.TypeName;

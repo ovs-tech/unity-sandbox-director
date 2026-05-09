@@ -40,7 +40,7 @@ namespace MiniTimeline.Core.Tests
 
             // Ensure singleton-style persistence objects created during a test
             // do not leak into subsequent tests.
-            var managers = Object.FindObjectsByType<GamePersistenceManager>(FindObjectsSortMode.None);
+            var managers = Object.FindObjectsByType<GamePersistenceManager>();
             foreach (var manager in managers)
             {
                 if (manager != null)
@@ -245,7 +245,7 @@ namespace MiniTimeline.Core.Tests
         public void GetProjectsFolder_DoesNotAutoCreatePersistenceManager_InEditMode()
         {
             // Ensure no manager exists at the start of this assertion.
-            var existing = Object.FindObjectsByType<GamePersistenceManager>(FindObjectsSortMode.None);
+            var existing = Object.FindObjectsByType<GamePersistenceManager>();
             foreach (var manager in existing)
             {
                 if (manager != null)
@@ -257,7 +257,7 @@ namespace MiniTimeline.Core.Tests
             string projectsFolder = _director.GetProjectsFolder();
             Assert.IsTrue(string.IsNullOrEmpty(projectsFolder));
 
-            var managersAfter = Object.FindObjectsByType<GamePersistenceManager>(FindObjectsSortMode.None);
+            var managersAfter = Object.FindObjectsByType<GamePersistenceManager>();
             Assert.AreEqual(0, managersAfter.Length,
                 "GetProjectsFolder should not auto-create GamePersistenceManager during edit-time calls.");
 

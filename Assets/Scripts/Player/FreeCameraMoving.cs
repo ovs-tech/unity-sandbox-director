@@ -8,7 +8,9 @@ public class FreeCameraMoving : MonoBehaviour
     
     [Header("Free Movement Settings")]
     [SerializeField] private float moveSpeed = 10f;
+#pragma warning disable CS0414
     [SerializeField] private float moveSpeedIncrement = 2.5f;
+#pragma warning restore CS0414
     [SerializeField] private float turboMultiplier = 3f;
     [SerializeField] private float lookSpeedMouse = 4f;
     [SerializeField] private float mouseSensitivityMultiplier = 0.01f;
