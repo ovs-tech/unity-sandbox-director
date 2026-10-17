@@ -1,0 +1,19 @@
+{
+  "name": "com.ovs.paint3d",
+  "version": "0.1.0",
+  "displayName": "Paint3D Core",
+  "description": "GPU accelerated texture painting on 3D meshes, in game and in editor. Supports skinned meshes, seamless UV painting, smart mirroring, undo/redo, automatic save/load, brush modifiers, through/gradual painting and any shader (multi-texture, multi-material). Works on desktop, mobile and WebGL (no compute shaders required).",
+  "unity": "2022.3",
+  "keywords": [
+    "paint",
+    "texture painting",
+    "3d painting",
+    "decal",
+    "skinned mesh"
+  ],
+  "author": {
+    "name": "OVS Tech"
+  },
+  "license": "GPL-3.0-only",
+  "dependencies": {}
+}

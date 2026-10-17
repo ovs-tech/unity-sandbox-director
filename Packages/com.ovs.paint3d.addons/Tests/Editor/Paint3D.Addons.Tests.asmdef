@@ -1,0 +1,25 @@
+{
+    "name": "Paint3D.Addons.Tests",
+    "rootNamespace": "Paint3D.Addons.Tests",
+    "references": [
+        "Paint3D.Core",
+        "Paint3D.Addons",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

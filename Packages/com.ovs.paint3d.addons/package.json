@@ -1,0 +1,24 @@
+{
+  "name": "com.ovs.paint3d.addons",
+  "version": "0.1.0",
+  "displayName": "Paint3D Addons",
+  "description": "Optional painters built on Paint3D Core: decal painting, dynamic (moving brush) painting, particle collision painting, physics collision painting, color counting and VR (XR controller) painting.",
+  "unity": "2022.3",
+  "keywords": [
+    "paint",
+    "decal",
+    "particles",
+    "vr",
+    "color counting"
+  ],
+  "author": {
+    "name": "OVS Tech"
+  },
+  "license": "GPL-3.0-only",
+  "dependencies": {
+    "com.ovs.paint3d": "0.1.0",
+    "com.unity.modules.particlesystem": "1.0.0",
+    "com.unity.modules.physics": "1.0.0",
+    "com.unity.modules.xr": "1.0.0"
+  }
+}

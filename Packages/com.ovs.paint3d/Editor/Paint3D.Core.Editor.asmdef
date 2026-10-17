@@ -1,0 +1,18 @@
+{
+    "name": "Paint3D.Core.Editor",
+    "rootNamespace": "Paint3D.Editing",
+    "references": [
+        "Paint3D.Core"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
